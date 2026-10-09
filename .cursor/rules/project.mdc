@@ -1,0 +1,57 @@
+---
+description: Core rules for the SkinDx Bioc multi-site ecommerce project
+alwaysApply: true
+---
+
+# SkinDx Bioc project rules
+
+Before implementing a task, read the relevant project documents:
+- `docs/PRD.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DESIGN.md`
+- `docs/SECURITY.md`
+- `docs/DO_AND_DONT.md`
+- `docs/API_CONTRACT.md`
+- `docs/DATABASE.md`
+- `docs/TESTING.md`
+
+## Product boundaries
+- `.in` is the ecommerce storefront.
+- `.com` is primarily an informational and enquiry-focused site.
+- Both use one shared Node.js + TypeScript backend and PostgreSQL database.
+- One admin experience manages both sites with explicit role and site permissions.
+- Do not assume site-specific content, prices, or visibility are shared unless the data model says so.
+
+## Technical defaults
+- Next.js App Router + TypeScript for frontends.
+- Express + TypeScript for the API.
+- PostgreSQL + Prisma for persistence.
+- Zod for request and environment validation.
+- shadcn/ui for UI primitives and Lucide React for icons.
+- Axios must use a centralized, typed client per frontend.
+- Cloudinary for managed media; Brevo for transactional email; Razorpay for `.in` payments; Google OAuth/OIDC for Google login.
+
+## Non-negotiable security
+- Never expose secrets to client code or commit real credentials.
+- Enforce authentication, authorization, and site scope on the backend.
+- Never trust client-supplied totals, roles, site access, or payment status.
+- Verify Razorpay signatures and webhooks server-side; make webhook processing idempotent.
+- Verify Google identity tokens server-side.
+- Validate external input and upload restrictions.
+- Do not invent medical/product claims, reviews, certifications, or compliance status.
+
+## Implementation behavior
+- Inspect existing files before editing; preserve established conventions unless they conflict with these rules.
+- Prefer feature-based modules and small, cohesive changes.
+- Do not add dependencies or empty abstractions without a reason.
+- Do not implement a full feature when asked only to scaffold its structure.
+- Add tests for security-sensitive behavior and changed business rules.
+- Run relevant checks and report their actual outcomes; never claim unrun tests passed.
+- If a requirement is ambiguous and materially affects security, money, data integrity, or regulated products, ask before guessing.
+
+
+## Mandatory testing rule
+- Every new API route must include relevant Jest tests in the same change; use Supertest for HTTP/API integration tests.
+- Every new or changed Prisma model must include tests for its repository/service behavior and relevant database constraints/migrations. Do not pretend a model declaration alone needs a meaningless one-to-one unit test.
+- Run relevant tests and report actual results. If tests cannot run, state why; never claim they passed.
+- Never point tests at production. Use a dedicated disposable PostgreSQL test database and mock external providers for unit tests.
