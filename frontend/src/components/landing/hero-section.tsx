@@ -1,22 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BadgePercent, Gift, Package, ShieldCheck } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   hero,
   heroAssociateFallback,
   heroBanners,
   type HeroBanner,
 } from "@/data/landing";
-
-const trustIcons = {
-  gift: Gift,
-  package: Package,
-  badge: BadgePercent,
-  shield: ShieldCheck,
-} as const;
 
 type HeroSectionProps = {
   /** Backend/CMS banners. When empty, the associate-brand fallback is shown. */
@@ -59,35 +49,10 @@ function BackendHeroBanners({ banners }: { banners: HeroBanner[] }) {
 }
 
 function AssociateBrandFallback() {
-  const { trustStrip, title, body, cta, partners } = heroAssociateFallback;
+  const { title, body, cta, partners } = heroAssociateFallback;
 
   return (
     <div className="border-b border-border">
-      <div className="bg-surface">
-        <div className="container-page grid gap-4 py-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
-          {trustStrip.map((item, index) => {
-            const Icon = trustIcons[item.icon];
-            return (
-              <div
-                key={item.title}
-                className="relative flex items-center justify-center gap-2 px-3 py-1"
-              >
-                {index > 0 ? (
-                  <Separator
-                    orientation="vertical"
-                    className="absolute top-1/2 left-0 hidden h-6 -translate-y-1/2 lg:block"
-                  />
-                ) : null}
-                <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                <p className="text-[11px] font-semibold tracking-wide text-foreground uppercase">
-                  {item.title}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       <div className="bg-secondary text-secondary-foreground">
         <div className="container-page grid items-center gap-10 py-12 lg:grid-cols-2 lg:gap-12 lg:py-16">
           <div className="max-w-md">

@@ -60,6 +60,7 @@ export const navLinks = [
   { label: "Categories", href: "/categories" },
   { label: "About", href: "/about" },
   { label: "Blog", href: "/blog" },
+  { label: "FAQs", href: "/faq" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
@@ -94,6 +95,27 @@ export type HeroBanner = {
 /** Backend/CMS hero banners. Empty until the API is wired. */
 export const heroBanners: HeroBanner[] = [];
 
+/** Homepage / storefront promo popup (static until CMS). */
+export const promoPopup = {
+  enabled: true,
+  storageKey: "skindx-promo-popup-dismissed",
+  image: {
+    src: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=900&q=80",
+    alt: "SkinDx skincare products on a clean surface",
+  },
+  leftEyebrow: "SkinDx Bioc",
+  leftTitle: "Discover calm, clear skincare for everyday shelves.",
+  leftBody:
+    "Browse the India catalogue with transparent pricing and pack details — no invented medical claims.",
+  heading: "Explore the SkinDx range",
+  description:
+    "Shop serums, cleansers, and essentials with clear product information. Static promo UI until CMS banners are connected.",
+  cta: {
+    label: "Shop now",
+    href: "/shop",
+  },
+};
+
 export const hero = {
   eyebrow: "Clinical calm for everyday skin",
   title: "SkinDx Bioc",
@@ -112,12 +134,6 @@ export const hero = {
 
 /** Shown only when `heroBanners` (or API banners) is empty. */
 export const heroAssociateFallback = {
-  trustStrip: [
-    { title: "Free gift wrapping", icon: "gift" as const },
-    { title: "Easy & free returns", icon: "package" as const },
-    { title: "Member savings", icon: "badge" as const },
-    { title: "100% secure shopping", icon: "shield" as const },
-  ],
   title: "our associate brand",
   body: "We bridge quality and creativity to bring modern solutions directly to our community.",
   cta: { label: "Explore More", href: "/about" },

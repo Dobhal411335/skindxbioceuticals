@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Facebook, Instagram, Mail, MessageSquare } from "lucide-react";
+import { Globe, Mail, MessageSquare, Share2 } from "lucide-react";
 
 import { OffersBanner } from "@/components/shared/offers-banner";
 import {
@@ -106,8 +106,8 @@ export function FaqPageView() {
               </div>
               <div className="mt-5 flex gap-3 text-muted-foreground">
                 <span className="sr-only">Social links (placeholders)</span>
-                <Facebook className="size-4" aria-hidden />
-                <Instagram className="size-4" aria-hidden />
+                <Share2 className="size-4" aria-hidden />
+                <Globe className="size-4" aria-hidden />
               </div>
             </div>
           </aside>

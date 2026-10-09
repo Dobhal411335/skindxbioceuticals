@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Heart, Search, User } from "lucide-react";
+import { Heart, User } from "lucide-react";
 
 import { HeaderCartButton } from "@/components/layout/header-cart-button";
+import { HeaderSearchButton } from "@/components/layout/header-search-button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -33,7 +33,10 @@ export function SiteHeader() {
           SkinDx
         </Link>
 
-        <NavigationMenu className="hidden max-w-none flex-1 justify-center lg:flex" viewport={false}>
+        <NavigationMenu
+          className="hidden max-w-none flex-1 justify-center lg:flex"
+          viewport={false}
+        >
           <NavigationMenuList className="flex-wrap gap-1">
             {navLinks.map((link) => (
               <NavigationMenuItem key={link.href}>
@@ -50,35 +53,19 @@ export function SiteHeader() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <form
-          className="ml-auto hidden min-w-0 max-w-xs flex-1 items-center gap-0 sm:flex lg:max-w-sm"
-          role="search"
-          action="/shop"
-        >
-          <Input
-            type="search"
-            name="q"
-            placeholder="Search products"
-            className="rounded-r-none"
-            aria-label="Search products"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            className="rounded-l-none"
-            aria-label="Submit search"
-          >
-            <Search className="size-4" />
-          </Button>
-        </form>
-
-        <div className="flex items-center gap-0.5">
+        <div className="ml-auto flex items-center gap-0.5">
+          <HeaderSearchButton />
           <Button variant="ghost" size="icon" asChild>
             <Link href="/account/login" aria-label="Account">
               <User className="size-5" />
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" asChild className="hidden sm:inline-flex">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="hidden sm:inline-flex"
+          >
             <Link href="/wishlist" aria-label="Wishlist">
               <Heart className="size-5" />
             </Link>

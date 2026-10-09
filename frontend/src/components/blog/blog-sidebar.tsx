@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Instagram } from "lucide-react";
+import { Globe, Share2 } from "lucide-react";
 
 import { blogCategories, getRecentBlogPosts } from "@/data/blog";
 
@@ -45,8 +45,8 @@ export function BlogSidebar() {
 
       <div className="flex gap-3 text-muted-foreground">
         <span className="sr-only">Social links (placeholders)</span>
-        <Facebook className="size-4" aria-hidden />
-        <Instagram className="size-4" aria-hidden />
+        <Share2 className="size-4" aria-hidden />
+        <Globe className="size-4" aria-hidden />
       </div>
     </aside>
   );
