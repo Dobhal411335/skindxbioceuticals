@@ -2,6 +2,7 @@ import { OAuth2Client, type TokenPayload } from 'google-auth-library';
 import { Prisma } from '@prisma/client';
 import { env } from '@/config/env';
 import { emailService } from '@/lib/email';
+import { logger } from '@/lib/logger';
 import {
   ConflictError,
   ForbiddenError,
@@ -40,10 +41,26 @@ export class GoogleAuthService {
   }
 
   async authenticateWithCredential(credential: string): Promise<AuthTokensDto> {
-    const identity = await this.verifyGoogleCredential(credential);
-    const user = await this.resolveCustomer(identity);
-    await this.repository.updateLastLogin(user.id);
-    return this.tokens.issueCustomerTokens(user);
+    try {
+      const identity = await this.verifyGoogleCredential(credential);
+      const user = await this.resolveCustomer(identity);
+      await this.repository.updateLastLogin(user.id);
+      logger.info(
+        { event: 'auth.google.success', context: 'AUTH', userId: user.id },
+        'Google sign-in succeeded',
+      );
+      return this.tokens.issueCustomerTokens(user);
+    } catch (error) {
+      logger.warn(
+        {
+          event: 'auth.google.failure',
+          context: 'AUTH',
+          reason: error instanceof Error ? error.name : 'UNKNOWN',
+        },
+        'Google sign-in rejected',
+      );
+      throw error;
+    }
   }
 
   async verifyGoogleCredential(credential: string): Promise<VerifiedGoogleIdentity> {

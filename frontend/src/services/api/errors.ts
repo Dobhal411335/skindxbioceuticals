@@ -11,6 +11,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function isApiError(value: unknown): value is ApiError {
+  return (
+    isRecord(value) &&
+    typeof value.message === "string" &&
+    ("statusCode" in value || "code" in value || "details" in value) &&
+    !("isAxiosError" in value)
+  );
+}
+
 function readErrorBody(data: unknown): ApiErrorBody | null {
   if (!isRecord(data)) {
     return null;
@@ -32,6 +41,11 @@ function readErrorBody(data: unknown): ApiErrorBody | null {
 }
 
 export function toApiError(error: unknown): ApiError {
+  // Axios interceptor already normalizes failures — don't wipe the message.
+  if (isApiError(error)) {
+    return error;
+  }
+
   if (isRecord(error) && "isAxiosError" in error && error.isAxiosError === true) {
     const statusCode =
       isRecord(error.response) && typeof error.response.status === "number"

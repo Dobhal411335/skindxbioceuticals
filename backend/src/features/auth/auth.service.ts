@@ -1,6 +1,7 @@
 import { env } from '@/config/env';
 import { secureCompare, sha256 } from '@/lib/crypto';
 import { emailService } from '@/lib/email';
+import { logger } from '@/lib/logger';
 import { createTokenPair, verifyRefreshToken } from '@/lib/jwt';
 import { comparePassword, hashPassword } from '@/lib/password';
 import { expiresAtFromDuration } from '@/lib/tokenExpiry';
@@ -93,19 +94,45 @@ export class AuthService {
     const user = await this.repository.findByEmail(input.email);
 
     if (!user || !ADMIN_ROLES.has(user.role) || !user.passwordHash) {
+      logger.warn(
+        { event: 'auth.admin_login.failure', context: 'AUTH', reason: 'INVALID_CREDENTIALS' },
+        'Admin login rejected',
+      );
       throw new UnauthorizedError('Invalid email or password');
     }
 
     if (user.status !== 'ACTIVE') {
+      logger.warn(
+        {
+          event: 'auth.admin_login.failure',
+          context: 'AUTH',
+          reason: 'ACCOUNT_INACTIVE',
+          userId: user.id,
+        },
+        'Admin login rejected',
+      );
       throw new ForbiddenError('Account is not active');
     }
 
     const passwordValid = await comparePassword(input.password, user.passwordHash);
     if (!passwordValid) {
+      logger.warn(
+        {
+          event: 'auth.admin_login.failure',
+          context: 'AUTH',
+          reason: 'INVALID_CREDENTIALS',
+          userId: user.id,
+        },
+        'Admin login rejected',
+      );
       throw new UnauthorizedError('Invalid email or password');
     }
 
     await this.repository.updateLastLogin(user.id);
+    logger.info(
+      { event: 'auth.admin_login.success', context: 'AUTH', userId: user.id },
+      'Admin login succeeded',
+    );
     return this.issueTokens(user);
   }
 
@@ -125,7 +152,9 @@ export class AuthService {
         throw new ForbiddenError('Account is not active');
       }
 
-      const hasGoogle = existing.externalIdentities.some((identity) => identity.provider === 'GOOGLE');
+      const hasGoogle = existing.externalIdentities.some(
+        (identity) => identity.provider === 'GOOGLE',
+      );
       if (hasGoogle && !existing.passwordHash) {
         throw new ConflictError(
           'An account with this email already exists. Sign in with Google instead.',
@@ -143,6 +172,10 @@ export class AuthService {
           lastName,
         });
         await this.issueAndSendVerificationOtp(user);
+        logger.info(
+          { event: 'auth.register.success', context: 'AUTH', userId: user.id },
+          'Customer registration pending verification',
+        );
         return { verificationRequired: true, email: user.email };
       }
 
@@ -157,6 +190,10 @@ export class AuthService {
     });
 
     await this.issueAndSendVerificationOtp(user);
+    logger.info(
+      { event: 'auth.register.success', context: 'AUTH', userId: user.id },
+      'Customer registration pending verification',
+    );
     return { verificationRequired: true, email: user.email };
   }
 
@@ -171,10 +208,23 @@ export class AuthService {
       user.status === 'SUSPENDED' ||
       user.status === 'INACTIVE'
     ) {
+      logger.warn(
+        { event: 'auth.email_verify.failure', context: 'AUTH', reason: 'INVALID_CODE' },
+        'Email verification rejected',
+      );
       throw new ValidationError('Invalid or expired verification code');
     }
 
     if (user.status === 'ACTIVE' && user.emailVerifiedAt) {
+      logger.warn(
+        {
+          event: 'auth.email_verify.failure',
+          context: 'AUTH',
+          reason: 'ALREADY_VERIFIED',
+          userId: user.id,
+        },
+        'Email verification rejected',
+      );
       throw new ConflictError('Email is already verified. Please sign in.');
     }
 
@@ -184,11 +234,29 @@ export class AuthService {
     );
 
     if (!token || token.expiresAt < new Date()) {
+      logger.warn(
+        {
+          event: 'auth.email_verify.failure',
+          context: 'AUTH',
+          reason: 'EXPIRED_OR_MISSING',
+          userId: user.id,
+        },
+        'Email verification rejected',
+      );
       throw new ValidationError('Invalid or expired verification code');
     }
 
     if (token.attemptCount >= env.OTP_MAX_ATTEMPTS) {
       await this.repository.consumeVerificationToken(token.id);
+      logger.warn(
+        {
+          event: 'auth.email_verify.failure',
+          context: 'AUTH',
+          reason: 'MAX_ATTEMPTS',
+          userId: user.id,
+        },
+        'Email verification rejected',
+      );
       throw new ValidationError('Too many invalid attempts. Please request a new code.');
     }
 
@@ -197,8 +265,26 @@ export class AuthService {
       const attempts = await this.repository.incrementVerificationAttempt(token.id);
       if (attempts >= env.OTP_MAX_ATTEMPTS) {
         await this.repository.consumeVerificationToken(token.id);
+        logger.warn(
+          {
+            event: 'auth.email_verify.failure',
+            context: 'AUTH',
+            reason: 'MAX_ATTEMPTS',
+            userId: user.id,
+          },
+          'Email verification rejected',
+        );
         throw new ValidationError('Too many invalid attempts. Please request a new code.');
       }
+      logger.warn(
+        {
+          event: 'auth.email_verify.failure',
+          context: 'AUTH',
+          reason: 'INVALID_CODE',
+          userId: user.id,
+        },
+        'Email verification rejected',
+      );
       throw new ValidationError('Invalid or expired verification code');
     }
 
@@ -208,12 +294,25 @@ export class AuthService {
     });
 
     if (!activated) {
+      logger.warn(
+        {
+          event: 'auth.email_verify.failure',
+          context: 'AUTH',
+          reason: 'ACTIVATE_FAILED',
+          userId: user.id,
+        },
+        'Email verification rejected',
+      );
       throw new ValidationError('Invalid or expired verification code');
     }
 
     await this.scheduleAndSendWelcomeEmail(activated);
 
     await this.repository.updateLastLogin(activated.id);
+    logger.info(
+      { event: 'auth.email_verify.success', context: 'AUTH', userId: activated.id },
+      'Email verification succeeded',
+    );
     return this.issueCustomerTokens(activated);
   }
 
@@ -253,19 +352,50 @@ export class AuthService {
     const user = await this.repository.findByEmail(email);
 
     if (!user || user.role !== 'CUSTOMER' || !user.passwordHash) {
+      logger.warn(
+        { event: 'auth.login.failure', context: 'AUTH', reason: 'INVALID_CREDENTIALS' },
+        'Login rejected',
+      );
       throw new UnauthorizedError('Invalid email or password');
     }
 
     if (user.status === 'SUSPENDED' || user.status === 'INACTIVE') {
+      logger.warn(
+        {
+          event: 'auth.login.failure',
+          context: 'AUTH',
+          reason: 'ACCOUNT_INACTIVE',
+          userId: user.id,
+        },
+        'Login rejected',
+      );
       throw new ForbiddenError('Account is not active');
     }
 
     const passwordValid = await comparePassword(input.password, user.passwordHash);
     if (!passwordValid) {
+      logger.warn(
+        {
+          event: 'auth.login.failure',
+          context: 'AUTH',
+          reason: 'INVALID_CREDENTIALS',
+          userId: user.id,
+        },
+        'Login rejected',
+      );
       throw new UnauthorizedError('Invalid email or password');
     }
 
     if (user.status === 'PENDING_VERIFICATION' || !user.emailVerifiedAt) {
+      logger.warn(
+        {
+          event: 'auth.login.failure',
+          context: 'AUTH',
+          reason: EMAIL_NOT_VERIFIED_CODE,
+          userId: user.id,
+        },
+        'Login rejected',
+      );
       throw new AppError('Email verification required', 403, {
         code: EMAIL_NOT_VERIFIED_CODE,
         email: user.email,
@@ -273,10 +403,23 @@ export class AuthService {
     }
 
     if (user.status !== 'ACTIVE') {
+      logger.warn(
+        {
+          event: 'auth.login.failure',
+          context: 'AUTH',
+          reason: 'ACCOUNT_INACTIVE',
+          userId: user.id,
+        },
+        'Login rejected',
+      );
       throw new ForbiddenError('Account is not active');
     }
 
     await this.repository.updateLastLogin(user.id);
+    logger.info(
+      { event: 'auth.login.success', context: 'AUTH', userId: user.id },
+      'Login succeeded',
+    );
     return this.issueCustomerTokens(user);
   }
 
@@ -285,6 +428,10 @@ export class AuthService {
     try {
       payload = verifyRefreshToken(input.refreshToken);
     } catch {
+      logger.warn(
+        { event: 'auth.refresh.failure', context: 'AUTH', reason: 'INVALID_TOKEN' },
+        'Refresh token rejected',
+      );
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
 
@@ -292,28 +439,72 @@ export class AuthService {
     const stored = await this.repository.findRefreshTokenByHash(tokenHash);
 
     if (!stored) {
+      logger.warn(
+        { event: 'auth.refresh.failure', context: 'AUTH', reason: 'UNKNOWN_TOKEN' },
+        'Refresh token rejected',
+      );
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
 
     // Reuse of a rotated/revoked refresh token → revoke the entire token family.
     if (stored.revokedAt) {
       await this.repository.revokeAllRefreshTokensForUser(stored.userId);
+      logger.warn(
+        {
+          event: 'auth.refresh.failure',
+          context: 'AUTH',
+          reason: 'TOKEN_REUSE',
+          userId: stored.userId,
+        },
+        'Refresh token rejected',
+      );
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
 
     if (stored.expiresAt < new Date()) {
+      logger.warn(
+        {
+          event: 'auth.refresh.failure',
+          context: 'AUTH',
+          reason: 'EXPIRED',
+          userId: stored.userId,
+        },
+        'Refresh token rejected',
+      );
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
 
     if (stored.userId !== payload.sub) {
+      logger.warn(
+        {
+          event: 'auth.refresh.failure',
+          context: 'AUTH',
+          reason: 'SUBJECT_MISMATCH',
+          userId: stored.userId,
+        },
+        'Refresh token rejected',
+      );
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
 
     if (stored.user.status !== 'ACTIVE') {
+      logger.warn(
+        {
+          event: 'auth.refresh.failure',
+          context: 'AUTH',
+          reason: 'ACCOUNT_INACTIVE',
+          userId: stored.userId,
+        },
+        'Refresh token rejected',
+      );
       throw new ForbiddenError('Account is not permitted');
     }
 
     await this.repository.revokeRefreshToken(tokenHash);
+    logger.info(
+      { event: 'auth.refresh.success', context: 'AUTH', userId: stored.userId },
+      'Refresh token rotated',
+    );
     return this.issueTokens(stored.user);
   }
 
@@ -323,6 +514,7 @@ export class AuthService {
     }
 
     await this.repository.revokeRefreshToken(sha256(refreshToken));
+    logger.info({ event: 'auth.logout.success', context: 'AUTH' }, 'Logout completed');
   }
 
   async me(userId: string): Promise<AuthMeDto> {

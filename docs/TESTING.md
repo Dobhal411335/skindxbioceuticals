@@ -154,6 +154,13 @@ A route, model-backed feature, or behavior change is not done until its tests ar
 - Provider credentials never appear in API responses or logs.
 - Email-provider failure does not corrupt the primary database transaction.
 
+### Logging
+- Unit-test logger configuration by environment, log-level filtering, and sensitive-field redaction (assert passwords/tokens/OTPs are absent from captured output).
+- Unit/API-test request-ID validation/generation, request duration/status logging, exactly-once completion logs, and health-check quietness.
+- Test error-middleware integration: unexpected errors logged once with `requestId`; expected validation/`AppError` cases are not logged as unexpected server failures.
+- Frontend: test Axios interceptor helpers for sanitized routes, cancelled requests, network failures, refresh-retry deduplication, and production suppression of verbose debug logs.
+- Logging failures must never break HTTP handlers or client request behavior. Do not make real network calls in logger unit tests.
+
 ## 6. Test data and isolation
 
 - Use a dedicated test database, never production.

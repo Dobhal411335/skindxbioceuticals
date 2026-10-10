@@ -7,12 +7,39 @@ import {
   deleteMultipleImages,
   UploadOptions,
 } from '../../lib/cloudinary';
+import { logger } from '../../lib/logger';
 import { prisma } from '../../lib/prisma';
 import { MediaType } from '@prisma/client';
 
+async function withMediaUploadLog<T>(
+  kind: string,
+  userId: string,
+  siteCode: string | undefined,
+  operation: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    logger.error(
+      {
+        event: 'media.upload.failure',
+        context: 'MEDIA',
+        kind,
+        userId,
+        siteCode,
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+      },
+      'Cloudinary upload failed',
+    );
+    throw error;
+  }
+}
+
 export class MediaService {
   static async uploadImage(file: Express.Multer.File, options: UploadOptions, userId: string) {
-    const result = await uploadSingleImage(file, options);
+    const result = await withMediaUploadLog('image', userId, options.siteCode, () =>
+      uploadSingleImage(file, options),
+    );
 
     const site = await prisma.site.findUnique({
       where: { code: options.siteCode },
@@ -41,7 +68,9 @@ export class MediaService {
   }
 
   static async uploadVideo(file: Express.Multer.File, options: UploadOptions, userId: string) {
-    const result = await uploadSingleVideo(file, options);
+    const result = await withMediaUploadLog('video', userId, options.siteCode, () =>
+      uploadSingleVideo(file, options),
+    );
 
     const site = await prisma.site.findUnique({
       where: { code: options.siteCode },
@@ -69,7 +98,9 @@ export class MediaService {
   }
 
   static async uploadDocument(file: Express.Multer.File, options: UploadOptions, userId: string) {
-    const result = await uploadSinglePdf(file, options);
+    const result = await withMediaUploadLog('document', userId, options.siteCode, () =>
+      uploadSinglePdf(file, options),
+    );
 
     const site = await prisma.site.findUnique({
       where: { code: options.siteCode },
@@ -100,7 +131,9 @@ export class MediaService {
     options: UploadOptions,
     userId: string,
   ) {
-    const bulkResult = await uploadMultipleImages(files, options);
+    const bulkResult = await withMediaUploadLog('image_bulk', userId, options.siteCode, () =>
+      uploadMultipleImages(files, options),
+    );
 
     const site = await prisma.site.findUnique({
       where: { code: options.siteCode },
@@ -143,7 +176,20 @@ export class MediaService {
     }
 
     if (media.publicId) {
-      await deleteSingleImage(media.publicId);
+      try {
+        await deleteSingleImage(media.publicId);
+      } catch (error) {
+        logger.error(
+          {
+            event: 'media.delete.failure',
+            context: 'MEDIA',
+            mediaId,
+            errorName: error instanceof Error ? error.name : 'UnknownError',
+          },
+          'Cloudinary delete failed',
+        );
+        throw error;
+      }
     }
 
     await prisma.media.delete({
@@ -154,7 +200,21 @@ export class MediaService {
   }
 
   static async deleteMediaBulk(publicIds: string[]) {
-    const result = await deleteMultipleImages(publicIds);
+    let result;
+    try {
+      result = await deleteMultipleImages(publicIds);
+    } catch (error) {
+      logger.error(
+        {
+          event: 'media.delete.failure',
+          context: 'MEDIA',
+          count: publicIds.length,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        },
+        'Cloudinary bulk delete failed',
+      );
+      throw error;
+    }
 
     if (result.deleted.length > 0) {
       await prisma.media.deleteMany({

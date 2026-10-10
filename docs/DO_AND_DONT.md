@@ -45,6 +45,13 @@ These rules apply to frontend, backend, admin, tests, and documentation. If a ta
 - DO log important admin changes without logging secrets or unnecessary personal data.
 - DO ask for clarification when product regulation, shipping, tax, refunds, or business rules are unknown.
 
+### Logging
+- DO use the centralized backend logger (`backend/src/lib/logger`) for application events and errors.
+- DO use each frontend’s centralized logger (`src/lib/logger`) and Axios interceptors for client HTTP logging.
+- DO use structured event names (for example `auth.login.failure`, `media.upload.failure`) and include a validated `requestId` when available.
+- DO choose the correct severity (`debug` / `info` / `warn` / `error` / `fatal`) and avoid duplicate logs of the same failure across layers.
+- DO keep health-check and routine success noise out of production info-level logs.
+
 ## DON'T
 
 ### Security and data
@@ -57,7 +64,9 @@ These rules apply to frontend, backend, admin, tests, and documentation. If a ta
 - DON'T allow an admin to edit both sites unless their permissions allow it.
 - DON'T return one customer's private records to another customer.
 - DON'T store passwords in plaintext or long-lived sensitive tokens in localStorage.
-- DON'T log passwords, access tokens, payment secrets, or full sensitive payloads.
+- DON'T log passwords, access tokens, payment secrets, OTPs, or full sensitive payloads.
+- DON'T introduce scattered `console.log()` / `console.error()` calls in application code when the centralized logger applies (CLI bootstraps and intentional test harness output may remain).
+- DON'T log complete request/response bodies, Authorization headers, cookies, or Axios config objects.
 - DON'T accept arbitrary file uploads or unrestricted upload credentials.
 
 ### Code quality
@@ -120,6 +129,8 @@ After coding:
 | Transactional email | Brevo |
 | Payments | Razorpay |
 | Google login | OAuth 2.0 / OpenID Connect |
+| Backend logging | Pino (+ `pino-pretty` in local development) |
+| Frontend logging | Small typed `src/lib/logger` per Next.js app |
 | Testing | Choose and standardize a test runner before adding many tests |
 
 These are defaults, not permission to use an integration insecurely. Read the provider's current documentation when implementing provider-specific flows.

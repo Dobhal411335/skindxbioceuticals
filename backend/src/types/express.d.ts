@@ -17,6 +17,8 @@ declare global {
     interface Request {
       user?: AuthUser;
       site?: RequestSite;
+      /** Validated or server-generated correlation ID for this request. */
+      requestId?: string;
     }
   }
 }

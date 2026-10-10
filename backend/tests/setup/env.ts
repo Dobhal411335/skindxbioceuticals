@@ -9,6 +9,7 @@ dotenv.config();
 process.env.NODE_ENV = 'test';
 process.env.PORT = process.env.PORT ?? '5001';
 process.env.API_PREFIX = process.env.API_PREFIX ?? '/api/v1';
+process.env.LOG_LEVEL = process.env.LOG_LEVEL ?? 'silent';
 process.env.JWT_ACCESS_SECRET =
   process.env.JWT_ACCESS_SECRET ?? 'test-access-secret-min-32-characters!!';
 process.env.JWT_REFRESH_SECRET =

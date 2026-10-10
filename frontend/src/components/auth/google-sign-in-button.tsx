@@ -1,9 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AlertCircle } from "lucide-react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getAuthErrorMessage } from "@/features/auth/auth-errors";
 import { authService } from "@/features/auth/auth.service";
 import { getSafeRedirectPath } from "@/features/auth/auth.validation";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
@@ -14,6 +18,8 @@ type GoogleSignInButtonProps = {
   /** Google Identity Services button text mode */
   text?: "signin_with" | "signup_with" | "continue_with" | "signin";
   className?: string;
+  /** Where the user is (affects helper links in conflict messages) */
+  context?: "login" | "register";
 };
 
 /**
@@ -24,21 +30,25 @@ type GoogleSignInButtonProps = {
 export function GoogleSignInButton({
   text = "continue_with",
   className,
+  context = "login",
 }: GoogleSignInButtonProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusCode, setStatusCode] = useState<number | null>(null);
 
   const handleSuccess = async (response: CredentialResponse) => {
     if (!response.credential) {
       setError("Google did not return a valid credential. Please try again.");
+      setStatusCode(null);
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setStatusCode(null);
 
     try {
       const data = await authService.signInWithGoogle(response.credential);
@@ -53,11 +63,19 @@ export function GoogleSignInButton({
       router.replace(redirectTo);
     } catch (err) {
       const apiError = toApiError(err);
-      setError(apiError.message || "Unable to sign in with Google. Please try again.");
+      setStatusCode(apiError.statusCode);
+      setError(
+        getAuthErrorMessage(
+          apiError,
+          "Unable to sign in with Google. Please try again.",
+        ),
+      );
     } finally {
       setIsLoading(false);
     }
   };
+
+  const showPasswordHint = statusCode === 409;
 
   return (
     <div className={className} data-testid="google-sign-in">
@@ -70,6 +88,7 @@ export function GoogleSignInButton({
             void handleSuccess(credentialResponse);
           }}
           onError={() => {
+            setStatusCode(null);
             setError("Google sign-in was cancelled or failed. Please try again.");
           }}
           useOneTap={false}
@@ -87,13 +106,30 @@ export function GoogleSignInButton({
         </p>
       ) : null}
       {error ? (
-        <p
-          className="mt-2 text-center text-xs text-destructive"
-          role="alert"
-          data-testid="google-error"
-        >
-          {error}
-        </p>
+        <Alert variant="destructive" className="mt-3" data-testid="google-error">
+          <AlertCircle />
+          <AlertTitle>
+            {statusCode === 409 ? "Account already exists" : "Google sign-in failed"}
+          </AlertTitle>
+          <AlertDescription>
+            <p>{error}</p>
+            {showPasswordHint ? (
+              <p className="mt-2">
+                {context === "register" ? (
+                  <>
+                    Already registered with email and password?{" "}
+                    <Link href="/account/login" className="font-medium text-foreground">
+                      Sign in here
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  <>Use your email and password above, then you can link Google later from account settings.</>
+                )}
+              </p>
+            ) : null}
+          </AlertDescription>
+        </Alert>
       ) : null}
     </div>
   );

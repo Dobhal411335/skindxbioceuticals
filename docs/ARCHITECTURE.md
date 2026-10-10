@@ -66,6 +66,7 @@ apps/api/src/
 │   └── env.ts
 ├── lib/
 │   ├── prisma.ts
+│   ├── logger/                 # Pino structured logger, redaction, request ID middleware
 │   └── integrations/
 │       ├── razorpay.client.ts
 │       ├── brevo.client.ts
@@ -113,7 +114,7 @@ Route → middleware → controller → service → repository → Prisma → Po
 ```
 
 - **Route:** URL, HTTP method, and middleware composition.
-- **Middleware:** authentication, authorization, site context, validation, rate limiting.
+- **Middleware:** authentication, authorization, site context, validation, rate limiting, request logging.
 - **Controller:** translate HTTP request/response; no business rules or direct database queries.
 - **Service:** business rules and transaction coordination.
 - **Repository:** database persistence/query logic through Prisma.
@@ -121,6 +122,24 @@ Route → middleware → controller → service → repository → Prisma → Po
 - **Schema:** validate untrusted request input with Zod.
 
 Avoid unnecessary repository wrappers for trivial queries if they add no testability or separation. Keep consistency within each feature.
+
+### Logging architecture
+
+**Current repository layout** uses `backend/`, `frontend/` (`.in` storefront), and `admin/` (not the aspirational `apps/*` tree above). Apply the same logging pattern when a `.com` Next.js app is added.
+
+**Backend (`backend/src/lib/logger/`):**
+- Pino structured logger with service name `skindx-api` and environment bindings.
+- Development: readable `pino-pretty` output. Test: quiet (`LOG_LEVEL=silent` by default). Production: JSON to stdout.
+- `requestLoggerMiddleware` validates/generates `X-Request-Id`, measures duration, and logs each completed HTTP request once (health checks at debug).
+- Error middleware logs unexpected failures once with stack + `requestId`; expected `AppError` / validation failures are not treated as unexpected server errors.
+- Business/integration code logs named lifecycle events (auth, email, media failures) without secrets or full payloads.
+
+**Frontend (`frontend/src/lib/logger/`, `admin/src/lib/logger/`):**
+- Small typed console logger; production suppresses `debug` by default.
+- Axios interceptors on the centralized client attach `X-Request-Id`, measure duration, and log safe success/failure metadata (no bodies, tokens, or Authorization headers).
+- Refresh-token retries must not produce duplicate failure logs; cancelled requests are not unexpected errors.
+
+**Correlation:** Frontend forwards `X-Request-Id`; backend validates or replaces it, returns it on the response, and includes it in request/error logs and error JSON when available.
 
 ## 5. Frontend structure
 
@@ -149,7 +168,8 @@ src/
 
 - Use App Router layouts and server components by default.
 - Add `"use client"` only where browser interactivity is required.
-- Keep Axios configuration centralized.
+- Keep Axios configuration centralized and attach logging/correlation through interceptors only.
+- Keep the frontend logger under `src/lib/logger` (never import the backend Pino logger into browser bundles).
 - Use Redux Toolkit for client-owned state such as cart UI state or session-related UI state when needed.
 - Consider TanStack Query for remote/server data caching; do not mirror every API response in Redux.
 - Keep feature-specific API functions, types, and UI near the feature when practical.
@@ -202,7 +222,7 @@ This is a conceptual starting point, not a final Prisma schema. Confirm pricing,
 - Validate required environment variables at startup.
 - Use managed secrets in deployed environments.
 - Apply migrations deliberately during deployment; do not auto-reset or destructively migrate production.
-- Configure backups, restore tests, health checks, structured logs, error monitoring, and uptime alerts.
+- Configure backups, restore tests, health checks, structured logs (`LOG_LEVEL`), error monitoring, and uptime alerts.
 - Configure CORS with explicit allowed origins; do not use wildcard origins with credentialed requests.
 - Use HTTPS everywhere outside local development.
 

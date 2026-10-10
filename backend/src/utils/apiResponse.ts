@@ -12,6 +12,7 @@ export interface ApiErrorResponse {
   message: string;
   errors?: unknown;
   stack?: string;
+  requestId?: string;
 }
 
 export function sendSuccess<T>(
@@ -30,11 +31,7 @@ export function sendSuccess<T>(
   return res.status(statusCode).json(body);
 }
 
-export function sendCreated<T>(
-  res: Response,
-  data: T,
-  message = 'Created successfully',
-): Response {
+export function sendCreated<T>(res: Response, data: T, message = 'Created successfully'): Response {
   return sendSuccess(res, data, message, 201);
 }
 
@@ -48,12 +45,14 @@ export function sendError(
   statusCode = 500,
   errors?: unknown,
   stack?: string,
+  requestId?: string,
 ): Response {
   const body: ApiErrorResponse = {
     success: false,
     message,
     ...(errors !== undefined ? { errors } : {}),
     ...(stack ? { stack } : {}),
+    ...(requestId ? { requestId } : {}),
   };
   return res.status(statusCode).json(body);
 }

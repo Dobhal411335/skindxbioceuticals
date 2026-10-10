@@ -94,20 +94,22 @@ describe("GoogleSignInButton", () => {
     expect(await screen.findByTestId("google-error")).toHaveTextContent(/cancelled or failed/i);
   });
 
-  it("shows a backend error message", async () => {
+  it("shows a backend conflict message for an existing email", async () => {
     const user = userEvent.setup();
     signInWithGoogleMock.mockRejectedValue({
-      isAxiosError: true,
-      message: "Conflict",
-      response: { status: 409, data: { message: "An account with this email already exists." } },
+      message:
+        "An account with this email already exists. Sign in with your password, then link Google from account settings.",
+      statusCode: 409,
+      code: null,
+      details: null,
     });
 
     renderButton();
     await user.click(screen.getByRole("button", { name: /continue with google/i }));
 
-    expect(await screen.findByTestId("google-error")).toHaveTextContent(
-      /account with this email already exists/i,
-    );
+    const alert = await screen.findByTestId("google-error");
+    expect(alert).toHaveTextContent(/account already exists/i);
+    expect(alert).toHaveTextContent(/sign in with your password/i);
   });
 
   it("stores credentials and redirects safely after backend success", async () => {

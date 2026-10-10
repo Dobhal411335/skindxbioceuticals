@@ -30,6 +30,7 @@ Before implementing a task, read the relevant project documents:
 - shadcn/ui for UI primitives and Lucide React for icons.
 - Axios must use a centralized, typed client per frontend.
 - Cloudinary for managed media; Brevo for transactional email; Razorpay for `.in` payments; Google OAuth/OIDC for Google login.
+- Use the centralized logger for API routes, services, authentication, integrations, and other significant business operations (`backend/src/lib/logger`; each Next.js app’s `src/lib/logger` + Axios interceptors). Do not scatter `console.log` in application code or log secrets, tokens, OTPs, or full request/response payloads.
 
 ## Non-negotiable security
 - Never expose secrets to client code or commit real credentials.
@@ -53,5 +54,6 @@ Before implementing a task, read the relevant project documents:
 ## Mandatory testing rule
 - Every new API route must include relevant Jest tests in the same change; use Supertest for HTTP/API integration tests.
 - Every new or changed Prisma model must include tests for its repository/service behavior and relevant database constraints/migrations. Do not pretend a model declaration alone needs a meaningless one-to-one unit test.
+- Logger, redaction, request middleware, Axios interceptors, and error-handler logging changes must include tests that assert secrets never appear in captured logs.
 - Run relevant tests and report actual results. If tests cannot run, state why; never claim they passed.
 - Never point tests at production. Use a dedicated disposable PostgreSQL test database and mock external providers for unit tests.

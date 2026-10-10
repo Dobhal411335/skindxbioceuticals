@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { getBrevoEmailConfig } from './email.config';
 import { EmailProviderError } from './email.errors';
 import type {
@@ -58,10 +59,15 @@ export class BrevoEmailClient {
         const errorBody = await this.safeParseJson<BrevoApiErrorBody>(response);
         const providerCode = errorBody?.code ?? `http_${response.status}`;
         // Do not log API keys or full email payloads
-        console.error('Brevo email submission failed', {
-          status: response.status,
-          providerCode,
-        });
+        logger.error(
+          {
+            event: 'email.send.failure',
+            context: 'EMAIL',
+            status: response.status,
+            providerCode,
+          },
+          'Brevo email submission failed',
+        );
         return {
           submitted: false,
           errorCode: providerCode,
@@ -76,7 +82,10 @@ export class BrevoEmailClient {
       };
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        console.error('Brevo email request timed out');
+        logger.error(
+          { event: 'email.send.failure', context: 'EMAIL', reason: 'timeout' },
+          'Brevo email request timed out',
+        );
         return {
           submitted: false,
           errorCode: 'timeout',
@@ -84,9 +93,15 @@ export class BrevoEmailClient {
         };
       }
 
-      console.error('Brevo email request failed', {
-        name: error instanceof Error ? error.name : 'UnknownError',
-      });
+      logger.error(
+        {
+          event: 'email.send.failure',
+          context: 'EMAIL',
+          reason: 'network_error',
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        },
+        'Brevo email request failed',
+      );
       return {
         submitted: false,
         errorCode: 'network_error',

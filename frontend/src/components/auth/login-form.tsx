@@ -6,11 +6,13 @@ import { Suspense, useState } from "react";
 import { Eye, EyeOff, UserRound, X } from "lucide-react";
 
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { getAuthErrorMessage } from "@/features/auth/auth-errors";
 import { authService } from "@/features/auth/auth.service";
 import {
   getSafeRedirectPath,
@@ -84,7 +86,9 @@ function LoginFormInner({ variant = "page" }: LoginFormProps) {
         );
         return;
       }
-      setFormError(apiError.message || "Invalid email or password.");
+      setFormError(
+        getAuthErrorMessage(apiError, "Invalid email or password."),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -174,9 +178,9 @@ function LoginFormInner({ variant = "page" }: LoginFormProps) {
         </div>
 
         {formError ? (
-          <p className="text-sm text-destructive" role="alert">
-            {formError}
-          </p>
+          <Alert variant="destructive" data-testid="login-error">
+            <AlertDescription>{formError}</AlertDescription>
+          </Alert>
         ) : null}
 
         <Button
@@ -221,7 +225,7 @@ function LoginFormInner({ variant = "page" }: LoginFormProps) {
             </div>
           }
         >
-          <GoogleSignInButton text="signin_with" />
+          <GoogleSignInButton text="signin_with" context="login" />
         </Suspense>
       </div>
 

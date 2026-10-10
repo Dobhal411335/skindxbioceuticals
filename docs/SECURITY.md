@@ -130,6 +130,15 @@ Support email/password authentication and Google sign-in/sign-up.
 - Redact sensitive fields in logs and error monitoring.
 - Apply database migrations deliberately; prohibit destructive reset commands against production.
 
+### Logging and redaction
+
+- Backend logging uses Pino with a shared redaction policy (`backend/src/lib/logger`). Frontends use a small typed logger plus Axios interceptors with the same field categories.
+- Always omit or redact: passwords, OTPs/verification codes, access/refresh tokens, Authorization/cookie headers, API keys/client secrets, bootstrap secrets, and sensitive payment/identity fields.
+- Prefer logging events and safe metadata over arbitrary request/response payloads. Sanitize URLs/query strings that may contain credentials.
+- Unexpected server errors may include stack traces in protected server logs only; production clients receive generic messages plus a correlation `requestId` / `X-Request-Id` when available.
+- Never log `.env` contents. Do not expose private logging configuration through unnecessary `NEXT_PUBLIC_` variables.
+- Production frontend logs suppress verbose debug output by default.
+
 ## 11. Required security tests before launch
 
 - Customer cannot read another customer's profile, address, cart, or order.

@@ -6,14 +6,15 @@ import { Suspense, useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { getAuthErrorMessage } from "@/features/auth/auth-errors";
 import { authService } from "@/features/auth/auth.service";
 import { registerFormSchema } from "@/features/auth/auth.validation";
-import { toApiError } from "@/services/api/errors";
 
 export function SignupForm() {
   const router = useRouter();
@@ -64,8 +65,12 @@ export function SignupForm() {
         `/account/verify-email?email=${encodeURIComponent(result.email)}`,
       );
     } catch (error) {
-      const apiError = toApiError(error);
-      setFormError(apiError.message || "Unable to create your account. Please try again.");
+      setFormError(
+        getAuthErrorMessage(
+          error,
+          "Unable to create your account. Please try again.",
+        ),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -226,9 +231,9 @@ export function SignupForm() {
         </div>
 
         {formError ? (
-          <p className="text-sm text-destructive" role="alert">
-            {formError}
-          </p>
+          <Alert variant="destructive" data-testid="signup-error">
+            <AlertDescription>{formError}</AlertDescription>
+          </Alert>
         ) : null}
 
         <Button
@@ -256,7 +261,7 @@ export function SignupForm() {
           </div>
         }
       >
-        <GoogleSignInButton text="signup_with" />
+        <GoogleSignInButton text="signup_with" context="register" />
       </Suspense>
       <p className="mt-3 text-center text-xs text-muted-foreground">
         Google identity tokens are verified on the server before your session is created.
