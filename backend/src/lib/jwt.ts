@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { env } from '@/config/env';
 import type { JwtPayload, TokenPair } from '@/types/common';
@@ -7,13 +8,14 @@ import type { JwtPayload, TokenPair } from '@/types/common';
  * Auth business rules live in features/auth.
  */
 export function signAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
+  return jwt.sign({ ...payload, jti: randomUUID() }, env.JWT_ACCESS_SECRET, {
     expiresIn: env.JWT_ACCESS_EXPIRES_IN,
   } as jwt.SignOptions);
 }
 
 export function signRefreshToken(payload: JwtPayload): string {
-  return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
+  // Unique jti ensures refresh token hashes never collide within the same second
+  return jwt.sign({ ...payload, jti: randomUUID() }, env.JWT_REFRESH_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN,
   } as jwt.SignOptions);
 }

@@ -6,9 +6,13 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth/login",
     REGISTER: "/auth/register",
+    VERIFY_EMAIL: "/auth/verify-email",
+    RESEND_VERIFICATION: "/auth/resend-verification",
+    GOOGLE: "/auth/google",
     REFRESH: "/auth/refresh",
     LOGOUT: "/auth/logout",
     ME: "/auth/me",
+    PASSWORD: "/auth/password",
   },
   PRODUCTS: {
     LIST: "/products",
@@ -31,8 +35,9 @@ export const API_ENDPOINTS = {
     LIST: "/orders",
     DETAIL: (id: string) => `/orders/${id}`,
   },
-  USER: {
-    PROFILE: "/user/profile",
-    ADDRESSES: "/user/addresses",
+  ME: {
+    ROOT: "/me",
+    ADDRESSES: "/me/addresses",
+    ADDRESS: (id: string) => `/me/addresses/${id}`,
   },
 } as const;

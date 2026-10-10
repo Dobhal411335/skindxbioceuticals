@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
-/**
- * Zod schemas for the wishlist feature.
- * Add request validation schemas as endpoints are implemented.
- */
-
-export const wishlistIdParamSchema = z.object({
-  id: z.string().uuid(),
+export const addWishlistItemSchema = z.object({
+  productId: z.string().uuid(),
+  variantId: z.string().uuid().optional().nullable(),
 });
 
-export type WishlistIdParam = z.infer<typeof wishlistIdParamSchema>;
+export const wishlistItemIdParamSchema = z.object({
+  itemId: z.string().uuid(),
+});
+
+export type AddWishlistItemInput = z.infer<typeof addWishlistItemSchema>;
+export type WishlistItemIdParam = z.infer<typeof wishlistItemIdParamSchema>;

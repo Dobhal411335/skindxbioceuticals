@@ -1,17 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { authService } from "@/features/auth/auth.service";
+import { registerFormSchema } from "@/features/auth/auth.validation";
+import { toApiError } from "@/services/api/errors";
 
 export function SignupForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError(null);
+    setFieldErrors({});
+
+    if (!acceptedTerms) {
+      setFormError("Please accept the Terms & Conditions to continue.");
+      return;
+    }
+
+    const parsed = registerFormSchema.safeParse({
+      name,
+      email,
+      password,
+      confirmPassword,
+    });
+
+    if (!parsed.success) {
+      const nextErrors: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const key = String(issue.path[0] ?? "form");
+        if (!nextErrors[key]) {
+          nextErrors[key] = issue.message;
+        }
+      }
+      setFieldErrors(nextErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await authService.register(parsed.data);
+      router.push(
+        `/account/verify-email?email=${encodeURIComponent(result.email)}`,
+      );
+    } catch (error) {
+      const apiError = toApiError(error);
+      setFormError(apiError.message || "Unable to create your account. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-sm sm:p-8">
@@ -27,11 +85,7 @@ export function SignupForm() {
 
       <Separator className="mb-6" />
 
-      <form
-        className="space-y-5"
-        onSubmit={(event) => event.preventDefault()}
-        noValidate
-      >
+      <form className="space-y-5" onSubmit={(event) => void handleSubmit(event)} noValidate>
         <div className="space-y-2">
           <Label htmlFor="signup-name">
             Full name <span className="text-destructive">*</span>
@@ -41,9 +95,17 @@ export function SignupForm() {
             type="text"
             autoComplete="name"
             required
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            disabled={isSubmitting}
             className="h-11 rounded-full"
             placeholder="Your name"
           />
+          {fieldErrors.name ? (
+            <p className="text-xs text-destructive" role="alert">
+              {fieldErrors.name}
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -55,9 +117,17 @@ export function SignupForm() {
             type="email"
             autoComplete="email"
             required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            disabled={isSubmitting}
             className="h-11 rounded-full"
             placeholder="you@example.com"
           />
+          {fieldErrors.email ? (
+            <p className="text-xs text-destructive" role="alert">
+              {fieldErrors.email}
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -70,6 +140,9 @@ export function SignupForm() {
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
               required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              disabled={isSubmitting}
               className="h-11 rounded-full pr-11"
               placeholder="Create a password"
             />
@@ -88,22 +161,83 @@ export function SignupForm() {
               )}
             </Button>
           </div>
+          {fieldErrors.password ? (
+            <p className="text-xs text-destructive" role="alert">
+              {fieldErrors.password}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              At least 12 characters with upper, lower, number, and special character.
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="signup-confirm-password">
+            Confirm password <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <Input
+              id="signup-confirm-password"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
+              required
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              disabled={isSubmitting}
+              className="h-11 rounded-full pr-11"
+              placeholder="Confirm your password"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="absolute top-1/2 right-2 -translate-y-1/2"
+              aria-label={
+                showConfirmPassword ? "Hide confirm password" : "Show confirm password"
+              }
+              onClick={() => setShowConfirmPassword((value) => !value)}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
+            </Button>
+          </div>
+          {fieldErrors.confirmPassword ? (
+            <p className="text-xs text-destructive" role="alert">
+              {fieldErrors.confirmPassword}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex items-start gap-2">
-          <Checkbox id="signup-terms" required />
+          <Checkbox
+            id="signup-terms"
+            checked={acceptedTerms}
+            onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+            disabled={isSubmitting}
+          />
           <Label htmlFor="signup-terms" className="text-xs leading-snug font-normal">
             I agree with the Terms &amp; Conditions and Privacy Policy. Consent is
             required before any live account creation.
           </Label>
         </div>
 
+        {formError ? (
+          <p className="text-sm text-destructive" role="alert">
+            {formError}
+          </p>
+        ) : null}
+
         <Button
           type="submit"
           className="h-11 w-full rounded-full bg-[#f3a827] text-white uppercase hover:bg-[#e0981f]"
           size="lg"
+          disabled={isSubmitting}
         >
-          Sign up
+          {isSubmitting ? "Creating account…" : "Sign up"}
         </Button>
       </form>
 
@@ -115,15 +249,17 @@ export function SignupForm() {
         <Separator className="flex-1" />
       </div>
 
-      <Button
-        type="button"
-        className="h-11 w-full rounded-full bg-[#4285f4] text-white hover:bg-[#3b78e0]"
+      <Suspense
+        fallback={
+          <div className="flex h-11 items-center justify-center rounded-full border text-sm text-muted-foreground">
+            Loading Google…
+          </div>
+        }
       >
-        Continue with Google
-      </Button>
+        <GoogleSignInButton text="signup_with" />
+      </Suspense>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        Static UI only — Google identity tokens will be verified on the server when
-        auth is wired.
+        Google identity tokens are verified on the server before your session is created.
       </p>
 
       <Separator className="my-8" />

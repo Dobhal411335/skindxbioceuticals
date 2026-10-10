@@ -18,12 +18,14 @@ Support email/password authentication and Google sign-in/sign-up.
 
 ### Email/password
 - Validate and normalize email addresses.
-- Hash passwords using a well-maintained password hashing algorithm such as Argon2id (or an appropriately configured bcrypt implementation if required by the stack).
-- Never store or log plaintext passwords.
-- Use generic login/reset responses where needed to reduce account enumeration.
+- Hash passwords using a well-maintained password hashing algorithm such as Argon2id (or an appropriately configured bcrypt implementation if required by the stack). This project uses bcryptjs with 12 salt rounds for password hashes.
+- Strong password policy for customer registration: minimum 12 characters with upper, lower, digit, and special character.
+- Never store or log plaintext passwords or OTPs.
+- Use generic login/reset responses where needed to reduce account enumeration. Unverified password accounts that present a valid password receive `403` with `EMAIL_NOT_VERIFIED` so the client can continue verification without issuing a full session.
 - Rate-limit login, signup, password reset, verification, and sensitive account actions.
-- Use secure, expiring, single-use tokens for email verification and password reset; store only a hash of such tokens where practical.
-- Revoke sessions/refresh tokens on logout, password reset, and relevant security events.
+- Email verification uses cryptographically random numeric OTPs (default length 6, expiry 10 minutes, max 5 attempts, 60s resend cooldown). Store only a hash; consume atomically; invalidate prior unconsumed OTPs on resend.
+- Do not silently link Google and password accounts on email match alone.
+- Revoke sessions/refresh tokens on logout, password reset, and relevant security events. Refresh-token reuse after rotation revokes the user's refresh-token family.
 
 ### Google sign-in
 - Use a supported OAuth 2.0 / OpenID Connect library and the correct authorization-code flow for the chosen application architecture.
@@ -36,9 +38,9 @@ Support email/password authentication and Google sign-in/sign-up.
 ### Session/token handling
 - Prefer secure, HttpOnly, SameSite cookies for browser sessions/refresh credentials where compatible with the deployment architecture.
 - Set `Secure` in HTTPS environments and use an appropriate cookie path/domain policy.
-- Protect cookie-authenticated state-changing endpoints against CSRF.
-- If bearer tokens are used, avoid storing long-lived sensitive tokens in localStorage. Document token lifetime, refresh, revocation, and XSS risk decisions.
-- Rotate session identifiers after login or privilege changes.
+- Protect cookie-authenticated state-changing endpoints against CSRF. Cookie-driven `/auth/refresh` and `/auth/logout` enforce an Origin/Referer allowlist against `CORS_ORIGINS`.
+- Access tokens are short-lived JWTs returned in JSON and sent as Bearer headers; refresh tokens are HttpOnly cookies for storefront clients (JSON body for admin). Do not put signing secrets or refresh credentials in `NEXT_PUBLIC_` variables or `localStorage`.
+- Rotate refresh tokens on each successful refresh; detect reuse of revoked tokens and revoke the user's remaining refresh tokens.
 
 ## 3. Authorization and admin security
 

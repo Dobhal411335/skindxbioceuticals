@@ -36,12 +36,14 @@
 Confirm whether pricing and descriptions are globally shared or site-specific before deciding which fields live on `Product` versus a site-product relation.
 
 ### Customer and access
-- `User`: identity and account status; avoid unnecessary sensitive fields.
-- `ExternalIdentity`: provider and provider subject ID for Google identity mapping.
+- `User`: identity and account status; avoid unnecessary sensitive fields. Implemented fields include optional `passwordHash`, `emailVerifiedAt`, `welcomeEmailSentAt`, `status` (including `PENDING_VERIFICATION`), and `role`.
+- `ExternalIdentity`: provider and provider subject ID for Google identity mapping (implemented: unique `(provider, providerUserId)`, FK to `User`; `User.passwordHash` is optional for Google-only customers).
+- `EmailVerificationToken`: hashed OTP/verification credential, purpose (`EMAIL_VERIFICATION`), expiry, attempt count, consumed timestamp (implemented). Never store plaintext OTPs.
+- `EmailOutbox`: minimal transactional email outbox (`templateKey`, `payloadJson`, status PENDING/SENT/FAILED) for reliable welcome-email delivery after verification.
 - `Address`: customer-owned delivery/billing addresses.
 - `Role`, `Permission`, `RolePermission`, `UserRole` or a simpler equivalent RBAC model.
 - `AdminAuditLog`: actor, action, target, timestamp, and safe metadata.
-- `Session` / `RefreshToken`: only if required by the selected authentication architecture; store revocable credentials safely.
+- `RefreshToken`: hashed refresh JWT, expiry, and `revokedAt` for rotation/reuse detection (implemented).
 
 Do not use a user-supplied email as the only permanent external identity key. Store the verified provider subject identifier.
 

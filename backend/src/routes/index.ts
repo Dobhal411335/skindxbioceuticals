@@ -2,6 +2,7 @@ import type { Application } from 'express';
 import { Router } from 'express';
 import { appConfig } from '@/config';
 import { authRoutes } from '@/features/auth/auth.routes';
+import { meRoutes } from '@/features/me/me.routes';
 import { userRoutes } from '@/features/users/user.routes';
 import { productRoutes } from '@/features/products/product.routes';
 import { categoryRoutes } from '@/features/categories/category.routes';
@@ -21,12 +22,12 @@ import { shippingRoutes } from '@/features/shipping/shipping.routes';
 
 /**
  * Mounts all feature routers under `/api/v1` (configurable via API_PREFIX).
- * Feature routes are stubs — business logic will be added later.
  */
 export function registerRoutes(app: Application): void {
   const v1 = Router();
 
   v1.use('/auth', authRoutes);
+  v1.use('/me', meRoutes);
   v1.use('/users', userRoutes);
   v1.use('/products', productRoutes);
   v1.use('/categories', categoryRoutes);

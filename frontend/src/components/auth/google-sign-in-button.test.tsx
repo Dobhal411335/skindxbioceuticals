@@ -1,0 +1,128 @@
+import { configureStore } from "@reduxjs/toolkit";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
+
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import authReducer from "@/store/slices/authSlice";
+
+const replaceMock = jest.fn();
+const signInWithGoogleMock = jest.fn();
+let googleOnSuccess: ((response: { credential?: string }) => void) | undefined;
+let googleOnError: (() => void) | undefined;
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: replaceMock, push: jest.fn() }),
+  useSearchParams: () => new URLSearchParams("redirect=/shop"),
+}));
+
+jest.mock("@/features/auth/auth.service", () => ({
+  authService: {
+    signInWithGoogle: (...args: unknown[]) => signInWithGoogleMock(...args),
+  },
+}));
+
+jest.mock("@react-oauth/google", () => ({
+  GoogleLogin: (props: {
+    onSuccess: (response: { credential?: string }) => void;
+    onError: () => void;
+  }) => {
+    googleOnSuccess = props.onSuccess;
+    googleOnError = props.onError;
+    return (
+      <button type="button" onClick={() => props.onSuccess({ credential: "google-id-token" })}>
+        Continue with Google
+      </button>
+    );
+  },
+}));
+
+function renderButton() {
+  const store = configureStore({
+    reducer: { auth: authReducer },
+  });
+
+  return render(
+    <Provider store={store}>
+      <GoogleSignInButton />
+    </Provider>,
+  );
+}
+
+describe("GoogleSignInButton", () => {
+  beforeEach(() => {
+    replaceMock.mockReset();
+    signInWithGoogleMock.mockReset();
+    googleOnSuccess = undefined;
+    googleOnError = undefined;
+  });
+
+  it("renders the Google button", () => {
+    renderButton();
+    expect(screen.getByTestId("google-sign-in")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /continue with google/i })).toBeInTheDocument();
+  });
+
+  it("shows a loading state while the backend authenticates", async () => {
+    const user = userEvent.setup();
+    let resolveSignIn: (value: unknown) => void = () => undefined;
+    signInWithGoogleMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSignIn = resolve;
+        }),
+    );
+
+    renderButton();
+    await user.click(screen.getByRole("button", { name: /continue with google/i }));
+
+    expect(await screen.findByTestId("google-loading")).toBeInTheDocument();
+
+    resolveSignIn({
+      accessToken: "access-token",
+      user: { id: "1", email: "a@example.com", role: "CUSTOMER" },
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("google-loading")).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows a cancellation/error message when Google fails", async () => {
+    renderButton();
+    googleOnError?.();
+    expect(await screen.findByTestId("google-error")).toHaveTextContent(/cancelled or failed/i);
+  });
+
+  it("shows a backend error message", async () => {
+    const user = userEvent.setup();
+    signInWithGoogleMock.mockRejectedValue({
+      isAxiosError: true,
+      message: "Conflict",
+      response: { status: 409, data: { message: "An account with this email already exists." } },
+    });
+
+    renderButton();
+    await user.click(screen.getByRole("button", { name: /continue with google/i }));
+
+    expect(await screen.findByTestId("google-error")).toHaveTextContent(
+      /account with this email already exists/i,
+    );
+  });
+
+  it("stores credentials and redirects safely after backend success", async () => {
+    const user = userEvent.setup();
+    signInWithGoogleMock.mockResolvedValue({
+      accessToken: "access-token",
+      user: { id: "1", email: "a@example.com", role: "CUSTOMER" },
+    });
+
+    renderButton();
+    await user.click(screen.getByRole("button", { name: /continue with google/i }));
+
+    await waitFor(() => {
+      expect(signInWithGoogleMock).toHaveBeenCalledWith("google-id-token");
+      expect(replaceMock).toHaveBeenCalledWith("/shop");
+    });
+  });
+});

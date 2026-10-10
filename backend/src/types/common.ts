@@ -1,5 +1,9 @@
 export type UserRole = 'CUSTOMER' | 'ADMIN' | 'SUPER_ADMIN';
 
+export type SiteRole = 'VIEWER' | 'EDITOR' | 'ADMIN';
+
+export type SiteCode = 'IN' | 'COM';
+
 export interface JwtPayload {
   sub: string;
   email: string;

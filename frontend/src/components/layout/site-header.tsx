@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Heart, User } from "lucide-react";
+import { Heart } from "lucide-react";
 
+import { HeaderAccountMenu } from "@/components/layout/header-account-menu";
 import { HeaderCartButton } from "@/components/layout/header-cart-button";
 import { HeaderSearchButton } from "@/components/layout/header-search-button";
 import { MobileNav } from "@/components/layout/mobile-nav";
@@ -55,18 +56,14 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-0.5">
           <HeaderSearchButton />
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/account/login" aria-label="Account">
-              <User className="size-5" />
-            </Link>
-          </Button>
+          <HeaderAccountMenu />
           <Button
             variant="ghost"
             size="icon"
             asChild
             className="hidden sm:inline-flex"
           >
-            <Link href="/wishlist" aria-label="Wishlist">
+            <Link href="/account/wishlist" aria-label="Wishlist">
               <Heart className="size-5" />
             </Link>
           </Button>

@@ -17,8 +17,8 @@ import { TrustBenefitsBar } from "@/components/landing/trust-benefits-bar";
 export default function HomePage() {
   return (
     <>
-      <TrustBenefitsBar />
       <HeroSection />
+      <TrustBenefitsBar />
       <SpecialsHeader />
       <AboutSplit />
       <BlogCarousel />

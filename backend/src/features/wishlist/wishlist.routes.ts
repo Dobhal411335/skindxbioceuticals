@@ -1,13 +1,26 @@
 import { Router } from 'express';
-import { wishlistController } from './wishlist.controller';
+import { authenticate, authorize } from '@/middlewares/auth.middleware';
+import { validate } from '@/middlewares/validate.middleware';
 import { asyncHandler } from '@/utils/asyncHandler';
+import { wishlistController } from './wishlist.controller';
+import { addWishlistItemSchema, wishlistItemIdParamSchema } from './wishlist.validation';
 
-/**
- * Wishlist routes - wiring only (path + middleware + controller).
- * No business logic here.
- */
 const router = Router();
 
-router.get('/status', asyncHandler(wishlistController.status));
+router.use(authenticate, authorize('CUSTOMER'));
+
+router.get('/', asyncHandler(wishlistController.get));
+
+router.post(
+  '/',
+  validate({ body: addWishlistItemSchema }),
+  asyncHandler(wishlistController.add),
+);
+
+router.delete(
+  '/items/:itemId',
+  validate({ params: wishlistItemIdParamSchema }),
+  asyncHandler(wishlistController.remove),
+);
 
 export const wishlistRoutes = router;

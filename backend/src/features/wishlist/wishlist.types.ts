@@ -1,9 +1,17 @@
-/**
- * Wishlist feature types.
- * Domain DTOs and request/response shapes will be defined here.
- */
+export interface WishlistItemDto {
+  id: string;
+  productId: string;
+  variantId: string | null;
+  productName: string;
+  productSlug: string;
+  imageUrl: string | null;
+  price: string | null;
+  currency: string | null;
+  available: boolean;
+  createdAt: string;
+}
 
-export interface WishlistPlaceholder {
-  // Reserved for future wishlist domain types
-  readonly _feature: 'wishlist';
+export interface WishlistDto {
+  id: string;
+  items: WishlistItemDto[];
 }

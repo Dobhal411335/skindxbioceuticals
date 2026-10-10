@@ -7,7 +7,7 @@ This single backend is designed to serve both:
 - the **.in** ecommerce storefront
 - the **.com** enquiry / content website
 
-Business logic, payment gateways, and email/SMS integrations are intentionally **not** implemented yet. This repository layer establishes architecture, configuration, middleware, Prisma models, and feature module scaffolding.
+Customer **Google authentication** is implemented (`POST /api/v1/auth/google` with server-side ID token verification). Email/password customer auth, orders, and payments remain largely scaffolded. Transactional email infrastructure via **Brevo** is implemented under `src/lib/email/` (welcome email is sent on first Google signup). Full Google setup: [`docs/GOOGLE_AUTH.md`](../docs/GOOGLE_AUTH.md).
 
 ## Stack
 
@@ -19,7 +19,7 @@ Business logic, payment gateways, and email/SMS integrations are intentionally *
 | Database | PostgreSQL |
 | ORM | Prisma |
 | Validation | Zod |
-| Auth | JWT (access + refresh) |
+| Auth | JWT (access + refresh); Google ID token verification (`google-auth-library`) |
 | Lint / format | ESLint + Prettier |
 
 ## Architecture
@@ -66,6 +66,7 @@ API prefix: `/api/v1` (configurable via `API_PREFIX`)
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Ensure test DB + run Jest (unit + integration) |
 | `npm run prisma:migrate` | Create / apply migrations |
 | `npm run prisma:studio` | Prisma Studio |
 
@@ -99,6 +100,82 @@ See `.env.example`. Required values are validated at startup with Zod (`src/conf
 
 `CORS_ORIGINS` accepts a comma-separated list so both frontends can call the same API.
 
+### Brevo transactional email
+
+Configure these **server-only** variables (never expose them to any frontend):
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `BREVO_API_KEY` | yes | Brevo API key |
+| `BREVO_SENDER_EMAIL` | yes | Verified sender address |
+| `BREVO_SENDER_NAME` | yes | Sender display name |
+| `BREVO_REPLY_TO` | no | Optional reply-to address |
+| `COMPANY_NAME` | no (default `SkinDx Bioc`) | Company name in templates |
+| `COMPANY_LOGO_URL` | no | Logo URL when available |
+| `SUPPORT_EMAIL` | yes | Support contact in footers |
+| `SITE_IN_URL` | yes | Canonical `.in` site URL |
+| `SITE_COM_URL` | yes | Canonical `.com` site URL |
+| `PRIVACY_POLICY_URL` | no | Privacy link in footers |
+
+**Sender / domain setup**
+
+1. Create a Brevo account and generate an API key with transactional email permission.
+2. Add and verify the sender email (and authenticate the sending domain in Brevo when deploying).
+3. Put the values above into `backend/.env` (local) or your host’s secret store (production).
+4. Restart the API so Zod re-validates env at startup.
+
+**Important:** A successful API response means Brevo **accepted** the message for sending. It does **not** guarantee inbox delivery.
+
+### Email module
+
+Shared service: `src/lib/email/`
+
+| Area | Path |
+| --- | --- |
+| Service API | `email.service.ts` |
+| Brevo HTTP client | `email.client.ts` |
+| Company / site brand | `company/` |
+| Layout (header/footer) | `layouts/` |
+| Templates | `templates/` |
+| Unit tests | `tests/` (under `src/lib/email/tests`) |
+
+**Implemented templates**
+
+- Authentication: OTP, welcome, email verification, password reset, password changed
+- Ecommerce: order confirmation, payment success/failed, order status, shipped, delivered, cancelled, refund status
+- Enquiries: enquiry confirmation
+
+**Feature-layer integration status**
+
+Customer auth, orders, payments, and enquiries are still scaffolded, so templates are **not yet wired** into live business workflows. When those services are implemented, call `emailService` **after** the relevant DB transaction commits. Provider failures return `{ submitted: false, ... }` and must not roll back completed payments/orders.
+
+Recommended reliability pattern for production: transactional **outbox / queue** with retries and delivery event tracking, rather than unreliable fire-and-forget calls inside request handlers.
+
+**Manual variables you must configure**
+
+Set real values in your local `backend/.env` (this file is not overwritten by the repo):
+
+- `BREVO_API_KEY`
+- `BREVO_SENDER_EMAIL`
+- `BREVO_SENDER_NAME`
+- `SUPPORT_EMAIL`
+- `SITE_IN_URL`
+- `SITE_COM_URL`
+- Optionally: `BREVO_REPLY_TO`, `COMPANY_LOGO_URL`, `PRIVACY_POLICY_URL`
+
+Do not claim end-to-end email delivery works until those are configured and a safe smoke test is run against a test recipient.
+
+### Running email unit tests
+
+```bash
+cd backend
+npx jest --runInBand --testPathPatterns=src/lib/email/tests
+```
+
+Unit tests cover validation, site branding, template rendering (HTML + text, escaping), and the Brevo client/service with a mocked `fetch`. They never call the real Brevo API.
+
+Do not claim real inbox delivery works until Brevo sender/domain verification is complete and a safe end-to-end smoke test has been run against a test recipient.
+
 ## Directory responsibilities
 
 | Path | Role |
@@ -108,7 +185,7 @@ See `.env.example`. Required values are validated at startup with Zod (`src/conf
 | `src/config/` | Validated env + app/database config |
 | `src/middlewares/` | Auth, validation, 404, global errors |
 | `src/routes/` | API v1 route registration |
-| `src/lib/` | Shared infra (Prisma client, JWT, password hashing) |
+| `src/lib/` | Shared infra (Prisma client, JWT, password hashing, Brevo email) |
 | `src/utils/` | Cross-cutting helpers (API responses, asyncHandler, AppError, pagination) |
 | `src/types/` | Shared TS types + Express augmentation |
 | `src/features/` | Feature modules (controller/service/repository/routes/validation/types) |

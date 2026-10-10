@@ -1,12 +1,10 @@
-import { z } from 'zod';
+import { uploadOptionsSchema } from '../../lib/cloudinary';
+import { bulkDeleteSchema } from './media.types';
 
-/**
- * Zod schemas for the media feature.
- * Add request validation schemas as endpoints are implemented.
- */
+export const validateUploadQuery = (query: unknown) => {
+  return uploadOptionsSchema.parse(query);
+};
 
-export const mediaIdParamSchema = z.object({
-  id: z.string().uuid(),
-});
-
-export type MediaIdParam = z.infer<typeof mediaIdParamSchema>;
+export const validateBulkDelete = (body: unknown) => {
+  return bulkDeleteSchema.parse(body);
+};

@@ -1,21 +1,94 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { Eye, EyeOff, UserRound, X } from "lucide-react";
 
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { authService } from "@/features/auth/auth.service";
+import {
+  getSafeRedirectPath,
+  loginFormSchema,
+} from "@/features/auth/auth.validation";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { toApiError } from "@/services/api/errors";
+import { setCredentials } from "@/store/slices/authSlice";
 
 type LoginFormProps = {
   variant?: "page" | "panel";
 };
 
-export function LoginForm({ variant = "page" }: LoginFormProps) {
+function isEmailNotVerified(details: unknown): details is { code: string; email?: string } {
+  return (
+    typeof details === "object" &&
+    details !== null &&
+    "code" in details &&
+    (details as { code: unknown }).code === "EMAIL_NOT_VERIFIED"
+  );
+}
+
+function LoginFormInner({ variant = "page" }: LoginFormProps) {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError(null);
+    setFieldErrors({});
+
+    const parsed = loginFormSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      const nextErrors: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const key = String(issue.path[0] ?? "form");
+        if (!nextErrors[key]) {
+          nextErrors[key] = issue.message;
+        }
+      }
+      setFieldErrors(nextErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const data = await authService.login(parsed.data);
+      dispatch(
+        setCredentials({
+          user: data.user,
+          accessToken: data.accessToken,
+        }),
+      );
+      router.replace(getSafeRedirectPath(searchParams.get("redirect")));
+    } catch (error) {
+      const apiError = toApiError(error);
+      if (apiError.statusCode === 403 && isEmailNotVerified(apiError.details)) {
+        const verifyEmail =
+          typeof apiError.details.email === "string"
+            ? apiError.details.email
+            : parsed.data.email;
+        router.push(
+          `/account/verify-email?email=${encodeURIComponent(verifyEmail)}`,
+        );
+        return;
+      }
+      setFormError(apiError.message || "Invalid email or password.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div
@@ -39,23 +112,27 @@ export function LoginForm({ variant = "page" }: LoginFormProps) {
 
       <Separator className="mb-6" />
 
-      <form
-        className="space-y-5"
-        onSubmit={(event) => event.preventDefault()}
-        noValidate
-      >
+      <form className="space-y-5" onSubmit={(event) => void handleSubmit(event)} noValidate>
         <div className="space-y-2">
           <Label htmlFor="login-email">
-            Username or email address <span className="text-destructive">*</span>
+            Email address <span className="text-destructive">*</span>
           </Label>
           <Input
             id="login-email"
             type="email"
             autoComplete="email"
             required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            disabled={isSubmitting}
             className="h-11 rounded-full"
             placeholder="you@example.com"
           />
+          {fieldErrors.email ? (
+            <p className="text-xs text-destructive" role="alert">
+              {fieldErrors.email}
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -68,6 +145,9 @@ export function LoginForm({ variant = "page" }: LoginFormProps) {
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              disabled={isSubmitting}
               className="h-11 rounded-full pr-11"
               placeholder="••••••••"
             />
@@ -86,14 +166,26 @@ export function LoginForm({ variant = "page" }: LoginFormProps) {
               )}
             </Button>
           </div>
+          {fieldErrors.password ? (
+            <p className="text-xs text-destructive" role="alert">
+              {fieldErrors.password}
+            </p>
+          ) : null}
         </div>
+
+        {formError ? (
+          <p className="text-sm text-destructive" role="alert">
+            {formError}
+          </p>
+        ) : null}
 
         <Button
           type="submit"
           className="h-11 w-full rounded-full bg-[#f3a827] text-white uppercase hover:bg-[#e0981f]"
           size="lg"
+          disabled={isSubmitting}
         >
-          Log in
+          {isSubmitting ? "Signing in…" : "Log in"}
         </Button>
 
         <div className="flex items-center justify-between gap-3 text-sm">
@@ -121,23 +213,16 @@ export function LoginForm({ variant = "page" }: LoginFormProps) {
       </div>
 
       <div className="space-y-3">
-        <Button
-          type="button"
-          className="h-11 w-full rounded-full bg-[#3b5998] text-white hover:bg-[#334f87]"
-          disabled
+
+        <Suspense
+          fallback={
+            <div className="flex h-11 items-center justify-center rounded-full border text-sm text-muted-foreground">
+              Loading Google…
+            </div>
+          }
         >
-          Facebook
-        </Button>
-        <Button
-          type="button"
-          className="h-11 w-full rounded-full bg-[#4285f4] text-white hover:bg-[#3b78e0]"
-        >
-          Google
-        </Button>
-        <p className="text-center text-xs text-muted-foreground">
-          Static UI only — Google OAuth will verify identity tokens server-side when
-          connected. Facebook is shown disabled until approved.
-        </p>
+          <GoogleSignInButton text="signin_with" />
+        </Suspense>
       </div>
 
       <Separator className="my-8" />
@@ -153,5 +238,13 @@ export function LoginForm({ variant = "page" }: LoginFormProps) {
         </Link>
       </div>
     </div>
+  );
+}
+
+export function LoginForm(props: LoginFormProps) {
+  return (
+    <Suspense fallback={<div className="mx-auto w-full max-w-md p-6">Loading…</div>}>
+      <LoginFormInner {...props} />
+    </Suspense>
   );
 }

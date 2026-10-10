@@ -74,6 +74,43 @@ Choose one consistent policy for using `400` versus `422`; document it and follo
 - Document cookie/session or bearer-token behavior, CSRF controls, expiry, refresh, and revocation once the session architecture is chosen.
 - Google login callbacks and token exchange must be verified server-side.
 
+### Customer Google auth (implemented)
+
+- `POST /api/v1/auth/google` — body `{ "credential": "<Google ID token>" }`. Backend verifies with `google-auth-library`. Returns `{ accessToken, user }`. Sets HttpOnly refresh cookie (`AUTH_REFRESH_COOKIE_NAME`). Never returns password hashes or provider secrets. See [GOOGLE_AUTH.md](./GOOGLE_AUTH.md).
+- `GET /api/v1/auth/me` — Bearer access token; customers get `sites: []`.
+- `POST /api/v1/auth/logout` — revokes refresh token (body or cookie) and clears cookie.
+- `POST /api/v1/auth/refresh` — refresh from JSON body (admin) or HttpOnly cookie (storefront). Cookie-driven refresh/logout require an allowed `Origin`/`Referer` matching `CORS_ORIGINS`.
+- Customer Google sessions are always `CUSTOMER` and cannot call admin routes.
+
+### Customer email/password auth (implemented)
+
+Shared session architecture with Google: short-lived access JWT in JSON (`Authorization: Bearer`), refresh token in HttpOnly cookie for storefront clients. Never store refresh tokens in `localStorage`. Rate-limited.
+
+- `POST /api/v1/auth/register` — body `{ name, email, password, confirmPassword }`. Creates `PENDING_VERIFICATION` customer, stores hashed email OTP, sends Brevo OTP for site `IN`. Returns `{ verificationRequired: true, email }`. **No session / tokens.** Conflicts with existing Active or Google-only accounts → `409`.
+- `POST /api/v1/auth/verify-email` — body `{ email, otp }`. Atomically consumes OTP, activates account, schedules welcome email once, returns `{ accessToken, user }` + refresh cookie.
+- `POST /api/v1/auth/resend-verification` — body `{ email }`. Generic acknowledgement; enforces resend cooldown.
+- `POST /api/v1/auth/login` — body `{ email, password }`. Verified customers get `{ accessToken, user }` + refresh cookie. Invalid credentials → generic `401`. Unverified → `403` with `errors.code = EMAIL_NOT_VERIFIED`. Suspended/inactive → `403`. Never grants admin.
+- `PATCH /api/v1/auth/password` — authenticated customer. Body `{ currentPassword?, newPassword, confirmPassword }`. When `hasPassword` is true, `currentPassword` is required and verified. Google-only accounts (no password hash) may set a password without `currentPassword`. On success: hash stored, all refresh tokens revoked, new `{ accessToken, user }` issued with rotated refresh cookie. Never returns password data.
+
+Auth `user` DTO fields include: `id`, `email`, `role`, `firstName`, `lastName`, `imageUrl`, `hasPassword`, `linkedProviders` (`GOOGLE` from `ExternalIdentity` only — never inferred from `imageUrl`), `createdAt`.
+
+### Customer account self-service (implemented)
+
+All routes require `Authorization: Bearer` and `CUSTOMER` role. Ownership is always derived from `req.user.id`.
+
+- `PATCH /api/v1/me` — body `{ firstName, lastName? }`. Updates name only; never accepts role/status/email/password.
+- `GET /api/v1/me/addresses` — list current customer's addresses.
+- `POST /api/v1/me/addresses` — create address; `isDefault: true` clears other defaults in a transaction.
+- `PATCH /api/v1/me/addresses/:addressId` — update owned address only (404 if not owned).
+- `DELETE /api/v1/me/addresses/:addressId` — delete owned address only (404 if not owned).
+- `GET /api/v1/orders?page&pageSize` — paginated orders for the authenticated customer only.
+- `GET /api/v1/orders/:orderId` — order detail with items; 404 if not owned.
+- `GET /api/v1/wishlist` — current wishlist (created if missing) with product summary fields.
+- `POST /api/v1/wishlist` — body `{ productId, variantId? }`; active `IN` products only; conflict if duplicate.
+- `DELETE /api/v1/wishlist/items/:itemId` — remove owned wishlist item only.
+
+OTP policy (env): length `OTP_LENGTH` (default 6), expiry `OTP_EXPIRES_IN_MINUTES` (default 10), max attempts `OTP_MAX_ATTEMPTS` (default 5), resend cooldown `OTP_RESEND_COOLDOWN_SECONDS` (default 60). OTPs are stored hashed only.
+
 ## 5. Site context
 
 Use a canonical host-to-site mapping configured on the server, for example:

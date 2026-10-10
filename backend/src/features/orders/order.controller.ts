@@ -1,22 +1,36 @@
 import type { Request, Response } from 'express';
-import { orderService } from './order.service';
+import { UnauthorizedError } from '@/utils/AppError';
 import { sendSuccess } from '@/utils/apiResponse';
+import { orderService } from './order.service';
+import type { ListOrdersQuery, OrderIdParam } from './order.validation';
 
 /**
  * Order controller - HTTP concerns only (req/res/status).
- * Delegates business logic to the service layer.
  */
 export class OrderController {
   constructor(private readonly service = orderService) {}
 
-  /**
-   * Placeholder health/status handler for the order feature module.
-   * Replace with real handlers as endpoints are implemented.
-   */
-  status = (_req: Request, res: Response): void => {
-    // Keep a reference so unused private members do not trip strict unused checks later
-    void this.service;
-    sendSuccess(res, { feature: 'order', ready: false }, 'Order module scaffolded');
+  list = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new UnauthorizedError();
+    }
+    const query = req.query as unknown as ListOrdersQuery;
+    const data = await this.service.listOrders(req.user.id, query);
+    sendSuccess(res, data, 'Orders', 200, {
+      page: data.page,
+      pageSize: data.pageSize,
+      total: data.total,
+      totalPages: data.totalPages,
+    });
+  };
+
+  detail = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new UnauthorizedError();
+    }
+    const params = req.params as unknown as OrderIdParam;
+    const data = await this.service.getOrder(req.user.id, params.orderId);
+    sendSuccess(res, { order: data }, 'Order');
   };
 }
 
