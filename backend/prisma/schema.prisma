@@ -819,18 +819,15 @@ model GalleryItem {
 }
 
 model FooterConfig {
-  id           String   @id @default(uuid()) @db.Uuid
-  siteId       String   @unique @map("site_id") @db.Uuid
-  thankYou     String   @default("") @map("thank_you")
-  description  String   @default("") @db.Text
-  logoUrl      String   @default("") @map("logo_url")
-  logoPublicId String   @default("") @map("logo_public_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid()) @db.Uuid
+  siteId      String   @unique @map("site_id") @db.Uuid
+  thankYou    String   @default("") @map("thank_you")
+  description String   @default("") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  site        Site               @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  columns     FooterColumn[]
-  socialLinks FooterSocialLink[]
+  site    Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  columns FooterColumn[]
 
   @@map("footer_configs")
 }
@@ -865,23 +862,6 @@ model FooterLink {
 
   @@index([columnId, order])
   @@map("footer_links")
-}
-
-model FooterSocialLink {
-  id             String   @id @default(uuid()) @db.Uuid
-  footerConfigId String   @map("footer_config_id") @db.Uuid
-  label          String
-  url            String
-  iconKey        String   @default("") @map("icon_key")
-  order          Int      @default(0)
-  active         Boolean  @default(true)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  footerConfig FooterConfig @relation(fields: [footerConfigId], references: [id], onDelete: Cascade)
-
-  @@index([footerConfigId, order])
-  @@map("footer_social_links")
 }
 
 model SiteSetting {

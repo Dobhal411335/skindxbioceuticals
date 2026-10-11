@@ -24,6 +24,7 @@
 - `NavbarSection` / `NavbarSubSection` (implemented): site-scoped header navigation. Each section has title, url, active, order; optional child sub-sections with the same fields. Cascade delete with `Site` / parent section. Indexed by `(siteId, order)` and `(sectionId, order)`.
 - `SocialPost` (implemented): site-scoped Instagram/Facebook posts (`postType` enum `INSTAGRAM` | `FACEBOOK`), thumbnail `imageUrl`/`imagePublicId`, external `postUrl`, `active`, `order`. Cascade delete with `Site`. Indexed by `(siteId, order)`, `(siteId, postType, order)`, and `(siteId, active, order)`.
 - `GalleryItem` (implemented): site-scoped lookbook media (`mediaType` enum `IMAGE` | `VIDEO`), `mediaUrl`/`mediaPublicId`, optional `title`/`caption`, `active`, `order`. Cascade delete with `Site`. Indexed by `(siteId, order)`, `(siteId, active, order)`, and `(siteId, mediaType, order)`.
+- `FooterConfig` / `FooterColumn` / `FooterLink` (implemented): one optional footer config per site (`siteId` unique) with thank-you line, description, and ordered columns of links (`label`, `url`, `active`, `order`). Nested rows cascade with the parent config / site. Logo and social links live on `CompanyBasicInfo`, not footer config.
 - `Page` / `ContentEntry`: site, slug, title, structured content, publication status, SEO metadata.
 - `Banner`, `FAQ`, `BlogPost`, `SiteSetting`: site-scoped where the content/settings differ.
 - `MediaAsset`: provider, provider asset/public ID, URL, file type, dimensions, alt text, ownership/creation metadata.

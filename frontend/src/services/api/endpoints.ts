@@ -49,4 +49,7 @@ export const API_ENDPOINTS = {
   SOCIAL_POSTS: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/social-posts`,
   },
+  FOOTER: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/footer`,
+  },
 } as const;

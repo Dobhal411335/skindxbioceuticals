@@ -418,11 +418,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Create new content pages for the .com website.",
     ["IN", "COM"],
   ),
-  shell(
-    "manage-webpage",
-    "manage-webpage",
-    "Manage Webpage",
-    "Edit and organize existing .com webpages.",
+  live(
+    "manage-footer",
+    "manage-footer",
+    "Manage Footer",
+    "Footer columns, brand copy, logo, and social links for the selected website.",
     ["IN", "COM"],
   ),
   shell(

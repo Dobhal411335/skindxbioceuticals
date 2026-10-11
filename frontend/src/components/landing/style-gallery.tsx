@@ -23,9 +23,13 @@ import {
 import { cn } from "@/lib/utils";
 import type { GalleryItem } from "@/types/gallery";
 
-const COLUMNS_PER_SLIDE = 5;
+const VISIBLE_COLUMNS_MD = 5;
 const TALL_RATIO = 1.05;
 const AUTOPLAY_MS = 5000;
+/** Horizontal gutter between stacked top/bottom media — match column gap. */
+const STACK_GAP_CLASS = "gap-3 md:gap-4";
+const COLUMN_GAP_CLASS = "pl-3 md:pl-4";
+const CONTENT_OFFSET_CLASS = "-ml-3 md:-ml-4";
 
 type MeasuredItem = GalleryItem & {
   width: number;
@@ -131,14 +135,6 @@ function packGalleryColumns(items: MeasuredItem[] = []): GalleryColumn[] {
   return columns;
 }
 
-function chunkColumns(columns: GalleryColumn[], size: number) {
-  const chunks: GalleryColumn[][] = [];
-  for (let i = 0; i < columns.length; i += size) {
-    chunks.push(columns.slice(i, i + size));
-  }
-  return chunks;
-}
-
 function GalleryMedia({
   item,
   alt,
@@ -187,24 +183,20 @@ function GalleryMedia({
 function GalleryColumnView({
   column,
   columnIndex,
-  slideIndex,
 }: {
   column: GalleryColumn;
   columnIndex: number;
-  slideIndex: number;
 }) {
-  const baseIndex = slideIndex * COLUMNS_PER_SLIDE + columnIndex;
-
   if (column.type === "tall") {
     const item = column.items[0]!;
     return (
       <div className="flex h-full min-h-0 flex-col">
         <GalleryMedia
           item={item}
-          alt={item.title || item.caption || `Gallery media ${baseIndex + 1}`}
+          alt={item.title || item.caption || `Gallery media ${columnIndex + 1}`}
           className="h-full min-h-[22rem] w-full md:min-h-[26rem]"
           sizes="(max-width: 768px) 50vw, 20vw"
-          priority={slideIndex === 0 && columnIndex < 2}
+          priority={columnIndex < 2}
         />
       </div>
     );
@@ -212,7 +204,12 @@ function GalleryColumnView({
 
   if (column.type === "stack") {
     return (
-      <div className="flex h-full min-h-[22rem] flex-col gap-2.5 md:min-h-[26rem] md:gap-3">
+      <div
+        className={cn(
+          "flex h-full min-h-[22rem] flex-col md:min-h-[26rem]",
+          STACK_GAP_CLASS,
+        )}
+      >
         {column.items.map((item, index) => (
           <GalleryMedia
             key={item.id}
@@ -220,7 +217,7 @@ function GalleryColumnView({
             alt={
               item.title ||
               item.caption ||
-              `Gallery media ${baseIndex + 1}-${index + 1}`
+              `Gallery media ${columnIndex + 1}-${index + 1}`
             }
             className="min-h-0 w-full flex-1"
             sizes="(max-width: 768px) 50vw, 20vw"
@@ -235,7 +232,7 @@ function GalleryColumnView({
     <div className="flex h-full min-h-0 flex-col">
       <GalleryMedia
         item={item}
-        alt={item.title || item.caption || `Gallery media ${baseIndex + 1}`}
+        alt={item.title || item.caption || `Gallery media ${columnIndex + 1}`}
         className="h-full min-h-[11rem] w-full md:min-h-[13rem]"
         sizes="(max-width: 768px) 50vw, 20vw"
       />
@@ -251,7 +248,7 @@ function FullscreenGallery({ items }: { items: GalleryItem[] }) {
           type="button"
           variant="secondary"
           size="sm"
-          className="gap-2 bg-secondary text-secondary-foreground shadow-sm"
+          className="rounded-full gap-2 bg-secondary px-4 text-secondary-foreground shadow-sm"
         >
           <Camera className="size-4" />
           View gallery
@@ -324,13 +321,15 @@ export function StyleGallery({ items }: { items: GalleryItem[] }) {
     };
   }, [items]);
 
-  const slides = useMemo(() => {
-    const columns = packGalleryColumns(measuredItems);
-    return chunkColumns(columns, COLUMNS_PER_SLIDE);
-  }, [measuredItems]);
+  const columns = useMemo(
+    () => packGalleryColumns(measuredItems),
+    [measuredItems],
+  );
+
+  const canBrowse = columns.length > 1;
 
   useEffect(() => {
-    if (!api || !isPlaying || slides.length <= 1) return undefined;
+    if (!api || !isPlaying || !canBrowse) return undefined;
 
     const timer = window.setInterval(() => {
       api.scrollNext();
@@ -339,7 +338,7 @@ export function StyleGallery({ items }: { items: GalleryItem[] }) {
     return () => {
       window.clearInterval(timer);
     };
-  }, [api, isPlaying, slides.length]);
+  }, [api, isPlaying, canBrowse]);
 
   if (!items.length) {
     return null;
@@ -366,8 +365,8 @@ export function StyleGallery({ items }: { items: GalleryItem[] }) {
 
       <div className="relative mt-10">
         {showSkeleton ? (
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-5 md:gap-3">
-            {Array.from({ length: COLUMNS_PER_SLIDE }).map((_, index) => (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 md:gap-4">
+            {Array.from({ length: VISIBLE_COLUMNS_MD }).map((_, index) => (
               <div
                 key={index}
                 className="min-h-[22rem] animate-pulse rounded-xl bg-surface md:min-h-[26rem]"
@@ -376,32 +375,31 @@ export function StyleGallery({ items }: { items: GalleryItem[] }) {
           </div>
         ) : (
           <Carousel
-            opts={{ align: "start", loop: slides.length > 1 }}
+            opts={{
+              align: "start",
+              containScroll: "trimSnaps",
+              loop: canBrowse,
+            }}
             setApi={setApi}
             className="w-full"
           >
-            <CarouselContent className="ml-0">
-              {slides.map((slideColumns, index) => (
-                <CarouselItem key={index} className="basis-full pl-0">
-                  <div className="relative">
-                    <div className="grid grid-cols-2 items-stretch gap-2.5 sm:grid-cols-3 md:grid-cols-5 md:gap-3">
-                      {slideColumns.map((column, columnIndex) => (
-                        <GalleryColumnView
-                          key={`col-${index}-${columnIndex}`}
-                          column={column}
-                          columnIndex={columnIndex}
-                          slideIndex={index}
-                        />
-                      ))}
-                    </div>
-                  </div>
+            <CarouselContent className={CONTENT_OFFSET_CLASS}>
+              {columns.map((column, index) => (
+                <CarouselItem
+                  key={`col-${index}-${column.items[0]?.id ?? index}`}
+                  className={cn(
+                    "basis-1/2 sm:basis-1/3 md:basis-1/5",
+                    COLUMN_GAP_CLASS,
+                  )}
+                >
+                  <GalleryColumnView column={column} columnIndex={index} />
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {slides.length > 1 ? (
+            {canBrowse ? (
               <>
-                <CarouselPrevious className="left-1 size-10 border-border bg-background text-foreground shadow-none hover:bg-surface md:-left-4" />
-                <CarouselNext className="right-1 size-10 border-border bg-background text-foreground shadow-none hover:bg-surface md:-right-4" />
+                <CarouselPrevious className="left-1 size-10 border-border bg-background text-foreground shadow-md hover:bg-surface md:-left-4" />
+                <CarouselNext className="right-1 size-10 border-border bg-background text-foreground shadow-md hover:bg-surface md:-right-4" />
               </>
             ) : null}
           </Carousel>
@@ -409,13 +407,13 @@ export function StyleGallery({ items }: { items: GalleryItem[] }) {
       </div>
 
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        {slides.length > 1 ? (
-          <div className="inline-flex items-center gap-1 rounded-full border border-border bg-background/90 p-1 shadow-sm backdrop-blur">
+        {canBrowse ? (
+          <>
             <Button
               type="button"
               size="sm"
-              variant={isPlaying ? "default" : "ghost"}
-              className="rounded-full gap-1.5 px-4"
+              variant={isPlaying ? "default" : "outline"}
+              className="rounded-full gap-1.5 px-4 shadow-sm"
               aria-pressed={isPlaying}
               onClick={() => setIsPlaying(true)}
             >
@@ -425,15 +423,15 @@ export function StyleGallery({ items }: { items: GalleryItem[] }) {
             <Button
               type="button"
               size="sm"
-              variant={!isPlaying ? "default" : "ghost"}
-              className="rounded-full gap-1.5 px-4"
+              variant={!isPlaying ? "default" : "outline"}
+              className="rounded-full gap-1.5 px-4 shadow-sm"
               aria-pressed={!isPlaying}
               onClick={() => setIsPlaying(false)}
             >
               <Pause className="size-3.5" />
               Pause
             </Button>
-          </div>
+          </>
         ) : null}
         <FullscreenGallery items={items} />
       </div>

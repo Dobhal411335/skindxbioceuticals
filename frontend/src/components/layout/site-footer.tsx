@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { footer } from "@/data/landing";
 import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
+import { useFooter } from "@/providers/footer-provider";
 
 function formatPhone(number: string): string {
   const digits = String(number || "").replace(/\D/g, "");
@@ -68,9 +69,12 @@ function YoutubeIcon({ className }: { className?: string }) {
 
 export function SiteFooter() {
   const company = useCompanyBasicInfo();
+  const managedFooter = useFooter();
   const brandName = company.companyName?.trim() || footer.brand;
   const footerLogoSrc =
-    company.footerLogo?.url?.trim() || company.mainLogo?.url?.trim() || "";
+    company.footerLogo?.url?.trim() ||
+    company.mainLogo?.url?.trim() ||
+    "";
 
   const addresses =
     company.officeAddresses?.length > 0
@@ -98,6 +102,10 @@ export function SiteFooter() {
     { href: company.instagramLink, label: "Instagram", Icon: InstagramIcon },
     { href: company.youtubeLink, label: "YouTube", Icon: YoutubeIcon },
   ].filter((item) => Boolean(item.href?.trim()));
+
+  const columns = managedFooter.columns;
+  const thankYou = managedFooter.thankYou || footer.thankYou;
+  const description = managedFooter.description || footer.description;
 
   return (
     <footer className="mt-auto border-t border-border bg-surface">
@@ -155,7 +163,7 @@ export function SiteFooter() {
           ) : null}
         </div>
 
-        {footer.columns.map((column) => (
+        {columns.map((column) => (
           <div key={column.title}>
             <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase">
               {column.title}
@@ -193,9 +201,9 @@ export function SiteFooter() {
           ) : (
             <p className="font-display text-3xl font-semibold">{brandName}</p>
           )}
-          <p className="mt-2 text-sm font-medium">{footer.thankYou}</p>
+          <p className="mt-2 text-sm font-medium">{thankYou}</p>
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">
-            {footer.description}
+            {description}
           </p>
         </div>
 
@@ -224,9 +232,9 @@ export function SiteFooter() {
       </div>
       <div className="flex justify-center">
         <p className="my-5">
-            © {new Date().getFullYear()} {brandName}
-          </p>
-          </div>
+          © {new Date().getFullYear()} {brandName}
+        </p>
+      </div>
     </footer>
   );
 }

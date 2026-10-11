@@ -26,6 +26,7 @@ import {
   Building2,
   GalleryHorizontal,
   Handshake,
+  PanelBottom,
 } from "lucide-react";
 
 import { moduleHref } from "@/config/admin-modules";
@@ -126,7 +127,9 @@ export function getSharedNav(siteCode: SiteCode): SidebarSection {
             status: "active",
           }),
           leaf(siteCode, "create-webpages", "Create Webpages", "create-webpages", Link2),
-          leaf(siteCode, "manage-webpage", "Manage Webpage", "manage-webpage", Link2),
+          leaf(siteCode, "manage-footer", "Manage Footer", "manage-footer", PanelBottom, {
+            status: "active",
+          }),
         ],
       },
       {

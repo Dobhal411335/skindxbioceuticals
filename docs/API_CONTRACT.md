@@ -153,6 +153,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/navbar-sections` | list/create site-scoped navbar sections | Admin + site access |
 | `/admin/sites/:siteCode/social-posts` | CRUD site-scoped Instagram/Facebook posts | Admin + site access |
 | `/admin/sites/:siteCode/gallery` | CRUD site-scoped gallery images/videos | Admin + site access |
+| `/admin/sites/:siteCode/footer` | get/upsert site-scoped footer config | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
 
@@ -206,6 +207,17 @@ Uploads use existing media APIs with `feature=gallery`: `POST /api/v1/media/imag
 ### Public gallery (storefront)
 
 - `GET /api/v1/sites/:siteCode/gallery` — public read for an active site (no auth). Returns active items only, ordered for the `.in` storefront lookbook (2-row masonry carousel).
+
+### Admin footer (implemented)
+
+One upsertable footer config per site (columns + brand copy). Logo and social links come from company basic info, not this resource.
+
+- `GET /api/v1/admin/sites/:siteCode/footer` — Bearer admin JWT; `requireSiteAccess`. Returns the site record or empty defaults (`id: null`) including inactive nested items.
+- `PUT /api/v1/admin/sites/:siteCode/footer` — upsert one row per site and replace nested columns/links. Body: `thankYou`, `description`, `columns[]` (`title`, `active`, `order`, `links[]` with `label`/`url`/`active`/`order`). `siteId` from authenticated site context only.
+
+### Public footer (storefront)
+
+- `GET /api/v1/sites/:siteCode/footer` — public read for an active site (no auth). Returns active columns and links only. Used by the `.in` storefront footer for columns/copy (falls back to static landing data when empty/unavailable). Storefront logo and socials use company basic info.
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

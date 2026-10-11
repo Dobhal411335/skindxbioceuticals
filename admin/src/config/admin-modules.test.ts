@@ -10,6 +10,7 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "manage-navbar": endpoints.admin.navbarSections,
   "social-media-post": endpoints.admin.socialPosts,
   gallery: endpoints.admin.gallery,
+  "manage-footer": endpoints.admin.footer,
 };
 
 describe("admin modules", () => {
@@ -26,6 +27,8 @@ describe("admin modules", () => {
     expect(findModuleBySlug("COM", ["company-basic-info"])?.id).toBe("company-info");
     expect(findModuleBySlug("IN", ["manage-navbar"])?.id).toBe("manage-navbar");
     expect(findModuleBySlug("COM", ["manage-navbar"])?.id).toBe("manage-navbar");
+    expect(findModuleBySlug("IN", ["manage-footer"])?.id).toBe("manage-footer");
+    expect(findModuleBySlug("COM", ["manage-footer"])?.id).toBe("manage-footer");
     expect(findModuleBySlug("COM", ["banners", "philosophy"])?.id).toBe("banner-philosophy");
   });
 

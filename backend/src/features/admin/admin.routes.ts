@@ -8,6 +8,7 @@ import { companyBasicInfoRoutes } from '@/features/company-basic-info/company-ba
 import { navbarSectionsRoutes } from '@/features/navbar-sections/navbar-sections.routes';
 import { socialPostsRoutes } from '@/features/social-posts/social-posts.routes';
 import { galleryRoutes } from '@/features/gallery/gallery.routes';
+import { footerRoutes } from '@/features/footer/footer.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -33,5 +34,6 @@ router.use('/sites/:siteCode/company-basic-info', companyBasicInfoRoutes);
 router.use('/sites/:siteCode/navbar-sections', navbarSectionsRoutes);
 router.use('/sites/:siteCode/social-posts', socialPostsRoutes);
 router.use('/sites/:siteCode/gallery', galleryRoutes);
+router.use('/sites/:siteCode/footer', footerRoutes);
 
 export const adminRoutes = router;

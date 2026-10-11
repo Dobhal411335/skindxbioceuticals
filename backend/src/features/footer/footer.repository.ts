@@ -13,9 +13,6 @@ const includeNested = {
       },
     },
   },
-  socialLinks: {
-    orderBy: [{ order: 'asc' as const }, { createdAt: 'asc' as const }],
-  },
 };
 
 function toRecord(row: {
@@ -23,8 +20,6 @@ function toRecord(row: {
   siteId: string;
   thankYou: string;
   description: string;
-  logoUrl: string;
-  logoPublicId: string;
   updatedAt: Date;
   columns: Array<{
     id: string;
@@ -41,23 +36,12 @@ function toRecord(row: {
       active: boolean;
     }>;
   }>;
-  socialLinks: Array<{
-    id: string;
-    footerConfigId: string;
-    label: string;
-    url: string;
-    iconKey: string;
-    order: number;
-    active: boolean;
-  }>;
 }): FooterConfigRecord {
   return {
     id: row.id,
     siteId: row.siteId,
     thankYou: row.thankYou,
     description: row.description,
-    logoUrl: row.logoUrl,
-    logoPublicId: row.logoPublicId,
     updatedAt: row.updatedAt,
     columns: row.columns.map((column) => ({
       id: column.id,
@@ -73,15 +57,6 @@ function toRecord(row: {
         order: link.order,
         active: link.active,
       })),
-    })),
-    socialLinks: row.socialLinks.map((social) => ({
-      id: social.id,
-      footerConfigId: social.footerConfigId,
-      label: social.label,
-      url: social.url,
-      iconKey: social.iconKey,
-      order: social.order,
-      active: social.active,
     })),
   };
 }
@@ -111,8 +86,6 @@ export class FooterRepository {
             data: {
               thankYou: data.thankYou,
               description: data.description,
-              logoUrl: data.logoUrl,
-              logoPublicId: data.logoPublicId,
             },
           })
         : await tx.footerConfig.create({
@@ -120,15 +93,10 @@ export class FooterRepository {
               siteId,
               thankYou: data.thankYou,
               description: data.description,
-              logoUrl: data.logoUrl,
-              logoPublicId: data.logoPublicId,
             },
           });
 
       await tx.footerColumn.deleteMany({
-        where: { footerConfigId: config.id },
-      });
-      await tx.footerSocialLink.deleteMany({
         where: { footerConfigId: config.id },
       });
 
@@ -148,19 +116,6 @@ export class FooterRepository {
               })),
             },
           },
-        });
-      }
-
-      if (data.socialLinks.length > 0) {
-        await tx.footerSocialLink.createMany({
-          data: data.socialLinks.map((social) => ({
-            footerConfigId: config.id,
-            label: social.label,
-            url: social.url,
-            iconKey: social.iconKey,
-            order: social.order,
-            active: social.active,
-          })),
         });
       }
 

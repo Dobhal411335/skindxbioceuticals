@@ -42,7 +42,7 @@ describe("getSidebarConfig", () => {
       "manage-navbar",
       "social-media-post",
       "create-webpages",
-      "manage-webpage",
+      "manage-footer",
     ]);
     expect(switcher?.status).toBe("active");
     expect(ids).not.toEqual(expect.arrayContaining(["profile", "logout"]));

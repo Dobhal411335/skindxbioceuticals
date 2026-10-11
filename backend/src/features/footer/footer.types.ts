@@ -1,10 +1,5 @@
 export type SiteCodeDto = 'IN' | 'COM';
 
-export type FooterImageRefDto = {
-  url: string;
-  publicId: string;
-};
-
 export type FooterLinkDto = {
   id: string;
   label: string;
@@ -21,23 +16,12 @@ export type FooterColumnDto = {
   links: FooterLinkDto[];
 };
 
-export type FooterSocialLinkDto = {
-  id: string;
-  label: string;
-  url: string;
-  iconKey: string;
-  active: boolean;
-  order: number;
-};
-
 export type FooterConfigDto = {
   id: string | null;
   siteCode: SiteCodeDto;
   thankYou: string;
   description: string;
-  logo: FooterImageRefDto;
   columns: FooterColumnDto[];
-  socialLinks: FooterSocialLinkDto[];
   updatedAt: string | null;
 };
 
@@ -59,26 +43,13 @@ export type FooterColumnRecord = {
   links: FooterLinkRecord[];
 };
 
-export type FooterSocialLinkRecord = {
-  id: string;
-  footerConfigId: string;
-  label: string;
-  url: string;
-  iconKey: string;
-  order: number;
-  active: boolean;
-};
-
 export type FooterConfigRecord = {
   id: string;
   siteId: string;
   thankYou: string;
   description: string;
-  logoUrl: string;
-  logoPublicId: string;
   updatedAt: Date;
   columns: FooterColumnRecord[];
-  socialLinks: FooterSocialLinkRecord[];
 };
 
 export type FooterLinkWrite = {
@@ -95,19 +66,8 @@ export type FooterColumnWrite = {
   links: FooterLinkWrite[];
 };
 
-export type FooterSocialLinkWrite = {
-  label: string;
-  url: string;
-  iconKey: string;
-  active: boolean;
-  order: number;
-};
-
 export type FooterConfigUpsertData = {
   thankYou: string;
   description: string;
-  logoUrl: string;
-  logoPublicId: string;
   columns: FooterColumnWrite[];
-  socialLinks: FooterSocialLinkWrite[];
 };
