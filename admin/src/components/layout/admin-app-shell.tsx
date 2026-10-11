@@ -19,6 +19,31 @@ interface AdminAppShellProps {
   topbar?: TopbarExtras;
 }
 
+/** Ref-counted so nested/overlapping shells do not unlock scroll early. */
+let documentScrollLockCount = 0;
+let savedHtmlOverflow: string | undefined;
+let savedBodyOverflow: string | undefined;
+
+function acquireDocumentScrollLock() {
+  if (documentScrollLockCount === 0) {
+    savedHtmlOverflow = document.documentElement.style.overflow;
+    savedBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+  }
+  documentScrollLockCount += 1;
+}
+
+function releaseDocumentScrollLock() {
+  documentScrollLockCount = Math.max(0, documentScrollLockCount - 1);
+  if (documentScrollLockCount === 0) {
+    document.documentElement.style.overflow = savedHtmlOverflow ?? "";
+    document.body.style.overflow = savedBodyOverflow ?? "";
+    savedHtmlOverflow = undefined;
+    savedBodyOverflow = undefined;
+  }
+}
+
 export function AdminAppShell({
   siteCode,
   title,
@@ -30,15 +55,9 @@ export function AdminAppShell({
 
   // Keep document scroll locked so only the main pane scrolls.
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const previousHtmlOverflow = html.style.overflow;
-    const previousBodyOverflow = body.style.overflow;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
+    acquireDocumentScrollLock();
     return () => {
-      html.style.overflow = previousHtmlOverflow;
-      body.style.overflow = previousBodyOverflow;
+      releaseDocumentScrollLock();
     };
   }, []);
 

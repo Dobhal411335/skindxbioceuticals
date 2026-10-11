@@ -5,6 +5,8 @@ import { authenticate, authorize } from '@/middlewares/auth.middleware';
 import { requireSiteAccess } from '@/middlewares/siteAccess.middleware';
 import { validate } from '@/middlewares/validate.middleware';
 import { companyBasicInfoRoutes } from '@/features/company-basic-info/company-basic-info.routes';
+import { navbarSectionsRoutes } from '@/features/navbar-sections/navbar-sections.routes';
+import { socialPostsRoutes } from '@/features/social-posts/social-posts.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -27,5 +29,7 @@ router.get(
 );
 
 router.use('/sites/:siteCode/company-basic-info', companyBasicInfoRoutes);
+router.use('/sites/:siteCode/navbar-sections', navbarSectionsRoutes);
+router.use('/sites/:siteCode/social-posts', socialPostsRoutes);
 
 export const adminRoutes = router;

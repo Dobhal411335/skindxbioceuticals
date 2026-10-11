@@ -17,6 +17,8 @@ import { blogRoutes } from '@/features/blog/blog.routes';
 import { enquiryRoutes } from '@/features/enquiries/enquiry.routes';
 import { adminRoutes } from '@/features/admin/admin.routes';
 import { companyBasicInfoPublicRoutes } from '@/features/company-basic-info/company-basic-info.public.routes';
+import { navbarSectionsPublicRoutes } from '@/features/navbar-sections/navbar-sections.public.routes';
+import { socialPostsPublicRoutes } from '@/features/social-posts/social-posts.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
@@ -46,6 +48,8 @@ export function registerRoutes(app: Application): void {
   v1.use('/settings', settingsRoutes);
   v1.use('/shipping', shippingRoutes);
   v1.use('/sites/:siteCode/company-basic-info', companyBasicInfoPublicRoutes);
+  v1.use('/sites/:siteCode/navbar-sections', navbarSectionsPublicRoutes);
+  v1.use('/sites/:siteCode/social-posts', socialPostsPublicRoutes);
 
   app.use(appConfig.apiPrefix, v1);
 }

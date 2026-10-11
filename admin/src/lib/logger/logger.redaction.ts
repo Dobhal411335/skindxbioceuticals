@@ -16,8 +16,23 @@ const SENSITIVE_QUERY_KEYS = new Set([
 
 export const REDACTED = "[REDACTED]";
 
+/** Matches `token: …`, `password=…`, etc. inside free-form messages. */
+const SENSITIVE_INLINE_PATTERN =
+  /\b((?:password|passwd|pwd|otp|token|access[_-]?token|refresh[_-]?token|secret|api[_-]?key|authorization|credential)\s*[:=]\s*)([^\s,;]+)/gi;
+
+const BEARER_PATTERN = /\b(Bearer\s+)([A-Za-z0-9._\-+=/]+)/gi;
+
 export function isSensitiveKey(key: string): boolean {
   return SENSITIVE_KEY_PATTERN.test(key);
+}
+
+export function redactSensitiveText(text: string): string {
+  if (!text) {
+    return text;
+  }
+  return text
+    .replace(SENSITIVE_INLINE_PATTERN, `$1${REDACTED}`)
+    .replace(BEARER_PATTERN, `$1${REDACTED}`);
 }
 
 export function redactValue(value: unknown, depth = 0): unknown {
@@ -31,7 +46,7 @@ export function redactValue(value: unknown, depth = 0): unknown {
     return value.map((item) => redactValue(item, depth + 1));
   }
   if (value instanceof Error) {
-    return { name: value.name, message: value.message };
+    return { name: value.name, message: redactSensitiveText(value.message) };
   }
   if (typeof value === "object") {
     const result: Record<string, unknown> = {};
@@ -39,6 +54,9 @@ export function redactValue(value: unknown, depth = 0): unknown {
       result[key] = isSensitiveKey(key) ? REDACTED : redactValue(nested, depth + 1);
     }
     return result;
+  }
+  if (typeof value === "string") {
+    return redactSensitiveText(value);
   }
   return value;
 }

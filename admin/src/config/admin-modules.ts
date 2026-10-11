@@ -397,18 +397,18 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Gallery media and section content for the .com website.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "manage-navbar",
     "manage-navbar",
     "Manage Navbar",
-    "Primary navigation items for the .com website.",
+    "Primary navigation items for the selected website.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "social-media-post",
     "social-media-post",
     "Social Media Post",
-    "Social media post content managed for the .com website.",
+    "Instagram and Facebook posts managed per website.",
     ["IN", "COM"],
   ),
   shell(

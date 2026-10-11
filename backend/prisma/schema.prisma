@@ -122,6 +122,11 @@ enum VerificationPurpose {
   EMAIL_VERIFICATION
 }
 
+enum SocialPostType {
+  INSTAGRAM
+  FACEBOOK
+}
+
 enum EmailOutboxStatus {
   PENDING
   SENT
@@ -147,6 +152,8 @@ model Site {
   enquiries          Enquiry[]
   media              Media[]
   companyBasicInfo   CompanyBasicInfo?
+  navbarSections     NavbarSection[]
+  socialPosts        SocialPost[]
 
   @@map("sites")
 }
@@ -728,6 +735,59 @@ model CompanyBasicInfo {
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@map("company_basic_infos")
+}
+
+model NavbarSection {
+  id        String   @id @default(uuid()) @db.Uuid
+  siteId    String   @map("site_id") @db.Uuid
+  title     String
+  url       String   @default("#")
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  site        Site                @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  subSections NavbarSubSection[]
+
+  @@index([siteId, order])
+  @@map("navbar_sections")
+}
+
+model NavbarSubSection {
+  id        String   @id @default(uuid()) @db.Uuid
+  sectionId String   @map("section_id") @db.Uuid
+  title     String
+  url       String   @default("#")
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  section NavbarSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId, order])
+  @@map("navbar_sub_sections")
+}
+
+model SocialPost {
+  id            String         @id @default(uuid()) @db.Uuid
+  siteId        String         @map("site_id") @db.Uuid
+  postType      SocialPostType @map("post_type")
+  imageUrl      String         @map("image_url")
+  imagePublicId String         @default("") @map("image_public_id")
+  postUrl       String         @map("post_url")
+  active        Boolean        @default(true)
+  order         Int            @default(0)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, order])
+  @@index([siteId, postType, order])
+  @@index([siteId, active, order])
+  @@map("social_posts")
 }
 
 model SiteSetting {

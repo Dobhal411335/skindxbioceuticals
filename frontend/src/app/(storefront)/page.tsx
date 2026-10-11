@@ -9,12 +9,16 @@ import { InsightsGrid } from "@/components/landing/insights-grid";
 import { MarqueeBanner } from "@/components/landing/marquee-banner";
 import { ProductHighlightColumns } from "@/components/landing/product-highlight-columns";
 import { PromoBannerRow } from "@/components/landing/promo-banner-row";
+import { SocialPostsSection } from "@/components/landing/social-posts-section";
 import { SpecialsHeader } from "@/components/landing/specials-header";
 import { StyleGallery } from "@/components/landing/style-gallery";
 import { TestimonialsGrid } from "@/components/landing/testimonials-grid";
 import { TrustBenefitsBar } from "@/components/landing/trust-benefits-bar";
+import { getSocialPosts } from "@/features/social-posts/social-posts.service";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const socialPosts = await getSocialPosts();
+
   return (
     <>
       <HeroSection />
@@ -31,6 +35,7 @@ export default function HomePage() {
       <FeatureBenefitsBar />
       <StyleGallery />
       <FaqSection />
+      <SocialPostsSection posts={socialPosts} />
       <MarqueeBanner />
     </>
   );

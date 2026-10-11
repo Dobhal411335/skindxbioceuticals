@@ -26,4 +26,12 @@ describe("admin logger", () => {
     );
     expect(decodeURIComponent(sanitizeUrl("/x?token=abc"))).toContain(REDACTED);
   });
+
+  it("redacts secrets inside Error messages", () => {
+    const redacted = redactValue(new Error("Invalid token: abc123")) as {
+      message: string;
+    };
+    expect(redacted.message).toContain(REDACTED);
+    expect(redacted.message).not.toContain("abc123");
+  });
 });

@@ -420,6 +420,7 @@ Follow Part 2 default order for this slug; convert Hotel UI sections incremental
 | Feature | Spec location | Status |
 | --- | --- | --- |
 | Company Basic Information | Part 3 of this playbook | Implemented in `admin` + `backend` + `.in` storefront provider/SEO |
+| Manage Navbar | `docs/FEATURE_MANAGE_NAVBAR_IMPLEMENTATION.md` | Implemented in `admin` + `backend` + `.in` storefront header/mobile nav |
 | *(next feature)* | `docs/FEATURE_<SLUG>_IMPLEMENTATION.md` | — |
 
 When a new feature is specified, add a row here and link its MD.

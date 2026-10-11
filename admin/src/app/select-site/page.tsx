@@ -21,7 +21,8 @@ function SelectSiteContent() {
       await logout();
       showSuccess("Signed out successfully.", { id: "admin.auth.logout.success" });
       router.replace("/login");
-    } finally {
+      // Leave isSigningOut true — navigation unmounts this component.
+    } catch {
       setIsSigningOut(false);
     }
   }

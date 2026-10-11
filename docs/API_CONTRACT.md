@@ -150,6 +150,8 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites` | list/manage authorized site workspaces | Admin permission |
 | `/admin/sites/:siteCode/dashboard` | site-scoped dashboard metrics | Admin + site access |
 | `/admin/sites/:siteCode/company-basic-info` | get/upsert site-scoped company profile | Admin + site access |
+| `/admin/sites/:siteCode/navbar-sections` | list/create site-scoped navbar sections | Admin + site access |
+| `/admin/sites/:siteCode/social-posts` | CRUD site-scoped Instagram/Facebook posts | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
 
@@ -161,6 +163,32 @@ These are initial route groups to consider; define exact paths and schemas as fe
 ### Public company basic info (storefront)
 
 - `GET /api/v1/sites/:siteCode/company-basic-info` — public read for an active site (no auth). Used by the `.in` storefront for SEO/Open Graph metadata, navbar/footer logos, contact details, and social links.
+
+### Admin navbar sections (implemented)
+
+- `GET /api/v1/admin/sites/:siteCode/navbar-sections` — Bearer admin JWT; `requireSiteAccess`. Lists all sections (including inactive) with nested sub-sections, ordered by `order`.
+- `POST /api/v1/admin/sites/:siteCode/navbar-sections` — create a section. Body: `title` (required), `url` (path/hash/absolute, default `#`), `active`, optional `order`, `subSections[]` (`title`, `url`, `active`, `order`). `siteId` from authenticated site context only.
+- `PUT /api/v1/admin/sites/:siteCode/navbar-sections/:sectionId` — replace section + sub-sections for that site (404 if missing or other site).
+- `PATCH /api/v1/admin/sites/:siteCode/navbar-sections/:sectionId` — body `{ active: boolean }` toggles visibility.
+- `DELETE /api/v1/admin/sites/:siteCode/navbar-sections/:sectionId` — deletes the section and cascaded sub-sections.
+
+### Public navbar sections (storefront)
+
+- `GET /api/v1/sites/:siteCode/navbar-sections` — public read for an active site (no auth). Returns only active sections and active sub-sections, ordered by `order`. Used by the `.in` storefront header and mobile nav.
+
+### Admin social posts (implemented)
+
+Unified Instagram + Facebook posts (`postType`: `instagram` | `facebook`) per site.
+
+- `GET /api/v1/admin/sites/:siteCode/social-posts` — Bearer admin JWT; `requireSiteAccess`. Optional query `postType`. Returns all posts for the site (including inactive), ordered by `order` asc then `createdAt` desc.
+- `POST /api/v1/admin/sites/:siteCode/social-posts` — create. Body: `postType`, `imageUrl`, `imagePublicId`, `postUrl`, optional `active`/`order`. `siteId` from authenticated site context only.
+- `PUT /api/v1/admin/sites/:siteCode/social-posts/:postId` — full update within the site.
+- `PATCH /api/v1/admin/sites/:siteCode/social-posts/:postId` — partial update of `active` and/or `order`.
+- `DELETE /api/v1/admin/sites/:siteCode/social-posts/:postId` — delete within the site.
+
+### Public social posts (storefront)
+
+- `GET /api/v1/sites/:siteCode/social-posts` — public read for an active site (no auth). Returns active posts only, ordered for carousel display on the `.in` storefront home page.
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

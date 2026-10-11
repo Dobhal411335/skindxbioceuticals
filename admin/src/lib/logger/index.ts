@@ -6,7 +6,13 @@ import {
 } from "./logger.config";
 import { redactValue } from "./logger.redaction";
 
-export { sanitizeUrl, redactValue, REDACTED, isSensitiveKey } from "./logger.redaction";
+export {
+  sanitizeUrl,
+  redactValue,
+  redactSensitiveText,
+  REDACTED,
+  isSensitiveKey,
+} from "./logger.redaction";
 export type { FrontendLogLevel } from "./logger.config";
 export { createLoggerConfig, shouldLog } from "./logger.config";
 

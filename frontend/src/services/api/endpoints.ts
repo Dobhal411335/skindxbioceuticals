@@ -43,4 +43,10 @@ export const API_ENDPOINTS = {
   COMPANY_BASIC_INFO: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/company-basic-info`,
   },
+  NAVBAR_SECTIONS: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/navbar-sections`,
+  },
+  SOCIAL_POSTS: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/social-posts`,
+  },
 } as const;

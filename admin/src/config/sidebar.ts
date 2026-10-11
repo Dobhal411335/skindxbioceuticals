@@ -117,8 +117,12 @@ export function getSharedNav(siteCode: SiteCode): SidebarSection {
             status: "active",
           }),
           leaf(siteCode, "gallery", "Gallery Section", "gallery", GalleryHorizontal),
-          leaf(siteCode, "manage-navbar", "Manage Navbar", "manage-navbar", Send),
-          leaf(siteCode, "social-media-post", "Social Media Post", "social-media-post", Share2),
+          leaf(siteCode, "manage-navbar", "Manage Navbar", "manage-navbar", Send, {
+            status: "active",
+          }),
+          leaf(siteCode, "social-media-post", "Social Media Post", "social-media-post", Share2, {
+            status: "active",
+          }),
           leaf(siteCode, "create-webpages", "Create Webpages", "create-webpages", Link2),
           leaf(siteCode, "manage-webpage", "Manage Webpage", "manage-webpage", Link2),
         ],
