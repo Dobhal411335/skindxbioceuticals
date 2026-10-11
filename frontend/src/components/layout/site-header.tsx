@@ -1,3 +1,6 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 
@@ -13,8 +16,14 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { navLinks } from "@/data/landing";
+import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 
 export function SiteHeader() {
+  const company = useCompanyBasicInfo();
+  const brandName = company.companyName?.trim() || "SkinDx";
+  const logoUrl =
+    company.mainLogo?.url?.trim() || company.mobileUiLogo?.url?.trim() || "";
+
   return (
     <header className="border-b border-border bg-background">
       <div className="hidden border-b border-border bg-surface md:block">
@@ -29,9 +38,23 @@ export function SiteHeader() {
 
         <Link
           href="/"
-          className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+          className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+          aria-label={brandName}
         >
-          SkinDx
+          {logoUrl ? (
+            <span className="relative block h-10 w-[140px] sm:h-11 sm:w-[160px]">
+              <Image
+                src={logoUrl}
+                alt={brandName}
+                fill
+                className="object-contain object-left"
+                sizes="160px"
+                priority
+              />
+            </span>
+          ) : (
+            brandName
+          )}
         </Link>
 
         <NavigationMenu

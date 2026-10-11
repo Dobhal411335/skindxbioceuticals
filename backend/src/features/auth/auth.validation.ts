@@ -14,6 +14,12 @@ export const strongPasswordSchema = z
   .regex(/[0-9]/, 'Password must include a number')
   .regex(/[^A-Za-z0-9]/, 'Password must include a special character');
 
+/** Admin bootstrap / staff passwords — length only, no complexity rules. */
+export const adminPasswordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128);
+
 export const authIdParamSchema = z.object({
   id: z.string().uuid(),
 });
@@ -66,7 +72,7 @@ export const googleAuthSchema = z.object({
 
 export const bootstrapAdminSchema = z.object({
   email: z.string().email(),
-  password: strongPasswordSchema,
+  password: adminPasswordSchema,
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   bootstrapSecret: z.string().min(1),

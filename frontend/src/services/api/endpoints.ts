@@ -40,4 +40,7 @@ export const API_ENDPOINTS = {
     ADDRESSES: "/me/addresses",
     ADDRESS: (id: string) => `/me/addresses/${id}`,
   },
+  COMPANY_BASIC_INFO: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/company-basic-info`,
+  },
 } as const;

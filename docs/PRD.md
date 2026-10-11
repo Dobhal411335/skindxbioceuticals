@@ -4,15 +4,16 @@
 **Status:** Initial baseline — confirm business-specific details before production  
 **Products:** Pharmaceutical / skincare / biomedical products  
 **Domains:** `.in` and `.com`  
-**Last updated:** 2026-10-09
+**Last updated:** 2026-10-11
 
 ## 1. Product vision
 
 Build two distinct public websites powered by one shared backend and managed through one admin experience.
 
 - **`.in`** is the transactional ecommerce storefront: product discovery, customer accounts, cart, checkout, Razorpay payments, orders, and customer self-service.
-- **`.com`** is primarily an informational and enquiry-focused website. It may display products and educational content, but enquiry/contact is its primary conversion path unless requirements later change.
-- **One admin panel** lets authorized staff choose which site to manage and edit the content and settings permitted for that site.
+- **`.com`** is the corporate / informational website: company content, product information and listings, educational resources, and other non-checkout presentation. Enquiry/contact forms may exist on the public site later, but enquiry management is **not** part of the default admin experience unless explicitly requested.
+- **One admin panel** lets authorized staff choose which site to manage and edit the content, products, and settings permitted for that site.
+- **Both sites** have site-scoped product management in admin. Products created for one website must not automatically appear on the other unless the data model and explicit business rules allow sharing.
 
 The sites should share infrastructure and reusable business capabilities without forcing identical layouts, content, or conversion flows.
 
@@ -41,18 +42,17 @@ Do not silently implement these before requirements are confirmed:
 ### Public/customer roles
 - **Guest:** browse public pages and products; submit permitted enquiries; add items to a guest cart if enabled.
 - **Customer:** register/sign in, manage profile and addresses, maintain cart/wishlist, place orders, view order history, and submit reviews if enabled.
-- **Enquirer:** submit a `.com` enquiry with consent and contact details appropriate to the form.
+- **Enquirer (future / optional):** submit a public enquiry with consent and contact details if and when enquiry forms are explicitly enabled.
 
 ### Admin roles
 Use least-privilege role-based access control. Final roles must be confirmed with the business. Suggested starting roles:
 - **Super Admin:** manage staff permissions, site settings, both site workspaces, and all administrative functions.
-- **Site Admin:** manage assigned site content and catalog features.
-- **Catalog Manager:** manage products, categories, variants, stock, and product media.
+- **Site Admin:** manage assigned site content and catalog/product features.
+- **Catalog Manager:** manage products, categories, variants (where applicable), stock (where applicable), and product media for authorized sites.
 - **Order Manager:** view/manage orders and fulfilment without access to unnecessary account/security data.
 - **Content Editor:** manage pages, banners, blog posts, FAQs, and other assigned content.
-- **Enquiry Manager:** view and process `.com` enquiries.
 
-Do not assume every staff member may access both sites or all customer data.
+Do not assume every staff member may access both sites or all customer data. Do not add an Enquiry Manager role or enquiry admin modules unless explicitly requested.
 
 ## 5. Site requirements
 
@@ -69,26 +69,28 @@ Do not assume every staff member may access both sites or all customer data.
 - SEO metadata, canonical URLs, sitemap, robots rules, and structured data only where accurate.
 - Accessible loading, empty, validation, success, and error states.
 
-### 5.2 `.com` enquiry/content site
+### 5.2 `.com` corporate / content site
 - Independently configurable header, footer, navigation, hero, page sections, and brand presentation.
-- Company/about pages, product information, FAQs, educational/blog content, contact details, and enquiry forms as approved by the business.
-- Product enquiry CTA and enquiry confirmation.
-- Enquiries saved in the shared backend and available to authorized staff in the admin panel.
-- Spam prevention, input validation, consent messaging, and email notification where configured.
+- Company/about pages, product information, product listings, categories, FAQs, educational/blog content, and contact details as approved by the business.
+- Site-scoped product management in admin for product information, listings, categories, descriptions, images, and related content appropriate to `.com`.
 - No ecommerce checkout requirement unless explicitly approved later.
+- Public enquiry forms and enquiry admin tooling are out of scope for the default admin navigation unless explicitly requested later.
 
 ### 5.3 Shared admin panel
 - Authenticated, role-protected admin area.
 - Landing screen/workspace selector for `.in` and `.com`.
 - Clear visual indication of the selected site before saving changes.
 - Site-specific content management: pages, banners, navigation, FAQs, blog posts, SEO metadata, and site settings.
-- Catalog management for ecommerce products, categories, variants, pricing, and inventory.
-- Order and payment-status visibility with restricted permissions.
-- Enquiry management with status, assignment/notes if approved, and timestamps.
+- Site-scoped product management for **both** `.in` and `.com`.
+  - `.in`: products, categories, variants, pricing, inventory/stock, and ecommerce-related operations where implemented.
+  - `.com`: product information, products, categories (where applicable), product media, and corporate product content.
+- Order and payment-status visibility with restricted permissions (`.in`).
+- Do **not** include enquiry management navigation items, placeholder pages, or related admin modules by default.
 - Media library backed by Cloudinary.
 - Admin user and role management restricted to authorized roles.
 - Audit trail for sensitive or material changes.
 - Confirmation for destructive actions and clear save/error feedback.
+- Unimplemented modules use reusable page shells without fabricated CRUD or fake data. Every listed sidebar module must be clickable and open a corresponding page.
 
 ## 6. Dynamic content and site separation
 

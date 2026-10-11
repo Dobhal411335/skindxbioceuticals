@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { getAuthErrorMessage } from "@/features/auth/auth-errors";
 import { authService } from "@/features/auth/auth.service";
 import {
   getSafeRedirectPath,
   verifyEmailFormSchema,
 } from "@/features/auth/auth.validation";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { toApiError } from "@/services/api/errors";
+import { showError, showInfo, showSuccess } from "@/lib/toast";
 import { setCredentials } from "@/store/slices/authSlice";
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -29,8 +30,6 @@ function VerifyEmailFormInner() {
   const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -45,8 +44,6 @@ function VerifyEmailFormInner() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setFormError(null);
-    setInfoMessage(null);
     setFieldErrors({});
 
     const parsed = verifyEmailFormSchema.safeParse({ email, otp });
@@ -71,18 +68,28 @@ function VerifyEmailFormInner() {
           accessToken: data.accessToken,
         }),
       );
+      showSuccess("Email verified successfully.", { id: "auth.verify.success" });
       router.replace(getSafeRedirectPath(searchParams.get("redirect")));
     } catch (error) {
-      const apiError = toApiError(error);
-      setFormError(apiError.message || "Unable to verify this code. Please try again.");
+      showError(
+        getAuthErrorMessage(
+          error,
+          "Unable to verify this code. Please try again.",
+        ),
+        { id: "auth.verify.error" },
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleResend = async () => {
-    setFormError(null);
-    setInfoMessage(null);
+    if (cooldown > 0) {
+      showInfo(`Please wait ${cooldown}s before requesting another code.`, {
+        id: "auth.verify.resend.cooldown",
+      });
+      return;
+    }
 
     const emailCheck = verifyEmailFormSchema.shape.email.safeParse(email);
     if (!emailCheck.success) {
@@ -94,12 +101,15 @@ function VerifyEmailFormInner() {
     try {
       await authService.resendVerification({ email: emailCheck.data });
       setCooldown(RESEND_COOLDOWN_SECONDS);
-      setInfoMessage(
+      showInfo(
         "If an unverified account exists for this email, a new code has been sent.",
+        { id: "auth.verify.resend.success" },
       );
     } catch (error) {
-      const apiError = toApiError(error);
-      setFormError(apiError.message || "Unable to resend the code right now.");
+      showError(
+        getAuthErrorMessage(error, "Unable to resend the code right now."),
+        { id: "auth.verify.resend.error" },
+      );
     } finally {
       setIsResending(false);
     }
@@ -170,17 +180,6 @@ function VerifyEmailFormInner() {
             </p>
           ) : null}
         </div>
-
-        {formError ? (
-          <p className="text-sm text-destructive" role="alert">
-            {formError}
-          </p>
-        ) : null}
-        {infoMessage ? (
-          <p className="text-sm text-muted-foreground" role="status">
-            {infoMessage}
-          </p>
-        ) : null}
 
         <Button
           type="submit"

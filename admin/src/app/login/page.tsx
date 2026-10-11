@@ -1,15 +1,30 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Instrument_Serif } from "next/font/google";
+import { motion, useReducedMotion } from "framer-motion";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { useAuth } from "@/lib/auth-context";
+import { cn } from "@/lib/utils";
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-login-serif",
+});
+
+const rise = {
+  hidden: { opacity: 0, y: 48 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export default function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -17,37 +32,71 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
+  const transition = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.75, ease: [0.22, 1, 0.36, 1] as const };
+
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <aside className="relative hidden overflow-hidden lg:block">
-        <Image
-          src="https://images.unsplash.com/photo-1579165466741-7f35e4755660?auto=format&fit=crop&w=1600&q=80"
-          alt=""
-          fill
-          priority
-          className="object-cover"
-          sizes="50vw"
-        />
-        <div className="absolute inset-0 bg-linear-to-br from-[#0f2a27]/92 via-[#1D3B68]/85 to-[#0b1628]/90" />
-        <div className="relative z-10 flex h-full flex-col justify-between p-10 text-white">
-          <div>
-            <p className="text-sm font-medium tracking-[0.2em] uppercase text-white/70">
-              SkinDx Bioc
+    <div
+      className={cn(
+        instrumentSerif.variable,
+        "flex min-h-screen items-center justify-center bg-[#F4F1EA] px-4 py-6 sm:px-6 lg:px-8",
+      )}
+    >
+      <div className="grid w-full max-w-6xl items-stretch gap-5 lg:grid-cols-2 lg:gap-8">
+        <motion.aside
+          className="relative hidden min-h-[560px] overflow-hidden rounded-[28px] bg-[#14181c] px-10 py-12 text-white shadow-[0_24px_60px_rgb(20_35_45_/12%)] lg:flex lg:flex-col lg:justify-between xl:px-14 xl:py-14"
+          initial={reduceMotion ? false : "hidden"}
+          animate="visible"
+          variants={rise}
+          transition={{ ...transition, delay: reduceMotion ? 0 : 0.05 }}
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgb(40_127_123_/22%),transparent_55%)]" />
+          <div className="relative z-10 max-w-lg">
+            <p className="text-xs font-medium tracking-[0.22em] text-white/55 uppercase">
+              SkinDx Bioceutical Admin
             </p>
-            <h1 className="mt-4 max-w-md text-4xl font-semibold tracking-tight">
-              Clinical precision for every website you manage.
+            <h1
+              className="mt-8 text-[2.75rem] leading-[1.15] tracking-tight text-white xl:text-[3.25rem]"
+              style={{ fontFamily: "var(--font-login-serif), ui-serif, Georgia, serif" }}
+            >
+              Clinical precision for every{" "}
+              <em className="text-primary" style={{ fontStyle: "italic" }}>
+                website
+              </em>{" "}
+              you manage.
             </h1>
           </div>
-          <p className="max-w-sm text-sm leading-relaxed text-white/75">
-            Secure administration for the India ecommerce storefront and the Global corporate
-            website — one authenticated workspace, site-scoped permissions.
-          </p>
-        </div>
-      </aside>
+            <p className="mt-6 max-w-md text-[15px] leading-relaxed text-white/70">
+              Manage the SkinDx.in ecommerce storefront and the SkinDx.com corporate website from one
+              calm, secure workspace.
+            </p>
 
-      <main className="flex items-center justify-center bg-background px-6 py-12">
-        <LoginForm />
-      </main>
+        </motion.aside>
+
+        <motion.main
+          className="flex items-center justify-center"
+          initial={reduceMotion ? false : "hidden"}
+          animate="visible"
+          variants={rise}
+          transition={{ ...transition, delay: reduceMotion ? 0 : 0.18 }}
+        >
+          <div className="w-full max-w-[420px]">
+            <div className="mb-6 lg:hidden">
+              <p className="text-xs font-medium tracking-[0.18em] text-primary uppercase">
+                SkinDx Bioc
+              </p>
+              <h1
+                className="mt-2 text-3xl tracking-tight text-foreground"
+                style={{ fontFamily: "var(--font-login-serif), ui-serif, Georgia, serif" }}
+              >
+                Clinical precision for every website you manage.
+              </h1>
+            </div>
+            <LoginForm serifClassName={instrumentSerif.className} />
+          </div>
+        </motion.main>
+      </div>
     </div>
   );
 }

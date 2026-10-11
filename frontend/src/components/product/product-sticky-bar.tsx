@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import type { CatalogProduct } from "@/data/catalog";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { showSuccess } from "@/lib/toast";
 import { formatPaiseToInr } from "@/lib/utils";
 import { addCartItem } from "@/store/slices/cartSlice";
 
@@ -44,6 +45,7 @@ export function ProductStickyBar({ product }: ProductStickyBarProps) {
         quantity,
       }),
     );
+    showSuccess("Added to cart.", { id: "cart.add" });
     openCart();
   }
 

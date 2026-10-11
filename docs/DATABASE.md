@@ -20,6 +20,7 @@
 
 ### Site and content
 - `Site`: stable code (`IN`, `COM`), canonical host/domain, active flag, settings relationship.
+- `CompanyBasicInfo` (implemented): one optional row per site (`siteId` unique). Stores company name/domain, contact numbers, WhatsApp, emails, office addresses, map/social/SEO/tracking fields, and logo URL/publicId pairs. Cascade delete with `Site`.
 - `Page` / `ContentEntry`: site, slug, title, structured content, publication status, SEO metadata.
 - `NavigationItem`, `Banner`, `FAQ`, `BlogPost`, `SiteSetting`: site-scoped where the content/settings differ.
 - `MediaAsset`: provider, provider asset/public ID, URL, file type, dimensions, alt text, ownership/creation metadata.

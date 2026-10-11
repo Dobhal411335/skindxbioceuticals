@@ -23,6 +23,7 @@ import {
 } from "@/features/me/address.validation";
 import { meService } from "@/features/me/me.service";
 import type { Address } from "@/features/me/me.types";
+import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
 
 const emptyForm: AddressFormValues = {
@@ -40,7 +41,6 @@ export function AddressesPageView() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Address | null>(null);
@@ -111,7 +111,6 @@ export function AddressesPageView() {
   };
 
   const submitForm = async () => {
-    setSuccess(null);
     setError(null);
     const parsed = addressFormSchema.safeParse(form);
     if (!parsed.success) {
@@ -139,15 +138,17 @@ export function AddressesPageView() {
 
       if (editing) {
         await meService.updateAddress(editing.id, payload);
-        setSuccess("Address updated.");
+        showSuccess("Address updated.", { id: "account.address.save" });
       } else {
         await meService.createAddress(payload);
-        setSuccess("Address added.");
+        showSuccess("Address added.", { id: "account.address.save" });
       }
       setFormOpen(false);
       await load();
     } catch (err) {
-      setError(toApiError(err).message || "Unable to save address.");
+      showError(toApiError(err).message || "Unable to save address.", {
+        id: "account.address.error",
+      });
     } finally {
       setSaving(false);
     }
@@ -160,10 +161,12 @@ export function AddressesPageView() {
     try {
       await meService.deleteAddress(deleteId);
       setDeleteId(null);
-      setSuccess("Address deleted.");
+      showSuccess("Address deleted.", { id: "account.address.delete" });
       await load();
     } catch (err) {
-      setError(toApiError(err).message || "Unable to delete address.");
+      showError(toApiError(err).message || "Unable to delete address.", {
+        id: "account.address.error",
+      });
     } finally {
       setSaving(false);
     }
@@ -175,10 +178,12 @@ export function AddressesPageView() {
     setError(null);
     try {
       await meService.updateAddress(address.id, { isDefault: true });
-      setSuccess("Default address updated.");
+      showSuccess("Default address updated.", { id: "account.address.default" });
       await load();
     } catch (err) {
-      setError(toApiError(err).message || "Unable to set default address.");
+      showError(toApiError(err).message || "Unable to set default address.", {
+        id: "account.address.error",
+      });
     } finally {
       setPendingDefaultId(null);
     }
@@ -202,11 +207,6 @@ export function AddressesPageView() {
       {error ? (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : null}
-      {success ? (
-        <Alert>
-          <AlertDescription>{success}</AlertDescription>
         </Alert>
       ) : null}
 

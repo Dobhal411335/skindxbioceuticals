@@ -49,6 +49,8 @@ Support email/password authentication and Google sign-in/sign-up.
 - Do not rely on hidden buttons or frontend role checks.
 - Prevent horizontal privilege escalation (accessing another customer's records) and vertical escalation (ordinary user becoming admin).
 - Require strong authentication for admin users; consider MFA before production.
+- Do not advertise or implement a fake admin forgot-password flow until a secure backend recovery endpoint exists. Super-admin bootstrap remains a protected one-time API (`/auth/bootstrap-admin`) — never expose a public registration UI for it.
+- The admin website selector is not an authorization boundary; knowing a site code must never grant access.
 - Restrict role changes, admin invitations, exports, refunds, payment adjustments, and site settings to explicit permissions.
 - Record audit events for sensitive admin actions, including actor, action, target, timestamp, and safe metadata.
 - Never expose admin APIs publicly without authentication and authorization.

@@ -39,6 +39,17 @@ Prefer a dedicated disposable PostgreSQL test database for repository and API in
 ### Frontend tests
 For interactive frontend components and client-side logic, use Jest with React Testing Library if Jest is the chosen frontend runner. Test user-visible behavior, form validation, loading/error states, and important interactions. Next.js server components and end-to-end flows may need additional tools or test approaches; do not assume Jest alone covers the entire app.
 
+#### Toast notifications
+When adding or changing `src/lib/toast` or features that emit toasts:
+- Unit-test helpers against a mocked `goey-toast` API (success/error/info/warning routing, default durations, stable `id` dedupe behavior).
+- Assert toast host configuration uses **top-center** positioning.
+- For authentication flows, assert success toasts only after mocked API success, and error/info toasts for invalid credentials, verification failures, resend outcomes, and Google sign-in failures.
+- Admin: cover login validation/password visibility, login success → `/select-site`, login error toast without success, logout toast + redirect, site selector permission gating, sidebar accordion expand/auto-expand for active routes, and nav registry href ↔ module shell resolution.
+- Assert duplicate prevention when the same operation is retried with the same toast `id`.
+- Assert `sanitizeUserMessage` (or equivalent) never surfaces stack traces, HTML dumps, or secret-like values.
+- Assert failed API requests do **not** trigger success toasts.
+- Mock network calls; never hit production APIs.
+
 ### End-to-end tests
 Add browser-level tests for critical journeys once the UI is implemented:
 - Customer signup/login and Google sign-in flow boundaries.
@@ -46,7 +57,7 @@ Add browser-level tests for critical journeys once the UI is implemented:
 - Checkout and payment test mode.
 - Order confirmation/history.
 - Admin site switching and permission boundaries.
-- `.com` enquiry submission and admin handling.
+- `.com` public enquiry submission only if/when enquiry forms are explicitly enabled; admin enquiry navigation shells may exist before full enquiry APIs are wired.
 
 A browser E2E runner such as Playwright can complement Jest; it does not replace unit/API tests.
 
@@ -127,6 +138,7 @@ A route, model-backed feature, or behavior change is not done until its tests ar
 - Expired/revoked sessions are rejected.
 - Invalid Google token claims are rejected.
 - Account linking requires verified identity.
+- Frontend toast notifications for login/signup/verify/Google success and safe error messages (mocked network; no success toast before API confirmation).
 
 ### Authorization and site isolation
 - Guest cannot call customer-only endpoints.

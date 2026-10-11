@@ -17,7 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SkinDx Bioc Admin",
-  description: "Administration panel for SkinDx Bioc India and Global websites",
+  description:
+    "Administration panel for SkinDx Bioc India websites (.in ecommerce and .com corporate), including site-scoped product management",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

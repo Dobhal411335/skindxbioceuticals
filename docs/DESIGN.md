@@ -10,7 +10,7 @@ Adapt that structure for a trustworthy skincare / biomedical / pharmaceutical br
 - Prioritize legibility and product information over decorative effects.
 - Use authentic product/lab/ingredient imagery approved by the company.
 - Avoid unsupported medical claims, before/after claims, or imagery implying guaranteed outcomes.
-- `.in` can be more conversion-focused; `.com` can emphasize company credibility, product information, and enquiries.
+- `.in` can be more conversion-focused; `.com` can emphasize company credibility and product information.
 
 ## 2. Initial visual tokens
 
@@ -86,13 +86,15 @@ Recommended `.in` sequence:
 
 Recommended `.com` sequence:
 1. Brand header and clear navigation.
-2. Company/product-focused hero with “Explore products” or “Make an enquiry”.
+2. Company/product-focused hero with “Explore products” or another approved primary CTA.
 3. Company credibility, facilities, quality process, or capabilities—only if verified.
 4. Product/category overview.
-5. Featured product information with enquiry CTA.
+5. Featured product information.
 6. Educational/resources section.
-7. FAQ and enquiry form.
+7. FAQ and contact details as approved.
 8. Footer with official company and policy information.
+
+Admin note: do not add enquiry-management sidebar items or placeholder pages unless explicitly requested.
 
 Do not force every section onto every page. Sections should be configurable and orderable in the CMS where useful.
 
@@ -115,7 +117,23 @@ Do not force every section onto every page. Sections should be configurable and 
 - Include hover, focus-visible, active, disabled, loading, and error states.
 - Do not use color alone to convey state.
 
-## 8. Product cards
+## 8. Toast notifications
+
+Use **goey-toast** through each Next.js app’s centralized helpers in `src/lib/toast`.
+
+- **Placement:** always **top-center**. Configure this only on the root `ToastHost` / `GooeyToaster`; do not override position per feature.
+- **Visual treatment:** light theme, subtle animation preset, no timestamps by default. Keep copy concise; optional short description when needed.
+- **Durations (defaults):** success ~3.5s, info ~4s, warning ~5s, error ~5.5s. Errors may linger slightly longer so users can read them.
+- **Kinds:**
+  - Success — confirmed create/update/delete or successful auth steps.
+  - Error — failed operations the user can retry or correct.
+  - Warning — cautionary outcomes that are not hard failures.
+  - Info — neutral guidance (for example email verification required, resend cooldown).
+- **Accessibility:** rely on the library close button, Escape dismissal, and swipe-to-dismiss. Do not trap focus in toasts. Prefer field-level inline errors for form validation; use toasts for operation-level feedback.
+- **Responsive:** toasts must remain readable on small mobile viewports without covering primary CTAs permanently; top-center placement and limited visible queue (`visibleToasts`) keep the stack manageable.
+- **Content rules:** never show stack traces, HTML error pages, tokens, OTPs, or internal provider errors. Never toast success before backend confirmation. Avoid duplicate toasts for the same event (use a stable toast `id`).
+
+## 9. Product cards
 
 Each card should support, as applicable:
 - Product image with consistent aspect ratio and object-fit behavior.
@@ -129,7 +147,7 @@ Each card should support, as applicable:
 
 Do not display fake reviews, fake discounts, invented stock counts, fake urgency timers, or unverified medical benefits. Images must have appropriate alt text. Avoid showing an “Add to cart” action for products that cannot be purchased on that site.
 
-## 9. Images and media
+## 10. Images and media
 
 - Use Cloudinary for managed media delivery and transformations.
 - Prefer WebP/AVIF where supported and responsive image sizes.
@@ -139,7 +157,7 @@ Do not display fake reviews, fake discounts, invented stock counts, fake urgency
 - Provide meaningful alt text; decorative images should have empty alt text.
 - Admins should preview images and be able to manage alt text.
 
-## 10. Component system
+## 11. Component system
 
 - Use shadcn/ui for accessible component primitives and own the project styling.
 - Use Lucide React for icons; maintain consistent stroke size and icon dimensions.
@@ -148,7 +166,7 @@ Do not display fake reviews, fake discounts, invented stock counts, fake urgency
 - Do not fork or duplicate the same primitive without a clear reason.
 - Do not over-customize shadcn components in ways that remove keyboard or screen-reader behavior.
 
-## 11. Responsive behavior
+## 12. Responsive behavior
 
 Test at minimum:
 - Small mobile: 320–375px
@@ -164,7 +182,7 @@ Mobile requirements:
 - Navigation, cart, forms, and dialogs work without hover.
 - Sticky elements do not obscure content or focus targets.
 
-## 12. Accessibility and trust
+## 13. Accessibility and trust
 
 - Target WCAG 2.2 AA.
 - Use visible keyboard focus, semantic headings, labels, error descriptions, and accessible dialogs.
@@ -174,6 +192,19 @@ Mobile requirements:
 - Use only business-approved and legally reviewed product claims.
 - Ensure consent and privacy copy is visible at the point of data collection.
 
-## 13. Design implementation rule
+## 14. Admin application shell
+
+The admin Next.js app (`admin/`) uses the shared SkinDx Bioc tokens with these admin-oriented values (see `admin/src/app/globals.css`):
+
+- Primary teal ≈ `#287F7B`, medical navy ≈ `#183453`, dark sidebar ≈ `#102E2A`
+- Page surface ≈ `#F5F7F8`, borders ≈ `#E1E7EB`, primary text ≈ `#15212B`, muted text ≈ `#64748B`
+- Active sidebar items: teal background with white text; sidebar labels near-white with readable muted secondary (`--sidebar-muted`)
+- Sidebar scrollbar is scoped to `.admin-sidebar-scroll` only (dark track, muted teal thumb) — do not restyle the main content scrollbar globally
+- Auth and primary controls target ~48–52px height with comfortable horizontal padding
+- Split-screen login on large viewports; compact brand strip above the form on mobile
+- Nested sidebar sections use accessible accordions (~200ms) with `prefers-reduced-motion` support
+- Unfinished modules use page shells with empty-state copy; never show “Coming Soon” disabled nav for registered modules
+
+## 15. Design implementation rule
 
 Before building a new page, inspect existing tokens and components first. Implement responsive states and loading/empty/error states along with the happy path. Do not invent the final logo, brand palette, product claims, or imagery if official assets/content have not been supplied.

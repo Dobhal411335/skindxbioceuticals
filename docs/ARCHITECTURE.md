@@ -26,6 +26,15 @@ Admin UI (protected) ─────────────────┘
 
 The admin can be deployed as a protected area of the `.in` application or as a separate application. Keep this as an explicit deployment decision; do not accidentally couple admin routes to public storefront rendering. Regardless of deployment, both site workspaces use the same authenticated API.
 
+Admin navigation is site-scoped and driven by a centralized registry (`admin/src/config/sidebar.ts` + `admin/src/config/admin-modules.ts`):
+
+- Routes use `/admin/{siteCode}/...` with `siteCode` `in` | `com` (normalized to `IN` | `COM`).
+- `.in` menus cover ecommerce operations (stock, products, marketing/banners, reviews, orders/reports) plus retained payments/customers/shipping/media shells.
+- `.com` menus cover company content, banners, product information, enquiries, SEO, and site settings.
+- Unimplemented modules render reusable page shells without fabricated CRUD or fake analytics.
+- The website selector (`/select-site`) is UX only; every protected API call still enforces auth and site access on the backend.
+- Restricted items (admin users, audit logs) are shown only for `SUPER_ADMIN` in the UI; backend authorization remains authoritative.
+
 ## 3. Repository layout
 
 Recommended monorepo when the team wants shared types and tooling:
@@ -162,6 +171,8 @@ src/
 ├── store/
 ├── hooks/
 ├── lib/
+│   ├── logger/
+│   └── toast/                # goey-toast helpers + ToastHost (per Next.js app)
 ├── types/
 └── config/
 ```
@@ -170,6 +181,9 @@ src/
 - Add `"use client"` only where browser interactivity is required.
 - Keep Axios configuration centralized and attach logging/correlation through interceptors only.
 - Keep the frontend logger under `src/lib/logger` (never import the backend Pino logger into browser bundles).
+- Keep toast notifications under `src/lib/toast` in each Next.js app (`frontend`, `admin`, and a future `.com` app). Mount `ToastHost` once in the app’s root client provider (for example storefront `Providers` or admin `AuthProvider`). Feature components call `showSuccess` / `showError` / `showInfo` / `showWarning` after the relevant operation confirms; do not import `gooeyToast` ad hoc.
+- Admin auth feedback: success toast after confirmed login/logout; safe error toast on failed login; no celebratory toast for routine website switching.
+- Do **not** auto-show toasts from Axios interceptors. Interceptors stay responsible for auth headers, refresh, and logging. Feature-level code decides when a user-facing notification is appropriate, which prevents duplicate toasts and refresh/logout notification loops.
 - Use Redux Toolkit for client-owned state such as cart UI state or session-related UI state when needed.
 - Consider TanStack Query for remote/server data caching; do not mirror every API response in Redux.
 - Keep feature-specific API functions, types, and UI near the feature when practical.

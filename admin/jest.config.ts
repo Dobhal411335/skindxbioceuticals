@@ -7,6 +7,7 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "\\.(css|less|scss|sass)$": "<rootDir>/src/test/style-mock.ts",
   },
   transform: {
     "^.+\\.(ts|tsx)$": [

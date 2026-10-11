@@ -8,5 +8,10 @@ export const endpoints = {
   admin: {
     sites: "/admin/sites",
     dashboard: (siteCode: string) => `/admin/sites/${siteCode}/dashboard`,
+    companyBasicInfo: (siteCode: string) =>
+      `/admin/sites/${siteCode}/company-basic-info`,
+  },
+  media: {
+    uploadImage: "/media/images",
   },
 } as const;

@@ -148,8 +148,19 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/content` | public pages, banners, FAQs, blog content | Public read; admin write |
 | `/media` | signed upload authorization and asset management | Authorized admin/editor |
 | `/admin/sites` | list/manage authorized site workspaces | Admin permission |
+| `/admin/sites/:siteCode/dashboard` | site-scoped dashboard metrics | Admin + site access |
+| `/admin/sites/:siteCode/company-basic-info` | get/upsert site-scoped company profile | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
+
+### Admin company basic info (implemented)
+
+- `GET /api/v1/admin/sites/:siteCode/company-basic-info` — Bearer admin JWT; `requireSiteAccess`. Returns the site record or empty defaults (`id: null`).
+- `PUT /api/v1/admin/sites/:siteCode/company-basic-info` — upsert one row per site. Body includes company name/domain (required), contact numbers (10 digits when present), WhatsApp, emails, addresses, map/social/SEO fields, and logo refs `{ url, publicId }`. `siteId` is taken from the authenticated site context only.
+
+### Public company basic info (storefront)
+
+- `GET /api/v1/sites/:siteCode/company-basic-info` — public read for an active site (no auth). Used by the `.in` storefront for SEO/Open Graph metadata, navbar/footer logos, contact details, and social links.
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

@@ -6,7 +6,6 @@ import { Suspense, useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { getAuthErrorMessage } from "@/features/auth/auth-errors";
 import { authService } from "@/features/auth/auth.service";
 import { registerFormSchema } from "@/features/auth/auth.validation";
+import { showError, showInfo } from "@/lib/toast";
 
 export function SignupForm() {
   const router = useRouter();
@@ -26,16 +26,16 @@ export function SignupForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setFormError(null);
     setFieldErrors({});
 
     if (!acceptedTerms) {
-      setFormError("Please accept the Terms & Conditions to continue.");
+      showError("Please accept the Terms & Conditions to continue.", {
+        id: "auth.signup.terms",
+      });
       return;
     }
 
@@ -61,15 +61,19 @@ export function SignupForm() {
     setIsSubmitting(true);
     try {
       const result = await authService.register(parsed.data);
+      showInfo("Check your email for a verification code.", {
+        id: "auth.signup.success",
+      });
       router.push(
         `/account/verify-email?email=${encodeURIComponent(result.email)}`,
       );
     } catch (error) {
-      setFormError(
+      showError(
         getAuthErrorMessage(
           error,
           "Unable to create your account. Please try again.",
         ),
+        { id: "auth.signup.error" },
       );
     } finally {
       setIsSubmitting(false);
@@ -229,12 +233,6 @@ export function SignupForm() {
             required before any live account creation.
           </Label>
         </div>
-
-        {formError ? (
-          <Alert variant="destructive" data-testid="signup-error">
-            <AlertDescription>{formError}</AlertDescription>
-          </Alert>
-        ) : null}
 
         <Button
           type="submit"

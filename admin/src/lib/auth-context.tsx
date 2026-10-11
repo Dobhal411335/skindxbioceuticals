@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { ToastHost } from "@/lib/toast";
 import { adminLogin, fetchMe, logout as apiLogout } from "@/services/api/auth";
 import { ApiError } from "@/services/api/errors";
 import { tokenStore } from "@/services/api/token-store";
@@ -137,7 +138,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, sites, isLoading, login, logout, refreshProfile, hasSiteAccess],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <ToastHost />
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {

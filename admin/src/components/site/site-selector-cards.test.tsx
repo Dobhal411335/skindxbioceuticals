@@ -34,9 +34,9 @@ describe("SiteSelectorCards", () => {
     expect(screen.getByTestId("site-card-IN")).toHaveAttribute("data-authorized", "true");
     expect(screen.getByTestId("site-card-COM")).toHaveAttribute("data-authorized", "false");
 
-    await user.click(screen.getByRole("button", { name: /manage india website/i }));
+    await user.click(screen.getByRole("button", { name: /manage \.in website/i }));
     expect(pushMock).toHaveBeenCalledWith("/admin/in/dashboard");
 
-    expect(screen.queryByRole("button", { name: /manage global website/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /manage \.com website/i })).not.toBeInTheDocument();
   });
 });

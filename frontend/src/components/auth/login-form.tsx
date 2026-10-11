@@ -6,7 +6,6 @@ import { Suspense, useState } from "react";
 import { Eye, EyeOff, UserRound, X } from "lucide-react";
 
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -19,6 +18,7 @@ import {
   loginFormSchema,
 } from "@/features/auth/auth.validation";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { showError, showInfo, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
 import { setCredentials } from "@/store/slices/authSlice";
 
@@ -43,12 +43,10 @@ function LoginFormInner({ variant = "page" }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setFormError(null);
     setFieldErrors({});
 
     const parsed = loginFormSchema.safeParse({ email, password });
@@ -73,6 +71,7 @@ function LoginFormInner({ variant = "page" }: LoginFormProps) {
           accessToken: data.accessToken,
         }),
       );
+      showSuccess("Signed in successfully.", { id: "auth.login.success" });
       router.replace(getSafeRedirectPath(searchParams.get("redirect")));
     } catch (error) {
       const apiError = toApiError(error);
@@ -81,13 +80,17 @@ function LoginFormInner({ variant = "page" }: LoginFormProps) {
           typeof apiError.details.email === "string"
             ? apiError.details.email
             : parsed.data.email;
+        showInfo("Please verify your email to continue.", {
+          id: "auth.login.unverified",
+        });
         router.push(
           `/account/verify-email?email=${encodeURIComponent(verifyEmail)}`,
         );
         return;
       }
-      setFormError(
+      showError(
         getAuthErrorMessage(apiError, "Invalid email or password."),
+        { id: "auth.login.error" },
       );
     } finally {
       setIsSubmitting(false);
@@ -176,12 +179,6 @@ function LoginFormInner({ variant = "page" }: LoginFormProps) {
             </p>
           ) : null}
         </div>
-
-        {formError ? (
-          <Alert variant="destructive" data-testid="login-error">
-            <AlertDescription>{formError}</AlertDescription>
-          </Alert>
-        ) : null}
 
         <Button
           type="submit"

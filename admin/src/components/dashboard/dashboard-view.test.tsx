@@ -58,4 +58,29 @@ describe("DashboardView", () => {
       expect(screen.getByTestId("stat-cards")).toHaveTextContent("4");
     });
   });
+
+  it("renders COM enquiry totals from API data", async () => {
+    const { fetchDashboard } = await import("@/services/api/dashboard");
+    (fetchDashboard as jest.Mock).mockResolvedValue({
+      siteCode: "COM",
+      range: { from: "2026-01-01", to: "2026-01-31" },
+      totals: {
+        enquiries: 12,
+        newEnquiries: 3,
+        awaitingResponse: 2,
+      },
+      charts: {
+        enquiriesOverTime: [],
+        enquiriesByStatus: [],
+      },
+      recentEnquiries: [],
+    });
+
+    render(<DashboardView siteCode="COM" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("stat-cards")).toHaveTextContent("Total enquiries");
+      expect(screen.getByTestId("stat-cards")).toHaveTextContent("12");
+    });
+  });
 });

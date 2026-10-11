@@ -8,6 +8,8 @@ import authReducer from "@/store/slices/authSlice";
 
 const replaceMock = jest.fn();
 const signInWithGoogleMock = jest.fn();
+const showErrorMock = jest.fn();
+const showSuccessMock = jest.fn();
 let googleOnSuccess: ((response: { credential?: string }) => void) | undefined;
 let googleOnError: (() => void) | undefined;
 
@@ -20,6 +22,13 @@ jest.mock("@/features/auth/auth.service", () => ({
   authService: {
     signInWithGoogle: (...args: unknown[]) => signInWithGoogleMock(...args),
   },
+}));
+
+jest.mock("@/lib/toast", () => ({
+  showError: (...args: unknown[]) => showErrorMock(...args),
+  showSuccess: (...args: unknown[]) => showSuccessMock(...args),
+  showInfo: jest.fn(),
+  showWarning: jest.fn(),
 }));
 
 jest.mock("@react-oauth/google", () => ({
@@ -53,6 +62,8 @@ describe("GoogleSignInButton", () => {
   beforeEach(() => {
     replaceMock.mockReset();
     signInWithGoogleMock.mockReset();
+    showErrorMock.mockReset();
+    showSuccessMock.mockReset();
     googleOnSuccess = undefined;
     googleOnError = undefined;
   });
@@ -88,10 +99,14 @@ describe("GoogleSignInButton", () => {
     });
   });
 
-  it("shows a cancellation/error message when Google fails", async () => {
+  it("toasts a cancellation/error message when Google fails", () => {
     renderButton();
     googleOnError?.();
-    expect(await screen.findByTestId("google-error")).toHaveTextContent(/cancelled or failed/i);
+    expect(showErrorMock).toHaveBeenCalledWith(
+      expect.stringMatching(/cancelled or failed/i),
+      expect.objectContaining({ id: "auth.google.error" }),
+    );
+    expect(screen.queryByTestId("google-error")).not.toBeInTheDocument();
   });
 
   it("shows a backend conflict message for an existing email", async () => {
@@ -124,7 +139,33 @@ describe("GoogleSignInButton", () => {
 
     await waitFor(() => {
       expect(signInWithGoogleMock).toHaveBeenCalledWith("google-id-token");
+      expect(showSuccessMock).toHaveBeenCalledWith(
+        "Signed in with Google.",
+        expect.objectContaining({ id: "auth.google.success" }),
+      );
       expect(replaceMock).toHaveBeenCalledWith("/shop");
     });
+  });
+
+  it("toasts backend failures that are not account conflicts", async () => {
+    const user = userEvent.setup();
+    signInWithGoogleMock.mockRejectedValue({
+      message: "Unable to sign in with Google. Please try again.",
+      statusCode: 500,
+      code: null,
+      details: null,
+    });
+
+    renderButton();
+    await user.click(screen.getByRole("button", { name: /continue with google/i }));
+
+    await waitFor(() => {
+      expect(showErrorMock).toHaveBeenCalledWith(
+        expect.stringMatching(/unable to sign in with google/i),
+        expect.objectContaining({ id: "auth.google.error" }),
+      );
+    });
+    expect(showSuccessMock).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("google-error")).not.toBeInTheDocument();
   });
 });

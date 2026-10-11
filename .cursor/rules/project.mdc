@@ -17,7 +17,9 @@ Before implementing a task, read the relevant project documents:
 
 ## Product boundaries
 - `.in` is the ecommerce storefront.
-- `.com` is primarily an informational and enquiry-focused site.
+- `.com` is the corporate / informational website with its own site-scoped product information, content, and enquiries.
+- Both websites support site-scoped product management in admin; do not assume products created for one site appear on the other unless the data model and explicit business rules say so.
+- Admin navigation is centralized in `admin/src/config/sidebar.ts` / `admin-modules.ts`; unfinished modules use navigable page shells (no “Coming Soon” disabled items, no fake CRUD).
 - Both use one shared Node.js + TypeScript backend and PostgreSQL database.
 - One admin experience manages both sites with explicit role and site permissions.
 - Do not assume site-specific content, prices, or visibility are shared unless the data model says so.
@@ -31,6 +33,7 @@ Before implementing a task, read the relevant project documents:
 - Axios must use a centralized, typed client per frontend.
 - Cloudinary for managed media; Brevo for transactional email; Razorpay for `.in` payments; Google OAuth/OIDC for Google login.
 - Use the centralized logger for API routes, services, authentication, integrations, and other significant business operations (`backend/src/lib/logger`; each Next.js app’s `src/lib/logger` + Axios interceptors). Do not scatter `console.log` in application code or log secrets, tokens, OTPs, or full request/response payloads.
+- Use the centralized `goey-toast` helpers in each Next.js app’s `src/lib/toast` for toast notifications (top-center). Do not introduce another toast library, call `alert()` for ordinary feedback, auto-toast from Axios interceptors, or show success before backend confirmation.
 
 ## Non-negotiable security
 - Never expose secrets to client code or commit real credentials.

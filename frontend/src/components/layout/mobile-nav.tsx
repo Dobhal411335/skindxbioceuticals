@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 
@@ -12,8 +13,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { navLinks } from "@/data/landing";
+import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 
 export function MobileNav() {
+  const company = useCompanyBasicInfo();
+  const brandName = company.companyName?.trim() || "SkinDx Bioc";
+  const logoUrl =
+    company.mobileUiLogo?.url?.trim() || company.mainLogo?.url?.trim() || "";
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -29,7 +36,19 @@ export function MobileNav() {
       <SheetContent side="left" className="w-[min(100%,20rem)]">
         <SheetHeader>
           <SheetTitle className="font-display text-left text-xl">
-            SkinDx Bioc
+            {logoUrl ? (
+              <span className="relative block h-9 w-[140px]">
+                <Image
+                  src={logoUrl}
+                  alt={brandName}
+                  fill
+                  className="object-contain object-left"
+                  sizes="140px"
+                />
+              </span>
+            ) : (
+              brandName
+            )}
           </SheetTitle>
         </SheetHeader>
         <nav className="mt-6 flex flex-col gap-1 px-4" aria-label="Mobile">

@@ -141,11 +141,12 @@ model Site {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  memberships SiteMembership[]
-  products    Product[]
-  orders      Order[]
-  enquiries   Enquiry[]
-  media       Media[]
+  memberships        SiteMembership[]
+  products           Product[]
+  orders             Order[]
+  enquiries          Enquiry[]
+  media              Media[]
+  companyBasicInfo   CompanyBasicInfo?
 
   @@map("sites")
 }
@@ -694,6 +695,39 @@ model Media {
   @@index([siteId])
   @@index([feature])
   @@map("media")
+}
+
+model CompanyBasicInfo {
+  id                         String   @id @default(uuid()) @db.Uuid
+  siteId                     String   @unique @map("site_id") @db.Uuid
+  companyName                String   @default("") @map("company_name")
+  companyDomainName          String   @default("") @map("company_domain_name")
+  contactNumbers             String[] @default([]) @map("contact_numbers")
+  whatsappNumber             String   @default("") @map("whatsapp_number")
+  mainLogoUrl                String   @default("") @map("main_logo_url")
+  mainLogoPublicId           String   @default("") @map("main_logo_public_id")
+  footerLogoUrl              String   @default("") @map("footer_logo_url")
+  footerLogoPublicId         String   @default("") @map("footer_logo_public_id")
+  mobileUiLogoUrl            String   @default("") @map("mobile_ui_logo_url")
+  mobileUiLogoPublicId       String   @default("") @map("mobile_ui_logo_public_id")
+  emails                     String[] @default([])
+  officeAddresses            String[] @default([]) @map("office_addresses")
+  googleAddress              String   @default("") @map("google_address") @db.Text
+  googleUrl                  String   @default("") @map("google_url")
+  googleLink                 String   @default("") @map("google_link")
+  facebookLink               String   @default("") @map("facebook_link")
+  instagramLink              String   @default("") @map("instagram_link")
+  youtubeLink                String   @default("") @map("youtube_link")
+  googleMapLink              String   @default("") @map("google_map_link")
+  googleTrackingTag          String   @default("") @map("google_tracking_tag") @db.Text
+  titleTagForMainLandingPage String   @default("") @map("title_tag_for_main_landing_page")
+  keywords                   String[] @default([])
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@map("company_basic_infos")
 }
 
 model SiteSetting {

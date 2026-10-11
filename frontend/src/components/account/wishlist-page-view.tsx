@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { wishlistService } from "@/features/wishlist/wishlist.service";
 import type { WishlistItem } from "@/features/wishlist/wishlist.types";
+import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
 
 function formatMoney(amount: string | null, currency: string | null) {
@@ -54,12 +55,14 @@ export function WishlistPageView() {
   const removeItem = async (itemId: string) => {
     if (pendingId) return;
     setPendingId(itemId);
-    setError(null);
     try {
       await wishlistService.remove(itemId);
       setItems((current) => current.filter((item) => item.id !== itemId));
+      showSuccess("Removed from wishlist.", { id: "wishlist.remove" });
     } catch (err) {
-      setError(toApiError(err).message || "Unable to remove item.");
+      showError(toApiError(err).message || "Unable to remove item.", {
+        id: "wishlist.remove.error",
+      });
     } finally {
       setPendingId(null);
     }

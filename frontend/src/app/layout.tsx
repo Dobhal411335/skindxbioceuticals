@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 
+import { buildCompanyMetadata } from "@/features/company-basic-info/build-company-metadata";
+import { getCompanyBasicInfo } from "@/features/company-basic-info/company-basic-info.service";
+
 import { Providers } from "./providers";
 
 import "./globals.css";
@@ -20,11 +23,10 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "SkinDX Bioceuticals",
-  description:
-    "SkinDX Bioceuticals — skincare and biomedical ecommerce storefront for India.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const company = await getCompanyBasicInfo();
+  return buildCompanyMetadata(company);
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

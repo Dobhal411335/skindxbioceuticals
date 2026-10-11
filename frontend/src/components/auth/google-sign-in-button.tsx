@@ -11,6 +11,7 @@ import { getAuthErrorMessage } from "@/features/auth/auth-errors";
 import { authService } from "@/features/auth/auth.service";
 import { getSafeRedirectPath } from "@/features/auth/auth.validation";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
 import { setCredentials } from "@/store/slices/authSlice";
 
@@ -36,19 +37,19 @@ export function GoogleSignInButton({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [statusCode, setStatusCode] = useState<number | null>(null);
+  const [conflictError, setConflictError] = useState<string | null>(null);
 
   const handleSuccess = async (response: CredentialResponse) => {
     if (!response.credential) {
-      setError("Google did not return a valid credential. Please try again.");
-      setStatusCode(null);
+      showError("Google did not return a valid credential. Please try again.", {
+        id: "auth.google.error",
+      });
+      setConflictError(null);
       return;
     }
 
     setIsLoading(true);
-    setError(null);
-    setStatusCode(null);
+    setConflictError(null);
 
     try {
       const data = await authService.signInWithGoogle(response.credential);
@@ -59,23 +60,27 @@ export function GoogleSignInButton({
         }),
       );
 
+      showSuccess("Signed in with Google.", { id: "auth.google.success" });
       const redirectTo = getSafeRedirectPath(searchParams.get("redirect"));
       router.replace(redirectTo);
     } catch (err) {
       const apiError = toApiError(err);
-      setStatusCode(apiError.statusCode);
-      setError(
-        getAuthErrorMessage(
-          apiError,
-          "Unable to sign in with Google. Please try again.",
-        ),
+      const message = getAuthErrorMessage(
+        apiError,
+        "Unable to sign in with Google. Please try again.",
       );
+
+      // Keep rich inline guidance for account conflicts; toast for other failures.
+      if (apiError.statusCode === 409) {
+        setConflictError(message);
+        return;
+      }
+
+      showError(message, { id: "auth.google.error" });
     } finally {
       setIsLoading(false);
     }
   };
-
-  const showPasswordHint = statusCode === 409;
 
   return (
     <div className={className} data-testid="google-sign-in">
@@ -88,8 +93,10 @@ export function GoogleSignInButton({
             void handleSuccess(credentialResponse);
           }}
           onError={() => {
-            setStatusCode(null);
-            setError("Google sign-in was cancelled or failed. Please try again.");
+            setConflictError(null);
+            showError("Google sign-in was cancelled or failed. Please try again.", {
+              id: "auth.google.error",
+            });
           }}
           useOneTap={false}
           text={text}
@@ -105,29 +112,28 @@ export function GoogleSignInButton({
           Completing sign-in…
         </p>
       ) : null}
-      {error ? (
+      {conflictError ? (
         <Alert variant="destructive" className="mt-3" data-testid="google-error">
           <AlertCircle />
-          <AlertTitle>
-            {statusCode === 409 ? "Account already exists" : "Google sign-in failed"}
-          </AlertTitle>
+          <AlertTitle>Account already exists</AlertTitle>
           <AlertDescription>
-            <p>{error}</p>
-            {showPasswordHint ? (
-              <p className="mt-2">
-                {context === "register" ? (
-                  <>
-                    Already registered with email and password?{" "}
-                    <Link href="/account/login" className="font-medium text-foreground">
-                      Sign in here
-                    </Link>
-                    .
-                  </>
-                ) : (
-                  <>Use your email and password above, then you can link Google later from account settings.</>
-                )}
-              </p>
-            ) : null}
+            <p>{conflictError}</p>
+            <p className="mt-2">
+              {context === "register" ? (
+                <>
+                  Already registered with email and password?{" "}
+                  <Link href="/account/login" className="font-medium text-foreground">
+                    Sign in here
+                  </Link>
+                  .
+                </>
+              ) : (
+                <>
+                  Use your email and password above, then you can link Google later from
+                  account settings.
+                </>
+              )}
+            </p>
           </AlertDescription>
         </Alert>
       ) : null}

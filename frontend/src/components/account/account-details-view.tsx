@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 import { UserAvatar } from "@/components/account/user-avatar";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import { strongPasswordSchema } from "@/features/auth/auth.validation";
 import { meService } from "@/features/me/me.service";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAuth } from "@/hooks/useAuth";
+import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
 import { setCredentials } from "@/store/slices/authSlice";
 import { z } from "zod";
@@ -29,8 +29,6 @@ export function AccountDetailsView() {
   const dispatch = useAppDispatch();
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profileSaving, setProfileSaving] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -38,8 +36,6 @@ export function AccountDetailsView() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordFieldErrors, setPasswordFieldErrors] = useState<Record<string, string>>(
     {},
@@ -57,11 +53,11 @@ export function AccountDetailsView() {
     : null;
 
   const saveProfile = async () => {
-    setProfileError(null);
-    setProfileSuccess(null);
     const parsed = profileSchema.safeParse({ firstName, lastName });
     if (!parsed.success) {
-      setProfileError(parsed.error.issues[0]?.message ?? "Invalid profile details.");
+      showError(parsed.error.issues[0]?.message ?? "Invalid profile details.", {
+        id: "account.profile.error",
+      });
       return;
     }
 
@@ -79,17 +75,17 @@ export function AccountDetailsView() {
           }),
         );
       }
-      setProfileSuccess("Profile updated.");
+      showSuccess("Profile updated.", { id: "account.profile.success" });
     } catch (err) {
-      setProfileError(toApiError(err).message || "Unable to update profile.");
+      showError(toApiError(err).message || "Unable to update profile.", {
+        id: "account.profile.error",
+      });
     } finally {
       setProfileSaving(false);
     }
   };
 
   const savePassword = async () => {
-    setPasswordError(null);
-    setPasswordSuccess(null);
     setPasswordFieldErrors({});
 
     const schema = z
@@ -137,11 +133,14 @@ export function AccountDetailsView() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setPasswordSuccess(
+      showSuccess(
         hasPassword ? "Password changed successfully." : "Password set successfully.",
+        { id: "account.password.success" },
       );
     } catch (err) {
-      setPasswordError(toApiError(err).message || "Unable to update password.");
+      showError(toApiError(err).message || "Unable to update password.", {
+        id: "account.password.error",
+      });
     } finally {
       setPasswordSaving(false);
     }
@@ -171,17 +170,6 @@ export function AccountDetailsView() {
               ) : null}
             </div>
           </div>
-
-          {profileError ? (
-            <Alert variant="destructive">
-              <AlertDescription>{profileError}</AlertDescription>
-            </Alert>
-          ) : null}
-          {profileSuccess ? (
-            <Alert>
-              <AlertDescription>{profileSuccess}</AlertDescription>
-            </Alert>
-          ) : null}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -228,17 +216,6 @@ export function AccountDetailsView() {
               This account signs in with Google and does not have a password yet. You can
               optionally set a password to also sign in with email.
             </p>
-          ) : null}
-
-          {passwordError ? (
-            <Alert variant="destructive">
-              <AlertDescription>{passwordError}</AlertDescription>
-            </Alert>
-          ) : null}
-          {passwordSuccess ? (
-            <Alert>
-              <AlertDescription>{passwordSuccess}</AlertDescription>
-            </Alert>
           ) : null}
 
           {hasPassword ? (

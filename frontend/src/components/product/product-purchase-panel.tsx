@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import type { CatalogProduct } from "@/data/catalog";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { showSuccess } from "@/lib/toast";
 import { formatPaiseToInr, cn } from "@/lib/utils";
 import { addCartItem } from "@/store/slices/cartSlice";
 
@@ -55,6 +56,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
         quantity,
       }),
     );
+    showSuccess("Added to cart.", { id: "cart.add" });
     openCart();
   }
 

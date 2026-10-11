@@ -21,6 +21,9 @@ These rules apply to frontend, backend, admin, tests, and documentation. If a ta
 - DO use **shadcn/ui** for accessible component primitives.
 - DO use **Lucide React** for icons.
 - DO use the design tokens in `DESIGN.md`.
+- DO use **goey-toast** as the only approved toast notification library.
+- DO call the centralized toast helpers (`showSuccess` / `showError` / `showInfo` / `showWarning` from `src/lib/toast`) for operation-level feedback.
+- DO keep toast position at **top-center** via the shared toast host configuration.
 - DO build responsive layouts and test mobile, tablet, and desktop.
 - DO include loading, empty, disabled, success, and error states.
 - DO use semantic HTML, keyboard support, visible focus, and accessible labels.
@@ -61,6 +64,9 @@ These rules apply to frontend, backend, admin, tests, and documentation. If a ta
 - DON'T mark an order paid solely because the browser says payment succeeded.
 - DON'T skip Razorpay signature verification or webhook idempotency.
 - DON'T authorize admin access only in the UI.
+- DON'T treat the website selector or knowing a site code as authorization.
+- DON'T ship a fake admin forgot-password experience when no recovery API exists.
+- DON'T disable registered admin nav items with “Coming Soon” badges; use navigable page shells instead.
 - DON'T allow an admin to edit both sites unless their permissions allow it.
 - DON'T return one customer's private records to another customer.
 - DON'T store passwords in plaintext or long-lived sensitive tokens in localStorage.
@@ -89,6 +95,12 @@ These rules apply to frontend, backend, admin, tests, and documentation. If a ta
 - DON'T use clickable-looking elements that do not perform an action.
 - DON'T remove keyboard or screen-reader support when styling shadcn/ui components.
 - DON'T hide important warnings, ingredients, or usage information in unreadable text.
+- DON'T introduce another toast library (sonner directly, react-hot-toast, react-toastify, etc.).
+- DON'T call `gooeyToast` / `GooeyToaster` outside the centralized `src/lib/toast` helpers and host.
+- DON'T use `alert()` for ordinary application feedback.
+- DON'T show a success toast before the backend (or authoritative local action) confirms the operation.
+- DON'T expose raw server errors, stack traces, or sensitive values in toasts.
+- DON'T mount multiple toast containers or fire duplicate toasts for the same event.
 
 ## Required workflow for coding agents
 
@@ -125,6 +137,7 @@ After coding:
 | Client state | Redux Toolkit only where appropriate |
 | UI primitives | shadcn/ui |
 | Icons | Lucide React |
+| Toast notifications | goey-toast via `src/lib/toast` helpers (top-center) |
 | Image/media | Cloudinary |
 | Transactional email | Brevo |
 | Payments | Razorpay |
