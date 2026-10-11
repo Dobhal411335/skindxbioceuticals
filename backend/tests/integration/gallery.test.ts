@@ -14,21 +14,15 @@ async function loginAs(email: string, password: string) {
 const imagePayload = {
   mediaType: 'image',
   mediaUrl: 'https://cdn.example.com/gallery.jpg',
-  mediaPublicId: 'gallery/img',
-  title: 'Clinic moment',
-  caption: 'Derm care lookbook',
+  mediaPublicId: '',
   active: true,
-  order: 1,
 };
 
 const videoPayload = {
   mediaType: 'video',
   mediaUrl: 'https://cdn.example.com/gallery.mp4',
-  mediaPublicId: 'gallery/vid',
-  title: 'Routine clip',
-  caption: 'Short muted video',
+  mediaPublicId: '',
   active: true,
-  order: 2,
 };
 
 describe('Admin gallery items', () => {
@@ -75,6 +69,9 @@ describe('Admin gallery items', () => {
 
     expect(createImage.status).toBe(201);
     expect(createImage.body.data.mediaType).toBe('image');
+    expect(createImage.body.data).not.toHaveProperty('title');
+    expect(createImage.body.data).not.toHaveProperty('caption');
+    expect(createImage.body.data).not.toHaveProperty('order');
     const itemId = createImage.body.data.id as string;
 
     await api()
@@ -94,13 +91,11 @@ describe('Admin gallery items', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         ...imagePayload,
-        title: 'Updated look',
-        order: 3,
+        mediaUrl: 'https://cdn.example.com/gallery-updated.jpg',
       });
 
     expect(updateRes.status).toBe(200);
-    expect(updateRes.body.data.title).toBe('Updated look');
-    expect(updateRes.body.data.order).toBe(3);
+    expect(updateRes.body.data.mediaUrl).toBe('https://cdn.example.com/gallery-updated.jpg');
 
     const patchRes = await api()
       .patch(`/api/v1/admin/sites/IN/gallery/${itemId}`)
@@ -143,12 +138,12 @@ describe('Admin gallery items', () => {
     await api()
       .post('/api/v1/admin/sites/IN/gallery')
       .set('Authorization', `Bearer ${bothToken}`)
-      .send({ ...imagePayload, title: 'IN only' });
+      .send(imagePayload);
 
     await api()
       .post('/api/v1/admin/sites/COM/gallery')
       .set('Authorization', `Bearer ${bothToken}`)
-      .send({ ...videoPayload, title: 'COM only' });
+      .send(videoPayload);
 
     const inList = await api()
       .get('/api/v1/admin/sites/IN/gallery')
@@ -192,7 +187,7 @@ describe('Public gallery items', () => {
     await ensureSites();
   });
 
-  it('returns only active items ordered for the site', async () => {
+  it('returns only active items for the site', async () => {
     await createAdminUser({
       email: 'gallery@skindx.test',
       password: 'StrongPass1!xx',
@@ -204,12 +199,12 @@ describe('Public gallery items', () => {
     await api()
       .post('/api/v1/admin/sites/IN/gallery')
       .set('Authorization', `Bearer ${token}`)
-      .send({ ...imagePayload, order: 2 });
+      .send(imagePayload);
 
     await api()
       .post('/api/v1/admin/sites/IN/gallery')
       .set('Authorization', `Bearer ${token}`)
-      .send({ ...videoPayload, order: 1 });
+      .send(videoPayload);
 
     const inactive = await api()
       .post('/api/v1/admin/sites/IN/gallery')
@@ -217,17 +212,19 @@ describe('Public gallery items', () => {
       .send({
         ...imagePayload,
         mediaUrl: 'https://cdn.example.com/hidden.jpg',
-        mediaPublicId: 'gallery/hidden',
         active: false,
-        order: 0,
       });
     expect(inactive.status).toBe(201);
 
     const res = await api().get('/api/v1/sites/IN/gallery');
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(2);
-    expect(res.body.data[0].mediaType).toBe('video');
-    expect(res.body.data[1].mediaType).toBe('image');
     expect(res.body.data.every((item: { active: boolean }) => item.active)).toBe(true);
+    expect(
+      res.body.data.every(
+        (item: { title?: unknown; caption?: unknown; order?: unknown }) =>
+          item.title === undefined && item.caption === undefined && item.order === undefined,
+      ),
+    ).toBe(true);
   });
 });

@@ -65,7 +65,7 @@ export async function updateGalleryItem(
 export async function patchGalleryItem(
   siteCode: SiteCode,
   itemId: string,
-  body: { active?: boolean; order?: number },
+  body: { active: boolean },
 ): Promise<GalleryItemDto> {
   const { data } = await apiClient.patch<ApiSuccess<GalleryItemDto>>(
     endpoints.admin.galleryItem(siteCode, itemId),

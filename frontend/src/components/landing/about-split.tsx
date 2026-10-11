@@ -1,38 +1,114 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { about } from "@/data/landing";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { FALLBACK_ABOUT_US_BANNER } from "@/features/about-us-banner/about-us-banner.defaults";
+import type { StorefrontAboutCard } from "@/types/about-us-banner";
+import { useEffect, useState } from "react";
 
-export function AboutSplit() {
+type AboutSplitProps = {
+  cards?: StorefrontAboutCard[];
+};
+
+function AboutCardContent({ card }: { card: StorefrontAboutCard }) {
+  return (
+    <div className="grid items-stretch gap-0 overflow-hidden border border-border bg-background lg:grid-cols-2">
+      <div className="relative aspect-[4/5] bg-surface sm:aspect-[5/4] lg:aspect-auto lg:min-h-[28rem]">
+        <Image
+          src={card.image.src}
+          alt={card.image.alt}
+          fill
+          className="object-cover"
+          sizes="(max-width: 1024px) 100vw, 50vw"
+        />
+      </div>
+      <div className="flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-12 lg:py-14">
+        <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+          {card.label}
+        </p>
+        <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          {card.title}
+        </h2>
+        <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+          {card.body}
+        </p>
+        <Button asChild className="mt-8 w-fit rounded-full px-6" size="lg">
+          <Link href={card.cta.href}>{card.cta.label}</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function AboutSplit({
+  cards = FALLBACK_ABOUT_US_BANNER.aboutCards,
+}: AboutSplitProps) {
+  const [api, setApi] = useState<CarouselApi>();
+  const [selected, setSelected] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+    const onSelect = () => setSelected(api.selectedScrollSnap());
+    onSelect();
+    api.on("select", onSelect);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api]);
+
+  if (cards.length === 0) {
+    return null;
+  }
+
+  if (cards.length === 1) {
+    return (
+      <section className="container-page section-space" aria-labelledby="about-heading">
+        <h2 id="about-heading" className="sr-only">
+          {cards[0]!.title}
+        </h2>
+        <AboutCardContent card={cards[0]!} />
+      </section>
+    );
+  }
+
   return (
     <section className="container-page section-space" aria-labelledby="about-heading">
-      <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
-        <div className="relative aspect-[4/5] overflow-hidden bg-surface sm:aspect-[5/4] lg:aspect-[4/5]">
-          <Image
-            src={about.image.src}
-            alt={about.image.alt}
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
-        </div>
-        <div className="max-w-xl lg:py-8">
-          <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-            {about.label}
-          </p>
-          <h2
-            id="about-heading"
-            className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
-          >
-            {about.title}
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            {about.body}
-          </p>
-          <Button asChild className="mt-8 rounded-full px-6" size="lg">
-            <Link href={about.cta.href}>{about.cta.label}</Link>
-          </Button>
+      <h2 id="about-heading" className="sr-only">
+        About us
+      </h2>
+      <div className="relative">
+        <Carousel setApi={setApi} opts={{ loop: true, align: "start" }} className="w-full">
+          <CarouselContent>
+            {cards.map((card) => (
+              <CarouselItem key={card.id}>
+                <AboutCardContent card={card} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+        <div
+          className="absolute top-1/2 right-2 hidden -translate-y-1/2 flex-col items-center gap-2 lg:flex"
+          aria-hidden
+        >
+          {cards.map((card, index) => (
+            <button
+              key={card.id}
+              type="button"
+              className={`h-8 w-0.5 rounded-full transition-colors ${
+                index === selected ? "bg-foreground" : "bg-border"
+              }`}
+              onClick={() => api?.scrollTo(index)}
+              aria-label={`Show about card ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
     </section>

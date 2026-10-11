@@ -155,6 +155,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/gallery` | CRUD site-scoped gallery images/videos | Admin + site access |
 | `/admin/sites/:siteCode/footer` | get/upsert site-scoped footer config | Admin + site access |
 | `/admin/sites/:siteCode/top-advertisement` | get/upsert site-scoped top advertisement (3 sections) | Admin + site access |
+| `/admin/sites/:siteCode/about-us-banner` | get/upsert site-scoped About Us home banner (3 sections) | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
 
@@ -197,17 +198,17 @@ Unified Instagram + Facebook posts (`postType`: `instagram` | `facebook`) per si
 
 Site-scoped lookbook media (`mediaType`: `image` | `video`) for IN and COM.
 
-- `GET /api/v1/admin/sites/:siteCode/gallery` — Bearer admin JWT; `requireSiteAccess`. Optional query `mediaType`. Returns all items for the site (including inactive), ordered by `order` asc then `createdAt` desc.
-- `POST /api/v1/admin/sites/:siteCode/gallery` — create. Body: `mediaType`, `mediaUrl`, `mediaPublicId`, optional `title`/`caption`/`active`/`order`. `siteId` from authenticated site context only. Prefer HTTPS media URLs.
-- `PUT /api/v1/admin/sites/:siteCode/gallery/:itemId` — full update within the site.
-- `PATCH /api/v1/admin/sites/:siteCode/gallery/:itemId` — partial update of `active` and/or `order`.
+- `GET /api/v1/admin/sites/:siteCode/gallery` — Bearer admin JWT; `requireSiteAccess`. Optional query `mediaType`. Returns all items for the site (including inactive), newest first by `createdAt`.
+- `POST /api/v1/admin/sites/:siteCode/gallery` — create. Body: `mediaType`, `mediaUrl`, `mediaPublicId`, optional `active`. `siteId` from authenticated site context only. Prefer HTTPS media URLs.
+- `PUT /api/v1/admin/sites/:siteCode/gallery/:itemId` — full update within the site (`mediaType`, `mediaUrl`, `mediaPublicId`, `active`).
+- `PATCH /api/v1/admin/sites/:siteCode/gallery/:itemId` — partial update of `active` only.
 - `DELETE /api/v1/admin/sites/:siteCode/gallery/:itemId` — delete within the site.
 
 Uploads use existing media APIs with `feature=gallery`: `POST /api/v1/media/images` and `POST /api/v1/media/videos`.
 
 ### Public gallery (storefront)
 
-- `GET /api/v1/sites/:siteCode/gallery` — public read for an active site (no auth). Returns active items only, ordered for the `.in` storefront lookbook (2-row masonry carousel).
+- `GET /api/v1/sites/:siteCode/gallery` — public read for an active site (no auth). Returns active items only (media fields + `active`), newest first, for the `.in` storefront lookbook masonry.
 
 ### Admin footer (implemented)
 
@@ -230,6 +231,19 @@ One upsertable config per site with three section lists: announcement bar, heade
 ### Public top advertisement (storefront)
 
 - `GET /api/v1/sites/:siteCode/top-advertisement` — public read for an active site (no auth). Returns active items only, grouped as `announcements`, `utilityItems`, and `benefits`. Used by the `.in` storefront announcement bar, header utility strip, and feature benefits bar (falls back to static landing data when empty/unavailable).
+
+### Admin About Us banner (implemented)
+
+One upsertable home-page About Us banner config per site with three sections: promotional header, about cards carousel, and a dual bottom block (highlight cards + text slides).
+
+- `GET /api/v1/admin/sites/:siteCode/about-us-banner` — Bearer admin JWT; `requireSiteAccess`. Returns the site record or empty defaults (`id: null`) including inactive nested items.
+- `PUT /api/v1/admin/sites/:siteCode/about-us-banner` — upsert one row per site and replace nested items. Body: `promoLabel`, `promoHeading`, `promoSubheading`, `promoButtonLabel`, `promoButtonUrl`, `aboutCards[]` (`imageUrl`, `imagePublicId`, `label`, `heading`, `description`, `buttonLabel`, `buttonUrl`, `active`, optional `sortOrder`), `highlightItems[]` (`imageUrl`, `imagePublicId`, `heading`, `buttonLabel`, `buttonUrl`, `active`, optional `sortOrder`), `textSlides[]` (`heading`, `subheading`, `active`, optional `sortOrder`). `siteId` from authenticated site context only.
+
+Uploads use existing media APIs with `feature=about`: `POST /api/v1/media/images`.
+
+### Public About Us banner (storefront)
+
+- `GET /api/v1/sites/:siteCode/about-us-banner` — public read for an active site (no auth). Returns active nested items only. Used by the `.in` storefront `SpecialsHeader`, `AboutSplit`, and `BlogCarousel` home blocks (falls back to static landing data when empty/unavailable). Prefer HTTPS Cloudinary image URLs.
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

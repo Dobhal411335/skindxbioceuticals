@@ -12,10 +12,7 @@ export type GalleryItemDto = {
   mediaType: GalleryMediaTypeDto;
   mediaUrl: string;
   mediaPublicId: string;
-  title: string;
-  caption: string;
   active: boolean;
-  order: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -26,10 +23,7 @@ export type GalleryItemRecord = {
   mediaType: PrismaGalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
-  title: string;
-  caption: string;
   active: boolean;
-  order: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -38,10 +32,7 @@ export type GalleryItemWrite = {
   mediaType: PrismaGalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
-  title: string;
-  caption: string;
   active: boolean;
-  order: number;
 };
 
 export function toPrismaMediaType(value: GalleryMediaTypeDto): PrismaGalleryMediaType {

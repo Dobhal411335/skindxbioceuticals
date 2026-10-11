@@ -10,6 +10,7 @@ import { socialPostsRoutes } from '@/features/social-posts/social-posts.routes';
 import { galleryRoutes } from '@/features/gallery/gallery.routes';
 import { footerRoutes } from '@/features/footer/footer.routes';
 import { topAdvertisementRoutes } from '@/features/top-advertisement/top-advertisement.routes';
+import { aboutUsBannerRoutes } from '@/features/about-us-banner/about-us-banner.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -37,5 +38,6 @@ router.use('/sites/:siteCode/social-posts', socialPostsRoutes);
 router.use('/sites/:siteCode/gallery', galleryRoutes);
 router.use('/sites/:siteCode/footer', footerRoutes);
 router.use('/sites/:siteCode/top-advertisement', topAdvertisementRoutes);
+router.use('/sites/:siteCode/about-us-banner', aboutUsBannerRoutes);
 
 export const adminRoutes = router;

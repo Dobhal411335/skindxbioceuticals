@@ -8,10 +8,7 @@ export type GalleryItemDto = {
   mediaType: GalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
-  title: string;
-  caption: string;
   active: boolean;
-  order: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -20,18 +17,20 @@ export type GalleryItemFormValues = {
   mediaType: GalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
-  title: string;
-  caption: string;
   active: boolean;
-  order: string;
 };
 
 export type GalleryItemPayload = {
   mediaType: GalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
-  title: string;
-  caption: string;
   active: boolean;
-  order?: number;
+};
+
+/** Local object-URL preview shown in the grid while Cloudinary upload is in flight. */
+export type GalleryPendingUpload = {
+  id: string;
+  fileName: string;
+  mediaType: GalleryMediaType;
+  previewUrl: string;
 };

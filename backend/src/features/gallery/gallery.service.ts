@@ -31,24 +31,18 @@ export function toGalleryItemDto(record: GalleryItemRecord, siteCode: SiteCodeDt
     mediaType: toDtoMediaType(record.mediaType),
     mediaUrl: preferHttpsUrl(record.mediaUrl),
     mediaPublicId: record.mediaPublicId,
-    title: record.title,
-    caption: record.caption,
     active: record.active,
-    order: record.order,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };
 }
 
-function bodyToWrite(body: GalleryItemBody, fallbackOrder: number): GalleryItemWrite {
+function bodyToWrite(body: GalleryItemBody): GalleryItemWrite {
   return {
     mediaType: toPrismaMediaType(body.mediaType),
     mediaUrl: preferHttpsUrl(body.mediaUrl),
     mediaPublicId: body.mediaPublicId ?? '',
-    title: body.title ?? '',
-    caption: body.caption ?? '',
     active: body.active,
-    order: body.order ?? fallbackOrder,
   };
 }
 
@@ -78,8 +72,7 @@ export class GalleryService {
     userId: string;
     body: GalleryItemBody;
   }): Promise<GalleryItemDto> {
-    const nextOrder = await this.repository.nextOrder(input.siteId);
-    const data = bodyToWrite(input.body, nextOrder);
+    const data = bodyToWrite(input.body);
     const record = await this.repository.create(input.siteId, data);
 
     logger.info(
@@ -108,7 +101,7 @@ export class GalleryService {
       throw new NotFoundError('Gallery item not found');
     }
 
-    const data = bodyToWrite(input.body, existing.order);
+    const data = bodyToWrite(input.body);
     const record = await this.repository.update(input.siteId, input.itemId, data);
     if (!record) {
       throw new NotFoundError('Gallery item not found');
@@ -155,7 +148,6 @@ export class GalleryService {
         userId: input.userId,
         galleryItemId: record.id,
         active: record.active,
-        order: record.order,
       },
       'Gallery item patched',
     );

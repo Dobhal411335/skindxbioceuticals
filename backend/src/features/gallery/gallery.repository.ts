@@ -8,10 +8,7 @@ function mapItem(row: {
   mediaType: PrismaGalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
-  title: string;
-  caption: string;
   active: boolean;
-  order: number;
   createdAt: Date;
   updatedAt: Date;
 }): GalleryItemRecord {
@@ -21,10 +18,7 @@ function mapItem(row: {
     mediaType: row.mediaType,
     mediaUrl: row.mediaUrl,
     mediaPublicId: row.mediaPublicId,
-    title: row.title,
-    caption: row.caption,
     active: row.active,
-    order: row.order,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -40,7 +34,7 @@ export class GalleryRepository {
         siteId,
         ...(mediaType !== undefined ? { mediaType } : {}),
       },
-      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      orderBy: { createdAt: 'desc' },
     });
     return rows.map(mapItem);
   }
@@ -48,7 +42,7 @@ export class GalleryRepository {
   async listActiveBySiteId(siteId: string): Promise<GalleryItemRecord[]> {
     const rows = await prisma.galleryItem.findMany({
       where: { siteId, active: true },
-      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      orderBy: { createdAt: 'desc' },
     });
     return rows.map(mapItem);
   }
@@ -60,15 +54,6 @@ export class GalleryRepository {
     return row ? mapItem(row) : null;
   }
 
-  async nextOrder(siteId: string): Promise<number> {
-    const last = await prisma.galleryItem.findFirst({
-      where: { siteId },
-      orderBy: { order: 'desc' },
-      select: { order: true },
-    });
-    return (last?.order ?? 0) + 1;
-  }
-
   async create(siteId: string, data: GalleryItemWrite): Promise<GalleryItemRecord> {
     const row = await prisma.galleryItem.create({
       data: {
@@ -76,10 +61,7 @@ export class GalleryRepository {
         mediaType: data.mediaType,
         mediaUrl: data.mediaUrl,
         mediaPublicId: data.mediaPublicId,
-        title: data.title,
-        caption: data.caption,
         active: data.active,
-        order: data.order,
       },
     });
     return mapItem(row);
@@ -104,10 +86,7 @@ export class GalleryRepository {
         mediaType: data.mediaType,
         mediaUrl: data.mediaUrl,
         mediaPublicId: data.mediaPublicId,
-        title: data.title,
-        caption: data.caption,
         active: data.active,
-        order: data.order,
       },
     });
     return mapItem(row);
@@ -116,7 +95,7 @@ export class GalleryRepository {
   async patch(
     siteId: string,
     itemId: string,
-    data: { active?: boolean; order?: number },
+    data: { active: boolean },
   ): Promise<GalleryItemRecord | null> {
     const existing = await prisma.galleryItem.findFirst({
       where: { id: itemId, siteId },
@@ -128,10 +107,7 @@ export class GalleryRepository {
 
     const row = await prisma.galleryItem.update({
       where: { id: itemId },
-      data: {
-        ...(data.active !== undefined ? { active: data.active } : {}),
-        ...(data.order !== undefined ? { order: data.order } : {}),
-      },
+      data: { active: data.active },
     });
     return mapItem(row);
   }

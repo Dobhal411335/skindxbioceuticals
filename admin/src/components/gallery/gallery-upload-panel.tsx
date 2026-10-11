@@ -20,11 +20,12 @@ import {
 } from "@/services/api/gallery";
 import { ApiError } from "@/services/api/errors";
 import type { SiteCode } from "@/types/auth";
-import type { GalleryMediaType } from "@/types/gallery";
+import type { GalleryMediaType, GalleryPendingUpload } from "@/types/gallery";
 
 type GalleryUploadPanelProps = {
   siteCode: SiteCode;
-  nextOrder: number;
+  onQueuePending: (pending: GalleryPendingUpload[]) => void;
+  onPendingComplete: (id: string) => void;
   onUploaded: () => Promise<void>;
 };
 
@@ -37,9 +38,17 @@ function detectMediaType(file: File): GalleryMediaType | null {
   return null;
 }
 
+function createPendingId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `pending-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
 export function GalleryUploadPanel({
   siteCode,
-  nextOrder,
+  onQueuePending,
+  onPendingComplete,
   onUploaded,
 }: GalleryUploadPanelProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -49,36 +58,65 @@ export function GalleryUploadPanel({
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
 
+    const queued: Array<{
+      pending: GalleryPendingUpload;
+      file: File;
+      mediaType: GalleryMediaType;
+    }> = [];
+    let unsupported = 0;
+
+    for (const file of files) {
+      const mediaType = detectMediaType(file);
+      if (!mediaType) {
+        unsupported += 1;
+        continue;
+      }
+      queued.push({
+        file,
+        mediaType,
+        pending: {
+          id: createPendingId(),
+          fileName: file.name,
+          mediaType,
+          previewUrl: URL.createObjectURL(file),
+        },
+      });
+    }
+
+    if (queued.length === 0) {
+      showError(
+        unsupported > 0
+          ? "No supported files selected"
+          : "No files selected",
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    onQueuePending(queued.map((entry) => entry.pending));
     setUploading(true);
     let created = 0;
-    let failed = 0;
+    let failed = unsupported;
 
     try {
-      for (const [index, file] of files.entries()) {
-        const mediaType = detectMediaType(file);
-        if (!mediaType) {
-          failed += 1;
-          continue;
-        }
-
+      for (const entry of queued) {
         try {
           const uploaded =
-            mediaType === "video"
-              ? await uploadGalleryVideo(siteCode, file)
-              : await uploadGalleryImage(siteCode, file);
+            entry.mediaType === "video"
+              ? await uploadGalleryVideo(siteCode, entry.file)
+              : await uploadGalleryImage(siteCode, entry.file);
 
           await createGalleryItem(siteCode, {
-            mediaType,
+            mediaType: entry.mediaType,
             mediaUrl: uploaded.url,
             mediaPublicId: uploaded.publicId,
-            title: "",
-            caption: "",
             active: true,
-            order: nextOrder + index,
           });
           created += 1;
         } catch {
           failed += 1;
+        } finally {
+          onPendingComplete(entry.pending.id);
         }
       }
 
@@ -101,6 +139,9 @@ export function GalleryUploadPanel({
       showError(
         error instanceof ApiError ? error.message : "Gallery upload failed",
       );
+      for (const entry of queued) {
+        onPendingComplete(entry.pending.id);
+      }
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -115,8 +156,8 @@ export function GalleryUploadPanel({
           <CardTitle className="text-lg font-semibold">Upload Gallery Media</CardTitle>
         </div>
         <CardDescription>
-          Add multiple images and short videos at once. Videos appear muted on the
-          storefront lookbook.
+          Add multiple images and short videos at once. Previews appear in Gallery
+          Items while each file uploads.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-6">

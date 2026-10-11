@@ -24,6 +24,8 @@ export const endpoints = {
     footer: (siteCode: string) => `/admin/sites/${siteCode}/footer`,
     topAdvertisement: (siteCode: string) =>
       `/admin/sites/${siteCode}/top-advertisement`,
+    aboutUsBanner: (siteCode: string) =>
+      `/admin/sites/${siteCode}/about-us-banner`,
   },
   media: {
     uploadImage: "/media/images",

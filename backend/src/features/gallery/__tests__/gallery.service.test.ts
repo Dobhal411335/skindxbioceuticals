@@ -22,10 +22,7 @@ function makeRecord(overrides: Partial<GalleryItemRecord> = {}): GalleryItemReco
     mediaType: 'IMAGE',
     mediaUrl: 'https://cdn.example.com/gallery.jpg',
     mediaPublicId: 'gallery/item',
-    title: 'Lookbook',
-    caption: 'Skin care moment',
     active: true,
-    order: 1,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
     ...overrides,
@@ -36,7 +33,6 @@ describe('GalleryService', () => {
   const listBySiteId = jest.fn();
   const listActiveBySiteId = jest.fn();
   const findByIdForSite = jest.fn();
-  const nextOrder = jest.fn();
   const create = jest.fn();
   const update = jest.fn();
   const patch = jest.fn();
@@ -46,7 +42,6 @@ describe('GalleryService', () => {
     listBySiteId,
     listActiveBySiteId,
     findByIdForSite,
-    nextOrder,
     create,
     update,
     patch,
@@ -82,9 +77,8 @@ describe('GalleryService', () => {
     );
   });
 
-  it('creates using siteId from context and next order when omitted', async () => {
+  it('creates using siteId from context', async () => {
     const record = makeRecord();
-    nextOrder.mockResolvedValue(3);
     create.mockResolvedValue(record);
 
     const dto = await service.createForSite({
@@ -95,21 +89,15 @@ describe('GalleryService', () => {
         mediaType: 'image',
         mediaUrl: record.mediaUrl,
         mediaPublicId: record.mediaPublicId,
-        title: record.title,
-        caption: record.caption,
         active: true,
       },
     });
 
-    expect(nextOrder).toHaveBeenCalledWith(record.siteId);
     expect(create).toHaveBeenCalledWith(record.siteId, {
       mediaType: 'IMAGE',
       mediaUrl: record.mediaUrl,
       mediaPublicId: record.mediaPublicId,
-      title: record.title,
-      caption: record.caption,
       active: true,
-      order: 3,
     });
     expect(dto.id).toBe(record.id);
   });
@@ -127,8 +115,6 @@ describe('GalleryService', () => {
           mediaType: 'video',
           mediaUrl: 'https://cdn.example.com/clip.mp4',
           mediaPublicId: 'gallery/clip',
-          title: '',
-          caption: '',
           active: true,
         },
       }),
@@ -184,8 +170,6 @@ describe('GalleryService', () => {
         mediaType: 'image',
         mediaUrl: 'https://cdn.example.com/new.jpg',
         mediaPublicId: 'gallery/new',
-        title: existing.title,
-        caption: existing.caption,
         active: true,
       },
     });

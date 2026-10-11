@@ -20,20 +20,12 @@ export const galleryItemBodySchema = z.object({
   mediaType: galleryMediaTypeSchema,
   mediaUrl: mediaUrlSchema,
   mediaPublicId: z.string().trim().max(500).default(''),
-  title: z.string().trim().max(200).default(''),
-  caption: z.string().trim().max(1000).default(''),
   active: z.boolean().default(true),
-  order: z.coerce.number().int().min(0).max(10_000).optional(),
 });
 
-export const galleryItemPatchSchema = z
-  .object({
-    active: z.boolean().optional(),
-    order: z.coerce.number().int().min(0).max(10_000).optional(),
-  })
-  .refine((value) => value.active !== undefined || value.order !== undefined, {
-    message: 'At least one of active or order is required',
-  });
+export const galleryItemPatchSchema = z.object({
+  active: z.boolean(),
+});
 
 export const galleryItemIdParamSchema = z.object({
   siteCode: siteCodeSchema,
@@ -95,17 +87,6 @@ export function normalizeGalleryItemInput(raw: unknown): unknown {
     mediaType,
     mediaUrl,
     mediaPublicId,
-    title: typeof payload.title === 'string' ? payload.title.trim() : (payload.title ?? ''),
-    caption:
-      typeof payload.caption === 'string'
-        ? payload.caption.trim()
-        : typeof payload.alt === 'string'
-          ? payload.alt.trim()
-          : (payload.caption ?? ''),
     active: payload.active ?? true,
-    order:
-      payload.order === '' || payload.order === undefined || payload.order === null
-        ? undefined
-        : Number(payload.order),
   };
 }

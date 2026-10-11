@@ -68,7 +68,8 @@ describe("AdminSidebar", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByTestId("nav-shell-banner-top-advertisement")).toBeInTheDocument();
+    expect(screen.getByTestId("nav-active-banner-top-advertisement")).toBeInTheDocument();
+    expect(screen.getByTestId("nav-active-banner-about-us")).toBeInTheDocument();
     expect(screen.queryByText(/profile \/ account/i)).not.toBeInTheDocument();
   });
 

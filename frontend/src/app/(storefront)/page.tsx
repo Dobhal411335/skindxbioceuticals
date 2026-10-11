@@ -14,23 +14,28 @@ import { SpecialsHeader } from "@/components/landing/specials-header";
 import { StyleGallery } from "@/components/landing/style-gallery";
 import { TestimonialsGrid } from "@/components/landing/testimonials-grid";
 import { TrustBenefitsBar } from "@/components/landing/trust-benefits-bar";
+import { getAboutUsBanner } from "@/features/about-us-banner/about-us-banner.service";
 import { getGalleryItems } from "@/features/gallery/gallery.service";
 import { getSocialPosts } from "@/features/social-posts/social-posts.service";
 
 export default async function HomePage() {
-  const [socialPosts, galleryItems] = await Promise.all([
+  const [socialPosts, galleryItems, aboutUsBanner] = await Promise.all([
     getSocialPosts(),
     getGalleryItems(),
+    getAboutUsBanner(),
   ]);
 
   return (
     <>
       <HeroSection />
       <TrustBenefitsBar />
-      <SpecialsHeader />
-      <AboutSplit />
-      <BlogCarousel />
-      <FeaturedProductRail />
+      <SpecialsHeader promo={aboutUsBanner.promo} />
+      <AboutSplit cards={aboutUsBanner.aboutCards} />
+      <BlogCarousel
+        highlightItems={aboutUsBanner.highlightItems}
+        textSlides={aboutUsBanner.textSlides}
+      />
+       <FeaturedProductRail />
       <PromoBannerRow />
       <ProductHighlightColumns />
       <TestimonialsGrid />

@@ -39,11 +39,11 @@ const BANNER_MODULES: AdminModuleDefinition[] = [
     "Manage announcement bar, header utility strip, and feature benefits for this website.",
     ["IN", "COM"],
   ),
-  shell(
-    "banner-philosophy",
-    "banners/philosophy",
-    "Philosophy Banner",
-    "Manage the philosophy banner section for this website.",
+  live(
+    "banner-about-us",
+    "banners/about-us",
+    "About Us Banner",
+    "Manage the home About Us promo header, about cards carousel, and dual bottom block for this website.",
     ["IN", "COM"],
   ),
   shell(

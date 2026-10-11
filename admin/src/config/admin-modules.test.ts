@@ -12,6 +12,7 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   gallery: endpoints.admin.gallery,
   "manage-footer": endpoints.admin.footer,
   "banner-top-advertisement": endpoints.admin.topAdvertisement,
+  "banner-about-us": endpoints.admin.aboutUsBanner,
 };
 
 describe("admin modules", () => {
@@ -30,7 +31,7 @@ describe("admin modules", () => {
     expect(findModuleBySlug("COM", ["manage-navbar"])?.id).toBe("manage-navbar");
     expect(findModuleBySlug("IN", ["manage-footer"])?.id).toBe("manage-footer");
     expect(findModuleBySlug("COM", ["manage-footer"])?.id).toBe("manage-footer");
-    expect(findModuleBySlug("COM", ["banners", "philosophy"])?.id).toBe("banner-philosophy");
+    expect(findModuleBySlug("COM", ["banners", "about-us"])?.id).toBe("banner-about-us");
   });
 
   it("maps every live module to a registered admin API endpoint", () => {

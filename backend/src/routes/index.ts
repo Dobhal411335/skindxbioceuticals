@@ -22,6 +22,7 @@ import { socialPostsPublicRoutes } from '@/features/social-posts/social-posts.pu
 import { galleryPublicRoutes } from '@/features/gallery/gallery.public.routes';
 import { footerPublicRoutes } from '@/features/footer/footer.public.routes';
 import { topAdvertisementPublicRoutes } from '@/features/top-advertisement/top-advertisement.public.routes';
+import { aboutUsBannerPublicRoutes } from '@/features/about-us-banner/about-us-banner.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
@@ -56,6 +57,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/gallery', galleryPublicRoutes);
   v1.use('/sites/:siteCode/footer', footerPublicRoutes);
   v1.use('/sites/:siteCode/top-advertisement', topAdvertisementPublicRoutes);
+  v1.use('/sites/:siteCode/about-us-banner', aboutUsBannerPublicRoutes);
 
   app.use(appConfig.apiPrefix, v1);
 }

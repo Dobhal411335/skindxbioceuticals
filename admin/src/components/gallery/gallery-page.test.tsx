@@ -42,10 +42,7 @@ const sampleItem = {
   mediaType: "image" as const,
   mediaUrl: "https://cdn.example.com/gallery.jpg",
   mediaPublicId: "gallery/img",
-  title: "Clinic moment",
-  caption: "Lookbook shot",
   active: true,
-  order: 1,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
@@ -65,13 +62,13 @@ describe("GalleryPage", () => {
   it("loads gallery items for the selected site", async () => {
     render(<GalleryPage siteCode="IN" />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("IN"));
-    expect(await screen.findByText("Clinic moment")).toBeInTheDocument();
+    expect(await screen.findByText("Item #1")).toBeInTheDocument();
   });
 
   it("does not delete until the inline confirmation is confirmed", async () => {
     const user = userEvent.setup();
     render(<GalleryPage siteCode="IN" />);
-    await screen.findByText("Clinic moment");
+    await screen.findByText("Item #1");
 
     await user.click(screen.getByRole("button", { name: /^delete$/i }));
     expect(deleteMock).not.toHaveBeenCalled();
@@ -91,7 +88,7 @@ describe("GalleryPage", () => {
   it("cancels inline delete confirmation without calling the API", async () => {
     const user = userEvent.setup();
     render(<GalleryPage siteCode="IN" />);
-    await screen.findByText("Clinic moment");
+    await screen.findByText("Item #1");
 
     await user.click(screen.getByRole("button", { name: /^delete$/i }));
     expect(

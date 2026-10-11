@@ -55,4 +55,7 @@ export const API_ENDPOINTS = {
   TOP_ADVERTISEMENT: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/top-advertisement`,
   },
+  ABOUT_US_BANNER: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/about-us-banner`,
+  },
 } as const;

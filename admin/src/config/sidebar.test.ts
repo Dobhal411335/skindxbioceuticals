@@ -55,6 +55,7 @@ describe("getSidebarConfig", () => {
       expect.arrayContaining([
         "manage-banners",
         "banner-top-advertisement",
+        "banner-about-us",
         "sub-dashboard",
         "stock-management",
         "vendor-partner",

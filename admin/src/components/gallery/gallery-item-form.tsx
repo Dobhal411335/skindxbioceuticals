@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showError, showSuccess } from "@/lib/toast";
 import type { GalleryItemFormErrors } from "@/schemas/gallery-schema";
@@ -102,8 +101,8 @@ export function GalleryItemForm({
           </CardTitle>
         </div>
         <CardDescription>
-          Update title, caption, order, or replace the media file for an existing
-          item. Use the upload panel above to add many files at once.
+          Replace media or toggle visibility for an existing item. Use the upload
+          panel above to add many files at once.
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
@@ -134,7 +133,7 @@ export function GalleryItemForm({
                     // eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary previews
                     <img
                       src={values.mediaUrl}
-                      alt={values.title || "Gallery preview"}
+                      alt="Gallery preview"
                       className="h-full w-full object-cover"
                     />
                   )
@@ -165,72 +164,22 @@ export function GalleryItemForm({
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="gallery-title">Title</Label>
-                <Input
-                  id="gallery-title"
-                  value={values.title}
+                <Label htmlFor="gallery-active">Active</Label>
+                <select
+                  id="gallery-active"
+                  className="flex h-9 w-full max-w-xs rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50"
+                  value={values.active ? "true" : "false"}
                   disabled={!isEditing}
                   onChange={(event) =>
-                    onChange({ ...values, title: event.target.value })
+                    onChange({
+                      ...values,
+                      active: event.target.value === "true",
+                    })
                   }
-                  placeholder="Optional headline"
-                />
-                {errors.title ? (
-                  <p className="text-sm text-destructive">{errors.title}</p>
-                ) : null}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="gallery-caption">Caption</Label>
-                <Input
-                  id="gallery-caption"
-                  value={values.caption}
-                  disabled={!isEditing}
-                  onChange={(event) =>
-                    onChange({ ...values, caption: event.target.value })
-                  }
-                  placeholder="Optional alt / caption"
-                />
-                {errors.caption ? (
-                  <p className="text-sm text-destructive">{errors.caption}</p>
-                ) : null}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="gallery-order">Order</Label>
-                  <Input
-                    id="gallery-order"
-                    type="number"
-                    min={0}
-                    value={values.order}
-                    disabled={!isEditing}
-                    onChange={(event) =>
-                      onChange({ ...values, order: event.target.value })
-                    }
-                  />
-                  {errors.order ? (
-                    <p className="text-sm text-destructive">{errors.order}</p>
-                  ) : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gallery-active">Active</Label>
-                  <select
-                    id="gallery-active"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50"
-                    value={values.active ? "true" : "false"}
-                    disabled={!isEditing}
-                    onChange={(event) =>
-                      onChange({
-                        ...values,
-                        active: event.target.value === "true",
-                      })
-                    }
-                  >
-                    <option value="true">Visible</option>
-                    <option value="false">Hidden</option>
-                  </select>
-                </div>
+                >
+                  <option value="true">Visible</option>
+                  <option value="false">Hidden</option>
+                </select>
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">

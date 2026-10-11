@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { GalleryItemForm } from "@/components/gallery/gallery-item-form";
 import { GalleryItemsGrid } from "@/components/gallery/gallery-items-grid";
@@ -22,17 +22,18 @@ import {
 } from "@/services/api/gallery";
 import { ApiError } from "@/services/api/errors";
 import type { SiteCode } from "@/types/auth";
-import type { GalleryItemDto, GalleryItemFormValues } from "@/types/gallery";
+import type {
+  GalleryItemDto,
+  GalleryItemFormValues,
+  GalleryPendingUpload,
+} from "@/types/gallery";
 
 function createEmptyFormValues(): GalleryItemFormValues {
   return {
     mediaType: "image",
     mediaUrl: "",
     mediaPublicId: "",
-    title: "",
-    caption: "",
     active: true,
-    order: "",
   };
 }
 
@@ -41,10 +42,7 @@ function dtoToFormValues(item: GalleryItemDto): GalleryItemFormValues {
     mediaType: item.mediaType,
     mediaUrl: item.mediaUrl,
     mediaPublicId: item.mediaPublicId,
-    title: item.title,
-    caption: item.caption,
     active: item.active,
-    order: String(item.order ?? ""),
   };
 }
 
@@ -58,6 +56,11 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [pendingUploads, setPendingUploads] = useState<GalleryPendingUpload[]>(
+    [],
+  );
+  const pendingUploadsRef = useRef(pendingUploads);
+  pendingUploadsRef.current = pendingUploads;
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -83,14 +86,33 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    return () => {
+      for (const pending of pendingUploadsRef.current) {
+        URL.revokeObjectURL(pending.previewUrl);
+      }
+    };
+  }, []);
+
+  const handleQueuePending = (queued: GalleryPendingUpload[]) => {
+    setPendingUploads((prev) => [...queued, ...prev]);
+  };
+
+  const handlePendingComplete = (id: string) => {
+    setPendingUploads((prev) => {
+      const finishing = prev.find((entry) => entry.id === id);
+      if (finishing) {
+        URL.revokeObjectURL(finishing.previewUrl);
+      }
+      return prev.filter((entry) => entry.id !== id);
+    });
+  };
+
   const resetForm = () => {
     setValues(createEmptyFormValues());
     setEditingId(null);
     setErrors({});
   };
-
-  const nextOrder =
-    items.reduce((max, item) => Math.max(max, item.order || 0), 0) + 1;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -107,7 +129,7 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
     setErrors({});
     setIsSubmitting(true);
     try {
-      const payload = toGalleryItemPayload(validation.data, nextOrder);
+      const payload = toGalleryItemPayload(validation.data);
       await updateGalleryItem(siteCode, editingId, payload);
       showSuccess("Gallery item updated");
       resetForm();
@@ -162,28 +184,6 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
     }
   };
 
-  const handleMove = async (item: GalleryItemDto, direction: "up" | "down") => {
-    const sorted = [...items].sort(
-      (left, right) => (left.order || 0) - (right.order || 0),
-    );
-    const index = sorted.findIndex((entry) => entry.id === item.id);
-    const swapIndex = direction === "up" ? index - 1 : index + 1;
-    if (index < 0 || swapIndex < 0 || swapIndex >= sorted.length) return;
-
-    const other = sorted[swapIndex]!;
-    try {
-      await Promise.all([
-        patchGalleryItem(siteCode, item.id, { order: other.order }),
-        patchGalleryItem(siteCode, other.id, { order: item.order }),
-      ]);
-      await load();
-    } catch (error) {
-      showError(
-        error instanceof ApiError ? error.message : "Failed to reorder items",
-      );
-    }
-  };
-
   return (
     <AdminAppShell
       siteCode={siteCode}
@@ -216,7 +216,8 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
         <div className="space-y-8">
           <GalleryUploadPanel
             siteCode={siteCode}
-            nextOrder={nextOrder}
+            onQueuePending={handleQueuePending}
+            onPendingComplete={handlePendingComplete}
             onUploaded={load}
           />
 
@@ -232,11 +233,12 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
             onReset={resetForm}
           />
 
-          {isLoading ? (
+          {isLoading && pendingUploads.length === 0 ? (
             <div className="h-80 animate-pulse rounded-xl border border-border bg-muted/40" />
           ) : (
             <GalleryItemsGrid
               items={items}
+              pendingUploads={pendingUploads}
               pendingDeleteId={pendingDelete?.id ?? null}
               isDeleting={isDeleting}
               onEdit={handleEdit}
@@ -244,7 +246,6 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
               onCancelDelete={() => setPendingDelete(null)}
               onConfirmDelete={(item) => void handleDelete(item)}
               onToggleActive={(item) => void handleToggleActive(item)}
-              onMove={(item, direction) => void handleMove(item, direction)}
             />
           )}
         </div>
