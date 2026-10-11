@@ -2,6 +2,15 @@ import { SocialPostsService, toSocialPostDto } from '../social-posts.service';
 import type { SocialPostsRepository } from '../social-posts.repository';
 import type { SocialPostRecord } from '../social-posts.types';
 import { NotFoundError } from '@/utils/AppError';
+import {
+  deleteStoredCloudinaryAsset,
+  deleteStoredCloudinaryAssetBestEffort,
+} from '@/lib/cloudinary';
+
+jest.mock('@/lib/cloudinary', () => ({
+  deleteStoredCloudinaryAsset: jest.fn(),
+  deleteStoredCloudinaryAssetBestEffort: jest.fn(),
+}));
 
 function makeRecord(overrides: Partial<SocialPostRecord> = {}): SocialPostRecord {
   return {
@@ -107,10 +116,12 @@ describe('SocialPostsService', () => {
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 
-  it('patches active/order and deletes by site scope', async () => {
+  it('patches active/order and deletes Cloudinary asset with the post', async () => {
     const record = makeRecord({ active: false, order: 5 });
     patch.mockResolvedValue(record);
+    findByIdForSite.mockResolvedValue(record);
     deleteFn.mockResolvedValue(true);
+    (deleteStoredCloudinaryAsset as jest.Mock).mockResolvedValue(undefined);
 
     const patched = await service.patchForSite({
       siteId: record.siteId,
@@ -128,6 +139,31 @@ describe('SocialPostsService', () => {
       userId: 'user-1',
       postId: record.id,
     });
+    expect(deleteStoredCloudinaryAsset).toHaveBeenCalledWith(record.imagePublicId);
     expect(deleteFn).toHaveBeenCalledWith(record.siteId, record.id);
+  });
+
+  it('cleans up the previous Cloudinary asset when the image is replaced', async () => {
+    const existing = makeRecord({ imagePublicId: 'social/old' });
+    const updated = makeRecord({ imagePublicId: 'social/new' });
+    findByIdForSite.mockResolvedValue(existing);
+    update.mockResolvedValue(updated);
+    (deleteStoredCloudinaryAssetBestEffort as jest.Mock).mockResolvedValue(undefined);
+
+    await service.updateForSite({
+      siteId: existing.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      postId: existing.id,
+      body: {
+        postType: 'instagram',
+        imageUrl: 'https://cdn.example.com/new.jpg',
+        imagePublicId: 'social/new',
+        postUrl: existing.postUrl,
+        active: true,
+      },
+    });
+
+    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('social/old');
   });
 });

@@ -10,3 +10,4 @@ export * from './uploads/upload-multiple-images';
 
 export * from './deletes/delete-single-image';
 export * from './deletes/delete-multiple-images';
+export * from './deletes/delete-stored-asset';

@@ -22,16 +22,24 @@ import type { GalleryItemDto } from "@/types/gallery";
 
 type GalleryItemsGridProps = {
   items: GalleryItemDto[];
+  pendingDeleteId: string | null;
+  isDeleting: boolean;
   onEdit: (item: GalleryItemDto) => void;
-  onDelete: (item: GalleryItemDto) => void;
+  onRequestDelete: (item: GalleryItemDto) => void;
+  onCancelDelete: () => void;
+  onConfirmDelete: (item: GalleryItemDto) => void;
   onToggleActive: (item: GalleryItemDto) => void;
   onMove: (item: GalleryItemDto, direction: "up" | "down") => void;
 };
 
 export function GalleryItemsGrid({
   items,
+  pendingDeleteId,
+  isDeleting,
   onEdit,
-  onDelete,
+  onRequestDelete,
+  onCancelDelete,
+  onConfirmDelete,
   onToggleActive,
   onMove,
 }: GalleryItemsGridProps) {
@@ -150,15 +158,43 @@ export function GalleryItemsGrid({
                       <Pencil className="size-3.5" />
                       Edit
                     </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => onDelete(item)}
-                    >
-                      <Trash2 className="size-3.5" />
-                      Delete
-                    </Button>
+                    {pendingDeleteId === item.id ? (
+                      <div className="flex w-full flex-col gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-muted-foreground">
+                          Remove this item permanently?
+                        </p>
+                        <div className="flex gap-1">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={isDeleting}
+                            onClick={onCancelDelete}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            disabled={isDeleting}
+                            onClick={() => onConfirmDelete(item)}
+                          >
+                            {isDeleting ? "Deleting…" : "Confirm delete"}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => onRequestDelete(item)}
+                      >
+                        <Trash2 className="size-3.5" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

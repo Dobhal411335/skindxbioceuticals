@@ -52,4 +52,7 @@ export const API_ENDPOINTS = {
   FOOTER: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/footer`,
   },
+  TOP_ADVERTISEMENT: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/top-advertisement`,
+  },
 } as const;

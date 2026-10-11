@@ -2,6 +2,18 @@ import { GalleryService, toGalleryItemDto } from '../gallery.service';
 import type { GalleryRepository } from '../gallery.repository';
 import type { GalleryItemRecord } from '../gallery.types';
 import { NotFoundError } from '@/utils/AppError';
+import {
+  deleteStoredCloudinaryAsset,
+  deleteStoredCloudinaryAssetBestEffort,
+} from '@/lib/cloudinary';
+
+jest.mock('@/lib/cloudinary', () => ({
+  deleteStoredCloudinaryAsset: jest.fn(),
+  deleteStoredCloudinaryAssetBestEffort: jest.fn(),
+  mediaTypeToCloudinaryResourceType: jest.fn((mediaType: string) =>
+    mediaType === 'VIDEO' || mediaType === 'video' ? 'video' : 'image',
+  ),
+}));
 
 function makeRecord(overrides: Partial<GalleryItemRecord> = {}): GalleryItemRecord {
   return {
@@ -124,7 +136,7 @@ describe('GalleryService', () => {
   });
 
   it('throws NotFoundError when deleting a missing item', async () => {
-    deleteFn.mockResolvedValue(false);
+    findByIdForSite.mockResolvedValue(null);
 
     await expect(
       service.deleteForSite({
@@ -134,5 +146,52 @@ describe('GalleryService', () => {
         itemId: 'missing',
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
+    expect(deleteStoredCloudinaryAsset).not.toHaveBeenCalled();
+  });
+
+  it('deletes Cloudinary asset before removing a gallery item', async () => {
+    const record = makeRecord({ mediaType: 'VIDEO', mediaPublicId: 'gallery/clip' });
+    findByIdForSite.mockResolvedValue(record);
+    deleteFn.mockResolvedValue(true);
+    (deleteStoredCloudinaryAsset as jest.Mock).mockResolvedValue(undefined);
+
+    await service.deleteForSite({
+      siteId: record.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      itemId: record.id,
+    });
+
+    expect(deleteStoredCloudinaryAsset).toHaveBeenCalledWith('gallery/clip', {
+      resourceType: 'video',
+    });
+    expect(deleteFn).toHaveBeenCalledWith(record.siteId, record.id);
+  });
+
+  it('cleans up the previous Cloudinary asset when media is replaced', async () => {
+    const existing = makeRecord({ mediaPublicId: 'gallery/old' });
+    const updated = makeRecord({ mediaPublicId: 'gallery/new' });
+    findByIdForSite.mockResolvedValue(existing);
+    update.mockResolvedValue(updated);
+    (deleteStoredCloudinaryAssetBestEffort as jest.Mock).mockResolvedValue(undefined);
+
+    await service.updateForSite({
+      siteId: existing.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      itemId: existing.id,
+      body: {
+        mediaType: 'image',
+        mediaUrl: 'https://cdn.example.com/new.jpg',
+        mediaPublicId: 'gallery/new',
+        title: existing.title,
+        caption: existing.caption,
+        active: true,
+      },
+    });
+
+    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('gallery/old', {
+      resourceType: 'image',
+    });
   });
 });

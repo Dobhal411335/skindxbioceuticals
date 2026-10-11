@@ -22,6 +22,8 @@ export const endpoints = {
     galleryItem: (siteCode: string, itemId: string) =>
       `/admin/sites/${siteCode}/gallery/${itemId}`,
     footer: (siteCode: string) => `/admin/sites/${siteCode}/footer`,
+    topAdvertisement: (siteCode: string) =>
+      `/admin/sites/${siteCode}/top-advertisement`,
   },
   media: {
     uploadImage: "/media/images",

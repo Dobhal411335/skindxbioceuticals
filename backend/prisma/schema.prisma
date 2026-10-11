@@ -138,6 +138,12 @@ enum EmailOutboxStatus {
   FAILED
 }
 
+enum TopAdvertisementSection {
+  ANNOUNCEMENT
+  UTILITY
+  BENEFIT
+}
+
 // =============================================================================
 // Multi-site (.in storefront + .com content/enquiry)
 // =============================================================================
@@ -159,8 +165,9 @@ model Site {
   companyBasicInfo   CompanyBasicInfo?
   navbarSections     NavbarSection[]
   socialPosts        SocialPost[]
-  galleryItems       GalleryItem[]
-  footerConfig       FooterConfig?
+  galleryItems              GalleryItem[]
+  footerConfig              FooterConfig?
+  topAdvertisementConfig    TopAdvertisementConfig?
 
   @@map("sites")
 }
@@ -862,6 +869,34 @@ model FooterLink {
 
   @@index([columnId, order])
   @@map("footer_links")
+}
+
+model TopAdvertisementConfig {
+  id        String   @id @default(uuid()) @db.Uuid
+  siteId    String   @unique @map("site_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  site  Site                    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  items TopAdvertisementItem[]
+
+  @@map("top_advertisement_configs")
+}
+
+model TopAdvertisementItem {
+  id        String                   @id @default(uuid()) @db.Uuid
+  configId  String                   @map("config_id") @db.Uuid
+  section   TopAdvertisementSection
+  text      String
+  url       String                   @default("")
+  active    Boolean                  @default(true)
+  createdAt DateTime                 @default(now()) @map("created_at")
+  updatedAt DateTime                 @updatedAt @map("updated_at")
+
+  config TopAdvertisementConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId, section])
+  @@map("top_advertisement_items")
 }
 
 model SiteSetting {

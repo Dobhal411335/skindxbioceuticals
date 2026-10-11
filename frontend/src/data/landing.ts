@@ -380,26 +380,10 @@ export const testimonials: LandingTestimonial[] = [
 ];
 
 export const featureBenefits = [
-  {
-    title: "Free shipping",
-    description: "Enjoy free shipping on eligible orders over ₹999 within India.",
-    icon: "truck" as const,
-  },
-  {
-    title: "Secure payments",
-    description: "Checkout is prepared for Razorpay with server-side verification.",
-    icon: "shield" as const,
-  },
-  {
-    title: "Clear policies",
-    description: "Shipping, returns, and privacy details stay easy to find.",
-    icon: "wallet" as const,
-  },
-  {
-    title: "Account ready",
-    description: "Sign in later to manage addresses, orders, and wishlist items.",
-    icon: "card" as const,
-  },
+  { title: "Free shipping" },
+  { title: "Secure payments" },
+  { title: "Clear policies" },
+  { title: "Account ready" },
 ];
 
 export const galleryItems: GalleryItem[] = [

@@ -1,3 +1,8 @@
+import {
+  deleteStoredCloudinaryAsset,
+  deleteStoredCloudinaryAssetBestEffort,
+  mediaTypeToCloudinaryResourceType,
+} from '@/lib/cloudinary';
 import { logger } from '@/lib/logger';
 import type { SiteCode } from '@/types/common';
 import { NotFoundError } from '@/utils/AppError';
@@ -109,6 +114,14 @@ export class GalleryService {
       throw new NotFoundError('Gallery item not found');
     }
 
+    const previousPublicId = existing.mediaPublicId.trim();
+    const nextPublicId = data.mediaPublicId.trim();
+    if (previousPublicId && previousPublicId !== nextPublicId) {
+      await deleteStoredCloudinaryAssetBestEffort(previousPublicId, {
+        resourceType: mediaTypeToCloudinaryResourceType(existing.mediaType),
+      });
+    }
+
     logger.info(
       {
         event: 'gallery_item.updated',
@@ -156,6 +169,17 @@ export class GalleryService {
     userId: string;
     itemId: string;
   }): Promise<void> {
+    const existing = await this.repository.findByIdForSite(input.siteId, input.itemId);
+    if (!existing) {
+      throw new NotFoundError('Gallery item not found');
+    }
+
+    if (existing.mediaPublicId.trim()) {
+      await deleteStoredCloudinaryAsset(existing.mediaPublicId, {
+        resourceType: mediaTypeToCloudinaryResourceType(existing.mediaType),
+      });
+    }
+
     const deleted = await this.repository.delete(input.siteId, input.itemId);
     if (!deleted) {
       throw new NotFoundError('Gallery item not found');

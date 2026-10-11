@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 import { useNavbarSections } from "@/providers/navbar-sections-provider";
+import { useTopAdvertisement } from "@/providers/top-advertisement-provider";
 
 const navTriggerClassName =
   "relative rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase text-foreground/80 transition-[color,background-color,transform] duration-200 ease-out hover:bg-transparent hover:text-foreground focus:bg-transparent active:scale-[0.98] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-foreground after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 data-open:bg-muted/50 data-open:text-foreground data-open:after:scale-x-100 data-popup-open:bg-muted/50 data-popup-open:text-foreground data-popup-open:after:scale-x-100";
@@ -31,21 +32,58 @@ const navDropdownLinkClassName =
 
 const navDropdownParentLinkClassName = `${navDropdownLinkClassName} font-medium`;
 
+function UtilityLine({
+  text,
+  href,
+  className,
+}: {
+  text: string;
+  href?: string;
+  className?: string;
+}) {
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={`transition-colors hover:text-foreground ${className ?? ""}`}
+      >
+        {text}
+      </Link>
+    );
+  }
+  return <p className={className}>{text}</p>;
+}
+
 export function SiteHeader() {
   const company = useCompanyBasicInfo();
   const navLinks = useNavbarSections();
+  const { utilityItems } = useTopAdvertisement();
   const brandName = company.companyName?.trim() || "SkinDx";
   const logoUrl =
     company.mainLogo?.url?.trim() || company.mobileUiLogo?.url?.trim() || "";
+  const leftUtility = utilityItems[0];
+  const rightUtility = utilityItems[1];
 
   return (
     <header className="border-b border-border bg-background">
-      <div className="hidden border-b border-border bg-surface md:block">
-        <div className="container-page flex items-center justify-between py-2 text-xs text-muted-foreground">
-          <p>India storefront · Prices in INR</p>
-          <p className="tracking-wide">Complimentary shipping over ₹999</p>
+      {(leftUtility || rightUtility) && (
+        <div className="hidden border-b border-border bg-surface md:block">
+          <div className="container-page flex items-center justify-between py-2 text-xs text-muted-foreground">
+            {leftUtility ? (
+              <UtilityLine text={leftUtility.text} href={leftUtility.href} />
+            ) : (
+              <span />
+            )}
+            {rightUtility ? (
+              <UtilityLine
+                text={rightUtility.text}
+                href={rightUtility.href}
+                className="tracking-wide"
+              />
+            ) : null}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="container-page flex items-center gap-3 py-3 lg:gap-6 lg:py-4">
         <MobileNav />

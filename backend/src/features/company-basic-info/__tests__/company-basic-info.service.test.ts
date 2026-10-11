@@ -5,6 +5,11 @@ import {
 } from '../company-basic-info.service';
 import type { CompanyBasicInfoRepository } from '../company-basic-info.repository';
 import type { CompanyBasicInfoRecord } from '../company-basic-info.types';
+import { deleteStoredCloudinaryAssetBestEffort } from '@/lib/cloudinary';
+
+jest.mock('@/lib/cloudinary', () => ({
+  deleteStoredCloudinaryAssetBestEffort: jest.fn(),
+}));
 
 function makeRecord(overrides: Partial<CompanyBasicInfoRecord> = {}): CompanyBasicInfoRecord {
   return {
@@ -68,9 +73,16 @@ describe('CompanyBasicInfoService', () => {
     });
   });
 
-  it('upserts using siteId from context and ignores client ownership', async () => {
-    const record = makeRecord({ companyName: 'Updated' });
+  it('upserts using siteId from context and cleans replaced logos from Cloudinary', async () => {
+    const existing = makeRecord();
+    const record = makeRecord({
+      companyName: 'Updated',
+      mainLogoUrl: '',
+      mainLogoPublicId: '',
+    });
+    findBySiteId.mockResolvedValue(existing);
     upsertBySiteId.mockResolvedValue(record);
+    (deleteStoredCloudinaryAssetBestEffort as jest.Mock).mockResolvedValue(undefined);
 
     const dto = await service.upsertForSite({
       siteId: record.siteId,
@@ -106,6 +118,7 @@ describe('CompanyBasicInfoService', () => {
         companyDomainName: 'skindxbioceuticals.com',
       }),
     );
+    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('branding/main');
     expect(dto.siteCode).toBe('COM');
     expect(dto.companyName).toBe('Updated');
   });

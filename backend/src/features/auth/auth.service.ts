@@ -58,7 +58,11 @@ export class AuthService {
   ) {}
 
   async bootstrapAdmin(input: BootstrapAdminInput): Promise<AuthTokensDto> {
-    if (!secureCompare(input.bootstrapSecret, env.ADMIN_BOOTSTRAP_SECRET)) {
+    const configuredSecret = env.ADMIN_BOOTSTRAP_SECRET;
+    if (
+      !configuredSecret ||
+      !secureCompare(input.bootstrapSecret, configuredSecret)
+    ) {
       throw new UnauthorizedError('Invalid bootstrap secret');
     }
 

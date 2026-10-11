@@ -29,6 +29,18 @@ describe('Cloudinary Deletes', () => {
       expect(result.result).toBe('ok');
       expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('test_public_id', {
         invalidate: true,
+        resource_type: 'image',
+      });
+    });
+
+    it('should pass video resource_type when deleting videos', async () => {
+      (cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({ result: 'ok' });
+
+      await deleteSingleImage('gallery/clip', { resourceType: 'video' });
+
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('gallery/clip', {
+        invalidate: true,
+        resource_type: 'video',
       });
     });
 
@@ -52,6 +64,10 @@ describe('Cloudinary Deletes', () => {
 
       expect(result.deleted).toContain('id1');
       expect(result.failed).toContainEqual({ publicId: 'id2', error: 'not_found' });
+      expect(cloudinary.api.delete_resources).toHaveBeenCalledWith(['id1', 'id2'], {
+        invalidate: true,
+        resource_type: 'image',
+      });
     });
   });
 });

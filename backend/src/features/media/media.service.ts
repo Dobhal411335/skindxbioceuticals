@@ -3,8 +3,9 @@ import {
   uploadSingleVideo,
   uploadSinglePdf,
   uploadMultipleImages,
-  deleteSingleImage,
   deleteMultipleImages,
+  deleteStoredCloudinaryAsset,
+  mediaTypeToCloudinaryResourceType,
   UploadOptions,
 } from '../../lib/cloudinary';
 import { logger } from '../../lib/logger';
@@ -177,7 +178,9 @@ export class MediaService {
 
     if (media.publicId) {
       try {
-        await deleteSingleImage(media.publicId);
+        await deleteStoredCloudinaryAsset(media.publicId, {
+          resourceType: mediaTypeToCloudinaryResourceType(media.type),
+        });
       } catch (error) {
         logger.error(
           {
@@ -190,6 +193,7 @@ export class MediaService {
         );
         throw error;
       }
+      return { success: true };
     }
 
     await prisma.media.delete({

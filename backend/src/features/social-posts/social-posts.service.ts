@@ -1,3 +1,7 @@
+import {
+  deleteStoredCloudinaryAsset,
+  deleteStoredCloudinaryAssetBestEffort,
+} from '@/lib/cloudinary';
 import { logger } from '@/lib/logger';
 import type { SiteCode } from '@/types/common';
 import { NotFoundError } from '@/utils/AppError';
@@ -101,6 +105,12 @@ export class SocialPostsService {
       throw new NotFoundError('Social post not found');
     }
 
+    const previousPublicId = existing.imagePublicId.trim();
+    const nextPublicId = data.imagePublicId.trim();
+    if (previousPublicId && previousPublicId !== nextPublicId) {
+      await deleteStoredCloudinaryAssetBestEffort(previousPublicId);
+    }
+
     logger.info(
       {
         event: 'social_post.updated',
@@ -148,6 +158,15 @@ export class SocialPostsService {
     userId: string;
     postId: string;
   }): Promise<void> {
+    const existing = await this.repository.findByIdForSite(input.siteId, input.postId);
+    if (!existing) {
+      throw new NotFoundError('Social post not found');
+    }
+
+    if (existing.imagePublicId.trim()) {
+      await deleteStoredCloudinaryAsset(existing.imagePublicId);
+    }
+
     const deleted = await this.repository.delete(input.siteId, input.postId);
     if (!deleted) {
       throw new NotFoundError('Social post not found');

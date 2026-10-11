@@ -56,6 +56,7 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
   const [pendingDelete, setPendingDelete] = useState<GalleryItemDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -128,6 +129,7 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
   };
 
   const handleDelete = async (item: GalleryItemDto) => {
+    setIsDeleting(true);
     try {
       await deleteGalleryItem(siteCode, item.id);
       showSuccess("Gallery item deleted");
@@ -142,6 +144,8 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
           ? error.message
           : "Failed to delete gallery item",
       );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -209,33 +213,6 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
           </Alert>
         ) : null}
 
-        {pendingDelete ? (
-          <Alert>
-            <AlertTitle>Delete gallery item?</AlertTitle>
-            <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <span>This removes the item from the lookbook. This cannot be undone.</span>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPendingDelete(null)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => void handleDelete(pendingDelete)}
-                >
-                  Delete
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        ) : null}
-
         <div className="space-y-8">
           <GalleryUploadPanel
             siteCode={siteCode}
@@ -260,8 +237,12 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
           ) : (
             <GalleryItemsGrid
               items={items}
+              pendingDeleteId={pendingDelete?.id ?? null}
+              isDeleting={isDeleting}
               onEdit={handleEdit}
-              onDelete={(item) => setPendingDelete(item)}
+              onRequestDelete={(item) => setPendingDelete(item)}
+              onCancelDelete={() => setPendingDelete(null)}
+              onConfirmDelete={(item) => void handleDelete(item)}
               onToggleActive={(item) => void handleToggleActive(item)}
               onMove={(item, direction) => void handleMove(item, direction)}
             />

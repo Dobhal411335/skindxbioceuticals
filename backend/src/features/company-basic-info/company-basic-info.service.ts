@@ -1,3 +1,4 @@
+import { deleteStoredCloudinaryAssetBestEffort } from '@/lib/cloudinary';
 import { logger } from '@/lib/logger';
 import type { SiteCode } from '@/types/common';
 import { companyBasicInfoRepository } from './company-basic-info.repository';
@@ -108,6 +109,31 @@ function bodyToUpsertData(body: CompanyBasicInfoBody): CompanyBasicInfoUpsertDat
   };
 }
 
+function collectReplacedLogoPublicIds(
+  existing: CompanyBasicInfoRecord | null,
+  next: CompanyBasicInfoUpsertData,
+): string[] {
+  if (!existing) {
+    return [];
+  }
+
+  const pairs: Array<[string, string]> = [
+    [existing.mainLogoPublicId, next.mainLogoPublicId],
+    [existing.footerLogoPublicId, next.footerLogoPublicId],
+    [existing.mobileUiLogoPublicId, next.mobileUiLogoPublicId],
+  ];
+
+  const orphaned: string[] = [];
+  for (const [previous, current] of pairs) {
+    const prev = previous.trim();
+    const curr = current.trim();
+    if (prev && prev !== curr) {
+      orphaned.push(prev);
+    }
+  }
+  return orphaned;
+}
+
 export class CompanyBasicInfoService {
   constructor(private readonly repository = companyBasicInfoRepository) {}
 
@@ -125,8 +151,14 @@ export class CompanyBasicInfoService {
     userId: string;
     body: CompanyBasicInfoBody;
   }): Promise<CompanyBasicInfoDto> {
+    const existing = await this.repository.findBySiteId(input.siteId);
     const data = bodyToUpsertData(input.body);
     const record = await this.repository.upsertBySiteId(input.siteId, data);
+
+    const replacedPublicIds = collectReplacedLogoPublicIds(existing, data);
+    await Promise.all(
+      replacedPublicIds.map((publicId) => deleteStoredCloudinaryAssetBestEffort(publicId)),
+    );
 
     logger.info(
       {

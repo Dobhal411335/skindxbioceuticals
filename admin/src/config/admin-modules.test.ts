@@ -11,6 +11,7 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "social-media-post": endpoints.admin.socialPosts,
   gallery: endpoints.admin.gallery,
   "manage-footer": endpoints.admin.footer,
+  "banner-top-advertisement": endpoints.admin.topAdvertisement,
 };
 
 describe("admin modules", () => {

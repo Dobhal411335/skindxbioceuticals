@@ -13,9 +13,14 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
-  ADMIN_BOOTSTRAP_SECRET: z
-    .string()
-    .min(32, 'ADMIN_BOOTSTRAP_SECRET must be at least 32 characters'),
+  // Optional: omit in production once an admin exists. When unset, /auth/bootstrap-admin stays disabled.
+  ADMIN_BOOTSTRAP_SECRET: z.preprocess(
+    (value) => (value === '' || value === undefined ? undefined : value),
+    z
+      .string()
+      .min(32, 'ADMIN_BOOTSTRAP_SECRET must be at least 32 characters')
+      .optional(),
+  ),
   CORS_ORIGINS: z
     .string()
     .default('http://localhost:3000,http://localhost:3002')

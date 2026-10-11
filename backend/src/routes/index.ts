@@ -21,6 +21,7 @@ import { navbarSectionsPublicRoutes } from '@/features/navbar-sections/navbar-se
 import { socialPostsPublicRoutes } from '@/features/social-posts/social-posts.public.routes';
 import { galleryPublicRoutes } from '@/features/gallery/gallery.public.routes';
 import { footerPublicRoutes } from '@/features/footer/footer.public.routes';
+import { topAdvertisementPublicRoutes } from '@/features/top-advertisement/top-advertisement.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
@@ -54,6 +55,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/social-posts', socialPostsPublicRoutes);
   v1.use('/sites/:siteCode/gallery', galleryPublicRoutes);
   v1.use('/sites/:siteCode/footer', footerPublicRoutes);
+  v1.use('/sites/:siteCode/top-advertisement', topAdvertisementPublicRoutes);
 
   app.use(appConfig.apiPrefix, v1);
 }

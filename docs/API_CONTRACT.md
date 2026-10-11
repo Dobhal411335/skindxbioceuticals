@@ -154,6 +154,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/social-posts` | CRUD site-scoped Instagram/Facebook posts | Admin + site access |
 | `/admin/sites/:siteCode/gallery` | CRUD site-scoped gallery images/videos | Admin + site access |
 | `/admin/sites/:siteCode/footer` | get/upsert site-scoped footer config | Admin + site access |
+| `/admin/sites/:siteCode/top-advertisement` | get/upsert site-scoped top advertisement (3 sections) | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
 
@@ -218,6 +219,17 @@ One upsertable footer config per site (columns + brand copy). Logo and social li
 ### Public footer (storefront)
 
 - `GET /api/v1/sites/:siteCode/footer` — public read for an active site (no auth). Returns active columns and links only. Used by the `.in` storefront footer for columns/copy (falls back to static landing data when empty/unavailable). Storefront logo and socials use company basic info.
+
+### Admin top advertisement (implemented)
+
+One upsertable config per site with three section lists: announcement bar, header utility strip, and feature benefits bar.
+
+- `GET /api/v1/admin/sites/:siteCode/top-advertisement` — Bearer admin JWT; `requireSiteAccess`. Returns the site record or empty defaults (`id: null`) including inactive items.
+- `PUT /api/v1/admin/sites/:siteCode/top-advertisement` — upsert one row per site and replace all items. Body: `announcements[]` (`text`, optional `url`, `active`), `utilityItems[]` (same shape), `benefits[]` (same shape: `text`, optional `url`, `active`). `siteId` from authenticated site context only.
+
+### Public top advertisement (storefront)
+
+- `GET /api/v1/sites/:siteCode/top-advertisement` — public read for an active site (no auth). Returns active items only, grouped as `announcements`, `utilityItems`, and `benefits`. Used by the `.in` storefront announcement bar, header utility strip, and feature benefits bar (falls back to static landing data when empty/unavailable).
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

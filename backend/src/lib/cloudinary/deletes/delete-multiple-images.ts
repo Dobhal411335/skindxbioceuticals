@@ -1,9 +1,13 @@
 import { CLOUDINARY_CONSTANTS } from '../cloudinary.constants';
 import { CloudinaryError, CloudinaryValidationError } from '../cloudinary.errors';
-import { BulkDeleteResult } from '../cloudinary.types';
+import { BulkDeleteResult, ResourceType } from '../cloudinary.types';
 import { cloudinary } from '../cloudinary.config';
+import type { DeleteAssetOptions } from './delete-single-image';
 
-export async function deleteMultipleImages(publicIds: string[]): Promise<BulkDeleteResult> {
+export async function deleteMultipleImages(
+  publicIds: string[],
+  options: DeleteAssetOptions = {},
+): Promise<BulkDeleteResult> {
   if (!publicIds || publicIds.length === 0) {
     throw new CloudinaryValidationError('No publicIds provided for deletion');
   }
@@ -14,9 +18,12 @@ export async function deleteMultipleImages(publicIds: string[]): Promise<BulkDel
     );
   }
 
+  const resourceType = (options.resourceType ?? 'image') as Exclude<ResourceType, 'auto'>;
+
   try {
     const result = await cloudinary.api.delete_resources(publicIds, {
       invalidate: true,
+      resource_type: resourceType,
     });
 
     const deleted: string[] = [];

@@ -83,7 +83,9 @@ function leaf(
 
 function bannerChildren(siteCode: SiteCode): SidebarNavItem[] {
   return [
-    leaf(siteCode, "banner-top-advertisement", "Top Advertisement Banner", "banners/top-advertisement", ImageIcon),
+    leaf(siteCode, "banner-top-advertisement", "Top Advertisement Banner", "banners/top-advertisement", ImageIcon, {
+      status: "active",
+    }),
     leaf(siteCode, "banner-philosophy", "Philosophy Banner", "banners/philosophy", ImageIcon),
     leaf(siteCode, "banner-promotional", "Promotional Banner", "banners/promotional", ImageIcon),
     leaf(siteCode, "banner-manage", "Manage Banner", "banners/manage", ImageIcon),

@@ -20,6 +20,8 @@ export async function resetDatabase(): Promise<void> {
     prisma.footerLink.deleteMany(),
     prisma.footerColumn.deleteMany(),
     prisma.footerConfig.deleteMany(),
+    prisma.topAdvertisementItem.deleteMany(),
+    prisma.topAdvertisementConfig.deleteMany(),
     prisma.orderItem.deleteMany(),
     prisma.payment.deleteMany(),
     prisma.shipment.deleteMany(),

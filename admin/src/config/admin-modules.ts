@@ -32,11 +32,11 @@ function live(
 }
 
 const BANNER_MODULES: AdminModuleDefinition[] = [
-  shell(
+  live(
     "banner-top-advertisement",
     "banners/top-advertisement",
     "Top Advertisement Banner",
-    "Manage the top advertisement banner for this website.",
+    "Manage announcement bar, header utility strip, and feature benefits for this website.",
     ["IN", "COM"],
   ),
   shell(
