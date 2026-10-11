@@ -19,6 +19,7 @@ import { adminRoutes } from '@/features/admin/admin.routes';
 import { companyBasicInfoPublicRoutes } from '@/features/company-basic-info/company-basic-info.public.routes';
 import { navbarSectionsPublicRoutes } from '@/features/navbar-sections/navbar-sections.public.routes';
 import { socialPostsPublicRoutes } from '@/features/social-posts/social-posts.public.routes';
+import { galleryPublicRoutes } from '@/features/gallery/gallery.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
@@ -50,6 +51,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/company-basic-info', companyBasicInfoPublicRoutes);
   v1.use('/sites/:siteCode/navbar-sections', navbarSectionsPublicRoutes);
   v1.use('/sites/:siteCode/social-posts', socialPostsPublicRoutes);
+  v1.use('/sites/:siteCode/gallery', galleryPublicRoutes);
 
   app.use(appConfig.apiPrefix, v1);
 }

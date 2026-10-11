@@ -127,6 +127,11 @@ enum SocialPostType {
   FACEBOOK
 }
 
+enum GalleryMediaType {
+  IMAGE
+  VIDEO
+}
+
 enum EmailOutboxStatus {
   PENDING
   SENT
@@ -154,6 +159,8 @@ model Site {
   companyBasicInfo   CompanyBasicInfo?
   navbarSections     NavbarSection[]
   socialPosts        SocialPost[]
+  galleryItems       GalleryItem[]
+  footerConfig       FooterConfig?
 
   @@map("sites")
 }
@@ -788,6 +795,93 @@ model SocialPost {
   @@index([siteId, postType, order])
   @@index([siteId, active, order])
   @@map("social_posts")
+}
+
+model GalleryItem {
+  id            String           @id @default(uuid()) @db.Uuid
+  siteId        String           @map("site_id") @db.Uuid
+  mediaType     GalleryMediaType @map("media_type")
+  mediaUrl      String           @map("media_url")
+  mediaPublicId String           @default("") @map("media_public_id")
+  title         String           @default("")
+  caption       String           @default("")
+  active        Boolean          @default(true)
+  order         Int              @default(0)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, order])
+  @@index([siteId, active, order])
+  @@index([siteId, mediaType, order])
+  @@map("gallery_items")
+}
+
+model FooterConfig {
+  id           String   @id @default(uuid()) @db.Uuid
+  siteId       String   @unique @map("site_id") @db.Uuid
+  thankYou     String   @default("") @map("thank_you")
+  description  String   @default("") @db.Text
+  logoUrl      String   @default("") @map("logo_url")
+  logoPublicId String   @default("") @map("logo_public_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  site        Site               @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  columns     FooterColumn[]
+  socialLinks FooterSocialLink[]
+
+  @@map("footer_configs")
+}
+
+model FooterColumn {
+  id             String   @id @default(uuid()) @db.Uuid
+  footerConfigId String   @map("footer_config_id") @db.Uuid
+  title          String
+  order          Int      @default(0)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  footerConfig FooterConfig @relation(fields: [footerConfigId], references: [id], onDelete: Cascade)
+  links        FooterLink[]
+
+  @@index([footerConfigId, order])
+  @@map("footer_columns")
+}
+
+model FooterLink {
+  id        String   @id @default(uuid()) @db.Uuid
+  columnId  String   @map("column_id") @db.Uuid
+  label     String
+  url       String   @default("#")
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  column FooterColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  @@index([columnId, order])
+  @@map("footer_links")
+}
+
+model FooterSocialLink {
+  id             String   @id @default(uuid()) @db.Uuid
+  footerConfigId String   @map("footer_config_id") @db.Uuid
+  label          String
+  url            String
+  iconKey        String   @default("") @map("icon_key")
+  order          Int      @default(0)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  footerConfig FooterConfig @relation(fields: [footerConfigId], references: [id], onDelete: Cascade)
+
+  @@index([footerConfigId, order])
+  @@map("footer_social_links")
 }
 
 model SiteSetting {

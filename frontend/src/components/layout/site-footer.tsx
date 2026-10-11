@@ -216,18 +216,17 @@ export function SiteFooter() {
               Subscribe
             </Button>
           </form>
-          <p className="mt-2 text-xs text-muted-foreground">
-            UI only — no email is collected on this static page.
-          </p>
         </div>
 
         <div className="text-sm text-muted-foreground lg:text-right">
           <p>Payments prepared for Razorpay</p>
-          <p className="mt-2">
-            © {new Date().getFullYear()} {brandName}
-          </p>
         </div>
       </div>
+      <div className="flex justify-center">
+        <p className="my-5">
+            © {new Date().getFullYear()} {brandName}
+          </p>
+          </div>
     </footer>
   );
 }

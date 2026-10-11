@@ -23,6 +23,7 @@
 - `CompanyBasicInfo` (implemented): one optional row per site (`siteId` unique). Stores company name/domain, contact numbers, WhatsApp, emails, office addresses, map/social/SEO/tracking fields, and logo URL/publicId pairs. Cascade delete with `Site`.
 - `NavbarSection` / `NavbarSubSection` (implemented): site-scoped header navigation. Each section has title, url, active, order; optional child sub-sections with the same fields. Cascade delete with `Site` / parent section. Indexed by `(siteId, order)` and `(sectionId, order)`.
 - `SocialPost` (implemented): site-scoped Instagram/Facebook posts (`postType` enum `INSTAGRAM` | `FACEBOOK`), thumbnail `imageUrl`/`imagePublicId`, external `postUrl`, `active`, `order`. Cascade delete with `Site`. Indexed by `(siteId, order)`, `(siteId, postType, order)`, and `(siteId, active, order)`.
+- `GalleryItem` (implemented): site-scoped lookbook media (`mediaType` enum `IMAGE` | `VIDEO`), `mediaUrl`/`mediaPublicId`, optional `title`/`caption`, `active`, `order`. Cascade delete with `Site`. Indexed by `(siteId, order)`, `(siteId, active, order)`, and `(siteId, mediaType, order)`.
 - `Page` / `ContentEntry`: site, slug, title, structured content, publication status, SEO metadata.
 - `Banner`, `FAQ`, `BlogPost`, `SiteSetting`: site-scoped where the content/settings differ.
 - `MediaAsset`: provider, provider asset/public ID, URL, file type, dimensions, alt text, ownership/creation metadata.

@@ -14,10 +14,14 @@ import { SpecialsHeader } from "@/components/landing/specials-header";
 import { StyleGallery } from "@/components/landing/style-gallery";
 import { TestimonialsGrid } from "@/components/landing/testimonials-grid";
 import { TrustBenefitsBar } from "@/components/landing/trust-benefits-bar";
+import { getGalleryItems } from "@/features/gallery/gallery.service";
 import { getSocialPosts } from "@/features/social-posts/social-posts.service";
 
 export default async function HomePage() {
-  const socialPosts = await getSocialPosts();
+  const [socialPosts, galleryItems] = await Promise.all([
+    getSocialPosts(),
+    getGalleryItems(),
+  ]);
 
   return (
     <>
@@ -33,7 +37,7 @@ export default async function HomePage() {
       <InsightsGrid />
       <BlogGrid />
       <FeatureBenefitsBar />
-      <StyleGallery />
+      <StyleGallery items={galleryItems} />
       <FaqSection />
       <SocialPostsSection posts={socialPosts} />
       <MarqueeBanner />

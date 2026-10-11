@@ -116,7 +116,9 @@ export function getSharedNav(siteCode: SiteCode): SidebarSection {
           leaf(siteCode, "company-info", "Company Basic Info", "company-basic-info", Building2, {
             status: "active",
           }),
-          leaf(siteCode, "gallery", "Gallery Section", "gallery", GalleryHorizontal),
+          leaf(siteCode, "gallery", "Gallery Section", "gallery", GalleryHorizontal, {
+            status: "active",
+          }),
           leaf(siteCode, "manage-navbar", "Manage Navbar", "manage-navbar", Send, {
             status: "active",
           }),

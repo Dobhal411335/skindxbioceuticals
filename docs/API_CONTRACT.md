@@ -152,6 +152,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/company-basic-info` | get/upsert site-scoped company profile | Admin + site access |
 | `/admin/sites/:siteCode/navbar-sections` | list/create site-scoped navbar sections | Admin + site access |
 | `/admin/sites/:siteCode/social-posts` | CRUD site-scoped Instagram/Facebook posts | Admin + site access |
+| `/admin/sites/:siteCode/gallery` | CRUD site-scoped gallery images/videos | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
 
@@ -189,6 +190,22 @@ Unified Instagram + Facebook posts (`postType`: `instagram` | `facebook`) per si
 ### Public social posts (storefront)
 
 - `GET /api/v1/sites/:siteCode/social-posts` — public read for an active site (no auth). Returns active posts only, ordered for carousel display on the `.in` storefront home page.
+
+### Admin gallery (implemented)
+
+Site-scoped lookbook media (`mediaType`: `image` | `video`) for IN and COM.
+
+- `GET /api/v1/admin/sites/:siteCode/gallery` — Bearer admin JWT; `requireSiteAccess`. Optional query `mediaType`. Returns all items for the site (including inactive), ordered by `order` asc then `createdAt` desc.
+- `POST /api/v1/admin/sites/:siteCode/gallery` — create. Body: `mediaType`, `mediaUrl`, `mediaPublicId`, optional `title`/`caption`/`active`/`order`. `siteId` from authenticated site context only. Prefer HTTPS media URLs.
+- `PUT /api/v1/admin/sites/:siteCode/gallery/:itemId` — full update within the site.
+- `PATCH /api/v1/admin/sites/:siteCode/gallery/:itemId` — partial update of `active` and/or `order`.
+- `DELETE /api/v1/admin/sites/:siteCode/gallery/:itemId` — delete within the site.
+
+Uploads use existing media APIs with `feature=gallery`: `POST /api/v1/media/images` and `POST /api/v1/media/videos`.
+
+### Public gallery (storefront)
+
+- `GET /api/v1/sites/:siteCode/gallery` — public read for an active site (no auth). Returns active items only, ordered for the `.in` storefront lookbook (2-row masonry carousel).
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

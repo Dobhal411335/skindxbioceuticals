@@ -20,6 +20,17 @@ import {
 import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 import { useNavbarSections } from "@/providers/navbar-sections-provider";
 
+const navTriggerClassName =
+  "relative rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase text-foreground/80 transition-[color,background-color,transform] duration-200 ease-out hover:bg-transparent hover:text-foreground focus:bg-transparent active:scale-[0.98] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-foreground after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 data-open:bg-muted/50 data-open:text-foreground data-open:after:scale-x-100 data-popup-open:bg-muted/50 data-popup-open:text-foreground data-popup-open:after:scale-x-100";
+
+const navLinkClassName =
+  "relative rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase text-foreground/80 transition-[color,background-color,transform] duration-200 ease-out hover:bg-transparent hover:text-foreground focus:bg-transparent active:scale-[0.98] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-foreground after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100";
+
+const navDropdownLinkClassName =
+  "block rounded-md px-3 py-2 text-sm transition-[color,background-color,transform] duration-200 ease-out hover:translate-x-0.5 focus-visible:translate-x-0.5";
+
+const navDropdownParentLinkClassName = `${navDropdownLinkClassName} font-medium`;
+
 export function SiteHeader() {
   const company = useCompanyBasicInfo();
   const navLinks = useNavbarSections();
@@ -41,7 +52,7 @@ export function SiteHeader() {
 
         <Link
           href="/"
-          className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+          className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-foreground transition-opacity duration-200 hover:opacity-90 sm:text-3xl"
           aria-label={brandName}
         >
           {logoUrl ? (
@@ -72,10 +83,7 @@ export function SiteHeader() {
                 return (
                   <NavigationMenuItem key={link.id}>
                     <NavigationMenuLink asChild>
-                      <Link
-                        href={link.href}
-                        className="rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase"
-                      >
+                      <Link href={link.href} className={navLinkClassName}>
                         {link.label}
                       </Link>
                     </NavigationMenuLink>
@@ -85,17 +93,17 @@ export function SiteHeader() {
 
               return (
                 <NavigationMenuItem key={link.id}>
-                  <NavigationMenuTrigger className="rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase">
+                  <NavigationMenuTrigger className={navTriggerClassName}>
                     {link.label}
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent>
+                  <NavigationMenuContent className="origin-top data-open:slide-in-from-top-2 data-closed:slide-out-to-top-1">
                     <ul className="grid min-w-[220px] gap-1 p-1">
                       {link.href && link.href !== "#" ? (
                         <li>
                           <NavigationMenuLink asChild>
                             <Link
                               href={link.href}
-                              className="block rounded-md px-3 py-2 text-sm font-medium"
+                              className={navDropdownParentLinkClassName}
                             >
                               {link.label}
                             </Link>
@@ -107,7 +115,7 @@ export function SiteHeader() {
                           <NavigationMenuLink asChild>
                             <Link
                               href={child.href}
-                              className="block rounded-md px-3 py-2 text-sm"
+                              className={navDropdownLinkClassName}
                             >
                               {child.label}
                             </Link>

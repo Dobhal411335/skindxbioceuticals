@@ -18,8 +18,12 @@ export const endpoints = {
       `/admin/sites/${siteCode}/social-posts`,
     socialPost: (siteCode: string, postId: string) =>
       `/admin/sites/${siteCode}/social-posts/${postId}`,
+    gallery: (siteCode: string) => `/admin/sites/${siteCode}/gallery`,
+    galleryItem: (siteCode: string, itemId: string) =>
+      `/admin/sites/${siteCode}/gallery/${itemId}`,
   },
   media: {
     uploadImage: "/media/images",
+    uploadVideo: "/media/videos",
   },
 } as const;

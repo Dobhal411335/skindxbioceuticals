@@ -29,14 +29,11 @@ function mapPost(row: {
 }
 
 export class SocialPostsRepository {
-  async listBySiteId(
-    siteId: string,
-    postType?: PrismaSocialPostType,
-  ): Promise<SocialPostRecord[]> {
+  async listBySiteId(siteId: string, postType?: PrismaSocialPostType): Promise<SocialPostRecord[]> {
     const rows = await prisma.socialPost.findMany({
       where: {
         siteId,
-        ...(postType ? { postType } : {}),
+        ...(postType !== undefined ? { postType } : {}),
       },
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     });
@@ -51,12 +48,12 @@ export class SocialPostsRepository {
     return rows.map(mapPost);
   }
 
-  async findByIdForSite(
-    siteId: string,
-    postId: string,
-  ): Promise<SocialPostRecord | null> {
+  async findByIdForSite(siteId: string, postId: string): Promise<SocialPostRecord | null> {
     const row = await prisma.socialPost.findFirst({
-      where: { id: postId, siteId },
+      where: {
+        id: postId,
+        siteId: siteId,
+      },
     });
     return row ? mapPost(row) : null;
   }

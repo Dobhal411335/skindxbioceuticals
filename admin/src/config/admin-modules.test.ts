@@ -9,6 +9,7 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "company-info": endpoints.admin.companyBasicInfo,
   "manage-navbar": endpoints.admin.navbarSections,
   "social-media-post": endpoints.admin.socialPosts,
+  gallery: endpoints.admin.gallery,
 };
 
 describe("admin modules", () => {

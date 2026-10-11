@@ -5,7 +5,9 @@ export const adminIdParamSchema = z.object({
 });
 
 export const siteCodeParamSchema = z.object({
-  siteCode: z.enum(['IN', 'COM', 'in', 'com']).transform((value) => value.toUpperCase() as 'IN' | 'COM'),
+  siteCode: z
+    .enum(['IN', 'COM', 'in', 'com'])
+    .transform((value) => value.toUpperCase() as 'IN' | 'COM'),
 });
 
 const dateInputSchema = z

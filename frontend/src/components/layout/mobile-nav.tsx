@@ -52,22 +52,25 @@ export function MobileNav() {
             )}
           </SheetTitle>
         </SheetHeader>
-        <nav className="mt-6 flex flex-col gap-1 px-4" aria-label="Mobile">
+        <nav
+          className="mt-6 flex animate-in fade-in slide-in-from-left-2 flex-col gap-1 px-4 duration-300"
+          aria-label="Mobile"
+        >
           {navLinks.map((link) => (
             <div key={link.id} className="flex flex-col">
               <Link
                 href={link.href}
-                className="rounded-md px-2 py-3 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {link.label}
               </Link>
               {link.children.length > 0 ? (
-                <div className="mb-1 ml-3 flex flex-col border-l border-border pl-3">
+                <div className="mb-1 ml-3 flex animate-in fade-in slide-in-from-left-1 flex-col border-l border-border pl-3 duration-300">
                   {link.children.map((child) => (
                     <Link
                       key={child.id}
                       href={child.href}
-                      className="rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {child.label}
                     </Link>

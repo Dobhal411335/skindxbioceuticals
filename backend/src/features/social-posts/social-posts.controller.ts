@@ -4,10 +4,7 @@ import type { SiteCode } from '@/types/common';
 import { sendSuccess } from '@/utils/apiResponse';
 import { NotFoundError, UnauthorizedError, ValidationError } from '@/utils/AppError';
 import { socialPostsService } from './social-posts.service';
-import type {
-  SocialPostBody,
-  SocialPostPatchBody,
-} from './social-posts.validation';
+import type { SocialPostBody, SocialPostPatchBody } from './social-posts.validation';
 import type { SocialPostTypeDto } from './social-posts.types';
 
 const SITE_CODES = new Set<SiteCode>(['IN', 'COM']);
@@ -36,11 +33,7 @@ export class SocialPostsController {
         ? (req.query.postType as SocialPostTypeDto)
         : undefined;
 
-    const data = await this.service.listForSite(
-      req.site.id,
-      req.site.code,
-      postType,
-    );
+    const data = await this.service.listForSite(req.site.id, req.site.code, postType);
     sendSuccess(res, data, 'Social posts');
   };
 

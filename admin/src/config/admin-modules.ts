@@ -390,11 +390,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Company profile and basic information for the selected website.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "gallery",
     "gallery",
     "Gallery Section",
-    "Gallery media and section content for the .com website.",
+    "Site-scoped gallery images and short videos for the storefront lookbook.",
     ["IN", "COM"],
   ),
   live(

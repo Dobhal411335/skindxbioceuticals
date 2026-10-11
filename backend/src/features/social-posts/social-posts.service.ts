@@ -2,10 +2,7 @@ import { logger } from '@/lib/logger';
 import type { SiteCode } from '@/types/common';
 import { NotFoundError } from '@/utils/AppError';
 import { socialPostsRepository } from './social-posts.repository';
-import type {
-  SocialPostBody,
-  SocialPostPatchBody,
-} from './social-posts.validation';
+import type { SocialPostBody, SocialPostPatchBody } from './social-posts.validation';
 import type {
   SocialPostDto,
   SocialPostRecord,
@@ -15,10 +12,7 @@ import type {
 } from './social-posts.types';
 import { toDtoPostType, toPrismaPostType } from './social-posts.types';
 
-export function toSocialPostDto(
-  record: SocialPostRecord,
-  siteCode: SiteCodeDto,
-): SocialPostDto {
+export function toSocialPostDto(record: SocialPostRecord, siteCode: SiteCodeDto): SocialPostDto {
   return {
     id: record.id,
     siteCode,
@@ -59,10 +53,7 @@ export class SocialPostsService {
     return rows.map((row) => toSocialPostDto(row, siteCode));
   }
 
-  async listActiveForSite(
-    siteId: string,
-    siteCode: SiteCode,
-  ): Promise<SocialPostDto[]> {
+  async listActiveForSite(siteId: string, siteCode: SiteCode): Promise<SocialPostDto[]> {
     const rows = await this.repository.listActiveBySiteId(siteId);
     return rows.map((row) => toSocialPostDto(row, siteCode));
   }
@@ -99,20 +90,13 @@ export class SocialPostsService {
     postId: string;
     body: SocialPostBody;
   }): Promise<SocialPostDto> {
-    const existing = await this.repository.findByIdForSite(
-      input.siteId,
-      input.postId,
-    );
+    const existing = await this.repository.findByIdForSite(input.siteId, input.postId);
     if (!existing) {
       throw new NotFoundError('Social post not found');
     }
 
     const data = bodyToWrite(input.body, existing.order);
-    const record = await this.repository.update(
-      input.siteId,
-      input.postId,
-      data,
-    );
+    const record = await this.repository.update(input.siteId, input.postId, data);
     if (!record) {
       throw new NotFoundError('Social post not found');
     }
@@ -138,11 +122,7 @@ export class SocialPostsService {
     postId: string;
     body: SocialPostPatchBody;
   }): Promise<SocialPostDto> {
-    const record = await this.repository.patch(
-      input.siteId,
-      input.postId,
-      input.body,
-    );
+    const record = await this.repository.patch(input.siteId, input.postId, input.body);
     if (!record) {
       throw new NotFoundError('Social post not found');
     }
