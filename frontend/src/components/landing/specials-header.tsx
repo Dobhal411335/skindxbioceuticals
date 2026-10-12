@@ -15,12 +15,12 @@ export function SpecialsHeader({
     <section className="container-page section-space" aria-labelledby="specials-heading">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+          <p className="text-xs mb-5 font-semibold tracking-[0.18em] text-muted-foreground uppercase">
             {promo.label}
           </p>
           <h2
             id="specials-heading"
-            className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="font-display mt-3 text-2xl font-semibold tracking-tight"
           >
             {promo.title}
           </h2>

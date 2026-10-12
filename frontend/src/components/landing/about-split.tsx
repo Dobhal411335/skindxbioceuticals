@@ -2,17 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { FALLBACK_ABOUT_US_BANNER } from "@/features/about-us-banner/about-us-banner.defaults";
+import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
 import type { StorefrontAboutCard } from "@/types/about-us-banner";
-import { useEffect, useState } from "react";
 
 type AboutSplitProps = {
   cards?: StorefrontAboutCard[];
@@ -53,6 +56,7 @@ export function AboutSplit({
 }: AboutSplitProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [selected, setSelected] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     if (!api) return;
@@ -63,6 +67,11 @@ export function AboutSplit({
       api.off("select", onSelect);
     };
   }, [api]);
+
+  useCarouselAutoplay(api, {
+    enabled: cards.length > 1,
+    paused: isPaused,
+  });
 
   if (cards.length === 0) {
     return null;
@@ -84,7 +93,17 @@ export function AboutSplit({
       <h2 id="about-heading" className="sr-only">
         About us
       </h2>
-      <div className="relative">
+      <div
+        className="relative"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onFocusCapture={() => setIsPaused(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setIsPaused(false);
+          }
+        }}
+      >
         <Carousel setApi={setApi} opts={{ loop: true, align: "start" }} className="w-full">
           <CarouselContent>
             {cards.map((card) => (
@@ -93,11 +112,10 @@ export function AboutSplit({
               </CarouselItem>
             ))}
           </CarouselContent>
+          {/* <CarouselPrevious className="left-2 border-border bg-background/90 text-foreground shadow-sm sm:left-3" />
+          <CarouselNext className="right-2 border-border bg-background/90 text-foreground shadow-sm sm:right-3" /> */}
         </Carousel>
-        <div
-          className="absolute top-1/2 right-2 hidden -translate-y-1/2 flex-col items-center gap-2 lg:flex"
-          aria-hidden
-        >
+        <div className="absolute top-1/2 right-2 hidden -translate-y-1/2 flex-col items-center gap-2 lg:flex">
           {cards.map((card, index) => (
             <button
               key={card.id}

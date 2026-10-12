@@ -15,15 +15,18 @@ import { StyleGallery } from "@/components/landing/style-gallery";
 import { TestimonialsGrid } from "@/components/landing/testimonials-grid";
 import { TrustBenefitsBar } from "@/components/landing/trust-benefits-bar";
 import { getAboutUsBanner } from "@/features/about-us-banner/about-us-banner.service";
+import { getCustomerReviews } from "@/features/customer-reviews/customer-reviews.service";
 import { getGalleryItems } from "@/features/gallery/gallery.service";
 import { getSocialPosts } from "@/features/social-posts/social-posts.service";
 
 export default async function HomePage() {
-  const [socialPosts, galleryItems, aboutUsBanner] = await Promise.all([
-    getSocialPosts(),
-    getGalleryItems(),
-    getAboutUsBanner(),
-  ]);
+  const [socialPosts, galleryItems, aboutUsBanner, customerReviews] =
+    await Promise.all([
+      getSocialPosts(),
+      getGalleryItems(),
+      getAboutUsBanner(),
+      getCustomerReviews(),
+    ]);
 
   return (
     <>
@@ -38,7 +41,7 @@ export default async function HomePage() {
        <FeaturedProductRail />
       <PromoBannerRow />
       <ProductHighlightColumns />
-      <TestimonialsGrid />
+      <TestimonialsGrid reviews={customerReviews} />
       <InsightsGrid />
       <BlogGrid />
       <FeatureBenefitsBar />

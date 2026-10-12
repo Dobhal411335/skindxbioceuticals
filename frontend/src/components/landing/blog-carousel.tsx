@@ -14,6 +14,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { FALLBACK_ABOUT_US_BANNER } from "@/features/about-us-banner/about-us-banner.defaults";
+import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
 import type {
   StorefrontHighlightItem,
   StorefrontTextSlide,
@@ -41,7 +42,7 @@ function HighlightCard({ item }: { item: StorefrontHighlightItem }) {
           />
         </div>
         <div className="flex flex-1 flex-col gap-3 p-4">
-          <h3 className="font-display text-lg leading-snug font-semibold group-hover:text-primary">
+          <h3 className="font-display text-sm leading-snug font-semibold group-hover:text-primary">
             {item.title}
           </h3>
           <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium underline-offset-4 group-hover:underline">
@@ -57,6 +58,7 @@ function HighlightCard({ item }: { item: StorefrontHighlightItem }) {
 function TextSlidesBlock({ slides }: { slides: StorefrontTextSlide[] }) {
   const [api, setApi] = useState<CarouselApi>();
   const [selected, setSelected] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     if (!api) return;
@@ -68,13 +70,18 @@ function TextSlidesBlock({ slides }: { slides: StorefrontTextSlide[] }) {
     };
   }, [api]);
 
+  useCarouselAutoplay(api, {
+    enabled: slides.length > 1,
+    paused: isPaused,
+  });
+
   if (slides.length === 1) {
     const slide = slides[0]!;
     return (
       <div className="max-w-md">
         <h2
           id="blog-rail-heading"
-          className="font-display text-3xl font-semibold tracking-tight sm:text-4xl"
+          className="font-display text-xl font-semibold tracking-tight"
         >
           {slide.title}
         </h2>
@@ -86,12 +93,22 @@ function TextSlidesBlock({ slides }: { slides: StorefrontTextSlide[] }) {
   }
 
   return (
-    <div className="relative max-w-md">
+    <div
+      className="relative max-w-md"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setIsPaused(false);
+        }
+      }}
+    >
       <Carousel setApi={setApi} opts={{ loop: true }} className="w-full">
         <CarouselContent>
           {slides.map((slide) => (
             <CarouselItem key={slide.id}>
-              <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+              <h2 className="font-display text-xl font-semibold tracking-tight">
                 {slide.title}
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
@@ -100,11 +117,10 @@ function TextSlidesBlock({ slides }: { slides: StorefrontTextSlide[] }) {
             </CarouselItem>
           ))}
         </CarouselContent>
+        {/* <CarouselPrevious className="-left-3 border-border bg-background/90 text-foreground shadow-sm" />
+        <CarouselNext className="-right-3 border-border bg-background/90 text-foreground shadow-sm lg:-right-8" /> */}
       </Carousel>
-      <div
-        className="absolute top-0 -right-4 hidden h-full flex-col items-center justify-center gap-2 lg:flex"
-        aria-hidden
-      >
+      <div className="absolute top-0 -right-4 hidden h-full flex-col items-center justify-center gap-2 lg:flex">
         {slides.map((slide, index) => (
           <button
             key={slide.id}
@@ -124,6 +140,57 @@ function TextSlidesBlock({ slides }: { slides: StorefrontTextSlide[] }) {
   );
 }
 
+function HighlightCarousel({ items }: { items: StorefrontHighlightItem[] }) {
+  const [api, setApi] = useState<CarouselApi>();
+  const [isPaused, setIsPaused] = useState(false);
+
+  useCarouselAutoplay(api, {
+    enabled: items.length > 1,
+    paused: isPaused,
+  });
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setIsPaused(false);
+        }
+      }}
+    >
+      <Carousel
+        setApi={setApi}
+        opts={{ align: "start", loop: true }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-3">
+          {items.map((item) => (
+            <CarouselItem
+              key={item.id}
+              className="basis-[85%] pl-3 sm:basis-1/2 xl:basis-1/3"
+            >
+              <HighlightCard item={item} />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        {items.length > 1 ? (
+          <>
+            <CarouselPrevious className="-left-3 hidden border-border bg-background/90 text-foreground shadow-sm sm:flex" />
+            <CarouselNext className="-right-3 hidden border-border bg-background/90 text-foreground shadow-sm sm:flex" />
+          </>
+        ) : null}
+      </Carousel>
+    </div>
+  );
+}
+
 export function BlogCarousel({
   highlightItems = FALLBACK_ABOUT_US_BANNER.highlightItems,
   textSlides = FALLBACK_ABOUT_US_BANNER.textSlides,
@@ -131,23 +198,7 @@ export function BlogCarousel({
   return (
     <section className="container-page section-space" aria-labelledby="blog-rail-heading">
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-center">
-        <div className="relative">
-          <Carousel opts={{ align: "start", loop: true }} className="w-full">
-            <CarouselContent className="-ml-3">
-              {highlightItems.map((item) => (
-                <CarouselItem
-                  key={item.id}
-                  className="basis-[85%] pl-3 sm:basis-1/2 xl:basis-1/3"
-                >
-                  <HighlightCard item={item} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="-left-3 hidden border-border bg-background/90 text-foreground shadow-sm sm:flex" />
-            <CarouselNext className="-right-3 hidden border-border bg-background/90 text-foreground shadow-sm sm:flex" />
-          </Carousel>
-        </div>
-
+        <HighlightCarousel items={highlightItems} />
         <TextSlidesBlock slides={textSlides} />
       </div>
     </section>

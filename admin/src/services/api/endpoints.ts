@@ -21,6 +21,10 @@ export const endpoints = {
     gallery: (siteCode: string) => `/admin/sites/${siteCode}/gallery`,
     galleryItem: (siteCode: string, itemId: string) =>
       `/admin/sites/${siteCode}/gallery/${itemId}`,
+    customerReviews: (siteCode: string) =>
+      `/admin/sites/${siteCode}/customer-reviews`,
+    customerReview: (siteCode: string, reviewId: string) =>
+      `/admin/sites/${siteCode}/customer-reviews/${reviewId}`,
     footer: (siteCode: string) => `/admin/sites/${siteCode}/footer`,
     topAdvertisement: (siteCode: string) =>
       `/admin/sites/${siteCode}/top-advertisement`,

@@ -166,6 +166,7 @@ model Site {
   navbarSections     NavbarSection[]
   socialPosts        SocialPost[]
   galleryItems              GalleryItem[]
+  customerReviews           CustomerReview[]
   footerConfig              FooterConfig?
   topAdvertisementConfig    TopAdvertisementConfig?
   aboutUsBannerConfig       AboutUsBannerConfig?
@@ -821,6 +822,28 @@ model GalleryItem {
   @@index([siteId, active, createdAt])
   @@index([siteId, mediaType, createdAt])
   @@map("gallery_items")
+}
+
+/// Curated storefront customer testimonials (distinct from product Review moderation).
+model CustomerReview {
+  id            String   @id @default(uuid()) @db.Uuid
+  siteId        String   @map("site_id") @db.Uuid
+  customerName  String   @map("customer_name")
+  designation   String
+  description   String   @db.Text
+  rating        Int
+  imageUrl      String   @map("image_url")
+  imagePublicId String   @default("") @map("image_public_id")
+  active        Boolean  @default(true)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, order])
+  @@index([siteId, active, order])
+  @@map("customer_reviews")
 }
 
 model FooterConfig {

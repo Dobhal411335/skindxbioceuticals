@@ -64,6 +64,7 @@ describe("getSidebarConfig", () => {
         "manage-products-category",
         "create-discount-coupon",
         "create-reviews",
+        "customer-review",
         "create-news-promotion",
         "create-doctor-profile",
         "order-cod-log",
@@ -86,6 +87,9 @@ describe("getSidebarConfig", () => {
     );
     expect(comItems.find((item) => item.id === "stock-management")?.href).toBe(
       "/admin/com/stock-management",
+    );
+    expect(inItems.find((item) => item.id === "customer-review")?.href).toBe(
+      "/admin/in/reviews/customer",
     );
 
     for (const item of [...inItems, ...comItems]) {

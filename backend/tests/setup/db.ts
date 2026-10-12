@@ -17,6 +17,7 @@ export async function resetDatabase(): Promise<void> {
     prisma.navbarSection.deleteMany(),
     prisma.socialPost.deleteMany(),
     prisma.galleryItem.deleteMany(),
+    prisma.customerReview.deleteMany(),
     prisma.footerLink.deleteMany(),
     prisma.footerColumn.deleteMany(),
     prisma.footerConfig.deleteMany(),

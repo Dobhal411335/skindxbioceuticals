@@ -214,6 +214,9 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           children: [
             leaf(siteCode, "create-reviews", "Create Reviews", "reviews/create", Star),
             leaf(siteCode, "approve-reject-reviews", "Approve/Reject Section", "reviews/approve-reject", ClipboardList),
+            leaf(siteCode, "customer-review", "Customer Review", "reviews/customer", MessageSquare, {
+              status: "active",
+            }),
           ],
         },
         {

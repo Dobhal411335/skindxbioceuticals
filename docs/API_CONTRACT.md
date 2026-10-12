@@ -153,6 +153,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/navbar-sections` | list/create site-scoped navbar sections | Admin + site access |
 | `/admin/sites/:siteCode/social-posts` | CRUD site-scoped Instagram/Facebook posts | Admin + site access |
 | `/admin/sites/:siteCode/gallery` | CRUD site-scoped gallery images/videos | Admin + site access |
+| `/admin/sites/:siteCode/customer-reviews` | CRUD site-scoped curated customer testimonials | Admin + site access |
 | `/admin/sites/:siteCode/footer` | get/upsert site-scoped footer config | Admin + site access |
 | `/admin/sites/:siteCode/top-advertisement` | get/upsert site-scoped top advertisement (3 sections) | Admin + site access |
 | `/admin/sites/:siteCode/about-us-banner` | get/upsert site-scoped About Us home banner (3 sections) | Admin + site access |
@@ -209,6 +210,22 @@ Uploads use existing media APIs with `feature=gallery`: `POST /api/v1/media/imag
 ### Public gallery (storefront)
 
 - `GET /api/v1/sites/:siteCode/gallery` — public read for an active site (no auth). Returns active items only (media fields + `active`), newest first, for the `.in` storefront lookbook masonry.
+
+### Admin customer reviews (implemented)
+
+Site-scoped curated testimonials for the storefront (not product-review moderation). Fields: `customerName`, `designation`, `description`, `rating` (1–5), `imageUrl`, `imagePublicId`, optional `active`/`order`.
+
+- `GET /api/v1/admin/sites/:siteCode/customer-reviews` — Bearer admin JWT; `requireSiteAccess`. Returns all reviews for the site (including inactive), ordered by `order` asc then `createdAt` desc.
+- `POST /api/v1/admin/sites/:siteCode/customer-reviews` — create. `siteId` from authenticated site context only. Prefer HTTPS image URLs.
+- `PUT /api/v1/admin/sites/:siteCode/customer-reviews/:reviewId` — full update within the site.
+- `PATCH /api/v1/admin/sites/:siteCode/customer-reviews/:reviewId` — partial update of `active` and/or `order`.
+- `DELETE /api/v1/admin/sites/:siteCode/customer-reviews/:reviewId` — delete within the site.
+
+Uploads use existing media APIs with `feature=reviews`: `POST /api/v1/media/images`.
+
+### Public customer reviews (storefront)
+
+- `GET /api/v1/sites/:siteCode/customer-reviews` — public read for an active site (no auth). Returns active reviews only, ordered for the `.in` storefront testimonials carousel.
 
 ### Admin footer (implemented)
 

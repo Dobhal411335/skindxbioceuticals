@@ -10,6 +10,7 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "manage-navbar": endpoints.admin.navbarSections,
   "social-media-post": endpoints.admin.socialPosts,
   gallery: endpoints.admin.gallery,
+  "customer-review": endpoints.admin.customerReviews,
   "manage-footer": endpoints.admin.footer,
   "banner-top-advertisement": endpoints.admin.topAdvertisement,
   "banner-about-us": endpoints.admin.aboutUsBanner,

@@ -25,5 +25,6 @@ export const ALLOWED_FEATURE_FOLDERS = [
   'footer',
   'social',
   'about',
+  'reviews',
   'general',
 ] as const;

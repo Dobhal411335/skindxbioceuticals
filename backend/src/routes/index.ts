@@ -20,6 +20,7 @@ import { companyBasicInfoPublicRoutes } from '@/features/company-basic-info/comp
 import { navbarSectionsPublicRoutes } from '@/features/navbar-sections/navbar-sections.public.routes';
 import { socialPostsPublicRoutes } from '@/features/social-posts/social-posts.public.routes';
 import { galleryPublicRoutes } from '@/features/gallery/gallery.public.routes';
+import { customerReviewsPublicRoutes } from '@/features/customer-reviews/customer-reviews.public.routes';
 import { footerPublicRoutes } from '@/features/footer/footer.public.routes';
 import { topAdvertisementPublicRoutes } from '@/features/top-advertisement/top-advertisement.public.routes';
 import { aboutUsBannerPublicRoutes } from '@/features/about-us-banner/about-us-banner.public.routes';
@@ -55,6 +56,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/navbar-sections', navbarSectionsPublicRoutes);
   v1.use('/sites/:siteCode/social-posts', socialPostsPublicRoutes);
   v1.use('/sites/:siteCode/gallery', galleryPublicRoutes);
+  v1.use('/sites/:siteCode/customer-reviews', customerReviewsPublicRoutes);
   v1.use('/sites/:siteCode/footer', footerPublicRoutes);
   v1.use('/sites/:siteCode/top-advertisement', topAdvertisementPublicRoutes);
   v1.use('/sites/:siteCode/about-us-banner', aboutUsBannerPublicRoutes);

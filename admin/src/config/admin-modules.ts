@@ -265,6 +265,13 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Approve or reject customer reviews for the .in storefront.",
     ["IN", "COM"],
   ),
+  live(
+    "customer-review",
+    "reviews/customer",
+    "Customer Review",
+    "Manage curated customer testimonials shown on the storefront home page.",
+    ["IN", "COM"],
+  ),
   shell(
     "create-news-promotion",
     "news/create",
