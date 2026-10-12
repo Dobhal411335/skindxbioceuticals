@@ -190,11 +190,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Configure tax provisions used when creating products.",
     ["IN", "COM"],
   ),
-  shell(
-    "create-menu",
-    "products/create-menu",
-    "Create Menu",
-    "Create product menu groupings for the .in storefront.",
+  live(
+    "create-category",
+    "products/create-category",
+    "Create Category",
+    "Create site-scoped product categories with storefront banners.",
     ["IN", "COM"],
   ),
   shell(
@@ -204,11 +204,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Create product sub-menu groupings for the .in storefront.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "manage-products-category",
     "products/manage-category",
     "Manage Products & Category",
-    "Manage products and categories for the .in ecommerce catalog.",
+    "Manage categories, subcategories, and products for the ecommerce catalog.",
     ["IN", "COM"],
   ),
   shell(

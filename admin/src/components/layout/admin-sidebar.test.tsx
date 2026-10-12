@@ -99,6 +99,7 @@ describe("AdminSidebar", () => {
     expect(group).toHaveAttribute("aria-expanded", "false");
     await user.click(group);
     expect(group).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByTestId("nav-shell-manage-products-category")).toBeInTheDocument();
+    expect(screen.getByTestId("nav-active-manage-products-category")).toBeInTheDocument();
+    expect(screen.getByTestId("nav-active-create-category")).toBeInTheDocument();
   });
 });

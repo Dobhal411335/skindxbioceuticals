@@ -33,6 +33,26 @@ export const endpoints = {
     faq: (siteCode: string) => `/admin/sites/${siteCode}/faq`,
     heroBanners: (siteCode: string) =>
       `/admin/sites/${siteCode}/hero-banners`,
+    categories: (siteCode: string) =>
+      `/admin/sites/${siteCode}/categories`,
+    category: (siteCode: string, categoryId: string) =>
+      `/admin/sites/${siteCode}/categories/${categoryId}`,
+    subcategories: (siteCode: string, categoryId: string) =>
+      `/admin/sites/${siteCode}/categories/${categoryId}/subcategories`,
+    subcategory: (
+      siteCode: string,
+      categoryId: string,
+      subcategoryId: string,
+    ) =>
+      `/admin/sites/${siteCode}/categories/${categoryId}/subcategories/${subcategoryId}`,
+    subcategoryProducts: (siteCode: string, subcategoryId: string) =>
+      `/admin/sites/${siteCode}/subcategories/${subcategoryId}/products`,
+    subcategoryProduct: (
+      siteCode: string,
+      subcategoryId: string,
+      productId: string,
+    ) =>
+      `/admin/sites/${siteCode}/subcategories/${subcategoryId}/products/${productId}`,
   },
   media: {
     uploadImage: "/media/images",

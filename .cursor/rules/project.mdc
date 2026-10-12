@@ -30,6 +30,7 @@ Before implementing a task, read the relevant project documents:
 - PostgreSQL + Prisma for persistence.
 - Zod for request and environment validation.
 - shadcn/ui for UI primitives and Lucide React for icons.
+- Admin create/edit forms must use shadcn/ui components from `admin/src/components/ui` (`Input`, `Select`, `Button`, `Label`, `Textarea`, `Card`, `Checkbox`, `Switch`, etc.). Do not use native HTML form controls or alternate UI libraries for admin forms.
 - Axios must use a centralized, typed client per frontend.
 - Cloudinary for managed media; Brevo for transactional email; Razorpay for `.in` payments; Google OAuth/OIDC for Google login.
 - Use the centralized logger for API routes, services, authentication, integrations, and other significant business operations (`backend/src/lib/logger`; each Next.js app’s `src/lib/logger` + Axios interceptors). Do not scatter `console.log` in application code or log secrets, tokens, OTPs, or full request/response payloads.

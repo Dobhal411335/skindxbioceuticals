@@ -5,7 +5,7 @@ import { authRoutes } from '@/features/auth/auth.routes';
 import { meRoutes } from '@/features/me/me.routes';
 import { userRoutes } from '@/features/users/user.routes';
 import { productRoutes } from '@/features/products/product.routes';
-import { categoryRoutes } from '@/features/categories/category.routes';
+import { categoryPublicRoutes } from '@/features/categories/category.public.routes';
 import { cartRoutes } from '@/features/cart/cart.routes';
 import { wishlistRoutes } from '@/features/wishlist/wishlist.routes';
 import { orderRoutes } from '@/features/orders/order.routes';
@@ -40,7 +40,6 @@ export function registerRoutes(app: Application): void {
   v1.use('/me', meRoutes);
   v1.use('/users', userRoutes);
   v1.use('/products', productRoutes);
-  v1.use('/categories', categoryRoutes);
   v1.use('/cart', cartRoutes);
   v1.use('/wishlist', wishlistRoutes);
   v1.use('/orders', orderRoutes);
@@ -64,6 +63,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/about-us-banner', aboutUsBannerPublicRoutes);
   v1.use('/sites/:siteCode/faq', faqPublicRoutes);
   v1.use('/sites/:siteCode/hero-banners', heroBannerPublicRoutes);
+  v1.use('/sites/:siteCode/categories', categoryPublicRoutes);
 
   app.use(appConfig.apiPrefix, v1);
 }

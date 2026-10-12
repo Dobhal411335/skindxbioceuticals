@@ -165,6 +165,7 @@ model Site {
 
   memberships        SiteMembership[]
   products           Product[]
+  categories         Category[]
   orders             Order[]
   enquiries          Enquiry[]
   media              Media[]
@@ -324,35 +325,47 @@ model Address {
 // =============================================================================
 
 model Category {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  slug        String   @unique
-  description String?
-  parentId    String?  @map("parent_id") @db.Uuid
-  isActive    Boolean  @default(true) @map("is_active")
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(uuid()) @db.Uuid
+  siteId         String   @map("site_id") @db.Uuid
+  name           String
+  slug           String
+  description    String?
+  parentId       String?  @map("parent_id") @db.Uuid
+  bannerUrl      String?  @map("banner_url")
+  bannerPublicId String?  @map("banner_public_id")
+  isActive       Boolean  @default(true) @map("is_active")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  parent   Category?         @relation("CategoryTree", fields: [parentId], references: [id])
-  children Category[]        @relation("CategoryTree")
-  products ProductCategory[]
+  site            Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  parent          Category?         @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Category[]        @relation("CategoryTree")
+  products        ProductCategory[]
+  catalogProducts Product[]         @relation("ProductSubcategory")
 
+  @@unique([siteId, slug])
+  @@index([siteId])
+  @@index([siteId, parentId])
+  @@index([siteId, isActive, sortOrder])
   @@map("categories")
 }
 
 model Product {
-  id          String        @id @default(uuid()) @db.Uuid
-  siteId      String        @map("site_id") @db.Uuid
-  name        String
-  slug        String
-  description String?
-  status      ProductStatus @default(DRAFT)
-  isFeatured  Boolean       @default(false) @map("is_featured")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  id            String        @id @default(uuid()) @db.Uuid
+  siteId        String        @map("site_id") @db.Uuid
+  subcategoryId String?       @map("subcategory_id") @db.Uuid
+  productCode   String        @map("product_code")
+  name          String
+  slug          String
+  description   String?
+  status        ProductStatus @default(DRAFT)
+  isFeatured    Boolean       @default(false) @map("is_featured")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
 
   site          Site              @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  subcategory   Category?         @relation("ProductSubcategory", fields: [subcategoryId], references: [id], onDelete: Restrict)
   categories    ProductCategory[]
   variants      ProductVariant[]
   media         ProductMedia[]
@@ -361,7 +374,10 @@ model Product {
   wishlistItems WishlistItem[]
 
   @@unique([siteId, slug])
+  @@unique([siteId, productCode])
   @@index([siteId])
+  @@index([subcategoryId])
+  @@index([siteId, status])
   @@map("products")
 }
 

@@ -159,6 +159,8 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/about-us-banner` | get/upsert site-scoped About Us home banner (3 sections) | Admin + site access |
 | `/admin/sites/:siteCode/faq` | get/upsert site-scoped FAQ sections and questions | Admin + site access |
 | `/admin/sites/:siteCode/hero-banners` | get/upsert site-scoped home hero carousel slides | Admin + site access |
+| `/admin/sites/:siteCode/categories` | CRUD site-scoped categories and nested subcategories | Admin + site access |
+| `/admin/sites/:siteCode/subcategories/:subcategoryId/products` | CRUD phase-1 products under a subcategory | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
 
@@ -293,6 +295,34 @@ Uploads use existing media APIs with `feature=hero`: `POST /api/v1/media/images`
 ### Public hero banners (storefront)
 
 - `GET /api/v1/sites/:siteCode/hero-banners` — public read for an active site (no auth). Returns active slides only, ordered by `order`. Used by the `.in` storefront home hero carousel (falls back to static landing data when empty/unavailable). Prefer HTTPS Cloudinary image URLs.
+
+### Admin categories & catalog products (phase 1, implemented)
+
+Site-scoped categories use the hierarchical `Category` model (`parentId` null = main category; set = subcategory). Products are minimal phase-1 records linked via `Product.subcategoryId` (and `ProductCategory` join).
+
+**Categories**
+- `GET /api/v1/admin/sites/:siteCode/categories` — Bearer admin JWT; `requireSiteAccess`. Lists root categories (including inactive).
+- `POST /api/v1/admin/sites/:siteCode/categories` — create root category. Body: `name`, `bannerUrl`, `bannerPublicId`, optional `active`/`order`/`description`. `siteId` from authenticated site context only. Prefer HTTPS banner URLs. Slug is server-generated and unique per site.
+- `PUT /api/v1/admin/sites/:siteCode/categories/:categoryId` — full update of a root category.
+- `PATCH /api/v1/admin/sites/:siteCode/categories/:categoryId` — `{ active }` and/or `{ order }`.
+- `DELETE /api/v1/admin/sites/:siteCode/categories/:categoryId` — delete root category (blocked if subcategories remain).
+
+**Subcategories**
+- `GET /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories`
+- `POST /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories` — body `{ name, active?, order? }`
+- `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories/:subcategoryId` — delete blocked if products remain.
+
+**Products (under subcategory)**
+- `GET /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId/products`
+- `POST /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId/products` — body `{ productCode, name, active? }`. `productCode` unique per site; slug server-generated; `active` maps to `ProductStatus` ACTIVE/DRAFT.
+- `PUT|PATCH|DELETE .../products/:productId` — PATCH supports `active` / `name` / `productCode`.
+
+Uploads use existing media APIs with `feature=categories`: `POST /api/v1/media/images`.
+
+### Public categories (storefront)
+
+- `GET /api/v1/sites/:siteCode/categories` — public read; active root categories only (banner + name/slug) for `/category` grid.
+- `GET /api/v1/sites/:siteCode/categories/:categorySlug` — public read by slug or name; returns category with active subcategories and their active products for `/category/[categoryName]`.
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

@@ -67,4 +67,9 @@ export const API_ENDPOINTS = {
   HERO_BANNERS: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/hero-banners`,
   },
+  CATEGORIES: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/categories`,
+    PUBLIC_DETAIL: (siteCode: string, categorySlug: string) =>
+      `/sites/${siteCode}/categories/${encodeURIComponent(categorySlug)}`,
+  },
 } as const;

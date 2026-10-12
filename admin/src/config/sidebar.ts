@@ -193,9 +193,13 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           status: "shell",
           children: [
             leaf(siteCode, "create-tax-provision", "Create Tax Provision", "products/create-tax-provision", ClipboardList),
-            leaf(siteCode, "create-menu", "Create Menu", "products/create-menu", FolderOpen),
+            leaf(siteCode, "create-category", "Create Category", "products/create-category", FolderOpen, {
+              status: "active",
+            }),
             leaf(siteCode, "create-sub-menu", "Create Sub Menu", "products/create-sub-menu", FolderOpen),
-            leaf(siteCode, "manage-products-category", "Manage Products & Category", "products/manage-category", Boxes),
+            leaf(siteCode, "manage-products-category", "Manage Products & Category", "products/manage-category", Boxes, {
+              status: "active",
+            }),
             leaf(siteCode, "create-combo-product", "Create Combo Product", "products/create-combo", Package),
             leaf(siteCode, "view-all-products", "View All Products", "products/view-all", Package),
             leaf(siteCode, "create-price-list-increase", "Create Price List Increase", "products/price-list-increase", BadgePercent),

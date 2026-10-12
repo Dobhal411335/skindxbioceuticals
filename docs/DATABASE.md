@@ -35,15 +35,14 @@
 - `MediaAsset`: provider, provider asset/public ID, URL, file type, dimensions, alt text, ownership/creation metadata.
 
 ### Catalog
-- `Product`: core product identity, SKU strategy, descriptive/specification data, active status.
-- `ProductVariant`: variant-specific SKU, pack size or option, barcode where applicable, active status.
-- `Category`: hierarchical category data if needed.
-- `ProductCategory`: join table if products may belong to multiple categories.
-- `SiteProduct` or equivalent: per-site visibility, merchandising, and site-specific fields when needed.
-- `ProductMedia`: ordered media associations and alt text.
+- `Category` (phase 1 implemented): site-scoped hierarchical categories. Fields: `siteId`, `name`, `slug` (unique per site), optional `description`, `parentId` (null = main category; set = subcategory), optional `bannerUrl`/`bannerPublicId` (main categories), `isActive`, `sortOrder`. Cascade delete with `Site` and parent category. Indexed by `(siteId)`, `(siteId, parentId)`, `(siteId, isActive, sortOrder)`.
+- `Product` (phase 1 minimal implemented): already site-scoped. Added `productCode` (unique per site), optional `subcategoryId` FK to `Category` (Restrict on delete). Existing `status` (`DRAFT`/`ACTIVE`/`ARCHIVED`) drives admin active/inactive. Slug remains unique per site. Indexed by `(subcategoryId)` and `(siteId, status)`.
+- `ProductCategory`: join table retained; phase 1 also writes the product↔subcategory link here when creating/updating catalog products.
+- `ProductVariant`: variant-specific SKU, pack size or option, barcode where applicable, active status (later phases).
+- `ProductMedia`: ordered media associations and alt text (later phases).
 - `Inventory` / `InventoryMovement`: stock quantities, reservations, adjustments, and auditable changes.
 
-Confirm whether pricing and descriptions are globally shared or site-specific before deciding which fields live on `Product` versus a site-product relation.
+Pricing/variants/media remain later-phase; phase 1 products are name + code under a subcategory for admin + storefront category browsing.
 
 ### Customer and access
 - `User`: identity and account status; avoid unnecessary sensitive fields. Implemented fields include optional `passwordHash`, `emailVerifiedAt`, `welcomeEmailSentAt`, `status` (including `PENDING_VERIFICATION`), and `role`.

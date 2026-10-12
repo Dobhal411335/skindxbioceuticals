@@ -63,6 +63,7 @@ describe("getSidebarConfig", () => {
         "vendor-partner",
         "add-direct-product",
         "create-product",
+        "create-category",
         "manage-products-category",
         "create-discount-coupon",
         "create-reviews",
@@ -97,6 +98,13 @@ describe("getSidebarConfig", () => {
       "/admin/in/website-faq",
     );
     expect(inItems.find((item) => item.id === "website-faq")?.status).toBe("active");
+    expect(inItems.find((item) => item.id === "create-category")?.href).toBe(
+      "/admin/in/products/create-category",
+    );
+    expect(inItems.find((item) => item.id === "create-category")?.status).toBe("active");
+    expect(inItems.find((item) => item.id === "manage-products-category")?.status).toBe(
+      "active",
+    );
 
     for (const item of [...inItems, ...comItems]) {
       expect(item.href).toBeTruthy();

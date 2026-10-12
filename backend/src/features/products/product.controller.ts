@@ -1,22 +1,88 @@
 import type { Request, Response } from 'express';
-import { productService } from './product.service';
 import { sendSuccess } from '@/utils/apiResponse';
+import { UnauthorizedError } from '@/utils/AppError';
+import { productService } from './product.service';
+import type {
+  CatalogProductBody,
+  CatalogProductPatchBody,
+} from './product.validation';
 
-/**
- * Product controller - HTTP concerns only (req/res/status).
- * Delegates business logic to the service layer.
- */
 export class ProductController {
   constructor(private readonly service = productService) {}
 
-  /**
-   * Placeholder health/status handler for the product feature module.
-   * Replace with real handlers as endpoints are implemented.
-   */
-  status = (_req: Request, res: Response): void => {
-    // Keep a reference so unused private members do not trip strict unused checks later
-    void this.service;
-    sendSuccess(res, { feature: 'product', ready: false }, 'Product module scaffolded');
+  listForSubcategory = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.listForSubcategory({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      subcategoryId: String(req.params.subcategoryId),
+    });
+    sendSuccess(res, data, 'Products');
+  };
+
+  createForSubcategory = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.createForSubcategory({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      subcategoryId: String(req.params.subcategoryId),
+      body: req.body as CatalogProductBody,
+    });
+    sendSuccess(res, data, 'Product created', 201);
+  };
+
+  updateForSubcategory = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.updateForSubcategory({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      subcategoryId: String(req.params.subcategoryId),
+      productId: String(req.params.productId),
+      body: req.body as CatalogProductBody,
+    });
+    sendSuccess(res, data, 'Product updated');
+  };
+
+  patchForSubcategory = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.patchForSubcategory({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      subcategoryId: String(req.params.subcategoryId),
+      productId: String(req.params.productId),
+      body: req.body as CatalogProductPatchBody,
+    });
+    sendSuccess(res, data, 'Product updated');
+  };
+
+  removeForSubcategory = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    await this.service.deleteForSubcategory({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      subcategoryId: String(req.params.subcategoryId),
+      productId: String(req.params.productId),
+    });
+    sendSuccess(res, null, 'Product deleted');
   };
 }
 
