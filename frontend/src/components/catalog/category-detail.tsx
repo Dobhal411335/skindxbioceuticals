@@ -13,17 +13,6 @@ export function CategoryDetail({ category }: CategoryDetailProps) {
 
   return (
     <div className="space-y-10">
-      {category.bannerUrl ? (
-        <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-          {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary banners */}
-          <img
-            src={category.bannerUrl}
-            alt=""
-            className="max-h-72 w-full object-cover"
-          />
-        </div>
-      ) : null}
-
       {category.description ? (
         <p className="max-w-2xl text-sm text-muted-foreground">{category.description}</p>
       ) : null}
@@ -45,6 +34,16 @@ export function CategoryDetail({ category }: CategoryDetailProps) {
         category.subcategories.map((subcategory) =>
           subcategory.products.length === 0 ? null : (
             <section key={subcategory.id} className="space-y-4">
+              {subcategory.bannerUrl ? (
+                <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary banners */}
+                  <img
+                    src={subcategory.bannerUrl}
+                    alt=""
+                    className="max-h-56 w-full object-cover"
+                  />
+                </div>
+              ) : null}
               <div>
                 <h2 className="font-display text-2xl font-semibold tracking-tight">
                   {subcategory.name}

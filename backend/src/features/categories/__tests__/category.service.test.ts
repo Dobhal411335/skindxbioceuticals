@@ -104,8 +104,8 @@ describe('CategoryService', () => {
     expect(result[0]?.name).toBe('Serums');
   });
 
-  it('creates a root category with generated slug', async () => {
-    const record = makeCategory();
+  it('creates a root category with generated slug and no banner', async () => {
+    const record = makeCategory({ bannerUrl: null, bannerPublicId: null });
     nextRootOrder.mockResolvedValue(1);
     create.mockResolvedValue(record);
 
@@ -115,8 +115,6 @@ describe('CategoryService', () => {
       userId: 'user-1',
       body: {
         name: 'Serums',
-        bannerUrl: 'https://cdn.example.com/banner.jpg',
-        bannerPublicId: 'categories/banner',
         active: true,
       },
     });
@@ -127,20 +125,22 @@ describe('CategoryService', () => {
         name: 'Serums',
         slug: 'serums',
         parentId: null,
+        bannerUrl: null,
+        bannerPublicId: null,
       }),
     );
     expect(result.id).toBe(record.id);
   });
 
-  it('creates a subcategory under a root category', async () => {
-    const parent = makeCategory();
+  it('creates a subcategory under a root category with banner', async () => {
+    const parent = makeCategory({ bannerUrl: null, bannerPublicId: null });
     const child = makeCategory({
       id: '33333333-3333-3333-3333-333333333333',
       name: 'Vitamin C',
       slug: 'vitamin-c',
       parentId: parent.id,
-      bannerUrl: null,
-      bannerPublicId: null,
+      bannerUrl: 'https://cdn.example.com/sub.jpg',
+      bannerPublicId: 'categories/sub',
     });
     findByIdForSite.mockResolvedValue(parent);
     nextChildOrder.mockResolvedValue(1);
@@ -151,13 +151,23 @@ describe('CategoryService', () => {
       siteCode: 'IN',
       userId: 'user-1',
       categoryId: parent.id,
-      body: { name: 'Vitamin C', active: true },
+      body: {
+        name: 'Vitamin C',
+        bannerUrl: 'https://cdn.example.com/sub.jpg',
+        bannerPublicId: 'categories/sub',
+        active: true,
+      },
     });
 
     expect(result.parentId).toBe(parent.id);
     expect(create).toHaveBeenCalledWith(
       parent.siteId,
-      expect.objectContaining({ parentId: parent.id, name: 'Vitamin C' }),
+      expect.objectContaining({
+        parentId: parent.id,
+        name: 'Vitamin C',
+        bannerUrl: 'https://cdn.example.com/sub.jpg',
+        bannerPublicId: 'categories/sub',
+      }),
     );
   });
 
@@ -174,6 +184,32 @@ describe('CategoryService', () => {
         categoryId: record.id,
       }),
     ).rejects.toBeInstanceOf(ConflictError);
+  });
+
+  it('returns a subcategory by id', async () => {
+    const parent = makeCategory();
+    const child = makeCategory({
+      id: '33333333-3333-3333-3333-333333333333',
+      name: 'Vitamin C',
+      slug: 'vitamin-c',
+      parentId: parent.id,
+      bannerUrl: null,
+      bannerPublicId: null,
+    });
+    findByIdForSite.mockResolvedValue(child);
+
+    const result = await service.getSubcategory(parent.siteId, 'IN', child.id);
+    expect(result.name).toBe('Vitamin C');
+    expect(result.parentId).toBe(parent.id);
+  });
+
+  it('rejects getSubcategory for a root category', async () => {
+    const root = makeCategory();
+    findByIdForSite.mockResolvedValue(root);
+
+    await expect(
+      service.getSubcategory(root.siteId, 'IN', root.id),
+    ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('blocks deleting a subcategory that still has products', async () => {
@@ -250,9 +286,9 @@ describe('CategoryService', () => {
     expect(deleteStoredCloudinaryAsset).toHaveBeenCalledWith('categories/banner');
   });
 
-  it('best-effort deletes previous banner on update', async () => {
+  it('best-effort deletes legacy root banner on update', async () => {
     const existing = makeCategory({ bannerPublicId: 'categories/old' });
-    const updated = makeCategory({ bannerPublicId: 'categories/new' });
+    const updated = makeCategory({ bannerUrl: null, bannerPublicId: null });
     findByIdForSite.mockResolvedValue(existing);
     update.mockResolvedValue(updated);
 
@@ -263,8 +299,6 @@ describe('CategoryService', () => {
       categoryId: existing.id,
       body: {
         name: 'Serums',
-        bannerUrl: 'https://cdn.example.com/new.jpg',
-        bannerPublicId: 'categories/new',
         active: true,
       },
     });

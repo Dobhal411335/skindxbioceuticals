@@ -331,6 +331,7 @@ model Category {
   slug           String
   description    String?
   parentId       String?  @map("parent_id") @db.Uuid
+  /// Banner images belong to subcategories (parentId set); roots keep these null.
   bannerUrl      String?  @map("banner_url")
   bannerPublicId String?  @map("banner_public_id")
   isActive       Boolean  @default(true) @map("is_active")

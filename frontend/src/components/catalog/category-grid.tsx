@@ -32,19 +32,10 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
           href={`/category/${encodeURIComponent(category.slug)}`}
           className="group overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <div className="relative aspect-[4/3] bg-surface">
-            {category.bannerUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary banners
-              <img
-                src={category.bannerUrl}
-                alt=""
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 via-surface to-muted text-sm text-muted-foreground">
-                {category.name}
-              </div>
-            )}
+          <div className="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-primary/10 via-surface to-muted">
+            <span className="px-3 text-center text-sm font-medium text-muted-foreground">
+              {category.name}
+            </span>
           </div>
           <div className="px-4 py-3">
             <h2 className="font-display text-base font-semibold tracking-tight text-foreground group-hover:text-primary">

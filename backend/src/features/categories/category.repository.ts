@@ -172,7 +172,12 @@ export class CategoryRepository {
   async patch(
     siteId: string,
     categoryId: string,
-    data: Partial<Pick<CategoryWrite, 'isActive' | 'sortOrder' | 'name' | 'slug'>>,
+    data: Partial<
+      Pick<
+        CategoryWrite,
+        'isActive' | 'sortOrder' | 'name' | 'slug' | 'bannerUrl' | 'bannerPublicId'
+      >
+    >,
   ): Promise<CategoryRecord | null> {
     const existing = await this.findByIdForSite(siteId, categoryId);
     if (!existing) return null;
@@ -184,6 +189,10 @@ export class CategoryRepository {
         ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.slug !== undefined ? { slug: data.slug } : {}),
+        ...(data.bannerUrl !== undefined ? { bannerUrl: data.bannerUrl } : {}),
+        ...(data.bannerPublicId !== undefined
+          ? { bannerPublicId: data.bannerPublicId }
+          : {}),
       },
     });
     return toRecord(row);

@@ -17,6 +17,7 @@ jest.mock('../category.service', () => ({
     createRoot: jest.fn(),
     listActiveRoots: jest.fn(),
     getPublicBySlugOrName: jest.fn(),
+    getSubcategory: jest.fn(),
     listSubcategories: jest.fn(),
     createSubcategory: jest.fn(),
   },
@@ -70,7 +71,7 @@ describe('Category API routes', () => {
     (categoryService.createRoot as jest.Mock).mockResolvedValue({
       id: 'cat-1',
       name: 'Serums',
-      bannerUrl: 'https://cdn.example.com/banner.jpg',
+      bannerUrl: null,
     });
 
     const response = await request(app)
@@ -78,8 +79,7 @@ describe('Category API routes', () => {
       .set('Authorization', 'Bearer token')
       .send({
         name: 'Serums',
-        bannerUrl: 'https://cdn.example.com/banner.jpg',
-        bannerPublicId: 'categories/banner',
+        active: true,
       });
 
     expect(response.status).toBe(201);
@@ -107,5 +107,23 @@ describe('Category API routes', () => {
     const response = await request(app).get('/api/v1/sites/IN/categories/serums');
     expect(response.status).toBe(200);
     expect(response.body.data.slug).toBe('serums');
+  });
+
+  it('returns a subcategory by id for admin', async () => {
+    const subcategoryId = '33333333-3333-3333-3333-333333333333';
+    (categoryService.getSubcategory as jest.Mock).mockResolvedValue({
+      id: subcategoryId,
+      name: 'Vitamin C',
+      slug: 'vitamin-c',
+      parentId: '11111111-1111-1111-1111-111111111111',
+    });
+
+    const response = await request(app)
+      .get(`/api/v1/admin/sites/IN/subcategories/${subcategoryId}`)
+      .set('Authorization', 'Bearer token');
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.name).toBe('Vitamin C');
+    expect(categoryService.getSubcategory).toHaveBeenCalled();
   });
 });

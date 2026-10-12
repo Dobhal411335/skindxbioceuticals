@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { FolderOpen, ImagePlus, Pencil, Trash2, Upload } from "lucide-react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { FolderOpen, Pencil, Trash2 } from "lucide-react";
 
 import { AdminAppShell } from "@/components/layout/admin-app-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -43,7 +43,6 @@ import {
   deleteCategory,
   fetchCategories,
   updateCategory,
-  uploadCategoryBanner,
 } from "@/services/api/catalog";
 import { ApiError } from "@/services/api/errors";
 import { showError, showSuccess } from "@/lib/toast";
@@ -53,8 +52,6 @@ import type { CategoryDto, CategoryFormValues } from "@/types/catalog";
 function createEmptyValues(): CategoryFormValues {
   return {
     name: "",
-    bannerUrl: "",
-    bannerPublicId: "",
     active: true,
   };
 }
@@ -62,8 +59,6 @@ function createEmptyValues(): CategoryFormValues {
 function toFormValues(category: CategoryDto): CategoryFormValues {
   return {
     name: category.name,
-    bannerUrl: category.bannerUrl ?? "",
-    bannerPublicId: category.bannerPublicId ?? "",
     active: category.active,
   };
 }
@@ -77,9 +72,7 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const loadCategories = useCallback(async () => {
     setIsLoading(true);
@@ -106,28 +99,6 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
     setValues(createEmptyValues());
     setEditingId(null);
     setErrors({});
-  };
-
-  const handleUpload = async (file: File | undefined) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const uploaded = await uploadCategoryBanner(siteCode, file, editingId);
-      if (!uploaded.url) {
-        throw new Error("Upload succeeded but no image URL was returned");
-      }
-      setValues((prev) => ({
-        ...prev,
-        bannerUrl: uploaded.url,
-        bannerPublicId: uploaded.publicId,
-      }));
-      setErrors((prev) => ({ ...prev, bannerUrl: undefined }));
-      showSuccess("Banner uploaded successfully");
-    } catch (error) {
-      showError(error instanceof ApiError ? error.message : "Cloudinary upload failed");
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -193,7 +164,7 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
     <AdminAppShell
       siteCode={siteCode}
       title="Create Category"
-      description="Add a main product category with a storefront banner."
+      description="Add main product category names for this site."
     >
       <div className="mx-auto max-w-3xl space-y-6">
         {loadError ? (
@@ -214,8 +185,8 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
               </div>
               <CardDescription>
                 {editingId
-                  ? "Update the category name, banner, or active status."
-                  : "Categories appear on the storefront `/category` grid."}
+                  ? "Update the category name or active status."
+                  : "Main categories appear on the storefront `/category` grid. Add banners on Manage Products & Category for each subcategory."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 pt-6">
@@ -231,66 +202,6 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 />
                 {errors.name ? (
                   <p className="text-sm text-destructive">{errors.name}</p>
-                ) : null}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Category banner image</Label>
-                {values.bannerUrl ? (
-                  <div className="overflow-hidden rounded-lg border border-border bg-muted/20">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- admin Cloudinary preview */}
-                    <img
-                      src={values.bannerUrl}
-                      alt=""
-                      className="h-44 w-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex h-44 items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 text-muted-foreground">
-                    <ImagePlus className="h-6 w-6" />
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    disabled={uploading}
-                    onClick={() => fileRef.current?.click()}
-                  >
-                    <Upload className="h-4 w-4" />
-                    {uploading ? "Uploading…" : "Upload banner"}
-                  </Button>
-                  {values.bannerUrl ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setValues((prev) => ({
-                          ...prev,
-                          bannerUrl: "",
-                          bannerPublicId: "",
-                        }))
-                      }
-                    >
-                      Remove
-                    </Button>
-                  ) : null}
-                </div>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="sr-only"
-                  onChange={(event) => {
-                    void handleUpload(event.target.files?.[0]);
-                    event.target.value = "";
-                  }}
-                />
-                {errors.bannerUrl ? (
-                  <p className="text-sm text-destructive">{errors.bannerUrl}</p>
                 ) : null}
               </div>
 
@@ -310,24 +221,13 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
               </div>
             </CardContent>
           </Card>
-
-          {!editingId ? (
-            <Alert>
-              <AlertTitle>Tip</AlertTitle>
-              <AlertDescription>
-                After creating categories, use Manage Products &amp; Category to add
-                subcategories and products.
-              </AlertDescription>
-            </Alert>
-          ) : null}
-
           <div className="flex justify-end gap-2">
             {editingId ? (
               <Button type="button" variant="ghost" onClick={resetForm}>
                 Cancel
               </Button>
             ) : null}
-            <Button type="submit" disabled={isSubmitting || uploading}>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting
                 ? "Saving…"
                 : editingId
@@ -359,6 +259,7 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                   <TableRow>
                     <TableHead className="w-16">S.No</TableHead>
                     <TableHead>Name</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -369,6 +270,9 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                         {index + 1}
                       </TableCell>
                       <TableCell className="font-medium">{category.name}</TableCell>
+                      <TableCell>
+                        {category.active ? "Active" : "Inactive"}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button
@@ -380,7 +284,7 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                             aria-label={`Edit ${category.name}`}
                           >
                             <Pencil className="h-4 w-4" />
-                            Edit name
+                            Edit
                           </Button>
                           <Button
                             type="button"

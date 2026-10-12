@@ -45,6 +45,8 @@ export const endpoints = {
       subcategoryId: string,
     ) =>
       `/admin/sites/${siteCode}/categories/${categoryId}/subcategories/${subcategoryId}`,
+    subcategoryById: (siteCode: string, subcategoryId: string) =>
+      `/admin/sites/${siteCode}/subcategories/${subcategoryId}`,
     subcategoryProducts: (siteCode: string, subcategoryId: string) =>
       `/admin/sites/${siteCode}/subcategories/${subcategoryId}/products`,
     subcategoryProduct: (

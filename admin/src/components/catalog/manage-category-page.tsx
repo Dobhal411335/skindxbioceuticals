@@ -1,8 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Boxes, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  Boxes,
+  ChevronRight,
+  ImagePlus,
+  Pencil,
+  Plus,
+  Trash2,
+  Upload,
+} from "lucide-react";
 
 import { AdminAppShell } from "@/components/layout/admin-app-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -52,6 +60,7 @@ import {
   fetchCategories,
   fetchSubcategories,
   updateSubcategory,
+  uploadCategoryBanner,
 } from "@/services/api/catalog";
 import { ApiError } from "@/services/api/errors";
 import { showError, showSuccess } from "@/lib/toast";
@@ -61,6 +70,8 @@ import type { CategoryDto, SubcategoryFormValues } from "@/types/catalog";
 function createEmptyValues(): SubcategoryFormValues {
   return {
     name: "",
+    bannerUrl: "",
+    bannerPublicId: "",
     active: true,
   };
 }
@@ -68,6 +79,8 @@ function createEmptyValues(): SubcategoryFormValues {
 function toFormValues(subcategory: CategoryDto): SubcategoryFormValues {
   return {
     name: subcategory.name,
+    bannerUrl: subcategory.bannerUrl ?? "",
+    bannerPublicId: subcategory.bannerPublicId ?? "",
     active: subcategory.active,
   };
 }
@@ -84,7 +97,9 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingSubs, setIsLoadingSubs] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const loadCategories = useCallback(async () => {
     setIsLoading(true);
@@ -148,6 +163,28 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
     setPendingDelete(null);
   };
 
+  const handleUpload = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const uploaded = await uploadCategoryBanner(siteCode, file, editingId);
+      if (!uploaded.url) {
+        throw new Error("Upload succeeded but no image URL was returned");
+      }
+      setValues((prev) => ({
+        ...prev,
+        bannerUrl: uploaded.url,
+        bannerPublicId: uploaded.publicId,
+      }));
+      setErrors((prev) => ({ ...prev, bannerUrl: undefined }));
+      showSuccess("Banner uploaded successfully");
+    } catch (error) {
+      showError(error instanceof ApiError ? error.message : "Cloudinary upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedCategoryId) {
@@ -158,7 +195,7 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
     const validated = validateSubcategoryForm(values);
     if (!validated.ok) {
       setErrors(validated.errors);
-      showError("Please enter a subcategory name");
+      showError("Please fix the highlighted fields");
       return;
     }
 
@@ -166,16 +203,10 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
     setErrors({});
     try {
       if (editingId) {
-        await updateSubcategory(siteCode, selectedCategoryId, editingId, {
-          name: validated.data.name,
-          active: validated.data.active,
-        });
+        await updateSubcategory(siteCode, selectedCategoryId, editingId, validated.data);
         showSuccess("Subcategory updated");
       } else {
-        await createSubcategory(siteCode, selectedCategoryId, {
-          name: validated.data.name,
-          active: validated.data.active,
-        });
+        await createSubcategory(siteCode, selectedCategoryId, validated.data);
         showSuccess("Subcategory created");
       }
       resetForm();
@@ -228,7 +259,7 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
     <AdminAppShell
       siteCode={siteCode}
       title="Manage Products & Category"
-      description="Select a category, add subcategories, then open Add Product for each one."
+      description="Select a main category, add subcategories with banners, then open Add Product."
     >
       <div className="space-y-6">
         {loadError ? (
@@ -243,13 +274,13 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
             <div className="flex items-center gap-2">
               <Boxes className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg font-semibold">
-                {editingId ? "Edit subcategory" : "Categories"}
+                {editingId ? "Edit subcategory" : "Subcategory details"}
               </CardTitle>
             </div>
             <CardDescription>
               {editingId
-                ? "Update the subcategory name or active status."
-                : "Choose a main category, then add a subcategory underneath it."}
+                ? "Update the subcategory name, banner, or active status."
+                : "Choose a main category, then add a subcategory with a banner image."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 pt-6">
@@ -290,22 +321,81 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="subcategory-name">Subcategory name</Label>
-                  <Input
-                    id="subcategory-name"
-                    value={values.name}
-                    onChange={(event) =>
-                      setValues((prev) => ({ ...prev, name: event.target.value }))
-                    }
-                    placeholder="e.g. Vitamin C"
-                    disabled={!selectedCategoryId}
-                  />
-                  {errors.name ? (
-                    <p className="text-sm text-destructive">{errors.name}</p>
+              <div className="space-y-2">
+                <Label htmlFor="subcategory-name">Subcategory name</Label>
+                <Input
+                  id="subcategory-name"
+                  value={values.name}
+                  onChange={(event) =>
+                    setValues((prev) => ({ ...prev, name: event.target.value }))
+                  }
+                  placeholder="e.g. Vitamin C"
+                  disabled={!selectedCategoryId}
+                  className="max-w-md"
+                />
+                {errors.name ? (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Subcategory banner image</Label>
+                {values.bannerUrl ? (
+                  <div className="max-w-md overflow-hidden rounded-lg border border-border bg-muted/20">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- admin Cloudinary preview */}
+                    <img
+                      src={values.bannerUrl}
+                      alt=""
+                      className="h-44 w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-44 max-w-md items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 text-muted-foreground">
+                    <ImagePlus className="h-6 w-6" />
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    disabled={uploading || !selectedCategoryId}
+                    onClick={() => fileRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4" />
+                    {uploading ? "Uploading…" : "Upload banner"}
+                  </Button>
+                  {values.bannerUrl ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setValues((prev) => ({
+                          ...prev,
+                          bannerUrl: "",
+                          bannerPublicId: "",
+                        }))
+                      }
+                    >
+                      Remove
+                    </Button>
                   ) : null}
                 </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  onChange={(event) => {
+                    void handleUpload(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
+                {errors.bannerUrl ? (
+                  <p className="text-sm text-destructive">{errors.bannerUrl}</p>
+                ) : null}
               </div>
 
               <div className="flex max-w-md items-center justify-between rounded-lg border border-border px-3 py-2">
@@ -333,7 +423,7 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 <Button
                   type="submit"
                   className="gap-2"
-                  disabled={isSubmitting || !selectedCategoryId}
+                  disabled={isSubmitting || uploading || !selectedCategoryId}
                 >
                   {editingId ? null : <Plus className="h-4 w-4" />}
                   {isSubmitting
@@ -370,9 +460,10 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                   : "Select a category to view subcategories."}
               </p>
             ) : (
-              <Table className="min-w-[720px]">
+              <Table className="min-w-[760px]">
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-20">Banner</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Slug</TableHead>
                     <TableHead>Status</TableHead>
@@ -382,6 +473,18 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 <TableBody>
                   {subcategories.map((subcategory) => (
                     <TableRow key={subcategory.id}>
+                      <TableCell>
+                        {subcategory.bannerUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- admin Cloudinary thumb
+                          <img
+                            src={subcategory.bannerUrl}
+                            alt=""
+                            className="h-10 w-14 rounded object-cover"
+                          />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">
                         {subcategory.name}
                       </TableCell>
@@ -448,8 +551,9 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 Delete {pendingDelete?.name ?? "subcategory"}?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This cannot be undone. Subcategories with products cannot be
-                deleted — remove all products first.
+                This cannot be undone. The subcategory banner is also removed.
+                Subcategories with products cannot be deleted — remove all
+                products first.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

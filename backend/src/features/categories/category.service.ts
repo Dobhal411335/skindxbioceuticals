@@ -90,7 +90,6 @@ export class CategoryService {
       siteCode,
       name: row.name,
       slug: row.slug,
-      bannerUrl: preferHttpsUrl(row.bannerUrl),
       order: row.sortOrder,
     }));
   }
@@ -117,6 +116,7 @@ export class CategoryService {
           id: sub.id,
           name: sub.name,
           slug: sub.slug,
+          bannerUrl: preferHttpsUrl(sub.bannerUrl),
           order: sub.sortOrder,
           products: products.map((product) => ({
             id: product.id,
@@ -134,7 +134,6 @@ export class CategoryService {
       siteCode,
       name: category.name,
       slug: category.slug,
-      bannerUrl: preferHttpsUrl(category.bannerUrl),
       order: category.sortOrder,
       description: category.description,
       subcategories: withProducts,
@@ -155,8 +154,8 @@ export class CategoryService {
       slug,
       description: input.body.description ?? null,
       parentId: null,
-      bannerUrl: preferHttpsUrl(input.body.bannerUrl),
-      bannerPublicId: input.body.bannerPublicId ?? '',
+      bannerUrl: null,
+      bannerPublicId: null,
       isActive: input.body.active,
       sortOrder: order,
     };
@@ -198,8 +197,8 @@ export class CategoryService {
       slug,
       description: input.body.description ?? existing.description,
       parentId: null,
-      bannerUrl: preferHttpsUrl(input.body.bannerUrl),
-      bannerPublicId: input.body.bannerPublicId ?? '',
+      bannerUrl: null,
+      bannerPublicId: null,
       isActive: input.body.active,
       sortOrder: input.body.order ?? existing.sortOrder,
     };
@@ -209,9 +208,9 @@ export class CategoryService {
       throw new NotFoundError('Category not found');
     }
 
+    // Clear any legacy root-category banner left from earlier phases.
     const previousPublicId = (existing.bannerPublicId ?? '').trim();
-    const nextPublicId = (data.bannerPublicId ?? '').trim();
-    if (previousPublicId && previousPublicId !== nextPublicId) {
+    if (previousPublicId) {
       await deleteStoredCloudinaryAssetBestEffort(previousPublicId);
     }
 
@@ -334,8 +333,8 @@ export class CategoryService {
       slug,
       description: null,
       parentId: input.categoryId,
-      bannerUrl: null,
-      bannerPublicId: null,
+      bannerUrl: preferHttpsUrl(input.body.bannerUrl),
+      bannerPublicId: input.body.bannerPublicId ?? '',
       isActive: input.body.active,
       sortOrder: order,
     });
@@ -380,18 +379,27 @@ export class CategoryService {
         ? existing.slug
         : await this.uniqueSlug(input.siteId, input.body.name, existing.id);
 
+    const nextBannerUrl = preferHttpsUrl(input.body.bannerUrl);
+    const nextBannerPublicId = input.body.bannerPublicId ?? '';
+
     const record = await this.repository.update(input.siteId, input.subcategoryId, {
       name: input.body.name,
       slug,
       description: null,
       parentId: input.categoryId,
-      bannerUrl: null,
-      bannerPublicId: null,
+      bannerUrl: nextBannerUrl,
+      bannerPublicId: nextBannerPublicId,
       isActive: input.body.active,
       sortOrder: input.body.order ?? existing.sortOrder,
     });
     if (!record) {
       throw new NotFoundError('Subcategory not found');
+    }
+
+    const previousPublicId = (existing.bannerPublicId ?? '').trim();
+    const nextPublicId = nextBannerPublicId.trim();
+    if (previousPublicId && previousPublicId !== nextPublicId) {
+      await deleteStoredCloudinaryAssetBestEffort(previousPublicId);
     }
 
     logger.info(
@@ -428,14 +436,31 @@ export class CategoryService {
       slug = await this.uniqueSlug(input.siteId, input.body.name, existing.id);
     }
 
+    const nextBannerUrl =
+      input.body.bannerUrl !== undefined
+        ? preferHttpsUrl(input.body.bannerUrl)
+        : undefined;
+    const nextBannerPublicId =
+      input.body.bannerPublicId !== undefined ? input.body.bannerPublicId : undefined;
+
     const record = await this.repository.patch(input.siteId, input.subcategoryId, {
       ...(input.body.active !== undefined ? { isActive: input.body.active } : {}),
       ...(input.body.order !== undefined ? { sortOrder: input.body.order } : {}),
       ...(input.body.name !== undefined ? { name: input.body.name } : {}),
       ...(slug ? { slug } : {}),
+      ...(nextBannerUrl !== undefined ? { bannerUrl: nextBannerUrl } : {}),
+      ...(nextBannerPublicId !== undefined ? { bannerPublicId: nextBannerPublicId } : {}),
     });
     if (!record) {
       throw new NotFoundError('Subcategory not found');
+    }
+
+    if (nextBannerPublicId !== undefined) {
+      const previousPublicId = (existing.bannerPublicId ?? '').trim();
+      const nextPublicId = nextBannerPublicId.trim();
+      if (previousPublicId && previousPublicId !== nextPublicId) {
+        await deleteStoredCloudinaryAssetBestEffort(previousPublicId);
+      }
     }
 
     logger.info(
@@ -473,6 +498,10 @@ export class CategoryService {
       throw new ConflictError('Delete products before deleting this subcategory');
     }
 
+    if ((existing.bannerPublicId ?? '').trim()) {
+      await deleteStoredCloudinaryAsset(existing.bannerPublicId!);
+    }
+
     const deleted = await this.repository.delete(input.siteId, input.subcategoryId);
     if (!deleted) {
       throw new NotFoundError('Subcategory not found');
@@ -487,6 +516,18 @@ export class CategoryService {
       },
       'Subcategory deleted',
     );
+  }
+
+  async getSubcategory(
+    siteId: string,
+    siteCode: SiteCode,
+    subcategoryId: string,
+  ): Promise<CategoryDto> {
+    const record = await this.repository.findByIdForSite(siteId, subcategoryId);
+    if (!record || !record.parentId) {
+      throw new NotFoundError('Subcategory not found');
+    }
+    return toCategoryDto(record, siteCode);
   }
 
   /** Ensures a subcategory belongs to the site (used by product APIs). */

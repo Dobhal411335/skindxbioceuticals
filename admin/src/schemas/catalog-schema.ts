@@ -9,25 +9,25 @@ import type {
   SubcategoryPayload,
 } from "@/types/catalog";
 
-export type CategoryFormErrors = Partial<Record<"name" | "bannerUrl", string>>;
-export type SubcategoryFormErrors = Partial<Record<"name", string>>;
+export type CategoryFormErrors = Partial<Record<"name", string>>;
+export type SubcategoryFormErrors = Partial<Record<"name" | "bannerUrl", string>>;
 export type CatalogProductFormErrors = Partial<
   Record<"productCode" | "name", string>
 >;
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, "Category name is required").max(160),
-  bannerUrl: z
-    .string()
-    .trim()
-    .min(1, "Category banner image is required")
-    .url("Banner URL must be valid"),
-  bannerPublicId: z.string().trim().max(500).default(""),
   active: z.boolean(),
 });
 
 const subcategorySchema = z.object({
   name: z.string().trim().min(1, "Subcategory name is required").max(160),
+  bannerUrl: z
+    .string()
+    .trim()
+    .min(1, "Subcategory banner image is required")
+    .url("Banner URL must be valid"),
+  bannerPublicId: z.string().trim().max(500).default(""),
   active: z.boolean(),
 });
 
@@ -50,6 +50,29 @@ export function validateCategoryForm(
 ): { ok: true; data: CategoryPayload } | { ok: false; errors: CategoryFormErrors } {
   const result = categorySchema.safeParse(values);
   if (!result.success) {
+    return {
+      ok: false,
+      errors: {
+        name: result.error.flatten().fieldErrors.name?.[0],
+      },
+    };
+  }
+  return {
+    ok: true,
+    data: {
+      name: result.data.name,
+      active: result.data.active,
+    },
+  };
+}
+
+export function validateSubcategoryForm(
+  values: SubcategoryFormValues,
+):
+  | { ok: true; data: SubcategoryPayload }
+  | { ok: false; errors: SubcategoryFormErrors } {
+  const result = subcategorySchema.safeParse(values);
+  if (!result.success) {
     const fieldErrors = result.error.flatten().fieldErrors;
     return {
       ok: false,
@@ -67,24 +90,6 @@ export function validateCategoryForm(
       bannerPublicId: result.data.bannerPublicId,
       active: result.data.active,
     },
-  };
-}
-
-export function validateSubcategoryForm(
-  values: SubcategoryFormValues,
-):
-  | { ok: true; data: SubcategoryPayload }
-  | { ok: false; errors: SubcategoryFormErrors } {
-  const result = subcategorySchema.safeParse(values);
-  if (!result.success) {
-    return {
-      ok: false,
-      errors: { name: result.error.flatten().fieldErrors.name?.[0] },
-    };
-  }
-  return {
-    ok: true,
-    data: { name: result.data.name, active: result.data.active },
   };
 }
 

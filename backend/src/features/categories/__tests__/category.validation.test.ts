@@ -1,47 +1,73 @@
 import {
   categoryBodySchema,
   normalizeCategoryInput,
+  normalizeSubcategoryInput,
   subcategoryBodySchema,
 } from '../category.validation';
 
 describe('category validation', () => {
-  it('accepts a valid category body', () => {
+  it('accepts a valid root category body without banner', () => {
     const parsed = categoryBodySchema.parse({
       name: 'Serums',
+      active: true,
+    });
+    expect(parsed.name).toBe('Serums');
+    expect(parsed.active).toBe(true);
+  });
+
+  it('rejects empty root category name', () => {
+    expect(() =>
+      categoryBodySchema.parse({
+        name: '   ',
+        active: true,
+      }),
+    ).toThrow();
+  });
+
+  it('normalizes root category name input', () => {
+    const normalized = normalizeCategoryInput({
+      name: '  Serums  ',
+      active: true,
+    });
+    expect(normalized).toMatchObject({
+      name: 'Serums',
+      active: true,
+    });
+  });
+
+  it('accepts a subcategory body with banner', () => {
+    const parsed = subcategoryBodySchema.parse({
+      name: 'Vitamin C',
       bannerUrl: 'https://cdn.example.com/banner.jpg',
       bannerPublicId: 'categories/banner',
       active: true,
     });
-    expect(parsed.name).toBe('Serums');
+    expect(parsed.active).toBe(true);
+    expect(parsed.name).toBe('Vitamin C');
+    expect(parsed.bannerUrl).toBe('https://cdn.example.com/banner.jpg');
   });
 
-  it('rejects missing banner URL', () => {
+  it('rejects subcategory missing banner URL', () => {
     expect(() =>
-      categoryBodySchema.parse({
-        name: 'Serums',
+      subcategoryBodySchema.parse({
+        name: 'Vitamin C',
         bannerPublicId: '',
       }),
     ).toThrow();
   });
 
-  it('normalizes nested banner object input', () => {
-    const normalized = normalizeCategoryInput({
-      name: '  Serums  ',
+  it('normalizes nested banner object on subcategory input', () => {
+    const normalized = normalizeSubcategoryInput({
+      name: '  Vitamin C  ',
       banner: {
         url: 'https://cdn.example.com/banner.jpg',
         publicId: 'categories/banner',
       },
     });
     expect(normalized).toMatchObject({
-      name: 'Serums',
+      name: 'Vitamin C',
       bannerUrl: 'https://cdn.example.com/banner.jpg',
       bannerPublicId: 'categories/banner',
     });
-  });
-
-  it('accepts a subcategory name body', () => {
-    const parsed = subcategoryBodySchema.parse({ name: 'Vitamin C' });
-    expect(parsed.active).toBe(true);
-    expect(parsed.name).toBe('Vitamin C');
   });
 });

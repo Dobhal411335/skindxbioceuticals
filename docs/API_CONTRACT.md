@@ -302,15 +302,16 @@ Site-scoped categories use the hierarchical `Category` model (`parentId` null = 
 
 **Categories**
 - `GET /api/v1/admin/sites/:siteCode/categories` — Bearer admin JWT; `requireSiteAccess`. Lists root categories (including inactive).
-- `POST /api/v1/admin/sites/:siteCode/categories` — create root category. Body: `name`, `bannerUrl`, `bannerPublicId`, optional `active`/`order`/`description`. `siteId` from authenticated site context only. Prefer HTTPS banner URLs. Slug is server-generated and unique per site.
-- `PUT /api/v1/admin/sites/:siteCode/categories/:categoryId` — full update of a root category.
+- `POST /api/v1/admin/sites/:siteCode/categories` — create root category. Body: `name`, optional `active`/`order`/`description`. No banner on roots. `siteId` from authenticated site context only. Slug is server-generated and unique per site.
+- `PUT /api/v1/admin/sites/:siteCode/categories/:categoryId` — full update of a root category (name/active/order/description).
 - `PATCH /api/v1/admin/sites/:siteCode/categories/:categoryId` — `{ active }` and/or `{ order }`.
 - `DELETE /api/v1/admin/sites/:siteCode/categories/:categoryId` — delete root category (blocked if subcategories remain).
 
 **Subcategories**
 - `GET /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories`
-- `POST /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories` — body `{ name, active?, order? }`
-- `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories/:subcategoryId` — delete blocked if products remain.
+- `POST /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories` — body `{ name, bannerUrl, bannerPublicId, active?, order? }`. Prefer HTTPS banner URLs.
+- `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories/:subcategoryId` — delete blocked if products remain; deletes Cloudinary banner when present.
+- `GET /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId` — fetch one subcategory by id (for admin product pages).
 
 **Products (under subcategory)**
 - `GET /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId/products`
@@ -321,8 +322,8 @@ Uploads use existing media APIs with `feature=categories`: `POST /api/v1/media/i
 
 ### Public categories (storefront)
 
-- `GET /api/v1/sites/:siteCode/categories` — public read; active root categories only (banner + name/slug) for `/category` grid.
-- `GET /api/v1/sites/:siteCode/categories/:categorySlug` — public read by slug or name; returns category with active subcategories and their active products for `/category/[categoryName]`.
+- `GET /api/v1/sites/:siteCode/categories` — public read; active root categories only (name/slug/order) for `/category` grid.
+- `GET /api/v1/sites/:siteCode/categories/:categorySlug` — public read by slug or name; returns category with active subcategories (including subcategory `bannerUrl`) and their active products for `/category/[categoryName]`.
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

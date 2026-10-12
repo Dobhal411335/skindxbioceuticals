@@ -42,6 +42,7 @@ import {
 import {
   createSubcategoryProduct,
   deleteSubcategoryProduct,
+  fetchSubcategory,
   fetchSubcategoryProducts,
   patchSubcategoryProduct,
   updateSubcategoryProduct,
@@ -52,6 +53,7 @@ import type { SiteCode } from "@/types/auth";
 import type {
   CatalogProductDto,
   CatalogProductFormValues,
+  CategoryDto,
 } from "@/types/catalog";
 
 function createEmptyValues(): CatalogProductFormValues {
@@ -74,6 +76,7 @@ export function AddProductPage({
   subcategoryId: string;
 }) {
   const [products, setProducts] = useState<CatalogProductDto[]>([]);
+  const [subcategory, setSubcategory] = useState<CategoryDto | null>(null);
   const [values, setValues] = useState<CatalogProductFormValues>(createEmptyValues);
   const [errors, setErrors] = useState<CatalogProductFormErrors>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -87,8 +90,12 @@ export function AddProductPage({
     setIsLoading(true);
     setLoadError(null);
     try {
-      const data = await fetchSubcategoryProducts(siteCode, subcategoryId);
-      setProducts(data);
+      const [subcategoryData, productData] = await Promise.all([
+        fetchSubcategory(siteCode, subcategoryId),
+        fetchSubcategoryProducts(siteCode, subcategoryId),
+      ]);
+      setSubcategory(subcategoryData);
+      setProducts(productData);
     } catch (error) {
       const message =
         error instanceof ApiError ? error.message : "Failed to load products";
@@ -184,14 +191,16 @@ export function AddProductPage({
     }
   };
 
+  const subcategoryLabel = subcategory?.name ?? "this subcategory";
+
   return (
     <AdminAppShell
       siteCode={siteCode}
-      title="Add Product"
-      description="Create and manage products for this subcategory."
+      title={subcategory ? `Add Product — ${subcategory.name}` : "Add Product"}
+      description={`Create and manage products for ${subcategoryLabel}.`}
     >
       <div className="space-y-6">
-        <div>
+        <div className="space-y-1">
           <Link
             href={`/admin/${siteCode.toLowerCase()}/products/manage-category`}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -199,6 +208,12 @@ export function AddProductPage({
             <ArrowLeft className="h-4 w-4" />
             Back to categories
           </Link>
+          {subcategory ? (
+            <p className="text-sm text-muted-foreground">
+              Subcategory:{" "}
+              <span className="font-medium text-foreground">{subcategory.name}</span>
+            </p>
+          ) : null}
         </div>
 
         {loadError ? (
@@ -214,10 +229,11 @@ export function AddProductPage({
               <Package className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg font-semibold">
                 {editingId ? "Edit product" : "New product"}
+                {subcategory ? ` — ${subcategory.name}` : ""}
               </CardTitle>
             </div>
             <CardDescription>
-              Phase 1 fields: product code and product name.
+              Add the product code and name for {subcategoryLabel}.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">

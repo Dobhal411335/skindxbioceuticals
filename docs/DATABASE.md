@@ -35,7 +35,7 @@
 - `MediaAsset`: provider, provider asset/public ID, URL, file type, dimensions, alt text, ownership/creation metadata.
 
 ### Catalog
-- `Category` (phase 1 implemented): site-scoped hierarchical categories. Fields: `siteId`, `name`, `slug` (unique per site), optional `description`, `parentId` (null = main category; set = subcategory), optional `bannerUrl`/`bannerPublicId` (main categories), `isActive`, `sortOrder`. Cascade delete with `Site` and parent category. Indexed by `(siteId)`, `(siteId, parentId)`, `(siteId, isActive, sortOrder)`.
+- `Category` (phase 1 implemented): site-scoped hierarchical categories. Fields: `siteId`, `name`, `slug` (unique per site), optional `description`, `parentId` (null = main category; set = subcategory), optional `bannerUrl`/`bannerPublicId` (**subcategories only**; roots keep these null), `isActive`, `sortOrder`. Cascade delete with `Site` and parent category. Indexed by `(siteId)`, `(siteId, parentId)`, `(siteId, isActive, sortOrder)`.
 - `Product` (phase 1 minimal implemented): already site-scoped. Added `productCode` (unique per site), optional `subcategoryId` FK to `Category` (Restrict on delete). Existing `status` (`DRAFT`/`ACTIVE`/`ARCHIVED`) drives admin active/inactive. Slug remains unique per site. Indexed by `(subcategoryId)` and `(siteId, status)`.
 - `ProductCategory`: join table retained; phase 1 also writes the product↔subcategory link here when creating/updating catalog products.
 - `ProductVariant`: variant-specific SKU, pack size or option, barcode where applicable, active status (later phases).

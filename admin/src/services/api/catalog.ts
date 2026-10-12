@@ -80,10 +80,25 @@ export async function fetchSubcategories(
   return data.data;
 }
 
+export async function fetchSubcategory(
+  siteCode: SiteCode,
+  subcategoryId: string,
+): Promise<CategoryDto> {
+  const { data } = await apiClient.get<ApiSuccess<CategoryDto>>(
+    endpoints.admin.subcategoryById(siteCode, subcategoryId),
+  );
+  return data.data;
+}
+
 export async function createSubcategory(
   siteCode: SiteCode,
   categoryId: string,
-  body: { name: string; active?: boolean },
+  body: {
+    name: string;
+    bannerUrl: string;
+    bannerPublicId: string;
+    active?: boolean;
+  },
 ): Promise<CategoryDto> {
   const { data } = await apiClient.post<ApiSuccess<CategoryDto>>(
     endpoints.admin.subcategories(siteCode, categoryId),
@@ -96,7 +111,12 @@ export async function updateSubcategory(
   siteCode: SiteCode,
   categoryId: string,
   subcategoryId: string,
-  body: { name: string; active: boolean },
+  body: {
+    name: string;
+    bannerUrl: string;
+    bannerPublicId: string;
+    active: boolean;
+  },
 ): Promise<CategoryDto> {
   const { data } = await apiClient.put<ApiSuccess<CategoryDto>>(
     endpoints.admin.subcategory(siteCode, categoryId, subcategoryId),

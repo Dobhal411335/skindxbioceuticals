@@ -7,17 +7,16 @@ const siteCodeSchema = z
 const bannerUrlSchema = z
   .string()
   .trim()
-  .min(1, 'Category banner URL is required')
+  .min(1, 'Subcategory banner URL is required')
   .max(2000)
-  .url('Category banner URL must be a valid absolute URL')
+  .url('Subcategory banner URL must be a valid absolute URL')
   .refine((value) => value.startsWith('https://') || value.startsWith('http://'), {
-    message: 'Category banner URL must use http or https',
+    message: 'Subcategory banner URL must use http or https',
   });
 
+/** Main categories: name + active only (no banner). */
 export const categoryBodySchema = z.object({
   name: z.string().trim().min(1, 'Category name is required').max(160),
-  bannerUrl: bannerUrlSchema,
-  bannerPublicId: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).optional(),
   description: z.string().trim().max(2000).optional().nullable(),
@@ -32,8 +31,11 @@ export const categoryPatchSchema = z
     message: 'At least one of active or order is required',
   });
 
+/** Subcategories: name + required banner + active. */
 export const subcategoryBodySchema = z.object({
   name: z.string().trim().min(1, 'Subcategory name is required').max(160),
+  bannerUrl: bannerUrlSchema,
+  bannerPublicId: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).optional(),
 });
@@ -43,10 +45,16 @@ export const subcategoryPatchSchema = z
     active: z.boolean().optional(),
     order: z.coerce.number().int().min(0).max(10_000).optional(),
     name: z.string().trim().min(1).max(160).optional(),
+    bannerUrl: bannerUrlSchema.optional(),
+    bannerPublicId: z.string().trim().max(500).optional(),
   })
   .refine(
     (value) =>
-      value.active !== undefined || value.order !== undefined || value.name !== undefined,
+      value.active !== undefined ||
+      value.order !== undefined ||
+      value.name !== undefined ||
+      value.bannerUrl !== undefined ||
+      value.bannerPublicId !== undefined,
     { message: 'At least one field is required' },
   );
 
@@ -61,6 +69,11 @@ export const subcategoryIdParamSchema = z.object({
   subcategoryId: z.string().uuid(),
 });
 
+export const subcategoryOnlyParamSchema = z.object({
+  siteCode: siteCodeSchema,
+  subcategoryId: z.string().uuid(),
+});
+
 export const categorySlugParamSchema = z.object({
   siteCode: siteCodeSchema,
   categorySlug: z.string().trim().min(1).max(200),
@@ -72,6 +85,28 @@ export type SubcategoryBody = z.infer<typeof subcategoryBodySchema>;
 export type SubcategoryPatchBody = z.infer<typeof subcategoryPatchSchema>;
 
 export function normalizeCategoryInput(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') {
+    return raw;
+  }
+
+  const payload = raw as Record<string, unknown>;
+
+  return {
+    ...payload,
+    name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
+    active: payload.active ?? true,
+    order:
+      payload.order === '' || payload.order === undefined || payload.order === null
+        ? undefined
+        : Number(payload.order),
+    description:
+      typeof payload.description === 'string'
+        ? payload.description.trim()
+        : payload.description,
+  };
+}
+
+export function normalizeSubcategoryInput(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') {
     return raw;
   }
@@ -107,27 +142,6 @@ export function normalizeCategoryInput(raw: unknown): unknown {
     name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
     bannerUrl,
     bannerPublicId,
-    active: payload.active ?? true,
-    order:
-      payload.order === '' || payload.order === undefined || payload.order === null
-        ? undefined
-        : Number(payload.order),
-    description:
-      typeof payload.description === 'string'
-        ? payload.description.trim()
-        : payload.description,
-  };
-}
-
-export function normalizeSubcategoryInput(raw: unknown): unknown {
-  if (!raw || typeof raw !== 'object') {
-    return raw;
-  }
-
-  const payload = raw as Record<string, unknown>;
-  return {
-    ...payload,
-    name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
     active: payload.active ?? true,
     order:
       payload.order === '' || payload.order === undefined || payload.order === null

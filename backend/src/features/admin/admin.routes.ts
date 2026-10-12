@@ -15,6 +15,7 @@ import { aboutUsBannerRoutes } from '@/features/about-us-banner/about-us-banner.
 import { faqRoutes } from '@/features/faq/faq.routes';
 import { heroBannerRoutes } from '@/features/hero-banner/hero-banner.routes';
 import { categoryRoutes } from '@/features/categories/category.routes';
+import { subcategoryAdminRoutes } from '@/features/categories/subcategory.admin.routes';
 import { catalogProductRoutes } from '@/features/products/product.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
@@ -52,5 +53,6 @@ router.use(
   '/sites/:siteCode/subcategories/:subcategoryId/products',
   catalogProductRoutes,
 );
+router.use('/sites/:siteCode/subcategories', subcategoryAdminRoutes);
 
 export const adminRoutes = router;

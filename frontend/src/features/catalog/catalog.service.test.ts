@@ -27,7 +27,6 @@ describe("catalog.service", () => {
             siteCode: "IN",
             name: "Serums",
             slug: "serums",
-            bannerUrl: "https://cdn.example.com/b.jpg",
             order: 1,
           },
         ],

@@ -123,6 +123,19 @@ export class CategoryController {
     sendSuccess(res, null, 'Category deleted');
   };
 
+  getSubcategory = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.getSubcategory(
+      req.site.id,
+      req.site.code,
+      String(req.params.subcategoryId),
+    );
+    sendSuccess(res, data, 'Subcategory');
+  };
+
   listSubcategories = async (req: Request, res: Response): Promise<void> => {
     if (!req.user || !req.site) {
       throw new UnauthorizedError();
