@@ -291,7 +291,7 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 onValueChange={handleCategoryChange}
                 disabled={isLoading || categories.length === 0 || Boolean(editingId)}
               >
-                <SelectTrigger id="main-category" className="w-full max-w-md">
+                <SelectTrigger id="main-category" className="w-full">
                   <SelectValue
                     placeholder={
                       isLoading ? "Loading categories…" : "Select a category"
@@ -331,7 +331,7 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                   }
                   placeholder="e.g. Vitamin C"
                   disabled={!selectedCategoryId}
-                  className="max-w-md"
+                  className="w-full"
                 />
                 {errors.name ? (
                   <p className="text-sm text-destructive">{errors.name}</p>
@@ -341,7 +341,7 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
               <div className="space-y-2">
                 <Label>Subcategory banner image</Label>
                 {values.bannerUrl ? (
-                  <div className="max-w-md overflow-hidden rounded-lg border border-border bg-muted/20">
+                  <div className="w-full overflow-hidden rounded-lg border border-border bg-muted/20">
                     {/* eslint-disable-next-line @next/next/no-img-element -- admin Cloudinary preview */}
                     <img
                       src={values.bannerUrl}
@@ -350,7 +350,7 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                     />
                   </div>
                 ) : (
-                  <div className="flex h-44 max-w-md items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 text-muted-foreground">
+                  <div className="flex h-44 w-full items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 text-muted-foreground">
                     <ImagePlus className="h-6 w-6" />
                   </div>
                 )}
@@ -398,7 +398,7 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 ) : null}
               </div>
 
-              <div className="flex max-w-md items-center justify-between rounded-lg border border-border px-3 py-2">
+              <div className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2">
                 <div>
                   <p className="text-sm font-medium">Active</p>
                   <p className="text-xs text-muted-foreground">

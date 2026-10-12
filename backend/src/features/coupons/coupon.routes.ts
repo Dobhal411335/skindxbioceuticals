@@ -3,8 +3,8 @@ import { couponController } from './coupon.controller';
 import { asyncHandler } from '@/utils/asyncHandler';
 
 /**
- * Coupon routes - wiring only (path + middleware + controller).
- * No business logic here.
+ * Public/scaffold coupon routes - wiring only.
+ * Admin CRUD is mounted under `/admin/sites/:siteCode/coupons`.
  */
 const router = Router();
 

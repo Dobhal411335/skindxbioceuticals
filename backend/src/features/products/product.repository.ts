@@ -31,21 +31,16 @@ function toRecord(row: {
 }
 
 export class ProductRepository {
-  async listBySubcategory(
-    siteId: string,
-    subcategoryId: string,
-  ): Promise<ProductRecord[]> {
+  async listBySubcategory(siteId: string, subcategoryId: string): Promise<ProductRecord[]> {
     const rows = await prisma.product.findMany({
       where: { siteId, subcategoryId },
-      orderBy: [{ createdAt: 'desc' }],
+      // Oldest products first; latest created appear at the bottom.
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     });
     return rows.map(toRecord);
   }
 
-  async listActiveBySubcategory(
-    siteId: string,
-    subcategoryId: string,
-  ): Promise<ProductRecord[]> {
+  async listActiveBySubcategory(siteId: string, subcategoryId: string): Promise<ProductRecord[]> {
     const rows = await prisma.product.findMany({
       where: { siteId, subcategoryId, status: 'ACTIVE' },
       orderBy: [{ name: 'asc' }],

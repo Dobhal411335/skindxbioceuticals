@@ -55,9 +55,30 @@ export const endpoints = {
       productId: string,
     ) =>
       `/admin/sites/${siteCode}/subcategories/${subcategoryId}/products/${productId}`,
+    productEdit: (siteCode: string, productId: string) =>
+      `/admin/sites/${siteCode}/products/${productId}/edit`,
+    productCatalogColors: (siteCode: string) =>
+      `/admin/sites/${siteCode}/products/catalog-colors`,
+    productCatalogTags: (siteCode: string) =>
+      `/admin/sites/${siteCode}/products/catalog-tags`,
+    productSection: (
+      siteCode: string,
+      productId: string,
+      section: string,
+    ) => `/admin/sites/${siteCode}/products/${productId}/sections/${section}`,
+    productEditorialReview: (
+      siteCode: string,
+      productId: string,
+      reviewId: string,
+    ) =>
+      `/admin/sites/${siteCode}/products/${productId}/sections/reviews/${reviewId}`,
+    coupons: (siteCode: string) => `/admin/sites/${siteCode}/coupons`,
+    coupon: (siteCode: string, couponId: string) =>
+      `/admin/sites/${siteCode}/coupons/${couponId}`,
   },
   media: {
     uploadImage: "/media/images",
     uploadVideo: "/media/videos",
+    bulkDelete: "/media/bulk-delete",
   },
 } as const;

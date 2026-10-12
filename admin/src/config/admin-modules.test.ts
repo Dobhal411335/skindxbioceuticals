@@ -11,6 +11,7 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "social-media-post": endpoints.admin.socialPosts,
   gallery: endpoints.admin.gallery,
   "customer-review": endpoints.admin.customerReviews,
+  "create-coupon-code": endpoints.admin.coupons,
   "manage-footer": endpoints.admin.footer,
   "banner-top-advertisement": endpoints.admin.topAdvertisement,
   "banner-about-us": endpoints.admin.aboutUsBanner,
@@ -51,6 +52,12 @@ describe("admin modules", () => {
       "manage-products-category",
     );
     expect(findModuleBySlug("IN", ["products", "manage-category"])?.status).toBe(
+      "live",
+    );
+    expect(findModuleBySlug("IN", ["marketing", "create-coupon-code"])?.id).toBe(
+      "create-coupon-code",
+    );
+    expect(findModuleBySlug("IN", ["marketing", "create-coupon-code"])?.status).toBe(
       "live",
     );
   });

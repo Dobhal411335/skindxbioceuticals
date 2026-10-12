@@ -161,6 +161,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/hero-banners` | get/upsert site-scoped home hero carousel slides | Admin + site access |
 | `/admin/sites/:siteCode/categories` | CRUD site-scoped categories and nested subcategories | Admin + site access |
 | `/admin/sites/:siteCode/subcategories/:subcategoryId/products` | CRUD phase-1 products under a subcategory | Admin + site access |
+| `/admin/sites/:siteCode/coupons` | CRUD site-scoped discount coupon codes (amount or percent) | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
 
@@ -318,7 +319,35 @@ Site-scoped categories use the hierarchical `Category` model (`parentId` null = 
 - `POST /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId/products` — body `{ productCode, name, active? }`. `productCode` unique per site; slug server-generated; `active` maps to `ProductStatus` ACTIVE/DRAFT.
 - `PUT|PATCH|DELETE .../products/:productId` — PATCH supports `active` / `name` / `productCode`.
 
-Uploads use existing media APIs with `feature=categories`: `POST /api/v1/media/images`.
+**Product edit details (section PUT pattern)**  
+Prefer focused section replaces over one giant nested PUT so saving sizes cannot wipe gallery/tax. All require Bearer admin JWT + `requireSiteAccess`. Responses return the full edit payload after mutation.
+
+- `GET /api/v1/admin/sites/:siteCode/products/:productId/edit` — load core product + all section data (sizes, colors, variants/offers, gallery, videos, description, info sections, editorial reviews, tags, highlights, tax, coupon) plus site color/tag masters and active coupon options.
+- `POST /api/v1/admin/sites/:siteCode/products/catalog-colors` — body `{ name, hex }` (`#RRGGBB`); site-scoped master color.
+- `PUT .../products/:productId/sections/sizes` — `{ sizeChartUrl?, sizeChartPublicId?, sizes[{ label, active, sortOrder? }] }`.
+- `PUT .../sections/colors` — `{ colors[{ colorId?, name, hex?, active, sortOrder? }] }` (replace-all).
+- `PUT .../sections/variants` — `{ variants[{ id?, sizeLabel?, colorLabel?, price, vendorPrice?, quantity, weightGrams?, isActive?, profileImage?, subImages[] }] }` maps to `ProductVariant` + inventory.
+- `PUT .../sections/coupon` — `{ couponId: uuid | null }`.
+- `PUT|DELETE .../sections/tax` — PUT `{ cgst, sgst }`; DELETE clears tax.
+- `PUT .../sections/gallery` — `{ images[{ imageUrl, imagePublicId, isPrimary, sortOrder? }] }`.
+- `PUT .../sections/videos` — `{ videos[{ name, url, description?, sortOrder? }] }`.
+- `PUT .../sections/description` — `{ description }`.
+- `PUT .../sections/info` — `{ sections[{ title, body, sortOrder? }] }`.
+- `POST|PUT|DELETE .../sections/reviews[/:reviewId]` — admin editorial reviews (`createdByName`, `rating` 1–5, `title`, `body`, optional image).
+- `PUT .../sections/tags` — `{ tagNames[] }` (upserts site `CatalogTag` rows).
+- `PUT .../sections/highlights` — `{ highlights[] }`.
+
+Product image uploads use `feature=products`: `POST /api/v1/media/images`. Category banners continue to use `feature=categories`.
+
+### Admin coupons (implemented)
+
+- `GET /api/v1/admin/sites/:siteCode/coupons` — Bearer admin JWT; `requireSiteAccess`. Lists all coupons for the site (including inactive).
+- `POST /api/v1/admin/sites/:siteCode/coupons` — create. Body: `code` (required; stored uppercase), exactly one of `amount` or `percent` (mutually exclusive; percent 0–100 exclusive of 0), `startsAt` / `endsAt` as `YYYY-MM-DD` with `endsAt >= startsAt`, optional `isActive` (default true). Maps to `CouponType` `FIXED_AMOUNT` or `PERCENTAGE` + `value`.
+- `PUT /api/v1/admin/sites/:siteCode/coupons/:couponId` — replace fields (same body rules); 404 if missing/other site; 409 on duplicate code for the site.
+- `PATCH /api/v1/admin/sites/:siteCode/coupons/:couponId` — body `{ isActive: boolean }` toggles active status.
+- `DELETE /api/v1/admin/sites/:siteCode/coupons/:couponId` — blocked with 409 when the coupon is assigned to any product (`ProductCoupon` Restrict).
+
+Product-edit coupon options use the same `Coupon` model, scoped to the product’s site and active `PERCENTAGE` / `FIXED_AMOUNT` rows only.
 
 ### Public categories (storefront)
 

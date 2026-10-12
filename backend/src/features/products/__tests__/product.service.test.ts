@@ -80,6 +80,32 @@ describe('ProductService', () => {
     expect(result[0]?.productCode).toBe('VC-01');
   });
 
+  it('preserves oldest-first product order from the repository', async () => {
+    const older = makeProduct({
+      id: '55555555-5555-5555-5555-555555555555',
+      productCode: 'OLD-01',
+      name: 'Older Product',
+      slug: 'older-product',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    });
+    const newer = makeProduct({
+      id: '66666666-6666-6666-6666-666666666666',
+      productCode: 'NEW-01',
+      name: 'Newer Product',
+      slug: 'newer-product',
+      createdAt: new Date('2026-10-12T12:00:00.000Z'),
+    });
+    listBySubcategory.mockResolvedValue([older, newer]);
+
+    const result = await service.listForSubcategory({
+      siteId: newer.siteId,
+      siteCode: 'IN',
+      subcategoryId: newer.subcategoryId!,
+    });
+
+    expect(result.map((row) => row.productCode)).toEqual(['OLD-01', 'NEW-01']);
+  });
+
   it('creates a product under a subcategory', async () => {
     const product = makeProduct();
     create.mockResolvedValue(product);

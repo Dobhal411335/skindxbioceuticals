@@ -234,11 +234,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
   ),
 
   // .in — marketing
-  shell(
-    "create-discount-coupon",
-    "marketing/create-discount-coupon",
-    "Create Discount Coupon",
-    "Create discount coupons for the .in storefront.",
+  live(
+    "create-coupon-code",
+    "marketing/create-coupon-code",
+    "Create Coupon Code",
+    "Create and manage site-scoped discount coupon codes (amount or percent).",
     ["IN", "COM"],
   ),
   shell(

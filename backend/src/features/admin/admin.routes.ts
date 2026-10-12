@@ -17,6 +17,8 @@ import { heroBannerRoutes } from '@/features/hero-banner/hero-banner.routes';
 import { categoryRoutes } from '@/features/categories/category.routes';
 import { subcategoryAdminRoutes } from '@/features/categories/subcategory.admin.routes';
 import { catalogProductRoutes } from '@/features/products/product.routes';
+import { productEditRoutes } from '@/features/products/product-edit.routes';
+import { couponAdminRoutes } from '@/features/coupons/coupon.admin.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -53,6 +55,8 @@ router.use(
   '/sites/:siteCode/subcategories/:subcategoryId/products',
   catalogProductRoutes,
 );
+router.use('/sites/:siteCode/products', productEditRoutes);
+router.use('/sites/:siteCode/coupons', couponAdminRoutes);
 router.use('/sites/:siteCode/subcategories', subcategoryAdminRoutes);
 
 export const adminRoutes = router;

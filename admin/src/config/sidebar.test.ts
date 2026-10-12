@@ -65,7 +65,7 @@ describe("getSidebarConfig", () => {
         "create-product",
         "create-category",
         "manage-products-category",
-        "create-discount-coupon",
+        "create-coupon-code",
         "create-reviews",
         "customer-review",
         "create-news-promotion",
@@ -103,6 +103,12 @@ describe("getSidebarConfig", () => {
     );
     expect(inItems.find((item) => item.id === "create-category")?.status).toBe("active");
     expect(inItems.find((item) => item.id === "manage-products-category")?.status).toBe(
+      "active",
+    );
+    expect(inItems.find((item) => item.id === "create-coupon-code")?.href).toBe(
+      "/admin/in/marketing/create-coupon-code",
+    );
+    expect(inItems.find((item) => item.id === "create-coupon-code")?.status).toBe(
       "active",
     );
 

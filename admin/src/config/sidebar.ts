@@ -207,11 +207,13 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
         },
         {
           id: "create-discount",
-          label: "Create Discount",
+          label: "Create Coupon",
           icon: BadgePercent,
-          status: "shell",
+          status: "active",
           children: [
-            leaf(siteCode, "create-discount-coupon", "Create Discount Coupon", "marketing/create-discount-coupon", BadgePercent),
+            leaf(siteCode, "create-coupon-code", "Create Coupon Code", "marketing/create-coupon-code", BadgePercent, {
+              status: "active",
+            }),
           ],
         },
         {

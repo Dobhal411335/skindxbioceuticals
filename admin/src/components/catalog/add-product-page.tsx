@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { ArrowLeft, Copy, Package, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, FilePen, Package, Pencil, Trash2 } from "lucide-react";
 
 import { AdminAppShell } from "@/components/layout/admin-app-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -95,7 +95,14 @@ export function AddProductPage({
         fetchSubcategoryProducts(siteCode, subcategoryId),
       ]);
       setSubcategory(subcategoryData);
-      setProducts(productData);
+      setProducts(
+        [...productData].sort((a, b) => {
+          const byCreated =
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          if (byCreated !== 0) return byCreated;
+          return a.id.localeCompare(b.id);
+        }),
+      );
     } catch (error) {
       const message =
         error instanceof ApiError ? error.message : "Failed to load products";
@@ -171,6 +178,17 @@ export function AddProductPage({
     } catch {
       showError("Could not copy URL");
     }
+  };
+
+  const handleEditName = (product: CatalogProductDto) => {
+    setEditingId(product.id);
+    setValues({
+      productCode: product.productCode,
+      name: product.name,
+      active: product.active,
+    });
+    setErrors({});
+    setPendingDelete(null);
   };
 
   const handleDelete = async () => {
@@ -301,7 +319,8 @@ export function AddProductPage({
           <CardHeader className="border-b border-border/70">
             <CardTitle className="text-lg font-semibold">Products</CardTitle>
             <CardDescription>
-              Edit, delete, copy URL, or toggle active status.
+              Edit name, open full product details, copy URL, delete, or toggle
+              active status.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
@@ -352,17 +371,23 @@ export function AddProductPage({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            onClick={() => {
-                              setEditingId(product.id);
-                              setValues({
-                                productCode: product.productCode,
-                                name: product.name,
-                                active: product.active,
-                              });
-                            }}
-                            aria-label="Edit product"
+                            onClick={() => handleEditName(product)}
+                            aria-label={`Edit name for ${product.name}`}
                           >
                             <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            asChild
+                            aria-label={`Edit details for ${product.name}`}
+                          >
+                            <Link
+                              href={`/admin/${siteCode.toLowerCase()}/products/${product.id}/edit`}
+                            >
+                              <FilePen className="h-4 w-4" />
+                            </Link>
                           </Button>
                           <Button
                             type="button"

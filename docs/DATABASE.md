@@ -36,13 +36,21 @@
 
 ### Catalog
 - `Category` (phase 1 implemented): site-scoped hierarchical categories. Fields: `siteId`, `name`, `slug` (unique per site), optional `description`, `parentId` (null = main category; set = subcategory), optional `bannerUrl`/`bannerPublicId` (**subcategories only**; roots keep these null), `isActive`, `sortOrder`. Cascade delete with `Site` and parent category. Indexed by `(siteId)`, `(siteId, parentId)`, `(siteId, isActive, sortOrder)`.
-- `Product` (phase 1 minimal implemented): already site-scoped. Added `productCode` (unique per site), optional `subcategoryId` FK to `Category` (Restrict on delete). Existing `status` (`DRAFT`/`ACTIVE`/`ARCHIVED`) drives admin active/inactive. Slug remains unique per site. Indexed by `(subcategoryId)` and `(siteId, status)`.
+- `Product` (phase 1 + edit details): site-scoped. Fields: `productCode` (unique per site), optional `subcategoryId` FK to `Category` (Restrict on delete), `description` (overview HTML/text), optional `sizeChartUrl`/`sizeChartPublicId`, optional `bannerUrl`/`bannerPublicId` (logo/banner for Product Gallery admin section), `status` (`DRAFT`/`ACTIVE`/`ARCHIVED`), `isFeatured`. Slug unique per site. Indexed by `(subcategoryId)` and `(siteId, status)`.
 - `ProductCategory`: join table retained; phase 1 also writes the product↔subcategory link here when creating/updating catalog products.
-- `ProductVariant`: variant-specific SKU, pack size or option, barcode where applicable, active status (later phases).
-- `ProductMedia`: ordered media associations and alt text (later phases).
+- `CatalogColor` / `CatalogTag` (implemented): site-scoped masters for color hex/name and tag names. Unique `(siteId, hex)` / `(siteId, name)` for colors; unique `(siteId, name)` for tags.
+- `ProductSize`: product-linked size labels (`label`, `sortOrder`, `active`); unique `(productId, label)`.
+- `ProductColor`: product-linked colors, optional FK to `CatalogColor`, plus `name`/`hex` for custom entries.
+- `ProductVariant` (extended for Price/Quantity): optional SKU (unique when set; not auto-generated for admin price/quantity offers), name, price, optional `vendorPrice`, `sizeLabel`, `colorLabel`, `weightGrams`, profile image URL/publicId, `subImages` JSON, inventory via `InventoryItem`. Variants referenced by cart/order are soft-deactivated instead of hard-deleted.
+- `ProductGalleryImage`: ordered product gallery with `imageUrl`/`imagePublicId`, `isPrimary`, `sortOrder` (admin gallery section; distinct from legacy `ProductMedia` Media FK).
+- `ProductVideo`, `ProductInfoSection`, `ProductHighlight`, `ProductEditorialReview`: product-detail content sections (videos, info tabs, highlights, admin-curated reviews distinct from customer `Review`).
+- `ProductTag`: join `Product` ↔ `CatalogTag`.
+- `ProductTax`: one optional CGST/SGST row per product.
+- `ProductCoupon`: optional one coupon link per product (`Coupon` FK Restrict).
+- `ProductMedia`: legacy Media FK associations retained for later storefront wiring.
 - `Inventory` / `InventoryMovement`: stock quantities, reservations, adjustments, and auditable changes.
 
-Pricing/variants/media remain later-phase; phase 1 products are name + code under a subcategory for admin + storefront category browsing.
+Phase-1 create/list still uses name + code under a subcategory; full edit details are managed via admin product edit section APIs.
 
 ### Customer and access
 - `User`: identity and account status; avoid unnecessary sensitive fields. Implemented fields include optional `passwordHash`, `emailVerifiedAt`, `welcomeEmailSentAt`, `status` (including `PENDING_VERIFICATION`), and `role`.
@@ -58,7 +66,8 @@ Do not use a user-supplied email as the only permanent external identity key. St
 
 ### Commerce
 - `Cart`, `CartItem`: current cart state according to guest/customer-cart policy.
-- `Coupon`, `CouponRedemption`: eligibility and redemption constraints.
+- `Coupon` (implemented admin CRUD): site-scoped discount codes (`siteId`, unique `(siteId, code)`). Stored as `type` (`PERCENTAGE` | `FIXED_AMOUNT` | `FREE_SHIPPING`) + `value`, plus optional `startsAt` / `endsAt`, `isActive`, usage fields. Admin create/edit supports amount **or** percent only (not both); `FREE_SHIPPING` is reserved for later checkout flows. Product-edit “Apply Coupon” lists active site coupons of type percent/amount.
+- `CouponRedemption`: eligibility and redemption constraints (planned; not yet modeled).
 - `Order`: customer/contact snapshot, address snapshot, totals, currency, status, site, timestamps.
 - `OrderItem`: immutable purchase-time snapshot of product name/SKU/variant, quantity, unit amount, discount/tax breakdown as applicable.
 - `PaymentAttempt` / `Payment`: provider references, amount, currency, status, verified timestamps, and safe metadata.
@@ -74,7 +83,7 @@ Do not use a user-supplied email as the only permanent external identity key. St
 
 Examples to decide and enforce:
 - Each site-scoped page has one owning site; `(siteId, slug)` should usually be unique.
-- SKU uniqueness must follow the chosen business rule (global SKU or site-specific SKU).
+- SKU uniqueness is global on `ProductVariant.sku` when a SKU is set; SKU is optional and is not auto-generated for admin price/quantity offers.
 - An order has one or more order items and may have payment attempts.
 - Order items preserve purchase-time price and product snapshots even if catalog data changes later.
 - External identity provider/subject pairs should be unique.
