@@ -12,6 +12,8 @@ import { customerReviewsRoutes } from '@/features/customer-reviews/customer-revi
 import { footerRoutes } from '@/features/footer/footer.routes';
 import { topAdvertisementRoutes } from '@/features/top-advertisement/top-advertisement.routes';
 import { aboutUsBannerRoutes } from '@/features/about-us-banner/about-us-banner.routes';
+import { faqRoutes } from '@/features/faq/faq.routes';
+import { heroBannerRoutes } from '@/features/hero-banner/hero-banner.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -41,5 +43,7 @@ router.use('/sites/:siteCode/customer-reviews', customerReviewsRoutes);
 router.use('/sites/:siteCode/footer', footerRoutes);
 router.use('/sites/:siteCode/top-advertisement', topAdvertisementRoutes);
 router.use('/sites/:siteCode/about-us-banner', aboutUsBannerRoutes);
+router.use('/sites/:siteCode/faq', faqRoutes);
+router.use('/sites/:siteCode/hero-banners', heroBannerRoutes);
 
 export const adminRoutes = router;

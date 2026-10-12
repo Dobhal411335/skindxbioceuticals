@@ -144,6 +144,12 @@ enum TopAdvertisementSection {
   BENEFIT
 }
 
+enum HeroBannerLayoutType {
+  FULL_WIDTH
+  SPLIT_DUAL
+  MULTI_IMAGE
+}
+
 // =============================================================================
 // Multi-site (.in storefront + .com content/enquiry)
 // =============================================================================
@@ -170,6 +176,8 @@ model Site {
   footerConfig              FooterConfig?
   topAdvertisementConfig    TopAdvertisementConfig?
   aboutUsBannerConfig       AboutUsBannerConfig?
+  faqSections               FaqSection[]
+  heroBannerSlides          HeroBannerSlide[]
 
   @@map("sites")
 }
@@ -994,6 +1002,92 @@ model AboutUsTextSlide {
 
   @@index([configId, sortOrder])
   @@map("about_us_text_slides")
+}
+
+/// Site-scoped FAQ groups (e.g. General, Shipping) with nested Q&A items.
+model FaqSection {
+  id        String   @id @default(uuid()) @db.Uuid
+  siteId    String   @map("site_id") @db.Uuid
+  title     String
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  site  Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  items FaqItem[]
+
+  @@index([siteId, order])
+  @@index([siteId, active, order])
+  @@map("faq_sections")
+}
+
+model FaqItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  sectionId     String   @map("section_id") @db.Uuid
+  question      String
+  answer        String   @db.Text
+  showOnLanding Boolean  @default(false) @map("show_on_landing")
+  order         Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  section FaqSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId, order])
+  @@index([sectionId, active, order])
+  @@index([sectionId, showOnLanding])
+  @@map("faq_items")
+}
+
+/// Site-scoped home hero carousel slides (full-width, split dual, multi-image).
+model HeroBannerSlide {
+  id                   String               @id @default(uuid()) @db.Uuid
+  siteId               String               @map("site_id") @db.Uuid
+  layoutType           HeroBannerLayoutType @map("layout_type")
+  order                Int                  @default(0)
+  active               Boolean              @default(true)
+  mobileImageUrl       String               @default("") @map("mobile_image_url")
+  mobileImagePublicId  String               @default("") @map("mobile_image_public_id")
+  desktopImageUrl      String               @default("") @map("desktop_image_url")
+  desktopImagePublicId String               @default("") @map("desktop_image_public_id")
+  miniHeading          String               @default("") @map("mini_heading")
+  mainHeading          String               @default("") @map("main_heading")
+  description          String               @default("") @db.Text
+  buttonLabel          String               @default("") @map("button_label")
+  buttonUrl            String               @default("") @map("button_url")
+  button2Label         String               @default("") @map("button2_label")
+  button2Url           String               @default("") @map("button2_url")
+  leftImageUrl         String               @default("") @map("left_image_url")
+  leftImagePublicId    String               @default("") @map("left_image_public_id")
+  rightImageUrl        String               @default("") @map("right_image_url")
+  rightImagePublicId   String               @default("") @map("right_image_public_id")
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+
+  site       Site                  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  gridImages HeroBannerGridImage[]
+
+  @@index([siteId, order])
+  @@index([siteId, active, order])
+  @@map("hero_banner_slides")
+}
+
+model HeroBannerGridImage {
+  id            String   @id @default(uuid()) @db.Uuid
+  slideId       String   @map("slide_id") @db.Uuid
+  imageUrl      String   @map("image_url")
+  imagePublicId String   @default("") @map("image_public_id")
+  alt           String   @default("")
+  order         Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  slide HeroBannerSlide @relation(fields: [slideId], references: [id], onDelete: Cascade)
+
+  @@index([slideId, order])
+  @@map("hero_banner_grid_images")
 }
 
 model SiteSetting {

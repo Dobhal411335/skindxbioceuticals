@@ -157,6 +157,8 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/footer` | get/upsert site-scoped footer config | Admin + site access |
 | `/admin/sites/:siteCode/top-advertisement` | get/upsert site-scoped top advertisement (3 sections) | Admin + site access |
 | `/admin/sites/:siteCode/about-us-banner` | get/upsert site-scoped About Us home banner (3 sections) | Admin + site access |
+| `/admin/sites/:siteCode/faq` | get/upsert site-scoped FAQ sections and questions | Admin + site access |
+| `/admin/sites/:siteCode/hero-banners` | get/upsert site-scoped home hero carousel slides | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
 | `/admin/audit-logs` | review administrative changes | Authorized admin |
 
@@ -254,13 +256,43 @@ One upsertable config per site with three section lists: announcement bar, heade
 One upsertable home-page About Us banner config per site with three sections: promotional header, about cards carousel, and a dual bottom block (highlight cards + text slides).
 
 - `GET /api/v1/admin/sites/:siteCode/about-us-banner` — Bearer admin JWT; `requireSiteAccess`. Returns the site record or empty defaults (`id: null`) including inactive nested items.
-- `PUT /api/v1/admin/sites/:siteCode/about-us-banner` — upsert one row per site and replace nested items. Body: `promoLabel`, `promoHeading`, `promoSubheading`, `promoButtonLabel`, `promoButtonUrl`, `aboutCards[]` (`imageUrl`, `imagePublicId`, `label`, `heading`, `description`, `buttonLabel`, `buttonUrl`, `active`, optional `sortOrder`), `highlightItems[]` (`imageUrl`, `imagePublicId`, `heading`, `buttonLabel`, `buttonUrl`, `active`, optional `sortOrder`), `textSlides[]` (`heading`, `subheading`, `active`, optional `sortOrder`). `siteId` from authenticated site context only.
+- `PUT /api/v1/admin/sites/:siteCode/about-us-banner` — upsert one row per site and replace nested items. Body: `promoLabel`, `promoHeading`, `promoSubheading`, `promoButtonLabel`, `promoButtonUrl`, `aboutCards[]` (`imageUrl`, `imagePublicId`, `label`, `heading`, `description`, `buttonLabel`, `buttonUrl`, `active`, optional `sortOrder`), `highlightItems[]` (`imageUrl`, `imagePublicId`, `heading`, `buttonLabel`, `buttonUrl`, `active`, optional `sortOrder`), `textSlides[]` (`heading`, `subheading`, `active`, optional `sortOrder`). `siteId` from authenticated site context only. After save, Cloudinary assets whose `publicId`s are no longer referenced on cards/highlights are deleted best-effort.
 
 Uploads use existing media APIs with `feature=about`: `POST /api/v1/media/images`.
 
 ### Public About Us banner (storefront)
 
 - `GET /api/v1/sites/:siteCode/about-us-banner` — public read for an active site (no auth). Returns active nested items only. Used by the `.in` storefront `SpecialsHeader`, `AboutSplit`, and `BlogCarousel` home blocks (falls back to static landing data when empty/unavailable). Prefer HTTPS Cloudinary image URLs.
+
+### Admin FAQ (implemented)
+
+Site-scoped FAQ groups (`sections[]`) each with nested Q&A items. Fields per section: `title`, `active`, `order`. Fields per item: `question`, `answer`, `showOnLanding`, `active`, `order`.
+
+- `GET /api/v1/admin/sites/:siteCode/faq` — Bearer admin JWT; `requireSiteAccess`. Returns all sections/items for the site (including inactive), ordered by `order`. Empty defaults are `{ sections: [] }`.
+- `PUT /api/v1/admin/sites/:siteCode/faq` — replace all sections and items for the site. Body: `sections[]` (`title`, `active`, `order`, `items[]` with `question`, `answer`, `showOnLanding`, `active`, `order`). `siteId` from authenticated site context only.
+
+### Public FAQ (storefront)
+
+- `GET /api/v1/sites/:siteCode/faq` — public read for an active site (no auth). Returns active sections and active items only.
+- `GET /api/v1/sites/:siteCode/faq?landing=true` — same, but only items with `showOnLanding: true` (empty sections omitted). Used by the `.in` storefront home FAQ snippet; the full FAQ page uses the unfiltered public read (falls back to static data when empty/unavailable).
+
+### Admin hero banners (implemented)
+
+Site-scoped home hero carousel slides. Each slide has `layoutType` (`FULL_WIDTH` | `SPLIT_DUAL` | `MULTI_IMAGE`), `order`, and `active`.
+
+Layout-specific fields:
+- `FULL_WIDTH` — required `mobileImageUrl` + `desktopImageUrl`; optional `buttonUrl` is the image click destination (copy/CTA label fields are cleared/ignored).
+- `SPLIT_DUAL` — copy + dual CTAs + required `leftImageUrl` / `rightImageUrl` (no mobile/desktop banner images; storefront mobile uses the left image with overlay copy).
+- `MULTI_IMAGE` — copy + CTA + nested `gridImages[]` (4–6 required); no mobile/desktop banner images.
+
+- `GET /api/v1/admin/sites/:siteCode/hero-banners` — Bearer admin JWT; `requireSiteAccess`. Returns all slides (including inactive) ordered by `order`. Empty defaults are `{ slides: [] }`.
+- `PUT /api/v1/admin/sites/:siteCode/hero-banners` — replace all slides for the site. Body: `slides[]` with layout-specific required fields. `siteId` from authenticated site context only. After save, Cloudinary assets whose `publicId`s are no longer referenced are deleted best-effort.
+
+Uploads use existing media APIs with `feature=hero`: `POST /api/v1/media/images`.
+
+### Public hero banners (storefront)
+
+- `GET /api/v1/sites/:siteCode/hero-banners` — public read for an active site (no auth). Returns active slides only, ordered by `order`. Used by the `.in` storefront home hero carousel (falls back to static landing data when empty/unavailable). Prefer HTTPS Cloudinary image URLs.
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

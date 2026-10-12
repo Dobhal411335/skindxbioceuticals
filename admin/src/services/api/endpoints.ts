@@ -30,6 +30,9 @@ export const endpoints = {
       `/admin/sites/${siteCode}/top-advertisement`,
     aboutUsBanner: (siteCode: string) =>
       `/admin/sites/${siteCode}/about-us-banner`,
+    faq: (siteCode: string) => `/admin/sites/${siteCode}/faq`,
+    heroBanners: (siteCode: string) =>
+      `/admin/sites/${siteCode}/hero-banners`,
   },
   media: {
     uploadImage: "/media/images",

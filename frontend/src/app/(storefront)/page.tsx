@@ -16,21 +16,31 @@ import { TestimonialsGrid } from "@/components/landing/testimonials-grid";
 import { TrustBenefitsBar } from "@/components/landing/trust-benefits-bar";
 import { getAboutUsBanner } from "@/features/about-us-banner/about-us-banner.service";
 import { getCustomerReviews } from "@/features/customer-reviews/customer-reviews.service";
+import { getLandingFaqs } from "@/features/faq/faq.service";
 import { getGalleryItems } from "@/features/gallery/gallery.service";
+import { getHeroBanners } from "@/features/hero-banner/hero-banner.service";
 import { getSocialPosts } from "@/features/social-posts/social-posts.service";
 
 export default async function HomePage() {
-  const [socialPosts, galleryItems, aboutUsBanner, customerReviews] =
-    await Promise.all([
-      getSocialPosts(),
-      getGalleryItems(),
-      getAboutUsBanner(),
-      getCustomerReviews(),
-    ]);
+  const [
+    socialPosts,
+    galleryItems,
+    aboutUsBanner,
+    customerReviews,
+    landingFaqs,
+    heroSlides,
+  ] = await Promise.all([
+    getSocialPosts(),
+    getGalleryItems(),
+    getAboutUsBanner(),
+    getCustomerReviews(),
+    getLandingFaqs(),
+    getHeroBanners(),
+  ]);
 
   return (
     <>
-      <HeroSection />
+      <HeroSection slides={heroSlides} />
       <TrustBenefitsBar />
       <SpecialsHeader promo={aboutUsBanner.promo} />
       <AboutSplit cards={aboutUsBanner.aboutCards} />
@@ -46,7 +56,7 @@ export default async function HomePage() {
       <BlogGrid />
       <FeatureBenefitsBar />
       <StyleGallery items={galleryItems} />
-      <FaqSection />
+      <FaqSection items={landingFaqs} />
       <SocialPostsSection posts={socialPosts} />
       <MarqueeBanner />
     </>

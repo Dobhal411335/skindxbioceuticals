@@ -1,3 +1,4 @@
+import { deleteStoredCloudinaryAssetBestEffort } from '@/lib/cloudinary';
 import { logger } from '@/lib/logger';
 import type { SiteCode } from '@/types/common';
 import { aboutUsBannerRepository } from './about-us-banner.repository';
@@ -143,6 +144,40 @@ function bodyToUpsertData(body: AboutUsBannerConfigBody): AboutUsBannerConfigUps
   };
 }
 
+function collectAboutUsPublicIds(
+  source:
+    | Pick<AboutUsBannerConfigRecord, 'aboutCards' | 'highlightItems'>
+    | Pick<AboutUsBannerConfigUpsertData, 'aboutCards' | 'highlightItems'>,
+): string[] {
+  const ids: string[] = [];
+  for (const card of source.aboutCards) {
+    const trimmed = card.imagePublicId.trim();
+    if (trimmed) ids.push(trimmed);
+  }
+  for (const item of source.highlightItems) {
+    const trimmed = item.imagePublicId.trim();
+    if (trimmed) ids.push(trimmed);
+  }
+  return ids;
+}
+
+/** Public IDs present before save but not retained after save. */
+export function collectOrphanedAboutUsPublicIds(
+  previous: AboutUsBannerConfigRecord | null,
+  next: AboutUsBannerConfigUpsertData,
+): string[] {
+  if (!previous) return [];
+
+  const retained = new Set(collectAboutUsPublicIds(next));
+  const orphans = new Set<string>();
+  for (const publicId of collectAboutUsPublicIds(previous)) {
+    if (!retained.has(publicId)) {
+      orphans.add(publicId);
+    }
+  }
+  return [...orphans];
+}
+
 export class AboutUsBannerService {
   constructor(private readonly repository = aboutUsBannerRepository) {}
 
@@ -164,8 +199,14 @@ export class AboutUsBannerService {
     userId: string;
     body: AboutUsBannerConfigBody;
   }): Promise<AboutUsBannerConfigDto> {
+    const existing = await this.repository.findBySiteId(input.siteId);
     const data = bodyToUpsertData(input.body);
     const record = await this.repository.upsertBySiteId(input.siteId, data);
+
+    const orphanedPublicIds = collectOrphanedAboutUsPublicIds(existing, data);
+    await Promise.all(
+      orphanedPublicIds.map((publicId) => deleteStoredCloudinaryAssetBestEffort(publicId)),
+    );
 
     logger.info(
       {
@@ -176,6 +217,7 @@ export class AboutUsBannerService {
         aboutCardCount: record.aboutCards.length,
         highlightItemCount: record.highlightItems.length,
         textSlideCount: record.textSlides.length,
+        orphanedImageCount: orphanedPublicIds.length,
       },
       'About Us banner config upserted',
     );

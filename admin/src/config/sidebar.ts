@@ -90,7 +90,9 @@ function bannerChildren(siteCode: SiteCode): SidebarNavItem[] {
       status: "active",
     }),
     leaf(siteCode, "banner-promotional", "Promotional Banner", "banners/promotional", ImageIcon),
-    leaf(siteCode, "banner-manage", "Manage Banner", "banners/manage", ImageIcon),
+    leaf(siteCode, "banner-hero", "Hero Banner", "banners/hero", ImageIcon, {
+      status: "active",
+    }),
     leaf(siteCode, "banner-featured-offered", "Featured Offered Banner", "banners/featured-offered", ImageIcon),
     leaf(siteCode, "banner-offer-details", "Offer Details", "banners/offer-details", FileText),
     leaf(siteCode, "banner-featured-product", "Manage Featured Product", "banners/featured-product", Star),
@@ -167,7 +169,9 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           status: "shell",
           children: [
             leaf(siteCode, "stock-management", "Stock Management", "stock-management", Boxes),
-            leaf(siteCode, "website-faq", "Website FAQ Section", "website-faq", HelpCircle),
+            leaf(siteCode, "website-faq", "Website FAQ Section", "website-faq", HelpCircle, {
+              status: "active",
+            }),
             leaf(siteCode, "create-person-profile", "Create Person Profile", "create-person-profile", UserRoundPlus),
           ],
         },

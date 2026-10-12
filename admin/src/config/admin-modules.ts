@@ -53,11 +53,11 @@ const BANNER_MODULES: AdminModuleDefinition[] = [
     "Manage promotional banners for this website.",
     ["IN", "COM"],
   ),
-  shell(
-    "banner-manage",
-    "banners/manage",
-    "Manage Banner",
-    "Organize and update banner placements for this website.",
+  live(
+    "banner-hero",
+    "banners/hero",
+    "Hero Banner",
+    "Manage home hero carousel slides (image-only full-width, split dual, and associate-brand grid) for this website.",
     ["IN", "COM"],
   ),
   shell(
@@ -146,11 +146,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Review and manage inventory stock for the .in ecommerce storefront.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "website-faq",
     "website-faq",
     "Website FAQ Section",
-    "Manage frequently asked questions shown on the .in website.",
+    "Manage FAQ sections and questions shown on the selected website.",
     ["IN", "COM"],
   ),
   shell(

@@ -1,10 +1,16 @@
+import { deleteStoredCloudinaryAssetBestEffort } from '@/lib/cloudinary';
 import {
+  collectOrphanedAboutUsPublicIds,
   emptyAboutUsBannerConfigDto,
   AboutUsBannerService,
   toAboutUsBannerConfigDto,
 } from '../about-us-banner.service';
 import type { AboutUsBannerRepository } from '../about-us-banner.repository';
 import type { AboutUsBannerConfigRecord } from '../about-us-banner.types';
+
+jest.mock('@/lib/cloudinary', () => ({
+  deleteStoredCloudinaryAssetBestEffort: jest.fn(),
+}));
 
 function makeRecord(
   overrides: Partial<AboutUsBannerConfigRecord> = {},
@@ -105,9 +111,43 @@ describe('AboutUsBannerService', () => {
     expect(dto.aboutCards[0]?.id).toBe('card-1');
   });
 
-  it('upserts and logs without secrets', async () => {
-    const record = makeRecord();
-    (repository.upsertBySiteId as jest.Mock).mockResolvedValue(record);
+  it('collects orphaned public IDs when cards or highlights are removed', () => {
+    const previous = makeRecord();
+    const orphans = collectOrphanedAboutUsPublicIds(previous, {
+      promoLabel: 'Featured offers',
+      promoHeading: 'Curated selections',
+      promoSubheading: 'While stocks last',
+      promoButtonLabel: 'Shop now',
+      promoButtonUrl: '/shop',
+      aboutCards: [
+        {
+          imageUrl: 'https://cdn.example.com/about.jpg',
+          imagePublicId: 'about/card',
+          label: 'About us',
+          heading: 'Science-led care',
+          description: 'Clear product presentation.',
+          buttonLabel: 'Read more',
+          buttonUrl: '/about',
+          sortOrder: 0,
+          active: true,
+        },
+      ],
+      highlightItems: [],
+      textSlides: [],
+    });
+
+    expect(orphans.sort()).toEqual(['about/hi', 'about/hidden'].sort());
+  });
+
+  it('upserts and deletes orphaned Cloudinary assets', async () => {
+    const existing = makeRecord();
+    const saved = makeRecord({
+      aboutCards: existing.aboutCards.slice(0, 1),
+      highlightItems: [],
+    });
+    (repository.findBySiteId as jest.Mock).mockResolvedValue(existing);
+    (repository.upsertBySiteId as jest.Mock).mockResolvedValue(saved);
+    (deleteStoredCloudinaryAssetBestEffort as jest.Mock).mockResolvedValue(undefined);
 
     const dto = await service.upsertForSite({
       siteId: 'site-1',
@@ -138,6 +178,9 @@ describe('AboutUsBannerService', () => {
 
     expect(repository.upsertBySiteId).toHaveBeenCalled();
     expect(dto.id).toBe('cfg-1');
-    expect(dto.aboutCards).toHaveLength(2);
+    expect(dto.aboutCards).toHaveLength(1);
+    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('about/hidden');
+    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('about/hi');
+    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledTimes(2);
   });
 });

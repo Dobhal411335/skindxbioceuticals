@@ -56,8 +56,10 @@ describe("getSidebarConfig", () => {
         "manage-banners",
         "banner-top-advertisement",
         "banner-about-us",
+        "banner-hero",
         "sub-dashboard",
         "stock-management",
+        "website-faq",
         "vendor-partner",
         "add-direct-product",
         "create-product",
@@ -91,6 +93,10 @@ describe("getSidebarConfig", () => {
     expect(inItems.find((item) => item.id === "customer-review")?.href).toBe(
       "/admin/in/reviews/customer",
     );
+    expect(inItems.find((item) => item.id === "website-faq")?.href).toBe(
+      "/admin/in/website-faq",
+    );
+    expect(inItems.find((item) => item.id === "website-faq")?.status).toBe("active");
 
     for (const item of [...inItems, ...comItems]) {
       expect(item.href).toBeTruthy();

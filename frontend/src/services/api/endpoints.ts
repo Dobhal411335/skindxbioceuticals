@@ -61,4 +61,10 @@ export const API_ENDPOINTS = {
   CUSTOMER_REVIEWS: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/customer-reviews`,
   },
+  FAQ: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/faq`,
+  },
+  HERO_BANNERS: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/hero-banners`,
+  },
 } as const;

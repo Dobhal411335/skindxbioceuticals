@@ -1,175 +1,426 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
-  hero,
-  heroAssociateFallback,
-  heroBanners,
-  type HeroBanner,
-} from "@/data/landing";
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { FALLBACK_HERO_SLIDES } from "@/features/hero-banner/hero-banner.defaults";
+import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
+import type { StorefrontHeroSlide } from "@/types/hero-banner";
 
 type HeroSectionProps = {
-  /** Backend/CMS banners. When empty, the associate-brand fallback is shown. */
-  banners?: HeroBanner[];
+  slides?: StorefrontHeroSlide[];
 };
 
-function BackendHeroBanners({ banners }: { banners: HeroBanner[] }) {
+/** Shared frame so every layout matches in the carousel (avoids white gaps). */
+const HERO_FRAME =
+  "h-[32rem] w-full overflow-hidden sm:h-[36rem] lg:h-[40rem]";
+
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  return isMobile;
+}
+
+function HeroClickable({
+  href,
+  className,
+  children,
+  ariaLabel,
+}: {
+  href?: string;
+  className?: string;
+  children: ReactNode;
+  ariaLabel?: string;
+}) {
+  const target = href?.trim();
+  if (!target || target === "#") {
+    return <div className={className}>{children}</div>;
+  }
+
+  const isExternal = /^https?:\/\//i.test(target);
+  if (isExternal) {
+    return (
+      <a
+        href={target}
+        className={className}
+        aria-label={ariaLabel}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <div className="grid gap-0 lg:grid-cols-2">
-      {banners.map((banner) => (
-        <Link
-          key={banner.id}
-          href={banner.href}
-          className="group relative block min-h-[18rem] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <Image
-            src={banner.image}
-            alt={banner.alt}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            priority
-          />
-          <div className="absolute inset-0 bg-secondary/55" />
-          <div className="absolute inset-0 flex flex-col justify-end p-8 text-secondary-foreground">
-            <h2 className="font-display text-3xl font-semibold">{banner.title}</h2>
-            {banner.subtitle ? (
-              <p className="mt-2 max-w-md text-sm text-secondary-foreground/90">
-                {banner.subtitle}
-              </p>
-            ) : null}
-            <span className="mt-4 text-sm font-semibold underline-offset-4 group-hover:underline">
-              {banner.ctaLabel ?? "Shop now"}
-            </span>
-          </div>
-        </Link>
-      ))}
-    </div>
+    <Link href={target} className={className} aria-label={ariaLabel}>
+      {children}
+    </Link>
   );
 }
 
-function AssociateBrandFallback() {
-  const { title, body, cta, partners } = heroAssociateFallback;
+function FullWidthSlide({
+  slide,
+  priority,
+}: {
+  slide: StorefrontHeroSlide;
+  priority?: boolean;
+}) {
+  const isMobile = useIsMobileViewport();
+  const src =
+    (isMobile ? slide.mobileImageUrl : slide.desktopImageUrl) ||
+    slide.desktopImageUrl ||
+    slide.mobileImageUrl;
+
+  if (!src) return null;
 
   return (
-    <div className="border-b border-border">
-      <div className="bg-secondary text-secondary-foreground">
-        <div className="container-page grid items-center gap-10 py-12 lg:grid-cols-2 lg:gap-12 lg:py-16">
-          <div className="max-w-md">
-            <h2 className="text-3xl font-medium tracking-tight lowercase sm:text-4xl">
-              {title}
-            </h2>
-            <p className="mt-4 text-sm leading-relaxed text-secondary-foreground/90 sm:text-base">
-              {body}
-            </p>
-            <Button
-              asChild
-              size="lg"
-              className="mt-8 rounded-full border-transparent bg-[#ff6a00] px-8 text-white hover:bg-[#e55f00]"
-            >
-              <Link href={cta.href}>{cta.label}</Link>
-            </Button>
-          </div>
-
-          <div
-            className="grid grid-cols-2 overflow-hidden rounded-sm border border-white/40 bg-white"
-            role="list"
-            aria-label="Associate brands"
-          >
-            {partners.map((partner, index) => (
-              <div
-                key={partner.id}
-                role="listitem"
-                className={[
-                  "flex aspect-square flex-col items-center justify-center gap-2 bg-white p-6 text-foreground",
-                  index % 2 === 0 ? "border-r border-secondary/20" : "",
-                  index < 2 ? "border-b border-secondary/20" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                <span
-                  className="flex size-14 items-center justify-center rounded-full border border-border text-sm font-bold tracking-wide"
-                  aria-hidden
-                >
-                  {partner.mark}
-                </span>
-                <p className="text-center text-xs font-semibold tracking-wide uppercase">
-                  {partner.name}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+    <HeroClickable
+      href={slide.buttonUrl}
+      className={`relative block ${HERO_FRAME}`}
+      ariaLabel="Hero banner"
+    >
+      <Image
+        src={src}
+        alt=""
+        fill
+        className="object-cover"
+        sizes="100vw"
+        priority={priority}
+      />
+    </HeroClickable>
   );
 }
 
-function DefaultTripleHero() {
+function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
   return (
-    <div className="grid min-h-[28rem] lg:min-h-[34rem] lg:grid-cols-3">
-      <div className="relative hidden min-h-[16rem] md:block lg:min-h-0">
-        <Image
-          src={hero.leftImage.src}
-          alt={hero.leftImage.alt}
-          fill
-          className="object-cover"
-          sizes="33vw"
-          priority
-        />
-      </div>
-
-      <div className="flex flex-col items-center justify-center bg-primary px-6 py-16 text-center text-primary-foreground sm:px-10">
-        <p className="text-sm tracking-wide">{hero.eyebrow}</p>
-        <h1 className="font-display mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-          {hero.title}
-        </h1>
-        <p className="mt-4 max-w-md text-sm leading-relaxed text-primary-foreground/90 sm:text-base">
-          {hero.body}
+    <>
+      {slide.miniHeading ? (
+        <p className="text-sm tracking-wide">{slide.miniHeading}</p>
+      ) : null}
+      <h1 className="font-display mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+        {slide.mainHeading}
+      </h1>
+      {slide.description ? (
+        <p className="mt-4 max-w-md text-sm leading-relaxed opacity-90 sm:text-base">
+          {slide.description}
         </p>
-        <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-          >
-            <Link href={hero.primaryCta.href}>{hero.primaryCta.label}</Link>
-          </Button>
+      ) : null}
+      <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:flex-row sm:justify-center">
+        {slide.buttonLabel ? (
           <Button
             asChild
             variant="outline"
             size="lg"
             className="border-primary-foreground/40 bg-primary-foreground text-primary hover:bg-transparent hover:text-primary-foreground"
           >
-            <Link href={hero.secondaryCta.href}>{hero.secondaryCta.label}</Link>
+            <Link href={slide.buttonUrl}>{slide.buttonLabel}</Link>
           </Button>
+        ) : null}
+        {slide.button2Label ? (
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+          >
+            <Link href={slide.button2Url}>{slide.button2Label}</Link>
+          </Button>
+        ) : null}
+      </div>
+    </>
+  );
+}
+
+function SplitDualSlide({
+  slide,
+  priority,
+}: {
+  slide: StorefrontHeroSlide;
+  priority?: boolean;
+}) {
+  const isMobile = useIsMobileViewport();
+  const mobileSrc = slide.leftImageUrl || slide.rightImageUrl;
+
+  if (isMobile) {
+    return (
+      <div className={`relative ${HERO_FRAME}`}>
+        {mobileSrc ? (
+          <Image
+            src={mobileSrc}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority={priority}
+          />
+        ) : null}
+        <div className="absolute inset-0 bg-primary/70" />
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 py-16 text-center text-primary-foreground">
+          <SplitCopy slide={slide} />
         </div>
       </div>
+    );
+  }
 
-      <div className="relative min-h-[16rem] lg:min-h-0">
-        <Image
-          src={hero.rightImage.src}
-          alt={hero.rightImage.alt}
-          fill
-          className="object-cover"
-          sizes="(max-width: 1024px) 100vw, 33vw"
-          priority
-        />
+  return (
+    <div
+      className={`grid ${HERO_FRAME} lg:grid-cols-[minmax(0,350px)_minmax(0,1fr)_minmax(0,350px)]`}
+    >
+      <div className="relative h-full min-h-0 bg-muted">
+        {slide.leftImageUrl ? (
+          <Image
+            src={slide.leftImageUrl}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="350px"
+            priority={priority}
+          />
+        ) : null}
+      </div>
+
+      <div className="flex h-full flex-col items-center justify-center bg-primary px-6 py-12 text-center text-primary-foreground">
+        <SplitCopy slide={slide} />
+      </div>
+
+      <div className="relative h-full min-h-0 bg-muted">
+        {slide.rightImageUrl ? (
+          <Image
+            src={slide.rightImageUrl}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="350px"
+            priority={priority}
+          />
+        ) : null}
       </div>
     </div>
   );
 }
 
-export function HeroSection({ banners = heroBanners }: HeroSectionProps) {
-  const hasBannerData = banners.length > 0;
+function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
+  const images = slide.gridImages;
+  const lastRowStart = images.length - (images.length % 2 === 0 ? 2 : 1);
 
   return (
+    <div
+      className={`relative flex ${HERO_FRAME} items-center justify-center border-b border-border bg-[#1a284f] text-white`}
+    >
+      <div className="container-page flex h-full w-full flex-col items-center justify-center gap-10 py-8 lg:flex-row lg:justify-between lg:gap-16">
+        <div className="max-w-md text-center lg:text-left">
+          <h2 className="text-3xl font-medium tracking-tight lowercase sm:text-4xl">
+            {slide.mainHeading}
+          </h2>
+          {slide.description ? (
+            <p className="mt-4 text-sm leading-relaxed text-[#bccbe8] sm:text-base">
+              {slide.description}
+            </p>
+          ) : null}
+          {slide.buttonLabel ? (
+            <Button
+              asChild
+              size="lg"
+              className="mt-8 rounded-full border-transparent bg-[#ff6a00] px-8 text-white hover:bg-[#e55f00]"
+            >
+              <Link href={slide.buttonUrl}>{slide.buttonLabel}</Link>
+            </Button>
+          ) : null}
+        </div>
+
+        <div
+          className="grid grid-cols-2 gap-0"
+          role="list"
+          aria-label="Associate brands"
+        >
+          {images.map((image, index) => {
+            const isLeftCol = index % 2 === 0;
+            const isNotLastRow = index < lastRowStart;
+
+            return (
+              <div
+                key={image.id}
+                role="listitem"
+                className={[
+                  "relative h-[200px] w-[220px] overflow-hidden rounded-md",
+                  isLeftCol ? "border-r border-white/70" : "",
+                  isNotLastRow ? "border-b border-white/70" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {image.src ? (
+                  <Image
+                    src={image.src}
+                    alt={image.alt}
+                    fill
+                    className="object-contain p-4"
+                    sizes="220px"
+                  />
+                ) : (
+                  <span
+                    className="flex size-full items-center justify-center text-sm font-bold tracking-wide text-foreground"
+                    aria-hidden
+                  >
+                    {image.alt
+                      .split(" ")
+                      .map((part) => part[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase() || "SB"}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroSlideView({
+  slide,
+  priority,
+}: {
+  slide: StorefrontHeroSlide;
+  priority?: boolean;
+}) {
+  if (slide.layoutType === "FULL_WIDTH") {
+    return <FullWidthSlide slide={slide} priority={priority} />;
+  }
+  if (slide.layoutType === "SPLIT_DUAL") {
+    return <SplitDualSlide slide={slide} priority={priority} />;
+  }
+  return <MultiImageSlide slide={slide} />;
+}
+
+function HeroCarousel({ slides }: { slides: StorefrontHeroSlide[] }) {
+  const [api, setApi] = useState<CarouselApi>();
+  const [selected, setSelected] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (!api) return;
+    const onSelect = () => setSelected(api.selectedScrollSnap());
+    onSelect();
+    api.on("select", onSelect);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api]);
+
+  useCarouselAutoplay(api, {
+    enabled: slides.length > 1,
+    intervalMs: 6000,
+    paused: isPaused,
+  });
+
+  if (slides.length === 1) {
+    return <HeroSlideView slide={slides[0]!} priority />;
+  }
+
+  return (
+    <div
+      className="relative isolate"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setIsPaused(false);
+        }
+      }}
+    >
+      <Carousel
+        setApi={setApi}
+        opts={{ loop: true, align: "start" }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-0">
+          {slides.map((slide, index) => (
+            <CarouselItem
+              key={slide.id}
+              className={`pl-0 basis-full ${HERO_FRAME}`}
+            >
+              <HeroSlideView slide={slide} priority={index === 0} />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+
+      <Button
+        type="button"
+        size="icon"
+        variant="outline"
+        className="absolute top-1/2 left-2 z-50 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white sm:left-4 sm:size-14"
+        onClick={() => api?.scrollPrev()}
+        aria-label="Previous hero slide"
+      >
+        <ChevronLeft className="size-6 sm:size-7" />
+      </Button>
+      <Button
+        type="button"
+        size="icon"
+        variant="outline"
+        className="absolute top-1/2 right-2 z-50 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white sm:right-4 sm:size-14"
+        onClick={() => api?.scrollNext()}
+        aria-label="Next hero slide"
+      >
+        <ChevronRight className="size-6 sm:size-7" />
+      </Button>
+
+      <div
+        className="absolute inset-x-0 bottom-5 z-50 flex items-center justify-center gap-2.5"
+        role="tablist"
+        aria-label="Hero slides"
+      >
+        {slides.map((slide, index) => {
+          const active = selected === index;
+          return (
+            <button
+              key={slide.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              aria-label={`Go to slide ${index + 1}`}
+              className={[
+                "transition-all duration-300",
+                active
+                  ? "h-2.5 w-8 rounded-full bg-white"
+                  : "size-2.5 rounded-full bg-white/60 hover:bg-white",
+              ].join(" ")}
+              onClick={() => api?.scrollTo(index)}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function HeroSection({ slides = FALLBACK_HERO_SLIDES }: HeroSectionProps) {
+  return (
     <section aria-label="Hero" className="border-b border-border">
-      {hasBannerData ? <BackendHeroBanners banners={banners} /> : null}
-      {!hasBannerData ? <AssociateBrandFallback /> : null}
-      {!hasBannerData ? <DefaultTripleHero /> : null}
+      <HeroCarousel slides={slides.length > 0 ? slides : FALLBACK_HERO_SLIDES} />
     </section>
   );
 }

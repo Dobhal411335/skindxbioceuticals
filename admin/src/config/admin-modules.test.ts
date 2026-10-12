@@ -14,6 +14,8 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "manage-footer": endpoints.admin.footer,
   "banner-top-advertisement": endpoints.admin.topAdvertisement,
   "banner-about-us": endpoints.admin.aboutUsBanner,
+  "website-faq": endpoints.admin.faq,
+  "banner-hero": endpoints.admin.heroBanners,
 };
 
 describe("admin modules", () => {
@@ -33,6 +35,10 @@ describe("admin modules", () => {
     expect(findModuleBySlug("IN", ["manage-footer"])?.id).toBe("manage-footer");
     expect(findModuleBySlug("COM", ["manage-footer"])?.id).toBe("manage-footer");
     expect(findModuleBySlug("COM", ["banners", "about-us"])?.id).toBe("banner-about-us");
+    expect(findModuleBySlug("IN", ["banners", "hero"])?.id).toBe("banner-hero");
+    expect(findModuleBySlug("IN", ["banners", "hero"])?.status).toBe("live");
+    expect(findModuleBySlug("IN", ["website-faq"])?.id).toBe("website-faq");
+    expect(findModuleBySlug("IN", ["website-faq"])?.status).toBe("live");
   });
 
   it("maps every live module to a registered admin API endpoint", () => {

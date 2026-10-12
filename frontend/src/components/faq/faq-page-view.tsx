@@ -19,20 +19,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  faqCategories,
-  faqIntro,
-  faqTopics,
-  type FaqTopic,
-} from "@/data/faq";
+import { FALLBACK_FAQ_SECTIONS } from "@/features/faq/faq.defaults";
+import { faqIntro } from "@/data/faq";
+import type { StorefrontFaqSection } from "@/types/faq";
 
-export function FaqPageView() {
-  const [topic, setTopic] = useState<FaqTopic>("all");
+type FaqPageViewProps = {
+  sections?: StorefrontFaqSection[];
+};
+
+export function FaqPageView({ sections }: FaqPageViewProps) {
+  const categories = sections && sections.length > 0 ? sections : FALLBACK_FAQ_SECTIONS;
+  const [topic, setTopic] = useState("all");
 
   const visibleCategories = useMemo(() => {
-    if (topic === "all") return faqCategories;
-    return faqCategories.filter((category) => category.topic === topic);
-  }, [topic]);
+    if (topic === "all") return categories;
+    return categories.filter((category) => category.id === topic);
+  }, [categories, topic]);
 
   return (
     <>
@@ -61,23 +63,18 @@ export function FaqPageView() {
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.6fr)]">
           <aside className="space-y-8 lg:sticky lg:top-6 lg:self-start">
             <div>
-              <label
-                htmlFor="faq-topic"
-                className="mb-2 block text-sm font-medium"
-              >
+              <label htmlFor="faq-topic" className="mb-2 block text-sm font-medium">
                 Filter by topic:
               </label>
-              <Select
-                value={topic}
-                onValueChange={(value) => setTopic(value as FaqTopic)}
-              >
+              <Select value={topic} onValueChange={setTopic}>
                 <SelectTrigger id="faq-topic" className="w-full max-w-xs">
                   <SelectValue placeholder="All" />
                 </SelectTrigger>
                 <SelectContent>
-                  {faqTopics.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
+                  <SelectItem value="all">All</SelectItem>
+                  {categories.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -123,19 +120,24 @@ export function FaqPageView() {
                 </h2>
                 <Accordion type="single" collapsible className="mt-2">
                   {category.items.map((item) => (
-                    <AccordionItem key={item.id} value={item.id} className="border-border">
-                      <AccordionTrigger className="py-4 text-base hover:no-underline">
+                    <AccordionItem
+                      key={item.id}
+                      value={item.id}
+                      className="border border-border rounded-lg mb-3 transition-colors data-[state=open]:bg-primary/10 data-[state=open]:border-primary"
+                    >
+                      <AccordionTrigger className="py-4 text-base hover:no-underline rounded transition-colors data-[state=open]:bg-primary/10 data-[state=open]:text-black px-4">
                         <span>
-                          <span className="mr-1 font-semibold text-primary">Q:</span>
+                          <span className="mr-1 font-semibold text-black">Q:</span>
                           {item.question}
                         </span>
                       </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground">
-                        <p className="leading-relaxed">{item.answer}</p>
+                      <AccordionContent className="text-muted-foreground px-4 py-2">
+                        <p className="leading-relaxed text-black">{item.answer}</p>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
                 </Accordion>
+           
               </section>
             ))}
 
