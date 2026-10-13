@@ -91,7 +91,13 @@ function ProductListItem({
   );
 }
 
-function FeaturedHighlightCard({ product }: { product: PublicProductCard }) {
+function FeaturedHighlightCard({
+  product,
+  onQuickView,
+}: {
+  product: PublicProductCard;
+  onQuickView: (product: PublicProductCard) => void;
+}) {
   const dispatch = useAppDispatch();
   const { openCart } = useCartUi();
   const [quantity, setQuantity] = useState(1);
@@ -145,16 +151,24 @@ function FeaturedHighlightCard({ product }: { product: PublicProductCard }) {
           className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
           sizes="(max-width: 1024px) 100vw, 33vw"
         />
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 translate-y-2 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-          <Button
-            type="button"
-            className="w-full rounded-full"
-            disabled={!canAdd}
-            onClick={addToCart}
-          >
-            Add to cart
-          </Button>
-        </div>
+        <Button
+          type="button"
+          size="icon"
+          variant="secondary"
+          className={cn(
+            "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 size-11 rounded-full border-2 border-foreground/40 bg-card text-foreground shadow-sm",
+            "opacity-0 transition-opacity duration-200",
+            "group-hover:opacity-100 focus-visible:opacity-100",
+            "group-hover:bg-gray-200 hover:bg-gray-200",
+            "hover:border-foreground hover:bg-foreground hover:text-background"
+          )}
+          aria-label={`Quick look ${product.name}`}
+          onClick={() => onQuickView(product)}
+        >
+          <Eye className="size-5" />
+        </Button>
+   
+
       </div>
 
       <p className="text-center text-[11px] font-semibold tracking-wider text-primary uppercase">
@@ -232,6 +246,10 @@ export function ProductHighlightColumns({
     return null;
   }
 
+  if (featured.length === 0) {
+    return null;
+  }
+
   return (
     <section
       className="container-page section-space"
@@ -269,18 +287,20 @@ export function ProductHighlightColumns({
               </p>
             </div>
 
-            {featured.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">
-                No featured products yet.
-              </p>
-            ) : featured.length === 1 ? (
-              <FeaturedHighlightCard product={featured[0]!} />
+            {featured.length === 1 ? (
+              <FeaturedHighlightCard
+                product={featured[0]!}
+                onQuickView={setQuickProduct}
+              />
             ) : (
               <Carousel opts={{ align: "start", loop: true }} className="w-full">
                 <CarouselContent>
                   {featured.map((product) => (
                     <CarouselItem key={product.id}>
-                      <FeaturedHighlightCard product={product} />
+                      <FeaturedHighlightCard
+                        product={product}
+                        onQuickView={setQuickProduct}
+                      />
                     </CarouselItem>
                   ))}
                 </CarouselContent>

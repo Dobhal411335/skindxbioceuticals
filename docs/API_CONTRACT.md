@@ -419,9 +419,13 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 
 ### Public products (storefront)
 
-- `GET /api/v1/sites/:siteCode/products?limit=` — public list of ACTIVE products for an active site (no auth). Default `limit=15`, max `24`. Used by the landing featured rail. Each card includes: `id`, `slug`, `name`, `categoryName`, `price` (INR rupees from first active variant), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount` (mean of active editorial + approved customer reviews), `defaultVariantId`, `quantity`, and landing flags.
+- `GET /api/v1/sites/:siteCode/products` — public list of ACTIVE products for an active site (no auth). Response `data` is an array of product cards; pagination/filter metadata is returned in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
+  - Query (allowlisted): `q` (max 120), `categorySlug` (root category slug; products under that root’s active subcategories), `priceMin` / `priceMax` (first active variant price in INR rupees), `availability` (`in_stock` | `out_of_stock`), `sort` (`default` | `rating` | `price_asc` | `price_desc`), `page` (1-based, default 1), optional `offset` (preferred for infinite scroll with varying page sizes; when set, overrides `(page-1)*limit`), `limit` (default `15`, max `48`).
+  - Card fields: `id`, `slug`, `name`, `categoryName`, `price`, optional `compareAtPrice` (null when unset), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount`, `defaultVariantId`, `quantity`, and landing flags.
+  - Landing rail may call with only `limit`; shop PLP uses filters + pagination.
+- `GET /api/v1/sites/:siteCode/products/facets` — public read for shop filters: `{ categories: [{ id, name, slug, productCount, imageUrl }], price: { min, max } }`. Category image is the first ACTIVE product primary gallery image under that root (else null). Price min/max use each product’s first active variant by `createdAt` (same rule as cards).
 - `GET /api/v1/sites/:siteCode/products/highlights` — public read returning `{ recent, featured, bestSellers }` ACTIVE products flagged `isRecent` / `isFeatured` / `isBestSeller` (caps 4 / 8 / 4). Same card shape as the list endpoint.
-- `GET /api/v1/sites/:siteCode/products/:slug` — public read for an active site (no auth). Returns one ACTIVE product by site-scoped slug for the storefront PDP (`/products/[slug]`). Draft/archived products return `404`. Prefer HTTPS Cloudinary image URLs.
+- `GET /api/v1/sites/:siteCode/products/:slug` — public read for an active site (no auth). Returns one ACTIVE product by site-scoped slug for the storefront PDP (`/products/[slug]`). Draft/archived products return `404`. Prefer HTTPS Cloudinary image URLs. Static paths `/highlights` and `/facets` are registered before `/:slug`.
 
 Admin catalog create/update/PATCH under subcategory products also accept optional landing flags `isFeatured`, `isRecent`, `isBestSeller` (defaults false on create).
 

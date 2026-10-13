@@ -26,6 +26,8 @@ function makeProduct(overrides: Partial<ProductRecord> = {}): ProductRecord {
 describe('ProductService', () => {
   const listBySubcategory = jest.fn();
   const listActivePublicCards = jest.fn();
+  const listActiveCatalogCandidates = jest.fn();
+  const listPublicFacets = jest.fn();
   const listActivePublicByFlag = jest.fn();
   const findByIdForSite = jest.fn();
   const findActivePublicBySlug = jest.fn();
@@ -41,6 +43,8 @@ describe('ProductService', () => {
   const repository = {
     listBySubcategory,
     listActivePublicCards,
+    listActiveCatalogCandidates,
+    listPublicFacets,
     listActivePublicByFlag,
     findByIdForSite,
     findActivePublicBySlug,
@@ -288,6 +292,7 @@ describe('ProductService', () => {
           {
             id: 'v1',
             price: { toString: () => '1499' },
+            compareAtPrice: { toString: () => '1799' },
             inventory: { quantityOnHand: 4 },
           },
         ],
@@ -302,11 +307,139 @@ describe('ProductService', () => {
       limit: 15,
     });
 
-    expect(result).toHaveLength(1);
-    expect(result[0]?.imageUrl).toMatch(/^https:\/\//);
-    expect(result[0]?.categoryName).toBe('Serums');
-    expect(result[0]?.averageRating).toBe(5);
-    expect(result[0]?.defaultVariantId).toBe('v1');
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.imageUrl).toMatch(/^https:\/\//);
+    expect(result.items[0]?.categoryName).toBe('Serums');
+    expect(result.items[0]?.averageRating).toBe(5);
+    expect(result.items[0]?.defaultVariantId).toBe('v1');
+    expect(result.items[0]?.compareAtPrice).toBe(1799);
+    expect(result.meta).toEqual({
+      page: 1,
+      limit: 15,
+      total: 1,
+      totalPages: 1,
+    });
+  });
+
+  it('filters, sorts, and paginates catalog products', async () => {
+    listActiveCatalogCandidates.mockResolvedValue([
+      {
+        id: 'p1',
+        slug: 'cheap',
+        name: 'Cheap',
+        isFeatured: false,
+        isRecent: false,
+        isBestSeller: false,
+        subcategory: { name: 'Care' },
+        galleryImages: [],
+        variants: [
+          {
+            id: 'v1',
+            price: { toString: () => '100' },
+            compareAtPrice: null,
+            inventory: { quantityOnHand: 2 },
+          },
+        ],
+        editorialReviews: [{ rating: 3 }],
+        reviews: [],
+      },
+      {
+        id: 'p2',
+        slug: 'pricey',
+        name: 'Pricey',
+        isFeatured: false,
+        isRecent: false,
+        isBestSeller: false,
+        subcategory: { name: 'Care' },
+        galleryImages: [],
+        variants: [
+          {
+            id: 'v2',
+            price: { toString: () => '500' },
+            compareAtPrice: null,
+            inventory: { quantityOnHand: 0 },
+          },
+        ],
+        editorialReviews: [{ rating: 5 }],
+        reviews: [],
+      },
+      {
+        id: 'p3',
+        slug: 'mid',
+        name: 'Mid',
+        isFeatured: false,
+        isRecent: false,
+        isBestSeller: false,
+        subcategory: { name: 'Care' },
+        galleryImages: [],
+        variants: [
+          {
+            id: 'v3',
+            price: { toString: () => '200' },
+            compareAtPrice: null,
+            inventory: { quantityOnHand: 5 },
+          },
+        ],
+        editorialReviews: [{ rating: 4 }],
+        reviews: [],
+      },
+    ]);
+
+    const result = await service.listPublic({
+      siteId: 'site',
+      siteCode: 'IN',
+      limit: 1,
+      page: 1,
+      availability: 'in_stock',
+      priceMin: 100,
+      priceMax: 300,
+      sort: 'price_desc',
+    });
+
+    expect(result.meta.total).toBe(2);
+    expect(result.meta.totalPages).toBe(2);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.slug).toBe('mid');
+  });
+
+  it('returns public facets with category counts and price range', async () => {
+    listPublicFacets.mockResolvedValue({
+      roots: [
+        {
+          id: 'root-1',
+          name: 'Skincare',
+          slug: 'skincare',
+          children: [
+            {
+              id: 'child-1',
+              catalogProducts: [
+                {
+                  id: 'p1',
+                  galleryImages: [
+                    { imageUrl: 'http://res.cloudinary.com/demo/image/upload/a.jpg' },
+                  ],
+                },
+                { id: 'p2', galleryImages: [] },
+              ],
+            },
+          ],
+        },
+      ],
+      priceRows: [
+        { productId: 'p1', price: { toString: () => '100' } },
+        { productId: 'p1', price: { toString: () => '999' } },
+        { productId: 'p2', price: { toString: () => '250' } },
+      ],
+    });
+
+    const result = await service.getPublicFacets({
+      siteId: 'site',
+      siteCode: 'IN',
+    });
+
+    expect(result.categories[0]?.productCount).toBe(2);
+    expect(result.categories[0]?.imageUrl).toMatch(/^https:\/\//);
+    expect(result.price).toEqual({ min: 100, max: 250 });
   });
 
   it('returns highlight buckets by landing flags', async () => {

@@ -61,66 +61,10 @@ const BANNER_MODULES: AdminModuleDefinition[] = [
     ["IN", "COM"],
   ),
   shell(
-    "banner-featured-offered",
-    "banners/featured-offered",
-    "Featured Offered Banner",
-    "Manage featured offer banners for this website.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "banner-offer-details",
-    "banners/offer-details",
-    "Offer Details",
-    "Manage offer detail content associated with promotional banners.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "banner-featured-product",
-    "banners/featured-product",
-    "Manage Featured Product",
-    "Feature products in banner placements for this website.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "banner-category-advertisement",
-    "banners/category-advertisement",
-    "Category Advertisement",
-    "Manage category advertisement banners for this website.",
-    ["IN", "COM"],
-  ),
-  shell(
     "banner-popup",
     "banners/popup",
     "PopUp Banner",
     "Manage popup banners for this website.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "banner-consultancy",
-    "banners/consultancy",
-    "Consultancy Banner",
-    "Manage consultancy banners for this website.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "banner-section-1",
-    "banners/section-1",
-    "Banner Section 1st",
-    "Manage the first banner section for this website.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "banner-section-2",
-    "banners/section-2",
-    "Banner Section 2nd",
-    "Manage the second banner section for this website.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "banner-section-3",
-    "banners/section-3",
-    "Banner Section 3rd",
-    "Manage the third banner section for this website.",
     ["IN", "COM"],
   ),
 ];
@@ -167,13 +111,7 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Manage landing Insights banner cards and Q&A for the selected website.",
     ["IN", "COM"],
   ),
-  shell(
-    "create-person-profile",
-    "create-person-profile",
-    "Create Person Profile",
-    "Create and maintain person profiles used by ecommerce operations.",
-    ["IN", "COM"],
-  ),
+
   shell(
     "become-partner",
     "vendor/become-partner",
@@ -212,13 +150,6 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     ["IN", "COM"],
   ),
   shell(
-    "create-sub-menu",
-    "products/create-sub-menu",
-    "Create Sub Menu",
-    "Create product sub-menu groupings for the .in storefront.",
-    ["IN", "COM"],
-  ),
-  live(
     "manage-products-category",
     "products/manage-category",
     "Manage Products & Category",
@@ -264,12 +195,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
   ),
   ...BANNER_MODULES,
 
-  // .in — reviews, news, doctors
-  shell(
-    "create-reviews",
-    "reviews/create",
-    "Create Reviews",
-    "Create review records pending moderation for the .in storefront.",
+  live(
+    "customer-review",
+    "reviews/customer",
+    " Create Customer Review",
+    "Manage curated customer testimonials shown on the storefront home page.",
     ["IN", "COM"],
   ),
   shell(
@@ -277,13 +207,6 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "reviews/approve-reject",
     "Approve/Reject Section",
     "Approve or reject customer reviews for the .in storefront.",
-    ["IN", "COM"],
-  ),
-  live(
-    "customer-review",
-    "reviews/customer",
-    "Customer Review",
-    "Manage curated customer testimonials shown on the storefront home page.",
     ["IN", "COM"],
   ),
   shell(

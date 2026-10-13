@@ -83,7 +83,7 @@ export type PublicRelatedProduct = {
   imageUrl: string | null;
 };
 
-/** Compact storefront card for landing rail / highlight columns. */
+/** Compact storefront card for landing rail / highlight columns / shop PLP. */
 export type PublicProductCard = {
   id: string;
   siteCode: "IN" | "COM";
@@ -91,6 +91,7 @@ export type PublicProductCard = {
   name: string;
   categoryName: string | null;
   price: number;
+  compareAtPrice?: number | null;
   imageUrl: string | null;
   averageRating: number;
   reviewCount: number;
@@ -99,6 +100,53 @@ export type PublicProductCard = {
   isFeatured: boolean;
   isRecent: boolean;
   isBestSeller: boolean;
+};
+
+export type PublicProductListMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PublicProductListResult = {
+  items: PublicProductCard[];
+  meta: PublicProductListMeta;
+};
+
+export type PublicProductFacetCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  productCount: number;
+  imageUrl: string | null;
+};
+
+export type PublicProductFacets = {
+  categories: PublicProductFacetCategory[];
+  price: { min: number; max: number };
+};
+
+export type CatalogAvailability = "in_stock" | "out_of_stock";
+
+export type CatalogSort =
+  | "default"
+  | "rating"
+  | "price_asc"
+  | "price_desc";
+
+export type CatalogViewMode = "list" | 2 | 3 | 4;
+
+export type CatalogProductQuery = {
+  q?: string;
+  categorySlug?: string;
+  priceMin?: number;
+  priceMax?: number;
+  availability?: CatalogAvailability;
+  sort?: CatalogSort;
+  page?: number;
+  offset?: number;
+  limit?: number;
 };
 
 export type PublicProductHighlights = {

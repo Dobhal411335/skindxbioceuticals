@@ -101,15 +101,7 @@ function bannerChildren(siteCode: SiteCode): SidebarNavItem[] {
     leaf(siteCode, "banner-hero", "Hero Banner", "banners/hero", ImageIcon, {
       status: "active",
     }),
-    leaf(siteCode, "banner-featured-offered", "Featured Offered Banner", "banners/featured-offered", ImageIcon),
-    leaf(siteCode, "banner-offer-details", "Offer Details", "banners/offer-details", FileText),
-    leaf(siteCode, "banner-featured-product", "Manage Featured Product", "banners/featured-product", Star),
-    leaf(siteCode, "banner-category-advertisement", "Category Advertisement", "banners/category-advertisement", ImageIcon),
     leaf(siteCode, "banner-popup", "PopUp Banner", "banners/popup", ImageIcon),
-    leaf(siteCode, "banner-consultancy", "Consultancy Banner", "banners/consultancy", ImageIcon),
-    leaf(siteCode, "banner-section-1", "Banner Section 1st", "banners/section-1", ImageIcon),
-    leaf(siteCode, "banner-section-2", "Banner Section 2nd", "banners/section-2", ImageIcon),
-    leaf(siteCode, "banner-section-3", "Banner Section 3rd", "banners/section-3", ImageIcon),
   ];
 }
 
@@ -186,7 +178,6 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
             leaf(siteCode, "manage-insights", "Manage Insights", "insights", Lightbulb, {
               status: "active",
             }),
-            leaf(siteCode, "create-person-profile", "Create Person Profile", "create-person-profile", UserRoundPlus),
           ],
         },
         {
@@ -210,7 +201,6 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
             leaf(siteCode, "create-category", "Create Category", "products/create-category", FolderOpen, {
               status: "active",
             }),
-            leaf(siteCode, "create-sub-menu", "Create Sub Menu", "products/create-sub-menu", FolderOpen),
             leaf(siteCode, "manage-products-category", "Manage Products & Category", "products/manage-category", Boxes, {
               status: "active",
             }),
@@ -236,11 +226,10 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           icon: Star,
           status: "shell",
           children: [
-            leaf(siteCode, "create-reviews", "Create Reviews", "reviews/create", Star),
-            leaf(siteCode, "approve-reject-reviews", "Approve/Reject Section", "reviews/approve-reject", ClipboardList),
-            leaf(siteCode, "customer-review", "Customer Review", "reviews/customer", MessageSquare, {
+            leaf(siteCode, "customer-review", "Create Customer Review", "reviews/customer", MessageSquare, {
               status: "active",
             }),
+            leaf(siteCode, "approve-reject-reviews", "Approve/Reject Section", "reviews/approve-reject", ClipboardList),
           ],
         },
         {

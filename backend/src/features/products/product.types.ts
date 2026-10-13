@@ -47,7 +47,7 @@ export type CatalogProductDto = {
   updatedAt: string;
 };
 
-/** Compact storefront card used by landing rail / highlight columns. */
+/** Compact storefront card used by landing rail / highlight columns / shop PLP. */
 export type PublicProductCardDto = {
   id: string;
   siteCode: SiteCodeDto;
@@ -55,6 +55,7 @@ export type PublicProductCardDto = {
   name: string;
   categoryName: string | null;
   price: number;
+  compareAtPrice: number | null;
   imageUrl: string | null;
   averageRating: number;
   reviewCount: number;
@@ -63,6 +64,31 @@ export type PublicProductCardDto = {
   isFeatured: boolean;
   isRecent: boolean;
   isBestSeller: boolean;
+};
+
+export type PublicProductListMetaDto = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PublicProductListResultDto = {
+  items: PublicProductCardDto[];
+  meta: PublicProductListMetaDto;
+};
+
+export type PublicProductFacetCategoryDto = {
+  id: string;
+  name: string;
+  slug: string;
+  productCount: number;
+  imageUrl: string | null;
+};
+
+export type PublicProductFacetsDto = {
+  categories: PublicProductFacetCategoryDto[];
+  price: { min: number; max: number };
 };
 
 export type PublicProductHighlightsDto = {

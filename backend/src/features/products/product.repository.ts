@@ -52,33 +52,118 @@ export class ProductRepository {
     return rows.map(toRecord);
   }
 
+  private readonly publicCardInclude = {
+    subcategory: { select: { name: true, parentId: true, slug: true } },
+    galleryImages: {
+      orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
+      take: 1,
+    },
+    variants: {
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' as const },
+      take: 1,
+      include: { inventory: true },
+    },
+    editorialReviews: {
+      where: { active: true },
+      select: { rating: true },
+    },
+    reviews: {
+      where: { isApproved: true },
+      select: { rating: true },
+    },
+  };
+
   async listActivePublicCards(siteId: string, options: { limit: number }) {
     return prisma.product.findMany({
       where: { siteId, status: 'ACTIVE' },
       orderBy: [{ isFeatured: 'desc' }, { updatedAt: 'desc' }, { name: 'asc' }],
       take: options.limit,
-      include: {
-        subcategory: { select: { name: true } },
-        galleryImages: {
-          orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
-          take: 1,
-        },
-        variants: {
+      include: this.publicCardInclude,
+    });
+  }
+
+  /**
+   * ACTIVE products for shop PLP filtering (category + text search only at DB layer).
+   * Price / stock / sort / pagination are applied in the service against first-variant cards.
+   */
+  async listActiveCatalogCandidates(
+    siteId: string,
+    options: { categorySlug?: string; q?: string },
+  ) {
+    const q = options.q?.trim();
+    return prisma.product.findMany({
+      where: {
+        siteId,
+        status: 'ACTIVE',
+        ...(options.categorySlug
+          ? {
+              subcategory: {
+                isActive: true,
+                parent: {
+                  isActive: true,
+                  parentId: null,
+                  slug: options.categorySlug,
+                },
+              },
+            }
+          : {}),
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' as const } },
+                { productCode: { contains: q, mode: 'insensitive' as const } },
+                { slug: { contains: q, mode: 'insensitive' as const } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ isFeatured: 'desc' }, { updatedAt: 'desc' }, { name: 'asc' }],
+      include: this.publicCardInclude,
+    });
+  }
+
+  async listPublicFacets(siteId: string) {
+    const roots = await prisma.category.findMany({
+      where: { siteId, parentId: null, isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        children: {
           where: { isActive: true },
-          orderBy: { createdAt: 'asc' },
-          take: 1,
-          include: { inventory: true },
-        },
-        editorialReviews: {
-          where: { active: true },
-          select: { rating: true },
-        },
-        reviews: {
-          where: { isApproved: true },
-          select: { rating: true },
+          select: {
+            id: true,
+            catalogProducts: {
+              where: { status: 'ACTIVE' },
+              select: {
+                id: true,
+                galleryImages: {
+                  orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+                  take: 1,
+                  select: { imageUrl: true },
+                },
+              },
+            },
+          },
         },
       },
     });
+
+    const priceRows = await prisma.productVariant.findMany({
+      where: {
+        isActive: true,
+        product: { siteId, status: 'ACTIVE' },
+      },
+      orderBy: [{ productId: 'asc' }, { createdAt: 'asc' }],
+      select: {
+        price: true,
+        productId: true,
+      },
+    });
+
+    return { roots, priceRows };
   }
 
   async listActivePublicByFlag(

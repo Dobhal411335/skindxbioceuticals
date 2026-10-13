@@ -1,6 +1,7 @@
 import {
   catalogProductBodySchema,
   normalizeCatalogProductInput,
+  publicProductListQuerySchema,
   publicProductSlugParamSchema,
 } from '../product.validation';
 
@@ -65,5 +66,26 @@ describe('catalog product validation', () => {
     expect(parsed.isFeatured).toBe(true);
     expect(parsed.isRecent).toBe(true);
     expect(parsed.isBestSeller).toBe(false);
+  });
+
+  it('accepts catalog list query defaults', () => {
+    const parsed = publicProductListQuerySchema.parse({});
+    expect(parsed).toMatchObject({
+      page: 1,
+      limit: 15,
+      sort: 'default',
+    });
+  });
+
+  it('rejects catalog list query when priceMin exceeds priceMax', () => {
+    expect(() =>
+      publicProductListQuerySchema.parse({ priceMin: 200, priceMax: 100 }),
+    ).toThrow();
+  });
+
+  it('rejects unknown catalog sort values', () => {
+    expect(() =>
+      publicProductListQuerySchema.parse({ sort: 'popularity' }),
+    ).toThrow();
   });
 });

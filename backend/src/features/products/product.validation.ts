@@ -70,14 +70,52 @@ export const publicProductSiteParamSchema = z.object({
   siteCode: siteCodeSchema,
 });
 
-export const publicProductListQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(24).optional().default(15),
-});
+export const publicProductSortSchema = z.enum([
+  'default',
+  'rating',
+  'price_asc',
+  'price_desc',
+]);
+
+export const publicProductAvailabilitySchema = z.enum(['in_stock', 'out_of_stock']);
+
+export const publicProductListQuerySchema = z
+  .object({
+    q: z.string().trim().max(120).optional(),
+    categorySlug: z
+      .string()
+      .trim()
+      .max(200)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid category slug')
+      .optional(),
+    priceMin: z.coerce.number().min(0).max(1_000_000).optional(),
+    priceMax: z.coerce.number().min(0).max(1_000_000).optional(),
+    availability: publicProductAvailabilitySchema.optional(),
+    sort: publicProductSortSchema.optional().default('default'),
+    page: z.coerce.number().int().min(1).optional().default(1),
+    offset: z.coerce.number().int().min(0).max(10_000).optional(),
+    limit: z.coerce.number().int().min(1).max(48).optional().default(15),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      value.priceMin != null &&
+      value.priceMax != null &&
+      value.priceMin > value.priceMax
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'priceMin cannot be greater than priceMax',
+        path: ['priceMin'],
+      });
+    }
+  });
 
 export type CatalogProductBody = z.infer<typeof catalogProductBodySchema>;
 export type CatalogProductPatchBody = z.infer<typeof catalogProductPatchSchema>;
 export type PublicProductSlugParam = z.infer<typeof publicProductSlugParamSchema>;
 export type PublicProductListQuery = z.infer<typeof publicProductListQuerySchema>;
+export type PublicProductSort = z.infer<typeof publicProductSortSchema>;
+export type PublicProductAvailability = z.infer<typeof publicProductAvailabilitySchema>;
 
 export function normalizeCatalogProductInput(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') {

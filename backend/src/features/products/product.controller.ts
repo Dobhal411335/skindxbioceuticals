@@ -36,12 +36,36 @@ export class ProductController {
     }
 
     const query = req.query as unknown as PublicProductListQuery;
-    const data = await this.service.listPublic({
+    const result = await this.service.listPublic({
       siteId: site.id,
       siteCode,
       limit: query.limit ?? 15,
+      page: query.page ?? 1,
+      offset: query.offset,
+      q: query.q,
+      categorySlug: query.categorySlug,
+      priceMin: query.priceMin,
+      priceMax: query.priceMax,
+      availability: query.availability,
+      sort: query.sort ?? 'default',
     });
-    sendSuccess(res, data, 'Products');
+    sendSuccess(res, result.items, 'Products', 200, result.meta);
+  };
+
+  listPublicFacets = async (req: Request, res: Response): Promise<void> => {
+    const siteCode = normalizeSiteCode(req.params.siteCode);
+    const site = await prisma.site.findFirst({
+      where: { code: siteCode, isActive: true },
+    });
+    if (!site) {
+      throw new NotFoundError('Site not found');
+    }
+
+    const data = await this.service.getPublicFacets({
+      siteId: site.id,
+      siteCode,
+    });
+    sendSuccess(res, data, 'Product facets');
   };
 
   listPublicHighlights = async (req: Request, res: Response): Promise<void> => {

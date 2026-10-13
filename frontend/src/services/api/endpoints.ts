@@ -18,6 +18,8 @@ export const API_ENDPOINTS = {
     LIST: "/products",
     DETAIL: (id: string) => `/products/${id}`,
     CATEGORIES: "/products/categories",
+    PUBLIC_LIST: (siteCode: string) => `/sites/${siteCode}/products`,
+    PUBLIC_FACETS: (siteCode: string) => `/sites/${siteCode}/products/facets`,
     PUBLIC_DETAIL: (siteCode: string, slug: string) =>
       `/sites/${siteCode}/products/${encodeURIComponent(slug)}`,
   },

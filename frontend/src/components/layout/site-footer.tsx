@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +97,10 @@ export function SiteFooter() {
           .filter((item) => item.icon === "mail")
           .map((item) => item.label);
 
+  const hours = footer.contact
+    .filter((item) => item.icon === "clock")
+    .map((item) => item.label);
+
   const socialLinks = [
     { href: company.facebookLink, label: "Facebook", Icon: FacebookIcon },
     { href: company.instagramLink, label: "Instagram", Icon: InstagramIcon },
@@ -109,20 +113,20 @@ export function SiteFooter() {
 
   return (
     <footer className="mt-auto border-t border-border bg-surface">
-      <div className="container-page grid gap-10 py-12 md:grid-cols-2 lg:grid-cols-5 lg:gap-8">
+      <div className="container-page grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
         <div>
-          <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase">
-            Contact us
+          <h2 className="mb-4 text-base font-semibold text-foreground">
+            Contact Us
           </h2>
           <ul className="space-y-3 text-sm text-muted-foreground">
             {addresses.map((text) => (
-              <li key={text} className="flex items-start gap-2">
+              <li key={text} className="flex items-start gap-2.5">
                 <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
                 <span>{text}</span>
               </li>
             ))}
             {phones.map((number) => (
-              <li key={number} className="flex items-start gap-2">
+              <li key={number} className="flex items-start gap-2.5">
                 <Phone className="mt-0.5 size-4 shrink-0" aria-hidden />
                 <a
                   href={`tel:+91${String(number).replace(/\D/g, "")}`}
@@ -133,7 +137,7 @@ export function SiteFooter() {
               </li>
             ))}
             {emails.map((email) => (
-              <li key={email} className="flex items-start gap-2">
+              <li key={email} className="flex items-start gap-2.5">
                 <Mail className="mt-0.5 size-4 shrink-0" aria-hidden />
                 <a
                   href={`mailto:${email}`}
@@ -143,32 +147,21 @@ export function SiteFooter() {
                 </a>
               </li>
             ))}
+            {/* {hours.map((text) => (
+              <li key={text} className="flex items-start gap-2.5">
+                <Clock className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <span>{text}</span>
+              </li>
+            ))} */}
           </ul>
-
-          {socialLinks.length > 0 ? (
-            <div className="mt-5 flex items-center gap-3">
-              {socialLinks.map(({ href, label, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="rounded-md p-1.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <Icon className="size-5" />
-                </a>
-              ))}
-            </div>
-          ) : null}
         </div>
 
         {columns.map((column) => (
           <div key={column.title}>
-            <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase">
+            <h2 className="mb-4 text-base font-semibold text-foreground">
               {column.title}
             </h2>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2.5 text-sm">
               {column.links.map((link) => (
                 <li key={link.label}>
                   <Link
@@ -186,10 +179,10 @@ export function SiteFooter() {
 
       <Separator />
 
-      <div className="container-page grid gap-10 py-12 lg:grid-cols-3">
+      <div className="container-page grid gap-10 py-12 lg:grid-cols-[1.1fr_1.4fr_1fr] lg:items-start lg:gap-12">
         <div>
           {footerLogoSrc ? (
-            <div className="relative mb-3 h-12 w-[180px]">
+            <div className="relative mb-4 h-12 w-[180px]">
               <Image
                 src={footerLogoSrc}
                 alt={brandName}
@@ -199,39 +192,82 @@ export function SiteFooter() {
               />
             </div>
           ) : (
-            <p className="font-display text-3xl font-semibold">{brandName}</p>
+            <p className="font-display text-3xl font-semibold text-foreground">
+              {brandName}
+            </p>
           )}
-          <p className="mt-2 text-sm font-medium">{thankYou}</p>
-          <p className="mt-3 max-w-sm text-sm text-muted-foreground">
+          <p className="mt-1 text-base font-semibold text-foreground">
+            {thankYou}
+          </p>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
         </div>
 
-        <div>
-          <h2 className="text-base font-semibold">Subscribe to our newsletter</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Product updates and store news. Consent required before any live signup.
+        <div className="mx-auto w-full max-w-md text-center lg:max-w-none">
+          <h2 className="text-base font-semibold text-foreground">
+            Subscribe Our Newsletter
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Product updates and store news. Consent required before any live
+            signup.
           </p>
-          <form className="mt-4 flex flex-col gap-2 sm:flex-row" action="#" method="get">
-            <Input
-              type="email"
-              name="email"
-              placeholder="Email address"
-              aria-label="Email address"
-              className="bg-background"
-            />
-            <Button type="button" variant="secondary">
-              Subscribe
-            </Button>
+          <form
+            className="mt-5"
+            action="#"
+            method="get"
+            onSubmit={(event) => event.preventDefault()}
+          >
+            <div className="flex items-center gap-1 rounded-full border border-border bg-background p-1.5 shadow-sm">
+              <Input
+                type="email"
+                name="email"
+                placeholder="Enter Your Email"
+                aria-label="Email address"
+                className="h-10 flex-1 border-0 bg-transparent px-4 shadow-none focus-visible:border-transparent focus-visible:ring-0"
+              />
+              <Button
+                type="button"
+                size="lg"
+                className="h-10 shrink-0 rounded-full bg-foreground px-5 text-background hover:bg-foreground/90"
+              >
+                Subscribe
+              </Button>
+            </div>
           </form>
         </div>
 
-        <div className="text-sm text-muted-foreground lg:text-right">
-          <p>Payments prepared for Razorpay</p>
+        <div className="flex flex-col gap-6 lg:items-end lg:text-right">
+          {socialLinks.length > 0 ? (
+            <div>
+              <p className="text-sm font-medium text-foreground">Follow Us</p>
+              <div className="mt-3 flex items-center gap-3 lg:justify-end">
+                {socialLinks.map(({ href, label, Icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="rounded-md p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Icon className="size-5" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              We Accept Payments
+            </p>
+          </div>
         </div>
       </div>
-      <div className="flex justify-center">
-        <p className="my-5">
+
+      <div className="border-t border-gray-500">
+        <p className="container-page py-5 text-center text-sm text-black">
           © {new Date().getFullYear()} {brandName}
         </p>
       </div>

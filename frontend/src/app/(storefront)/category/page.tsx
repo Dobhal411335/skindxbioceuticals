@@ -1,16 +1,18 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 
-import { CategoryGrid } from "@/components/catalog/category-grid";
-import { getCategories } from "@/features/catalog/catalog.service";
+import { CategoryShop } from "@/components/catalog/category-shop";
+import { CatalogProductSkeleton } from "@/components/catalog/catalog-product-skeleton";
+import { getProductFacets } from "@/features/products/product.service";
 
 export const metadata: Metadata = {
-  title: "Categories | SkinDx Bioceuticals",
-  description: "Browse SkinDx Bioc product categories.",
+  title: "Category | SkinDx Bioceuticals",
+  description: "Browse SkinDx Bioc products by category, price, and availability.",
 };
 
 export default async function CategoryIndexPage() {
-  const categories = await getCategories();
+  const facets = await getProductFacets();
 
   return (
     <div className="container-page section-space">
@@ -19,14 +21,20 @@ export default async function CategoryIndexPage() {
           Home
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-foreground">Categories</span>
+        <span className="text-foreground">Category</span>
       </nav>
-      <h1 className="font-display text-3xl font-semibold tracking-tight">Categories</h1>
+      <h1 className="font-display text-3xl font-semibold tracking-tight">
+        Category
+      </h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Explore SkinDx Bioc product families by category.
+        Explore SkinDx Bioc products with filters for category, price, and stock.
       </p>
       <div className="mt-8">
-        <CategoryGrid categories={categories} />
+        <Suspense
+          fallback={<CatalogProductSkeleton viewMode={3} count={6} />}
+        >
+          <CategoryShop facets={facets} />
+        </Suspense>
       </div>
     </div>
   );

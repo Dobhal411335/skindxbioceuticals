@@ -30,6 +30,12 @@ productPublicRoutes.get(
 );
 
 productPublicRoutes.get(
+  '/facets',
+  validate({ params: publicProductSiteParamSchema }),
+  asyncHandler(productController.listPublicFacets),
+);
+
+productPublicRoutes.get(
   '/:slug',
   validate({ params: publicProductSlugParamSchema }),
   asyncHandler(productController.getPublicBySlug),

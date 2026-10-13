@@ -3,14 +3,21 @@ import type { SiteCode } from '@/types/common';
 import { ConflictError, NotFoundError } from '@/utils/AppError';
 import { categoryService, slugifyName } from '@/features/categories/category.service';
 import { productRepository } from './product.repository';
-import type { CatalogProductBody, CatalogProductPatchBody } from './product.validation';
+import type {
+  CatalogProductBody,
+  CatalogProductPatchBody,
+  PublicProductAvailability,
+  PublicProductSort,
+} from './product.validation';
 import type {
   CatalogProductDto,
   ProductRecord,
   PublicMediaRefDto,
   PublicProductCardDto,
   PublicProductDetailDto,
+  PublicProductFacetsDto,
   PublicProductHighlightsDto,
+  PublicProductListResultDto,
   PublicRelatedProductDto,
   SiteCodeDto,
 } from './product.types';
@@ -83,6 +90,7 @@ type CardSource = {
   variants: Array<{
     id: string;
     price: { toString(): string } | number;
+    compareAtPrice?: { toString(): string } | number | null;
     inventory: { quantityOnHand: number } | null;
   }>;
   editorialReviews: Array<{ rating: number }>;
@@ -107,6 +115,7 @@ export function toPublicProductCardDto(
     name: row.name,
     categoryName: row.subcategory?.name ?? null,
     price: decimalToNumber(firstVariant?.price) ?? 0,
+    compareAtPrice: decimalToNumber(firstVariant?.compareAtPrice ?? null),
     imageUrl: primaryImage ? preferHttpsUrl(primaryImage.imageUrl) : null,
     averageRating: stats.averageRating,
     reviewCount: stats.reviewCount,
@@ -116,6 +125,50 @@ export function toPublicProductCardDto(
     isRecent: row.isRecent,
     isBestSeller: row.isBestSeller,
   };
+}
+
+function matchesAvailability(
+  card: PublicProductCardDto,
+  availability: PublicProductAvailability | undefined,
+): boolean {
+  if (!availability) return true;
+  if (availability === 'in_stock') {
+    return Boolean(card.defaultVariantId) && card.quantity > 0;
+  }
+  return !card.defaultVariantId || card.quantity <= 0;
+}
+
+function matchesPriceRange(
+  card: PublicProductCardDto,
+  priceMin: number | undefined,
+  priceMax: number | undefined,
+): boolean {
+  if (priceMin != null && card.price < priceMin) return false;
+  if (priceMax != null && card.price > priceMax) return false;
+  return true;
+}
+
+function sortPublicCards(
+  cards: PublicProductCardDto[],
+  sort: PublicProductSort,
+): PublicProductCardDto[] {
+  const next = [...cards];
+  switch (sort) {
+    case 'rating':
+      return next.sort((a, b) => {
+        if (b.averageRating !== a.averageRating) {
+          return b.averageRating - a.averageRating;
+        }
+        return b.reviewCount - a.reviewCount;
+      });
+    case 'price_asc':
+      return next.sort((a, b) => a.price - b.price);
+    case 'price_desc':
+      return next.sort((a, b) => b.price - a.price);
+    case 'default':
+    default:
+      return next;
+  }
 }
 
 export class ProductService {
@@ -143,11 +196,116 @@ export class ProductService {
     siteId: string;
     siteCode: SiteCode;
     limit: number;
-  }): Promise<PublicProductCardDto[]> {
-    const rows = await this.repository.listActivePublicCards(input.siteId, {
-      limit: input.limit,
+    page?: number;
+    offset?: number;
+    q?: string;
+    categorySlug?: string;
+    priceMin?: number;
+    priceMax?: number;
+    availability?: PublicProductAvailability;
+    sort?: PublicProductSort;
+  }): Promise<PublicProductListResultDto> {
+    const page = input.page ?? 1;
+    const limit = input.limit;
+    const sort = input.sort ?? 'default';
+    const offset =
+      input.offset != null ? input.offset : Math.max(0, (page - 1) * limit);
+    const hasCatalogFilters =
+      Boolean(input.q?.trim()) ||
+      Boolean(input.categorySlug) ||
+      input.priceMin != null ||
+      input.priceMax != null ||
+      Boolean(input.availability) ||
+      sort !== 'default' ||
+      page > 1 ||
+      input.offset != null ||
+      limit !== 15;
+
+    if (!hasCatalogFilters) {
+      const rows = await this.repository.listActivePublicCards(input.siteId, {
+        limit,
+      });
+      const items = rows.map((row) => toPublicProductCardDto(row, input.siteCode));
+      return {
+        items,
+        meta: {
+          page: 1,
+          limit,
+          total: items.length,
+          totalPages: items.length > 0 ? 1 : 0,
+        },
+      };
+    }
+
+    const rows = await this.repository.listActiveCatalogCandidates(input.siteId, {
+      categorySlug: input.categorySlug,
+      q: input.q,
     });
-    return rows.map((row) => toPublicProductCardDto(row, input.siteCode));
+
+    let cards = rows.map((row) => toPublicProductCardDto(row, input.siteCode));
+    cards = cards.filter(
+      (card) =>
+        matchesPriceRange(card, input.priceMin, input.priceMax) &&
+        matchesAvailability(card, input.availability),
+    );
+    cards = sortPublicCards(cards, sort);
+
+    const total = cards.length;
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    const items = cards.slice(offset, offset + limit);
+    const resolvedPage = Math.floor(offset / limit) + 1;
+
+    return {
+      items,
+      meta: { page: resolvedPage, limit, total, totalPages },
+    };
+  }
+
+  async getPublicFacets(input: {
+    siteId: string;
+    siteCode: SiteCode;
+  }): Promise<PublicProductFacetsDto> {
+    const { roots, priceRows } = await this.repository.listPublicFacets(input.siteId);
+
+    const firstPriceByProduct = new Map<string, number>();
+    for (const row of priceRows) {
+      if (firstPriceByProduct.has(row.productId)) continue;
+      const price = decimalToNumber(row.price);
+      if (price == null) continue;
+      firstPriceByProduct.set(row.productId, price);
+    }
+
+    const prices = [...firstPriceByProduct.values()];
+    const priceMin = prices.length > 0 ? Math.min(...prices) : 0;
+    const priceMax = prices.length > 0 ? Math.max(...prices) : 0;
+
+    const categories = roots.map((root) => {
+      let productCount = 0;
+      let imageUrl: string | null = null;
+      for (const child of root.children) {
+        productCount += child.catalogProducts.length;
+        if (!imageUrl) {
+          const firstImage = child.catalogProducts.find(
+            (product) => product.galleryImages[0]?.imageUrl,
+          )?.galleryImages[0]?.imageUrl;
+          if (firstImage) {
+            imageUrl = preferHttpsUrl(firstImage);
+          }
+        }
+      }
+      return {
+        id: root.id,
+        name: root.name,
+        slug: root.slug,
+        productCount,
+        imageUrl,
+      };
+    });
+
+    return {
+      categories,
+      price: { min: priceMin, max: priceMax },
+    };
   }
 
   async listPublicHighlights(input: {

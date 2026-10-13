@@ -111,12 +111,12 @@ export function CollectionBannerSection({
       className="container-page section-space"
       aria-labelledby="collection-banner-heading"
     >
-      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16 xl:gap-20">
-        <div className="relative bg-surface p-3 sm:p-5 lg:p-6">
+      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16 overflow-hidden">
+        <div className="relative bg-surface rounded-xl border border-black">
           <Carousel
             setApi={setApi}
             opts={{ loop: items.length > 1, align: "start" }}
-            className="w-full"
+            className="w-full overflow-hidden rounded-xl"
           >
             <CarouselContent>
               {items.map((item) => (
