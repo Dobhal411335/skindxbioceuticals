@@ -12,6 +12,8 @@ import { customerReviewsRoutes } from '@/features/customer-reviews/customer-revi
 import { footerRoutes } from '@/features/footer/footer.routes';
 import { topAdvertisementRoutes } from '@/features/top-advertisement/top-advertisement.routes';
 import { aboutUsBannerRoutes } from '@/features/about-us-banner/about-us-banner.routes';
+import { promoBannerRoutes } from '@/features/promo-banner/promo-banner.routes';
+import { collectionBannerRoutes } from '@/features/collection-banner/collection-banner.routes';
 import { faqRoutes } from '@/features/faq/faq.routes';
 import { insightsRoutes } from '@/features/insights/insights.routes';
 import { heroBannerRoutes } from '@/features/hero-banner/hero-banner.routes';
@@ -50,6 +52,8 @@ router.use('/sites/:siteCode/customer-reviews', customerReviewsRoutes);
 router.use('/sites/:siteCode/footer', footerRoutes);
 router.use('/sites/:siteCode/top-advertisement', topAdvertisementRoutes);
 router.use('/sites/:siteCode/about-us-banner', aboutUsBannerRoutes);
+router.use('/sites/:siteCode/promo-banners', promoBannerRoutes);
+router.use('/sites/:siteCode/collection-banners', collectionBannerRoutes);
 router.use('/sites/:siteCode/faq', faqRoutes);
 router.use('/sites/:siteCode/insights', insightsRoutes);
 router.use('/sites/:siteCode/hero-banners', heroBannerRoutes);

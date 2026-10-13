@@ -160,6 +160,8 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/footer` | get/upsert site-scoped footer config | Admin + site access |
 | `/admin/sites/:siteCode/top-advertisement` | get/upsert site-scoped top advertisement (3 sections) | Admin + site access |
 | `/admin/sites/:siteCode/about-us-banner` | get/upsert site-scoped About Us home banner (3 sections) | Admin + site access |
+| `/admin/sites/:siteCode/promo-banners` | get/upsert site-scoped home promo banner row tiles | Admin + site access |
+| `/admin/sites/:siteCode/collection-banners` | get/upsert site-scoped post-gallery collection companion banner | Admin + site access |
 | `/admin/sites/:siteCode/faq` | get/upsert site-scoped FAQ sections and questions | Admin + site access |
 | `/admin/sites/:siteCode/insights` | get/upsert site-scoped landing insight cards and Q&A | Admin + site access |
 | `/admin/sites/:siteCode/hero-banners` | get/upsert site-scoped home hero carousel slides | Admin + site access |
@@ -313,6 +315,32 @@ Uploads use existing media APIs with `feature=blog`: `POST /api/v1/media/images`
 
 - `GET /api/v1/sites/:siteCode/blogs` — public read for an active site (no auth). Returns `{ blogs, categories }` with active blogs only. Optional `?category=`, `?limit=`, `?recent=true` (caps at 4). Used by `.in` `/blog`, landing `BlogGrid`, and sidebar recent articles (falls back to static data when the API is unavailable). Prefer HTTPS Cloudinary image URLs.
 - `GET /api/v1/sites/:siteCode/blogs/:slug` — public detail by site-scoped slug. Returns the active blog plus `related[]` cards (same category, excluding current, max 4: `name`, `imageUrl`, `publishedAt`, `createdBy`). Inactive/missing → `404`.
+
+### Admin promo banners (implemented)
+
+Site-scoped home promo banner row (image tiles with optional click URLs).
+
+- `GET /api/v1/admin/sites/:siteCode/promo-banners` — Bearer admin JWT; `requireSiteAccess`. Returns config + all items (including inactive) ordered by `sortOrder`. Empty defaults are `{ id: null, items: [] }`.
+- `PUT /api/v1/admin/sites/:siteCode/promo-banners` — replace all items for the site. Body: `items[]` with `imageUrl`, `imagePublicId`, `miniHeading`, `heading`, `buttonLabel`, `buttonUrl` (path/hash/absolute), `sortOrder?`, `active`. `siteId` from authenticated site context only. Orphaned Cloudinary `publicId`s are deleted best-effort after save.
+
+Uploads use existing media APIs with `feature=promo`: `POST /api/v1/media/images`.
+
+### Public promo banners (storefront)
+
+- `GET /api/v1/sites/:siteCode/promo-banners` — public read for an active site (no auth). Returns active items only. Used by the `.in` storefront promo banner row (3-up carousel; controls when length > 3). Falls back to static landing promos when empty/unavailable.
+
+### Admin collection banners (implemented)
+
+Site-scoped post-gallery collection companion banner: section header + titled image slides.
+
+- `GET /api/v1/admin/sites/:siteCode/collection-banners` — Bearer admin JWT; `requireSiteAccess`. Returns `sectionLabel`, `sectionHeading`, and all items (including inactive) ordered by `sortOrder`.
+- `PUT /api/v1/admin/sites/:siteCode/collection-banners` — replace section fields + items. Body: `sectionLabel`, `sectionHeading`, `items[]` with `imageUrl`, `imagePublicId`, `title` (required), `description`, `buttonUrl`, `sortOrder?`, `active`. Orphaned Cloudinary assets deleted best-effort after save.
+
+Uploads use existing media APIs with `feature=collection`: `POST /api/v1/media/images`.
+
+### Public collection banners (storefront)
+
+- `GET /api/v1/sites/:siteCode/collection-banners` — public read for an active site (no auth). Returns active items only. Used by the `.in` storefront collection section after the gallery (left image carousel synced with right title list + highlight). Empty items → section hidden.
 
 ### Admin hero banners (implemented)
 

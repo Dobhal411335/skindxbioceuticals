@@ -196,53 +196,53 @@ export function buildVariantSelectOptions(
   const variants = activeVariants(product);
 
   if (colors.length > 0 && sizes.length > 0) {
-    return variants
-      .map((variant) => {
-        const color = colors.find((item) => item.name === variant.colorLabel);
-        const size = sizes.find((item) => item.label === variant.sizeLabel);
-        if (!color || !size) return null;
-        return {
+    return variants.flatMap((variant): VariantSelectOption[] => {
+      const color = colors.find((item) => item.name === variant.colorLabel);
+      const size = sizes.find((item) => item.label === variant.sizeLabel);
+      if (!color || !size) return [];
+      return [
+        {
           value: `${color.id}::${size.id}`,
           label: `${color.name} / ${size.label} — ₹${variant.price}`,
           colorId: color.id,
           sizeId: size.id,
           price: variant.price,
           quantity: variant.quantity,
-        };
-      })
-      .filter((option): option is VariantSelectOption => option !== null);
+        },
+      ];
+    });
   }
 
   if (colors.length > 0) {
-    return variants
-      .map((variant) => {
-        const color = colors.find((item) => item.name === variant.colorLabel);
-        if (!color) return null;
-        return {
+    return variants.flatMap((variant): VariantSelectOption[] => {
+      const color = colors.find((item) => item.name === variant.colorLabel);
+      if (!color) return [];
+      return [
+        {
           value: color.id,
           label: `${color.name} — ₹${variant.price}`,
           colorId: color.id,
           price: variant.price,
           quantity: variant.quantity,
-        };
-      })
-      .filter((option): option is VariantSelectOption => option !== null);
+        },
+      ];
+    });
   }
 
   if (sizes.length > 0) {
-    return variants
-      .map((variant) => {
-        const size = sizes.find((item) => item.label === variant.sizeLabel);
-        if (!size) return null;
-        return {
+    return variants.flatMap((variant): VariantSelectOption[] => {
+      const size = sizes.find((item) => item.label === variant.sizeLabel);
+      if (!size) return [];
+      return [
+        {
           value: size.id,
           label: `${size.label} — ₹${variant.price}`,
           sizeId: size.id,
           price: variant.price,
           quantity: variant.quantity,
-        };
-      })
-      .filter((option): option is VariantSelectOption => option !== null);
+        },
+      ];
+    });
   }
 
   // No size/color options — storefront shows price only (no selector).

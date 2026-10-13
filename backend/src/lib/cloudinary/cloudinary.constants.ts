@@ -26,6 +26,8 @@ export const ALLOWED_FEATURE_FOLDERS = [
   'social',
   'about',
   'hero',
+  'promo',
+  'collection',
   'reviews',
   'insights',
   'general',

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -87,11 +87,22 @@ function NavItemRow({
   forcedOpen: boolean;
 }) {
   const pathname = usePathname();
-  const [userOpen, setUserOpen] = useState(false);
+  /** null = follow route; true/false = user override (allows closing the active section). */
+  const [manualOpen, setManualOpen] = useState<boolean | null>(null);
   const Icon = item.icon;
   const parentActive = isPathActive(pathname, item.href);
   const childActive = item.children?.some((child) => isPathActive(pathname, child.href)) ?? false;
-  const open = forcedOpen || childActive || parentActive || userOpen;
+  const autoOpen = forcedOpen || childActive || parentActive;
+  const open = manualOpen ?? autoOpen;
+
+  useEffect(() => {
+    // Reset override when the route changes so the active section can auto-expand again.
+    setManualOpen(null);
+  }, [pathname]);
+
+  const toggleOpen = () => {
+    setManualOpen(!(manualOpen ?? autoOpen));
+  };
 
   if (item.children?.length) {
     const panelId = `sidebar-panel-${item.id}`;
@@ -131,7 +142,7 @@ function NavItemRow({
                 !groupActive && "hover:bg-sidebar-accent",
                 collapsed && "justify-center px-2",
               )}
-              onClick={() => setUserOpen(!open)}
+              onClick={toggleOpen}
               aria-expanded={open}
               aria-controls={panelId}
               data-testid={`nav-group-label-${item.id}`}
@@ -150,7 +161,7 @@ function NavItemRow({
                   ? "text-sidebar-primary-foreground/80 hover:bg-white/10"
                   : "text-sidebar-muted hover:bg-sidebar-accent",
               )}
-              onClick={() => setUserOpen(!open)}
+              onClick={toggleOpen}
               aria-expanded={open}
               aria-controls={panelId}
               aria-label={`Toggle ${item.label} submenu`}

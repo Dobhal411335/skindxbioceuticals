@@ -41,6 +41,7 @@ import {
 } from "@/features/products/product-selection";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
+import { plainTextForShare, shareContent } from "@/lib/share";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatInr, cn } from "@/lib/utils";
 import { addCartItem } from "@/store/slices/cartSlice";
@@ -238,21 +239,6 @@ export function ProductPurchasePanel({
       });
     } finally {
       setWishlistPending(false);
-    }
-  }
-
-  async function shareProduct() {
-    const url = window.location.href;
-    try {
-      if (typeof navigator.share === "function") {
-        await navigator.share({ title: product.name, url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      showSuccess("Link copied.", { id: "product.share" });
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      showError("Could not share this product.", { id: "product.share.error" });
     }
   }
 
@@ -523,7 +509,16 @@ export function ProductPurchasePanel({
           size="icon-lg"
           className="size-11"
           aria-label="Share product"
-          onClick={shareProduct}
+          onClick={() =>
+            void shareContent({
+              title: product.name,
+              text:
+                plainTextForShare(product.description) || product.name,
+              url: `/products/${product.slug}`,
+              toastId: "product.share",
+              errorMessage: "Could not share this product.",
+            })
+          }
         >
           <Share2 className="size-5" />
         </Button>

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,7 +59,7 @@ export function BlogCard({ post, variant = "carousel" }: BlogCardProps) {
           {variant === "carousel" || variant === "grid" ? (
             <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium underline-offset-4 group-hover:underline">
               Read more
-              <ArrowRight className="size-3.5" aria-hidden />
+              <ArrowUpRight className="size-3.5" aria-hidden />
             </span>
           ) : null}
         </CardContent>

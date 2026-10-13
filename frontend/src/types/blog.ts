@@ -27,7 +27,13 @@ export type StorefrontBlogDetail = StorefrontBlog & {
   related: StorefrontBlogCard[];
 };
 
+export type StorefrontBlogCategory = {
+  name: string;
+  count: number;
+};
+
 export type StorefrontBlogListResult = {
   blogs: StorefrontBlog[];
-  categories: string[];
+  /** Distinct categories with active post counts for the sidebar. */
+  categories: StorefrontBlogCategory[];
 };

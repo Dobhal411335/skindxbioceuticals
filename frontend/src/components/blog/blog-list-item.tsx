@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { formatBlogDate } from "@/features/blog/blog.service";
 import type { StorefrontBlog } from "@/types/blog";
 import { cn } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
 
 type BlogListItemProps = {
   post: StorefrontBlog;
@@ -67,7 +68,7 @@ export function BlogListItem({ post, reversed = false }: BlogListItemProps) {
           </p>
         ) : null}
         <Button asChild variant="outline" className="mt-6">
-          <Link href={`/blog/${post.slug}`}>View details</Link>
+          <Link href={`/blog/${post.slug}`}>Read More <ArrowRight className="size-4" aria-hidden /></Link>
         </Button>
       </div>
     </article>

@@ -2,16 +2,22 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Quote } from "lucide-react";
 
 import { BlogSidebar } from "@/components/blog/blog-sidebar";
 import { OffersBanner } from "@/components/shared/offers-banner";
-import { Button } from "@/components/ui/button";
 import {
   formatBlogDate,
   getBlogBySlug,
   getBlogs,
   getRecentBlogs,
 } from "@/features/blog/blog.service";
+import { plainTextForShare } from "@/lib/share-text";
+
+function formatBlockquoteText(value: string): string {
+  const trimmed = value.trim().replace(/^["'“”]+|["'“”]+$/g, "");
+  return `“${trimmed}”`;
+}
 
 type BlogDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -49,14 +55,30 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
   const imageSrc =
     post.imageUrl || "https://placehold.co/1200x675/png?text=SkinDx+Blog";
+  const shareText =
+    plainTextForShare(post.description) ||
+    plainTextForShare(post.blockquote) ||
+    post.title;
 
   return (
     <>
       <article className="container-page section-space">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.6fr)]">
-          <BlogSidebar categories={list.categories} recent={recent} />
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.6fr)] lg:items-start">
+          <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto">
+            <BlogSidebar
+              categories={list.categories}
+              recent={recent}
+              share={{
+                title: post.title,
+                text: shareText,
+                url: `/blog/${post.slug}`,
+                toastId: "blog.share",
+                errorMessage: "Could not share this article.",
+              }}
+            />
+          </div>
 
-          <div>
+          <div className="min-w-0">
             <nav className="mb-4 text-sm text-muted-foreground" aria-label="Breadcrumb">
               <Link href="/" className="hover:text-foreground">
                 Home
@@ -92,8 +114,15 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             </div>
 
             {post.blockquote ? (
-              <blockquote className="mt-8 border-l-4 border-primary/40 pl-5 text-base leading-relaxed text-foreground/90 italic sm:text-lg">
-                {post.blockquote}
+              <blockquote className="mt-8 flex items-start gap-4 rounded-xl bg-muted/70 px-6 py-7 sm:gap-5 sm:px-8 sm:py-8">
+                <Quote
+                  className="mt-0.5 size-7 shrink-0 text-secondary sm:size-8"
+                  strokeWidth={2.25}
+                  aria-hidden
+                />
+                <p className="text-base leading-snug font-bold text-secondary sm:text-lg">
+                  {formatBlockquoteText(post.blockquote)}
+                </p>
               </blockquote>
             ) : null}
 

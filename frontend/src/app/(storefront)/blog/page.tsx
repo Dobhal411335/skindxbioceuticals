@@ -27,19 +27,30 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       <div className="container-page section-space">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.6fr)]">
           <div>
-            <nav className="mb-4 text-sm text-muted-foreground" aria-label="Breadcrumb">
-              <Link href="/" className="hover:text-foreground">
+            <nav className="mb-4 text-sm font-medium text-muted-foreground" aria-label="Breadcrumb">
+              <Link href="/" className="hover:text-foreground underline decoration-primary decoration-1 underline-offset-4 transition-colors">
                 Home
               </Link>
               <span className="mx-2">/</span>
               <span className="text-foreground">Blog</span>
             </nav>
-            <h1 className="text-3xl font-semibold tracking-wide uppercase">Blog</h1>
+            <h1 className="text-3xl font-semibold tracking-wide uppercase">Blogs</h1>
             <div className="mt-8">
               <BlogSidebar
                 categories={categories}
                 recent={recent}
                 activeCategory={category}
+                share={{
+                  title: category
+                    ? `${category} blogs | SkinDx Bioceuticals`
+                    : "Blog | SkinDx Bioceuticals",
+                  text: "Blog articles and updates from SkinDx Bioceuticals.",
+                  url: category
+                    ? `/blog?category=${encodeURIComponent(category)}`
+                    : "/blog",
+                  toastId: "blog.share",
+                  errorMessage: "Could not share this page.",
+                }}
               />
             </div>
           </div>

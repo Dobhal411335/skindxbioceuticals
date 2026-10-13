@@ -9,6 +9,7 @@ import { InsightsGrid } from "@/components/landing/insights-grid";
 import { InsightsQaSection } from "@/components/landing/insights-qa-section";
 import { MarqueeBanner } from "@/components/landing/marquee-banner";
 import { ProductHighlightColumns } from "@/components/landing/product-highlight-columns";
+import { CollectionBannerSection } from "@/components/landing/collection-banner-section";
 import { PromoBannerRow } from "@/components/landing/promo-banner-row";
 import { SocialPostsSection } from "@/components/landing/social-posts-section";
 import { SpecialsHeader } from "@/components/landing/specials-header";
@@ -16,11 +17,13 @@ import { StyleGallery } from "@/components/landing/style-gallery";
 import { TestimonialsGrid } from "@/components/landing/testimonials-grid";
 import { TrustBenefitsBar } from "@/components/landing/trust-benefits-bar";
 import { getAboutUsBanner } from "@/features/about-us-banner/about-us-banner.service";
+import { getCollectionBanner } from "@/features/collection-banner/collection-banner.service";
 import { getCustomerReviews } from "@/features/customer-reviews/customer-reviews.service";
 import { getLandingFaqs } from "@/features/faq/faq.service";
 import { getGalleryItems } from "@/features/gallery/gallery.service";
 import { getHeroBanners } from "@/features/hero-banner/hero-banner.service";
 import { getLandingInsights } from "@/features/insights/insights.service";
+import { getPromoBanners } from "@/features/promo-banner/promo-banner.service";
 import {
   getLandingProductHighlights,
   getLandingProducts,
@@ -38,6 +41,8 @@ export default async function HomePage() {
     heroSlides,
     landingProducts,
     productHighlights,
+    promoBanners,
+    collectionBanner,
   ] = await Promise.all([
     getSocialPosts(),
     getGalleryItems(),
@@ -48,6 +53,8 @@ export default async function HomePage() {
     getHeroBanners(),
     getLandingProducts(15),
     getLandingProductHighlights(),
+    getPromoBanners(),
+    getCollectionBanner(),
   ]);
 
   return (
@@ -61,13 +68,14 @@ export default async function HomePage() {
         textSlides={aboutUsBanner.textSlides}
       />
       <FeaturedProductRail products={landingProducts} />
-      <PromoBannerRow />
+      <PromoBannerRow items={promoBanners} />
       <ProductHighlightColumns highlights={productHighlights} />
       <TestimonialsGrid reviews={customerReviews} />
       <BlogGrid />
       <InsightsGrid insights={landingInsights} />
       <FeatureBenefitsBar />
       <StyleGallery items={galleryItems} />
+      <CollectionBannerSection banner={collectionBanner} />
       <FaqSection items={landingFaqs} />
       <SocialPostsSection posts={socialPosts} />
       <MarqueeBanner />

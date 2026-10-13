@@ -102,4 +102,16 @@ describe("AdminSidebar", () => {
     expect(screen.getByTestId("nav-active-manage-products-category")).toBeInTheDocument();
     expect(screen.getByTestId("nav-active-create-category")).toBeInTheDocument();
   });
+
+  it("allows closing the active route accordion without opening another", async () => {
+    const user = userEvent.setup();
+    render(
+      <AdminSidebar siteCode="IN" collapsed={false} onCollapsedChange={jest.fn()} />,
+    );
+
+    const group = screen.getByTestId("nav-group-manage-banners");
+    expect(group).toHaveAttribute("aria-expanded", "true");
+    await user.click(group);
+    expect(group).toHaveAttribute("aria-expanded", "false");
+  });
 });

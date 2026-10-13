@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-
-import { FadeRichBlock } from "@/components/insights/insights-qa-block";
+import { ArrowRight } from "lucide-react";
 
 import type {
   StorefrontInsightCard,
@@ -22,12 +21,14 @@ function formatInsightDate(iso: string): string {
 
 function InsightCardItem({ card }: { card: StorefrontInsightCard }) {
   const [open, setOpen] = useState(false);
-  const [fullyExpanded, setFullyExpanded] = useState(false);
   const hasImage = Boolean(card.imageUrl.trim());
+  const fullHtml =
+    card.descriptionHtml?.trim() ||
+    (card.excerpt ? `<p>${card.excerpt}</p>` : "");
 
   return (
-    <article className="flex h-full flex-col">
-      <div className="group relative aspect-[4/3] overflow-hidden bg-surface">
+    <article className="flex h-full flex-col rounded-lg border border-border overflow-hidden">
+      <div className="group relative aspect-4/3 overflow-hidden bg-surface">
         {hasImage ? (
           <Image
             src={card.imageUrl}
@@ -48,7 +49,7 @@ function InsightCardItem({ card }: { card: StorefrontInsightCard }) {
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 pt-4">
+      <div className="flex flex-1 flex-col gap-2 p-4 pt-4">
         <h3 className="font-display text-lg leading-snug font-semibold text-foreground">
           {card.name}
         </h3>
@@ -59,35 +60,35 @@ function InsightCardItem({ card }: { card: StorefrontInsightCard }) {
         {!open ? (
           <>
             {card.excerpt ? (
-              <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-1 line-clamp-3 text-justify text-sm leading-relaxed text-muted-foreground">
                 {card.excerpt}
               </p>
             ) : null}
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(true);
-                setFullyExpanded(false);
-              }}
-              className="mt-auto pt-3 text-left text-xs font-bold tracking-[0.12em] text-foreground uppercase underline decoration-primary decoration-1 underline-offset-4 transition-colors hover:text-primary"
-            >
-              Read more
-            </button>
+            {fullHtml ? (
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="mt-auto pt-3 text-left text-xs font-bold tracking-[0.12em] text-foreground uppercase underline decoration-primary decoration-1 underline-offset-4 transition-colors hover:text-primary"
+              >
+                Read more{" "}
+                <ArrowRight className="inline-block size-4" aria-hidden />
+              </button>
+            ) : null}
           </>
         ) : (
-          <FadeRichBlock
-            html={card.descriptionHtml || `<p>${card.excerpt}</p>`}
-            expanded={fullyExpanded}
-            onToggle={() => {
-              if (fullyExpanded) {
-                setOpen(false);
-                setFullyExpanded(false);
-              } else {
-                setFullyExpanded(true);
-              }
-            }}
-            className="mt-1"
-          />
+          <div className="mt-1 space-y-3">
+            <div
+              className="rich-html text-justify text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]"
+              dangerouslySetInnerHTML={{ __html: fullHtml }}
+            />
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-left text-xs font-bold tracking-[0.12em] text-foreground uppercase underline decoration-primary decoration-1 underline-offset-4 transition-colors hover:text-primary"
+            >
+              Show less
+            </button>
+          </div>
         )}
       </div>
     </article>
@@ -100,21 +101,15 @@ type InsightsGridProps = {
 
 export function InsightsGrid({ insights }: InsightsGridProps) {
   const cards = insights?.cards ?? [];
+  if (cards.length === 0)  return null;
 
   return (
     <section className="container-page section-space" aria-labelledby="insights-heading">
-
-      {cards.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Insights will appear here once published in admin.
-        </p>
-      ) : (
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((card) => (
-            <InsightCardItem key={card.id} card={card} />
-          ))}
-        </div>
-      )}
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((card) => (
+          <InsightCardItem key={card.id} card={card} />
+        ))}
+      </div>
     </section>
   );
 }

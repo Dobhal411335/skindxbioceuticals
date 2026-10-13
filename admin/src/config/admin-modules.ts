@@ -46,11 +46,11 @@ const BANNER_MODULES: AdminModuleDefinition[] = [
     "Manage the home About Us promo header, about cards carousel, and dual bottom block for this website.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "banner-promotional",
-    "banners/promotional",
-    "Promotional Banner",
-    "Manage promotional banners for this website.",
+    "banners/promo-collection",
+    "Promo & Collection Banners",
+    "Manage the home promo banner row and post-gallery collection companion banners for this website.",
     ["IN", "COM"],
   ),
   live(

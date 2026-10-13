@@ -9,6 +9,7 @@ import {
 import type {
   StorefrontBlog,
   StorefrontBlogCard,
+  StorefrontBlogCategory,
   StorefrontBlogDetail,
   StorefrontBlogListResult,
 } from "@/types/blog";
@@ -111,11 +112,46 @@ export function formatBlogDate(value: string): string {
   }).format(date);
 }
 
+export function buildBlogCategorySummaries(
+  blogs: Array<{ category: string }>,
+  categoryNames: string[],
+): StorefrontBlogCategory[] {
+  const counts = new Map<string, number>();
+  for (const blog of blogs) {
+    const name = blog.category.trim();
+    if (!name) continue;
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+
+  const names =
+    categoryNames.length > 0
+      ? categoryNames
+      : [...counts.keys()].sort((left, right) =>
+          left.localeCompare(right, undefined, { sensitivity: "base" }),
+        );
+
+  return names.map((name) => {
+    const exact = counts.get(name);
+    if (exact != null) {
+      return { name, count: exact };
+    }
+    const matched = [...counts.entries()].find(
+      ([key]) => key.toLowerCase() === name.toLowerCase(),
+    );
+    return { name, count: matched?.[1] ?? 0 };
+  });
+}
+
+type RemoteBlogList = {
+  blogs: StorefrontBlog[];
+  categories: string[];
+};
+
 async function fetchBlogList(options?: {
   category?: string;
   recent?: boolean;
   limit?: number;
-}): Promise<StorefrontBlogListResult | null> {
+}): Promise<RemoteBlogList | null> {
   const base = apiBaseUrl();
   if (!base) {
     return null;
@@ -162,7 +198,11 @@ async function fetchBlogList(options?: {
  */
 export const getBlogs = cache(
   async (category?: string): Promise<StorefrontBlogListResult> => {
-    const remote = await fetchBlogList({ category });
+    const [remote, allRemote] = await Promise.all([
+      fetchBlogList({ category }),
+      category ? fetchBlogList() : Promise.resolve(null),
+    ]);
+
     if (!remote) {
       const blogs = category
         ? FALLBACK_BLOGS.filter(
@@ -171,16 +211,22 @@ export const getBlogs = cache(
         : FALLBACK_BLOGS;
       return {
         blogs,
-        categories: FALLBACK_BLOG_CATEGORIES,
+        categories: buildBlogCategorySummaries(
+          FALLBACK_BLOGS,
+          FALLBACK_BLOG_CATEGORIES,
+        ),
       };
     }
 
+    const categoryNames =
+      remote.categories.length > 0
+        ? remote.categories
+        : FALLBACK_BLOG_CATEGORIES;
+    const blogsForCounts = allRemote?.blogs ?? remote.blogs;
+
     return {
       blogs: remote.blogs,
-      categories:
-        remote.categories.length > 0
-          ? remote.categories
-          : FALLBACK_BLOG_CATEGORIES,
+      categories: buildBlogCategorySummaries(blogsForCounts, categoryNames),
     };
   },
 );

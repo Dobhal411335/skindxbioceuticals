@@ -170,15 +170,17 @@ model Site {
   customerReviews        CustomerReview[]
   footerConfig           FooterConfig?
   topAdvertisementConfig TopAdvertisementConfig?
-  aboutUsBannerConfig    AboutUsBannerConfig?
-  faqSections            FaqSection[]
-  insightCards           InsightCard[]
-  insightQaItems         InsightQa[]
-  heroBannerSlides       HeroBannerSlide[]
-  catalogColors          CatalogColor[]
-  catalogTags            CatalogTag[]
-  coupons                Coupon[]
-  blogs                  Blog[]
+  aboutUsBannerConfig      AboutUsBannerConfig?
+  promoBannerConfig        PromoBannerConfig?
+  collectionBannerConfig   CollectionBannerConfig?
+  faqSections              FaqSection[]
+  insightCards             InsightCard[]
+  insightQaItems           InsightQa[]
+  heroBannerSlides         HeroBannerSlide[]
+  catalogColors            CatalogColor[]
+  catalogTags              CatalogTag[]
+  coupons                  Coupon[]
+  blogs                    Blog[]
 
   @@map("sites")
 }
@@ -1378,6 +1380,73 @@ model HeroBannerGridImage {
 
   @@index([slideId, order])
   @@map("hero_banner_grid_images")
+}
+
+/// Home promo banner row: image tiles with optional click URLs.
+model PromoBannerConfig {
+  id        String   @id @default(uuid()) @db.Uuid
+  siteId    String   @unique @map("site_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  site  Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  items PromoBannerItem[]
+
+  @@map("promo_banner_configs")
+}
+
+model PromoBannerItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  configId      String   @map("config_id") @db.Uuid
+  imageUrl      String   @default("") @map("image_url")
+  imagePublicId String   @default("") @map("image_public_id")
+  miniHeading   String   @default("") @map("mini_heading")
+  heading       String   @default("") @map("heading")
+  buttonLabel   String   @default("") @map("button_label")
+  buttonUrl     String   @default("") @map("button_url")
+  sortOrder     Int      @default(0) @map("sort_order")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  config PromoBannerConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId, sortOrder])
+  @@map("promo_banner_items")
+}
+
+/// Post-gallery collection companion banner: section header + titled carousel slides.
+model CollectionBannerConfig {
+  id             String   @id @default(uuid()) @db.Uuid
+  siteId         String   @unique @map("site_id") @db.Uuid
+  sectionLabel   String   @default("") @map("section_label")
+  sectionHeading String   @default("") @map("section_heading")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  site  Site                   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  items CollectionBannerItem[]
+
+  @@map("collection_banner_configs")
+}
+
+model CollectionBannerItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  configId      String   @map("config_id") @db.Uuid
+  imageUrl      String   @default("") @map("image_url")
+  imagePublicId String   @default("") @map("image_public_id")
+  title         String
+  description   String   @default("") @db.Text
+  buttonUrl     String   @default("") @map("button_url")
+  sortOrder     Int      @default(0) @map("sort_order")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  config CollectionBannerConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId, sortOrder])
+  @@map("collection_banner_items")
 }
 
 model SiteSetting {

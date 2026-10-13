@@ -126,7 +126,7 @@ export function useWishlistActions() {
       return true;
     } catch (error) {
       const apiError = toApiError(error);
-      if (apiError.status === 409) {
+      if (apiError.statusCode === 409) {
         try {
           const wishlist = await wishlistService.get();
           dispatch(setWishlistItems(wishlist.items));

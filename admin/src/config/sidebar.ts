@@ -90,7 +90,14 @@ function bannerChildren(siteCode: SiteCode): SidebarNavItem[] {
     leaf(siteCode, "banner-about-us", "About Us Banner", "banners/about-us", ImageIcon, {
       status: "active",
     }),
-    leaf(siteCode, "banner-promotional", "Promotional Banner", "banners/promotional", ImageIcon),
+    leaf(
+      siteCode,
+      "banner-promotional",
+      "Promo & Collection Banners",
+      "banners/promo-collection",
+      ImageIcon,
+      { status: "active" },
+    ),
     leaf(siteCode, "banner-hero", "Hero Banner", "banners/hero", ImageIcon, {
       status: "active",
     }),
