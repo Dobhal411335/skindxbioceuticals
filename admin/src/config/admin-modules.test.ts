@@ -13,14 +13,18 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "customer-review": endpoints.admin.customerReviews,
   "create-coupon-code": endpoints.admin.coupons,
   "manage-footer": endpoints.admin.footer,
+  "banner-popup": endpoints.admin.popupBanner,
   "banner-top-advertisement": endpoints.admin.topAdvertisement,
   "banner-about-us": endpoints.admin.aboutUsBanner,
+  "banner-promotional": endpoints.admin.promoBanners,
   "website-faq": endpoints.admin.faq,
   "manage-blog": endpoints.admin.blogs,
   "manage-insights": endpoints.admin.insights,
   "banner-hero": endpoints.admin.heroBanners,
   "create-category": endpoints.admin.categories,
   "manage-products-category": endpoints.admin.categories,
+  "create-doctor-profile": endpoints.admin.doctors,
+  "manage-doctor-page": endpoints.admin.doctorPage,
 };
 
 describe("admin modules", () => {
@@ -57,15 +61,21 @@ describe("admin modules", () => {
     expect(findModuleBySlug("IN", ["products", "manage-category"])?.id).toBe(
       "manage-products-category",
     );
-    expect(findModuleBySlug("IN", ["products", "manage-category"])?.status).toBe(
-      "live",
-    );
     expect(findModuleBySlug("IN", ["marketing", "create-coupon-code"])?.id).toBe(
       "create-coupon-code",
     );
     expect(findModuleBySlug("IN", ["marketing", "create-coupon-code"])?.status).toBe(
       "live",
     );
+    expect(findModuleBySlug("IN", ["doctors", "create-profile"])?.id).toBe(
+      "create-doctor-profile",
+    );
+    expect(findModuleBySlug("IN", ["doctors", "create-profile"])?.status).toBe("live");
+    expect(findModuleBySlug("IN", ["doctors", "manage-page"])?.id).toBe(
+      "manage-doctor-page",
+    );
+    expect(findModuleBySlug("IN", ["doctors", "manage-page"])?.status).toBe("live");
+    expect(findModuleBySlug("IN", ["doctors", "view-list"])).toBeUndefined();
   });
 
   it("maps every live module to a registered admin API endpoint", () => {

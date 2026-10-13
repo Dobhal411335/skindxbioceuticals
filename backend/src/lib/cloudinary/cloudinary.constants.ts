@@ -31,5 +31,6 @@ export const ALLOWED_FEATURE_FOLDERS = [
   'collection',
   'reviews',
   'insights',
+  'doctors',
   'general',
 ] as const;

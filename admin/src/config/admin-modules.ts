@@ -216,18 +216,18 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Publish news notices and promotions for the .in website.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "create-doctor-profile",
     "doctors/create-profile",
-    "Create Profile",
-    "Create a doctor profile for the .in website.",
+    "Create Doctor Profile",
+    "Create and manage doctor profiles shown on the doctors landing page.",
     ["IN", "COM"],
   ),
-  shell(
-    "view-doctor-profiles",
-    "doctors/view-list",
-    "View Profile List",
-    "Browse doctor profiles managed for the .in website.",
+  live(
+    "manage-doctor-page",
+    "doctors/manage-page",
+    "Manage Doctor Page",
+    "Edit the doctors landing page about section and services grid content.",
     ["IN", "COM"],
   ),
 

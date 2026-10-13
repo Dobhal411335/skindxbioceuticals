@@ -245,12 +245,26 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
         },
         {
           id: "doctors-profile",
-          label: "Create Doctor's Profile",
+          label: "Doctor's Profile",
           icon: Stethoscope,
-          status: "shell",
+          status: "active",
           children: [
-            leaf(siteCode, "create-doctor-profile", "Create Profile", "doctors/create-profile", Stethoscope),
-            leaf(siteCode, "view-doctor-profiles", "View Profile List", "doctors/view-list", Users),
+            leaf(
+              siteCode,
+              "create-doctor-profile",
+              "Create Doctor Profile",
+              "doctors/create-profile",
+              Stethoscope,
+              { status: "active" },
+            ),
+            leaf(
+              siteCode,
+              "manage-doctor-page",
+              "Manage Doctor Page",
+              "doctors/manage-page",
+              Users,
+              { status: "active" },
+            ),
           ],
         },
         {

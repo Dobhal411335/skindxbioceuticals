@@ -157,6 +157,8 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/social-posts` | CRUD site-scoped Instagram/Facebook posts | Admin + site access |
 | `/admin/sites/:siteCode/gallery` | CRUD site-scoped gallery images/videos | Admin + site access |
 | `/admin/sites/:siteCode/customer-reviews` | CRUD site-scoped curated customer testimonials | Admin + site access |
+| `/admin/sites/:siteCode/doctors` | CRUD site-scoped doctor profiles | Admin + site access |
+| `/admin/sites/:siteCode/doctor-page` | get/upsert doctors landing about + services config | Admin + site access |
 | `/admin/sites/:siteCode/footer` | get/upsert site-scoped footer config | Admin + site access |
 | `/admin/sites/:siteCode/top-advertisement` | get/upsert site-scoped top advertisement (3 sections) | Admin + site access |
 | `/admin/sites/:siteCode/popup-banner` | get/upsert site-scoped landing popup banner | Admin + site access |
@@ -238,6 +240,35 @@ Uploads use existing media APIs with `feature=reviews`: `POST /api/v1/media/imag
 ### Public customer reviews (storefront)
 
 - `GET /api/v1/sites/:siteCode/customer-reviews` — public read for an active site (no auth). Returns active reviews only, ordered for the `.in` storefront testimonials carousel.
+
+### Admin doctor profiles (implemented)
+
+Site-scoped clinician cards for the `/doctors` storefront page. Fields: `name` (normalized to `Dr. …`), `specialization`, `about`, `experienceYears`, `consultancyType` (`BY_APPOINTMENT` | `ONLINE`), `photoUrl`, `photoPublicId`, optional `active`/`order`.
+
+- `GET /api/v1/admin/sites/:siteCode/doctors` — Bearer admin JWT; `requireSiteAccess`. Returns all profiles for the site (including inactive), ordered by `order` asc then `createdAt` desc.
+- `POST /api/v1/admin/sites/:siteCode/doctors` — create. `siteId` from authenticated site context only. Prefer HTTPS photo URLs.
+- `PUT /api/v1/admin/sites/:siteCode/doctors/:doctorId` — full update within the site.
+- `PATCH /api/v1/admin/sites/:siteCode/doctors/:doctorId` — partial update of `active` and/or `order`.
+- `DELETE /api/v1/admin/sites/:siteCode/doctors/:doctorId` — delete within the site.
+
+Uploads use existing media APIs with `feature=doctors`: `POST /api/v1/media/images`.
+
+### Public doctor profiles (storefront)
+
+- `GET /api/v1/sites/:siteCode/doctors` — public read for an active site (no auth). Returns active profiles only, ordered for the `.in` storefront `/doctors` cards grid.
+
+### Admin doctor page (implemented)
+
+One upsertable doctors landing-page config per site (`DoctorPageConfig`) with about section + nested service items.
+
+- `GET /api/v1/admin/sites/:siteCode/doctor-page` — Bearer admin JWT; `requireSiteAccess`. Returns the site record or empty defaults (`id: null`) including inactive services.
+- `PUT /api/v1/admin/sites/:siteCode/doctor-page` — upsert one row per site and replace nested services. Body: `aboutHeading`, `aboutDescription`, `aboutHighlights[]` (strings), `aboutButtonLabel`, `aboutButtonUrl`, `aboutImageUrl`/`aboutImagePublicId`, optional `aboutSecondaryImageUrl`/`aboutSecondaryImagePublicId`, optional `experienceYears`, `servicesHeading`, `servicesSubheading`, `services[]` (`iconKey` from allowed Lucide set, `name`, `description`, `readMoreUrl`, `active`, optional `order`). `siteId` from authenticated site context only. Replaced Cloudinary `publicId`s are deleted best-effort.
+
+Uploads use existing media APIs with `feature=doctors`: `POST /api/v1/media/images`.
+
+### Public doctor page (storefront)
+
+- `GET /api/v1/sites/:siteCode/doctor-page` — public read for an active site (no auth). Returns active services only. Used by the `.in` storefront `/doctors` about + services sections.
 
 ### Admin footer (implemented)
 

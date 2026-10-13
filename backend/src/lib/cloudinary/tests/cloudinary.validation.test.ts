@@ -21,6 +21,14 @@ describe('Cloudinary Validation', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should allow doctors feature folder', () => {
+      const result = uploadOptionsSchema.safeParse({
+        siteCode: 'IN',
+        feature: 'doctors',
+      });
+      expect(result.success).toBe(true);
+    });
+
     it('should reject invalid siteCode', () => {
       const result = uploadOptionsSchema.safeParse({
         siteCode: 'INVALID',

@@ -144,6 +144,11 @@ enum HeroBannerLayoutType {
   MULTI_IMAGE
 }
 
+enum DoctorConsultancyType {
+  BY_APPOINTMENT
+  ONLINE
+}
+
 // =============================================================================
 // Multi-site (.in storefront + .com content/enquiry)
 // =============================================================================
@@ -182,6 +187,8 @@ model Site {
   catalogTags              CatalogTag[]
   coupons                  Coupon[]
   blogs                    Blog[]
+  doctorProfiles           DoctorProfile[]
+  doctorPageConfig         DoctorPageConfig?
 
   @@map("sites")
 }
@@ -1478,4 +1485,71 @@ model SiteSetting {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
+}
+
+/// Site-scoped doctor profiles for the doctors landing page.
+model DoctorProfile {
+  id               String                 @id @default(uuid()) @db.Uuid
+  siteId           String                 @map("site_id") @db.Uuid
+  name             String
+  specialization   String
+  about            String                 @db.Text
+  experienceYears  Int                    @map("experience_years")
+  consultancyType  DoctorConsultancyType  @map("consultancy_type")
+  photoUrl         String                 @map("photo_url")
+  photoPublicId    String                 @default("") @map("photo_public_id")
+  active           Boolean                @default(true)
+  order            Int                    @default(0)
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, order])
+  @@index([siteId, active, order])
+  @@map("doctor_profiles")
+}
+
+/// One doctors landing-page content config per site (about + services).
+model DoctorPageConfig {
+  id                      String   @id @default(uuid()) @db.Uuid
+  siteId                  String   @unique @map("site_id") @db.Uuid
+  aboutHeading            String   @default("") @map("about_heading")
+  aboutDescription        String   @default("") @map("about_description") @db.Text
+  /// JSON string array of highlight bullet labels.
+  aboutHighlights         Json     @default("[]") @map("about_highlights")
+  aboutButtonLabel        String   @default("") @map("about_button_label")
+  aboutButtonUrl          String   @default("") @map("about_button_url")
+  aboutImageUrl           String   @default("") @map("about_image_url")
+  aboutImagePublicId      String   @default("") @map("about_image_public_id")
+  aboutSecondaryImageUrl  String   @default("") @map("about_secondary_image_url")
+  aboutSecondaryImagePublicId String @default("") @map("about_secondary_image_public_id")
+  experienceYears         Int?     @map("experience_years")
+  servicesHeading         String   @default("") @map("services_heading")
+  servicesSubheading      String   @default("") @map("services_subheading") @db.Text
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  site     Site               @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  services DoctorServiceItem[]
+
+  @@map("doctor_page_configs")
+}
+
+model DoctorServiceItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  configId      String   @map("config_id") @db.Uuid
+  iconKey       String   @map("icon_key")
+  name          String
+  description   String   @db.Text
+  readMoreUrl   String   @default("") @map("read_more_url")
+  order         Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  config DoctorPageConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId, order])
+  @@map("doctor_service_items")
 }
