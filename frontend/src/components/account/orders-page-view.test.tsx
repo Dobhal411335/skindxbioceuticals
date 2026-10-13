@@ -31,7 +31,7 @@ describe("OrdersPageView", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /start shopping/i })).toHaveAttribute(
       "href",
-      "/shop",
+      "/category",
     );
   });
 

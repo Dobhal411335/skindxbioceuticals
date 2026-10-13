@@ -177,8 +177,15 @@ export class ProductEditRepository {
       }
 
       for (const [index, variant] of body.variants.entries()) {
-        const nameParts = [variant.sizeLabel, variant.colorLabel].filter(Boolean);
-        const name = nameParts.length > 0 ? nameParts.join(' / ') : `Offer ${index + 1}`;
+        const sizeLabel = variant.sizeLabel || null;
+        const colorLabel = variant.colorLabel || null;
+        const nameParts = [sizeLabel, colorLabel].filter(Boolean);
+        const name =
+          nameParts.length > 0
+            ? nameParts.join(' / ')
+            : body.variants.length === 1
+              ? 'Default'
+              : `Offer ${index + 1}`;
         const profileUrl = variant.profileImage?.url ?? null;
         const profilePublicId = variant.profileImage?.publicId ?? null;
         const subImages = (variant.subImages ?? []).map((img) => ({
@@ -194,8 +201,8 @@ export class ProductEditRepository {
               price: new Prisma.Decimal(variant.price),
               vendorPrice:
                 variant.vendorPrice == null ? null : new Prisma.Decimal(variant.vendorPrice),
-              sizeLabel: variant.sizeLabel || null,
-              colorLabel: variant.colorLabel || null,
+              sizeLabel,
+              colorLabel,
               weightGrams: variant.weightGrams ?? null,
               isActive: variant.isActive,
               profileImageUrl: profileUrl,
@@ -222,8 +229,8 @@ export class ProductEditRepository {
             price: new Prisma.Decimal(variant.price),
             vendorPrice:
               variant.vendorPrice == null ? null : new Prisma.Decimal(variant.vendorPrice),
-            sizeLabel: variant.sizeLabel || null,
-            colorLabel: variant.colorLabel || null,
+            sizeLabel,
+            colorLabel,
             weightGrams: variant.weightGrams ?? null,
             isActive: variant.isActive,
             profileImageUrl: profileUrl,

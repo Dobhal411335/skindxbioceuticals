@@ -1,5 +1,6 @@
-import { WishlistPageView } from "@/components/account/wishlist-page-view";
+import { redirect } from "next/navigation";
 
+/** Prefer the public guest-accessible wishlist route (plan §O). */
 export default function AccountWishlistPage() {
-  return <WishlistPageView />;
+  redirect("/wishlist");
 }

@@ -1,6 +1,7 @@
 import {
   catalogColorBodySchema,
   catalogTagBodySchema,
+  productColorsSectionSchema,
   productDescriptionSectionSchema,
   productEditorialReviewBodySchema,
   productGallerySectionSchema,
@@ -48,6 +49,28 @@ describe('product-edit validation', () => {
     });
     expect(parsed.variants).toHaveLength(1);
     expect(parsed.variants[0]?.price).toBe(499);
+  });
+
+  it('accepts base-price variants with empty or omitted size/color', () => {
+    const parsed = productVariantsSectionSchema.parse({
+      variants: [
+        {
+          sizeLabel: '',
+          colorLabel: '   ',
+          price: 1299,
+          quantity: 5,
+          subImages: [],
+        },
+      ],
+    });
+    expect(parsed.variants[0]?.sizeLabel).toBeNull();
+    expect(parsed.variants[0]?.colorLabel).toBeNull();
+    expect(parsed.variants[0]?.price).toBe(1299);
+  });
+
+  it('accepts empty sizes and colors section payloads', () => {
+    expect(productSizesSectionSchema.parse({ sizes: [] }).sizes).toEqual([]);
+    expect(productColorsSectionSchema.parse({ colors: [] }).colors).toEqual([]);
   });
 
   it('accepts tax percentages', () => {

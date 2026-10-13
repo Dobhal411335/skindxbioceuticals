@@ -291,11 +291,15 @@ export function ColorManagementSection({
         <Label>Product name</Label>
         <Input value={data.product.name} disabled readOnly />
       </div>
+      <p className="text-sm text-muted-foreground">
+        Colors are optional. Skip this section to sell a single base price without
+        color swatches on the storefront.
+      </p>
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-foreground">
-            Choose from Color List
+            Choose from Color List (optional)
           </h3>
           <Button
             type="button"

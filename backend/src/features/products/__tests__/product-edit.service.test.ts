@@ -45,6 +45,8 @@ function emptyEditRecord(overrides: Record<string, unknown> = {}) {
     description: null,
     status: 'ACTIVE',
     isFeatured: false,
+    isRecent: false,
+    isBestSeller: false,
     sizeChartUrl: null,
     sizeChartPublicId: null,
     bannerUrl: null,
@@ -84,6 +86,8 @@ describe('ProductEditService', () => {
       description: null,
       status: 'ACTIVE',
       isFeatured: false,
+      isRecent: false,
+      isBestSeller: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -270,6 +274,46 @@ describe('ProductEditService', () => {
     ).rejects.toBeInstanceOf(ValidationError);
 
     expect(productEditRepository.replaceVariants).not.toHaveBeenCalled();
+  });
+
+  it('accepts a base-price variant with no size or color labels', async () => {
+    productEditRepository.findEditPayload
+      .mockResolvedValueOnce(emptyEditRecord({ sizes: [], colors: [] }))
+      .mockResolvedValue(emptyEditRecord());
+    productEditRepository.replaceVariants.mockResolvedValue({ removedPublicIds: [] });
+
+    await service.updateVariants({
+      siteId: 'site',
+      siteCode: 'IN',
+      userId: 'user',
+      productId: '55555555-5555-5555-5555-555555555555',
+      body: {
+        variants: [
+          {
+            sizeLabel: null,
+            colorLabel: null,
+            price: 899,
+            quantity: 25,
+            isActive: true,
+            subImages: [],
+          },
+        ],
+      },
+    });
+
+    expect(productEditRepository.replaceVariants).toHaveBeenCalledWith(
+      '55555555-5555-5555-5555-555555555555',
+      expect.objectContaining({
+        variants: [
+          expect.objectContaining({
+            sizeLabel: null,
+            colorLabel: null,
+            price: 899,
+            quantity: 25,
+          }),
+        ],
+      }),
+    );
   });
 
   it('updates variants when size and color labels match product config', async () => {

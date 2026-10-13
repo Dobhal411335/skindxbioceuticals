@@ -105,9 +105,12 @@ All routes require `Authorization: Bearer` and `CUSTOMER` role. Ownership is alw
 - `DELETE /api/v1/me/addresses/:addressId` — delete owned address only (404 if not owned).
 - `GET /api/v1/orders?page&pageSize` — paginated orders for the authenticated customer only.
 - `GET /api/v1/orders/:orderId` — order detail with items; 404 if not owned.
-- `GET /api/v1/wishlist` — current wishlist (created if missing) with product summary fields.
+- `GET /api/v1/wishlist` — current wishlist (created if missing) with product summary fields. Response omits non-`ACTIVE` / non-`IN` leftovers.
 - `POST /api/v1/wishlist` — body `{ productId, variantId? }`; active `IN` products only; conflict if duplicate.
+- `POST /api/v1/wishlist/sync` — merge guest wishlist into the account. Body `{ items: [{ productId, variantId? }] }` (max 100). Optional `Idempotency-Key` header (union merge is naturally idempotent via unique `(wishlistId, productId)`). Returns `{ wishlist, skipped[] }` where skip reasons are `INVALID_PRODUCT` | `INACTIVE_OR_WRONG_SITE` | `INVALID_VARIANT`. Guests are not a server concept — unauthenticated callers receive `401`.
 - `DELETE /api/v1/wishlist/items/:itemId` — remove owned wishlist item only.
+
+Guest wishlist policy: `.in` storefront persists guest bags in browser `localStorage` only (product/variant IDs + optional display cache). No guest wishlist rows in PostgreSQL. After login / Google / email verify / session restore, the storefront posts `/wishlist/sync` then clears guest storage only on success.
 
 OTP policy (env): length `OTP_LENGTH` (default 6), expiry `OTP_EXPIRES_IN_MINUTES` (default 10), max attempts `OTP_MAX_ATTEMPTS` (default 5), resend cooldown `OTP_RESEND_COOLDOWN_SECONDS` (default 60). OTPs are stored hashed only.
 
@@ -324,9 +327,9 @@ Prefer focused section replaces over one giant nested PUT so saving sizes cannot
 
 - `GET /api/v1/admin/sites/:siteCode/products/:productId/edit` — load core product + all section data (sizes, colors, variants/offers, gallery, videos, description, info sections, editorial reviews, tags, highlights, tax, coupon) plus site color/tag masters and active coupon options.
 - `POST /api/v1/admin/sites/:siteCode/products/catalog-colors` — body `{ name, hex }` (`#RRGGBB`); site-scoped master color.
-- `PUT .../products/:productId/sections/sizes` — `{ sizeChartUrl?, sizeChartPublicId?, sizes[{ label, active, sortOrder? }] }`.
-- `PUT .../sections/colors` — `{ colors[{ colorId?, name, hex?, active, sortOrder? }] }` (replace-all).
-- `PUT .../sections/variants` — `{ variants[{ id?, sizeLabel?, colorLabel?, price, vendorPrice?, quantity, weightGrams?, isActive?, profileImage?, subImages[] }] }` maps to `ProductVariant` + inventory.
+- `PUT .../products/:productId/sections/sizes` — `{ sizeChartUrl?, sizeChartPublicId?, sizes[{ label, active, sortOrder? }] }` (sizes optional; empty array clears).
+- `PUT .../sections/colors` — `{ colors[{ colorId?, name, hex?, active, sortOrder? }] }` (replace-all; colors optional; empty array clears).
+- `PUT .../sections/variants` — `{ variants[{ id?, sizeLabel?, colorLabel?, price, vendorPrice?, quantity, weightGrams?, isActive?, profileImage?, subImages[] }] }` maps to `ProductVariant` + inventory. `price` is required; `sizeLabel` / `colorLabel` are optional (null/omit for a single base-price offer when the product has no sizes/colors).
 - `PUT .../sections/coupon` — `{ couponId: uuid | null }`.
 - `PUT|DELETE .../sections/tax` — PUT `{ cgst, sgst }`; DELETE clears tax.
 - `PUT .../sections/gallery` — `{ images[{ imageUrl, imagePublicId, isPrimary, sortOrder? }] }`.
@@ -353,6 +356,23 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 
 - `GET /api/v1/sites/:siteCode/categories` — public read; active root categories only (name/slug/order) for `/category` grid.
 - `GET /api/v1/sites/:siteCode/categories/:categorySlug` — public read by slug or name; returns category with active subcategories (including subcategory `bannerUrl`) and their active products for `/category/[categoryName]`.
+
+### Public products (storefront)
+
+- `GET /api/v1/sites/:siteCode/products?limit=` — public list of ACTIVE products for an active site (no auth). Default `limit=15`, max `24`. Used by the landing featured rail. Each card includes: `id`, `slug`, `name`, `categoryName`, `price` (INR rupees from first active variant), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount` (mean of active editorial + approved customer reviews), `defaultVariantId`, `quantity`, and landing flags.
+- `GET /api/v1/sites/:siteCode/products/highlights` — public read returning `{ recent, featured, bestSellers }` ACTIVE products flagged `isRecent` / `isFeatured` / `isBestSeller` (caps 4 / 8 / 4). Same card shape as the list endpoint.
+- `GET /api/v1/sites/:siteCode/products/:slug` — public read for an active site (no auth). Returns one ACTIVE product by site-scoped slug for the storefront PDP (`/products/[slug]`). Draft/archived products return `404`. Prefer HTTPS Cloudinary image URLs.
+
+Admin catalog create/update/PATCH under subcategory products also accept optional landing flags `isFeatured`, `isRecent`, `isBestSeller` (defaults false on create).
+
+Response joins PDP-related data into one payload:
+- Core: `id`, `siteCode`, `productCode`, `name`, `slug`, `description` (HTML), `isFeatured`, `isRecent`, `isBestSeller`, `subcategoryId`, optional `banner` / `sizeChart` media refs, `averageRating`, `reviewCount`
+- `gallery[]` ordered with primary first (`imageUrl`, `imagePublicId`, `isPrimary`, `sortOrder`)
+- Active `sizes[]` / `colors[]` (may be empty when the product sells a single base price)
+- Active `variants[]` with mandatory `price` (INR rupees), `quantity` (inventory on hand), optional nullable `sizeLabel` / `colorLabel` (both null = base/default offer), optional `sku` / `profileImage`
+- `videos[]`, `infoSections[]` (title + HTML body), active `editorialReviews[]`, `tags[]`, `highlights[]`
+- Optional `tax` (`cgst`/`sgst`) and linked `coupon` summary for display
+- `relatedProducts[]` — up to 4 other ACTIVE products in the same subcategory (excluding current), each with `id`, `slug`, `name`, `price`, `imageUrl`
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

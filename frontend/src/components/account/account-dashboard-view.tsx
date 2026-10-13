@@ -13,10 +13,10 @@ import { meService } from "@/features/me/me.service";
 import type { Address } from "@/features/me/me.types";
 import { orderService } from "@/features/orders/order.service";
 import type { CustomerOrderListItem } from "@/features/orders/order.types";
-import { wishlistService } from "@/features/wishlist/wishlist.service";
-import type { WishlistItem } from "@/features/wishlist/wishlist.types";
 import { useAuth } from "@/hooks/useAuth";
+import { useAppSelector } from "@/hooks/useAppSelector";
 import { toApiError } from "@/services/api/errors";
+import { selectWishlistCount } from "@/store/slices/wishlistSlice";
 
 function formatMoney(amount: string, currency: string) {
   const value = Number(amount);
@@ -31,8 +31,8 @@ function formatMoney(amount: string, currency: string) {
 
 export function AccountDashboardView() {
   const { user } = useAuth();
+  const wishlistCount = useAppSelector(selectWishlistCount);
   const [orders, setOrders] = useState<CustomerOrderListItem[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,14 +44,12 @@ export function AccountDashboardView() {
       setLoading(true);
       setError(null);
       try {
-        const [ordersResult, wishlist, addressList] = await Promise.all([
+        const [ordersResult, addressList] = await Promise.all([
           orderService.list({ page: 1, pageSize: 3 }),
-          wishlistService.get(),
           meService.listAddresses(),
         ]);
         if (cancelled) return;
         setOrders(ordersResult.orders);
-        setWishlistItems(wishlist.items);
         setAddresses(addressList);
       } catch (err) {
         if (!cancelled) {
@@ -99,8 +97,8 @@ export function AccountDashboardView() {
           },
           {
             label: "Wishlist",
-            value: loading ? null : String(wishlistItems.length),
-            href: "/account/wishlist",
+            value: String(wishlistCount),
+            href: "/wishlist",
             icon: Heart,
           },
           {
@@ -181,18 +179,16 @@ export function AccountDashboardView() {
             <CardTitle className="text-base">Wishlist summary</CardTitle>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <Skeleton className="h-14 w-full" />
-            ) : wishlistItems.length === 0 ? (
+            {wishlistCount === 0 ? (
               <p className="text-sm text-muted-foreground">Your wishlist is empty.</p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                You have {wishlistItems.length} saved{" "}
-                {wishlistItems.length === 1 ? "product" : "products"}.
+                You have {wishlistCount} saved{" "}
+                {wishlistCount === 1 ? "product" : "products"}.
               </p>
             )}
             <Button asChild variant="outline" size="sm" className="mt-3">
-              <Link href="/account/wishlist">Open wishlist</Link>
+              <Link href="/wishlist">Open wishlist</Link>
             </Button>
           </CardContent>
         </Card>

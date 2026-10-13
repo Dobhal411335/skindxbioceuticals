@@ -8,14 +8,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { CatalogProduct } from "@/data/catalog";
-import { formatPaiseToInr } from "@/lib/utils";
+import { formatInr } from "@/lib/utils";
+import type { PublicProductDetail } from "@/types/product";
 
 type ProductTrustSidebarProps = {
-  product: CatalogProduct;
+  product: PublicProductDetail;
+  sizeId?: string;
+  colorId?: string;
 };
 
-export function ProductTrustSidebar({ product }: ProductTrustSidebarProps) {
+export function ProductTrustSidebar({
+  product,
+}: ProductTrustSidebarProps) {
+  const pairsWith = product.relatedProducts[0];
   return (
     <aside className="space-y-8">
       <div>
@@ -39,12 +44,15 @@ export function ProductTrustSidebar({ product }: ProductTrustSidebarProps) {
             <AccordionTrigger className="text-sm">
               <span className="inline-flex items-center gap-2">
                 <Percent className="size-4" aria-hidden />
-                Member savings
+                {product.coupon
+                  ? `Coupon ${product.coupon.code}`
+                  : "Member savings"}
               </span>
             </AccordionTrigger>
             <AccordionContent className="text-sm text-muted-foreground">
-              Coupons and promotions are validated server-side at checkout —
-              never trust client-only discounts.
+              {product.coupon
+                ? `Display coupon ${product.coupon.code}. Coupons and promotions are validated server-side at checkout.`
+                : "Coupons and promotions are validated server-side at checkout — never trust client-only discounts."}
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="returns">
@@ -62,31 +70,51 @@ export function ProductTrustSidebar({ product }: ProductTrustSidebarProps) {
         </Accordion>
       </div>
 
-      {product.pairsWith ? (
+      {pairsWith ? (
         <div>
           <h2 className="mb-3 text-sm font-semibold tracking-wide uppercase">
             Pairs well with
           </h2>
           <Link
-            href={`/shop/${product.pairsWith.slug}`}
+            href={`/products/${pairsWith.slug}`}
             className="flex gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-surface">
-              <Image
-                src={product.pairsWith.image}
-                alt={product.pairsWith.alt}
-                fill
-                className="object-cover"
-                sizes="64px"
-              />
+              {pairsWith.imageUrl ? (
+                <Image
+                  src={pairsWith.imageUrl}
+                  alt={pairsWith.name}
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                />
+              ) : null}
             </div>
             <div>
-              <p className="text-sm font-medium">{product.pairsWith.name}</p>
+              <p className="text-sm font-medium">{pairsWith.name}</p>
               <p className="mt-1 text-sm font-semibold">
-                {formatPaiseToInr(product.pairsWith.priceInPaise)}
+                {formatInr(pairsWith.price)}
               </p>
             </div>
           </Link>
+        </div>
+      ) : null}
+
+      {product.tags.length > 0 ? (
+        <div>
+          <h2 className="mb-3 text-sm font-semibold tracking-wide uppercase">
+            Tags
+          </h2>
+          <ul className="flex flex-wrap gap-2">
+            {product.tags.map((tag) => (
+              <li
+                key={tag.id}
+                className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium"
+              >
+                {tag.name}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </aside>

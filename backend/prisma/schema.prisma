@@ -366,6 +366,8 @@ model Product {
   description       String?       @db.Text
   status            ProductStatus @default(DRAFT)
   isFeatured        Boolean       @default(false) @map("is_featured")
+  isRecent          Boolean       @default(false) @map("is_recent")
+  isBestSeller      Boolean       @default(false) @map("is_best_seller")
   sizeChartUrl      String?       @map("size_chart_url")
   sizeChartPublicId String?       @map("size_chart_public_id")
   /// Logo / banner image for the Product Gallery admin section.
@@ -398,6 +400,9 @@ model Product {
   @@index([siteId])
   @@index([subcategoryId])
   @@index([siteId, status])
+  @@index([siteId, status, isFeatured])
+  @@index([siteId, status, isRecent])
+  @@index([siteId, status, isBestSeller])
   @@map("products")
 }
 

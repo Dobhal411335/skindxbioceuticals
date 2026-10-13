@@ -26,8 +26,8 @@ export function ProductCard({ product, showDiscountBadge = true }: ProductCardPr
       <Link href={product.href} className="group block focus-visible:outline-none">
         <div className="relative aspect-square bg-surface">
           <Image
-            src={product.image}
-            alt={product.alt}
+            src={product.image || "https://placehold.co/600x400/png"}
+            alt={product.alt || "Product image"}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             sizes="(max-width: 768px) 50vw, 25vw"

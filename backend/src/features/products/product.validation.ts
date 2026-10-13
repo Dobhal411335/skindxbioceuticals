@@ -14,6 +14,9 @@ export const catalogProductBodySchema = z.object({
   name: z.string().trim().min(1, 'Product name is required').max(200),
   active: z.boolean().default(true),
   description: z.string().trim().max(5000).optional().nullable(),
+  isFeatured: z.boolean().optional().default(false),
+  isRecent: z.boolean().optional().default(false),
+  isBestSeller: z.boolean().optional().default(false),
 });
 
 export const catalogProductPatchSchema = z
@@ -27,12 +30,18 @@ export const catalogProductPatchSchema = z
       .max(80)
       .regex(/^[A-Za-z0-9._-]+$/)
       .optional(),
+    isFeatured: z.boolean().optional(),
+    isRecent: z.boolean().optional(),
+    isBestSeller: z.boolean().optional(),
   })
   .refine(
     (value) =>
       value.active !== undefined ||
       value.name !== undefined ||
-      value.productCode !== undefined,
+      value.productCode !== undefined ||
+      value.isFeatured !== undefined ||
+      value.isRecent !== undefined ||
+      value.isBestSeller !== undefined,
     { message: 'At least one field is required' },
   );
 
@@ -47,8 +56,28 @@ export const catalogProductIdParamSchema = z.object({
   productId: z.string().uuid(),
 });
 
+export const publicProductSlugParamSchema = z.object({
+  siteCode: siteCodeSchema,
+  slug: z
+    .string()
+    .trim()
+    .min(1, 'Product slug is required')
+    .max(200)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid product slug'),
+});
+
+export const publicProductSiteParamSchema = z.object({
+  siteCode: siteCodeSchema,
+});
+
+export const publicProductListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(24).optional().default(15),
+});
+
 export type CatalogProductBody = z.infer<typeof catalogProductBodySchema>;
 export type CatalogProductPatchBody = z.infer<typeof catalogProductPatchSchema>;
+export type PublicProductSlugParam = z.infer<typeof publicProductSlugParamSchema>;
+export type PublicProductListQuery = z.infer<typeof publicProductListQuerySchema>;
 
 export function normalizeCatalogProductInput(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') {
@@ -70,5 +99,8 @@ export function normalizeCatalogProductInput(raw: unknown): unknown {
       typeof payload.description === 'string'
         ? payload.description.trim()
         : payload.description,
+    isFeatured: payload.isFeatured ?? false,
+    isRecent: payload.isRecent ?? false,
+    isBestSeller: payload.isBestSeller ?? false,
   };
 }

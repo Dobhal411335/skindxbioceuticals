@@ -1,28 +1,139 @@
-export type ProductId = string;
-
-export type ProductVariant = {
-  id: string;
-  sku: string;
-  name: string;
-  priceInPaise: number;
-  compareAtPriceInPaise?: number;
-  inventoryQuantity?: number;
-  attributes?: Record<string, string>;
+export type PublicMediaRef = {
+  url: string;
+  publicId: string;
 };
 
-export type Product = {
-  id: ProductId;
-  slug: string;
-  name: string;
-  description?: string;
-  categoryIds?: string[];
-  variants?: ProductVariant[];
-  isActive?: boolean;
+export type PublicProductGalleryImage = {
+  id: string;
+  imageUrl: string;
+  imagePublicId: string;
+  isPrimary: boolean;
+  sortOrder: number;
 };
 
-export type ProductCategory = {
+export type PublicProductSize = {
+  id: string;
+  label: string;
+  sortOrder: number;
+};
+
+export type PublicProductColor = {
+  id: string;
+  name: string;
+  hex: string | null;
+  sortOrder: number;
+};
+
+export type PublicProductVariant = {
+  id: string;
+  sku: string | null;
+  name: string;
+  price: number;
+  sizeLabel: string | null;
+  colorLabel: string | null;
+  quantity: number;
+  isActive: boolean;
+  profileImage: PublicMediaRef | null;
+};
+
+export type PublicProductVideo = {
+  id: string;
+  name: string;
+  url: string;
+  description: string;
+  sortOrder: number;
+};
+
+export type PublicProductInfoSection = {
+  id: string;
+  title: string;
+  body: string;
+  sortOrder: number;
+};
+
+export type PublicProductEditorialReview = {
+  id: string;
+  createdByName: string;
+  rating: number;
+  title: string;
+  body: string;
+  imageUrl: string | null;
+  sortOrder: number;
+};
+
+export type PublicProductTag = {
+  id: string;
+  name: string;
+};
+
+export type PublicProductHighlight = {
+  id: string;
+  text: string;
+  sortOrder: number;
+};
+
+export type PublicRelatedProduct = {
   id: string;
   slug: string;
   name: string;
-  parentId?: string | null;
+  price: number;
+  imageUrl: string | null;
+};
+
+/** Compact storefront card for landing rail / highlight columns. */
+export type PublicProductCard = {
+  id: string;
+  siteCode: "IN" | "COM";
+  slug: string;
+  name: string;
+  categoryName: string | null;
+  price: number;
+  imageUrl: string | null;
+  averageRating: number;
+  reviewCount: number;
+  defaultVariantId: string | null;
+  quantity: number;
+  isFeatured: boolean;
+  isRecent: boolean;
+  isBestSeller: boolean;
+};
+
+export type PublicProductHighlights = {
+  recent: PublicProductCard[];
+  featured: PublicProductCard[];
+  bestSellers: PublicProductCard[];
+};
+
+export type PublicProductDetail = {
+  id: string;
+  siteCode: "IN" | "COM";
+  subcategoryId: string | null;
+  productCode: string;
+  name: string;
+  slug: string;
+  description: string;
+  isFeatured: boolean;
+  isRecent: boolean;
+  isBestSeller: boolean;
+  banner: PublicMediaRef | null;
+  sizeChart: PublicMediaRef | null;
+  gallery: PublicProductGalleryImage[];
+  sizes: PublicProductSize[];
+  colors: PublicProductColor[];
+  variants: PublicProductVariant[];
+  videos: PublicProductVideo[];
+  infoSections: PublicProductInfoSection[];
+  editorialReviews: PublicProductEditorialReview[];
+  tags: PublicProductTag[];
+  highlights: PublicProductHighlight[];
+  tax: { cgst: number; sgst: number } | null;
+  coupon: {
+    couponId: string;
+    code: string;
+    type: string;
+    value: number;
+  } | null;
+  relatedProducts: PublicRelatedProduct[];
+  averageRating: number;
+  reviewCount: number;
 };

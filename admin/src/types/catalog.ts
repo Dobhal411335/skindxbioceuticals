@@ -49,6 +49,8 @@ export type CatalogProductDto = {
   description: string | null;
   active: boolean;
   isFeatured: boolean;
+  isRecent: boolean;
+  isBestSeller: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -57,10 +59,16 @@ export type CatalogProductFormValues = {
   productCode: string;
   name: string;
   active: boolean;
+  isFeatured: boolean;
+  isRecent: boolean;
+  isBestSeller: boolean;
 };
 
 export type CatalogProductPayload = {
   productCode: string;
   name: string;
   active: boolean;
+  isFeatured: boolean;
+  isRecent: boolean;
+  isBestSeller: boolean;
 };

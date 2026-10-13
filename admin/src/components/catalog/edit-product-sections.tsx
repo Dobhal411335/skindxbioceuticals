@@ -247,6 +247,10 @@ export function SizeManagementSection({
   return (
     <div className="space-y-6">
       <ProductNameField name={data.product.name} />
+      <p className="text-sm text-muted-foreground">
+        Sizes are optional. Skip this section to sell a single base price without
+        size options on the storefront.
+      </p>
       <div className="space-y-2">
         <Label>Size chart image</Label>
         <div className="flex flex-wrap items-center gap-3">
@@ -278,7 +282,7 @@ export function SizeManagementSection({
       </div>
 
       <div className="space-y-3">
-        <Label>Sizes</Label>
+        <Label>Sizes (optional)</Label>
         <div
           role="tablist"
           aria-label="Size input mode"
@@ -625,9 +629,16 @@ export function QuantityManagementSection({
           ) : null}
         </div>
 
+        {!hasSizeOptions && !hasColorOptions ? (
+          <p className="text-xs text-muted-foreground">
+            No sizes or colors configured — save a single base price and quantity.
+            Size and color remain optional.
+          </p>
+        ) : null}
+
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-1">
-            <Label htmlFor="offer-size">Size</Label>
+            <Label htmlFor="offer-size">Size (optional)</Label>
             <Select
               key={`offer-size-${draftEpoch}`}
               value={draft.sizeLabel || undefined}
@@ -638,8 +649,8 @@ export function QuantityManagementSection({
                 <SelectValue
                   placeholder={
                     hasSizeOptions
-                      ? "Select size"
-                      : "No sizes configured"
+                      ? "Select size (optional)"
+                      : "No sizes — base offer"
                   }
                 />
               </SelectTrigger>
@@ -653,13 +664,13 @@ export function QuantityManagementSection({
             </Select>
             {!hasSizeOptions ? (
               <p className="text-xs text-muted-foreground">
-                Configure sizes in Size Management first.
+                Optional. Add sizes in Size Management if this product needs them.
               </p>
             ) : null}
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="offer-color">Color</Label>
+            <Label htmlFor="offer-color">Color (optional)</Label>
             <Select
               key={`offer-color-${draftEpoch}`}
               value={draft.colorLabel || undefined}
@@ -670,8 +681,8 @@ export function QuantityManagementSection({
                 <SelectValue
                   placeholder={
                     hasColorOptions
-                      ? "Select color"
-                      : "No colors configured"
+                      ? "Select color (optional)"
+                      : "No colors — base offer"
                   }
                 />
               </SelectTrigger>
@@ -685,13 +696,13 @@ export function QuantityManagementSection({
             </Select>
             {!hasColorOptions ? (
               <p className="text-xs text-muted-foreground">
-                Configure colors in Color Management first.
+                Optional. Add colors in Color Management if this product needs them.
               </p>
             ) : null}
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="offer-price">Price (INR)</Label>
+            <Label htmlFor="offer-price">Price (INR) *</Label>
             <Input
               id="offer-price"
               type="number"

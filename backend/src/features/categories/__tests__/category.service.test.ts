@@ -253,6 +253,8 @@ describe('CategoryService', () => {
         description: null,
         status: 'ACTIVE',
         isFeatured: false,
+        isRecent: false,
+        isBestSeller: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       },

@@ -15,6 +15,8 @@ function makeProduct(overrides: Partial<ProductRecord> = {}): ProductRecord {
     description: null,
     status: 'ACTIVE',
     isFeatured: false,
+    isRecent: false,
+    isBestSeller: false,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
     ...overrides,
@@ -23,7 +25,11 @@ function makeProduct(overrides: Partial<ProductRecord> = {}): ProductRecord {
 
 describe('ProductService', () => {
   const listBySubcategory = jest.fn();
+  const listActivePublicCards = jest.fn();
+  const listActivePublicByFlag = jest.fn();
   const findByIdForSite = jest.fn();
+  const findActivePublicBySlug = jest.fn();
+  const listRelatedActive = jest.fn();
   const productCodeExists = jest.fn();
   const slugExists = jest.fn();
   const create = jest.fn();
@@ -34,7 +40,11 @@ describe('ProductService', () => {
 
   const repository = {
     listBySubcategory,
+    listActivePublicCards,
+    listActivePublicByFlag,
     findByIdForSite,
+    findActivePublicBySlug,
+    listRelatedActive,
     productCodeExists,
     slugExists,
     create,
@@ -119,6 +129,9 @@ describe('ProductService', () => {
         productCode: 'VC-01',
         name: 'Vitamin C Serum',
         active: true,
+        isFeatured: false,
+        isRecent: false,
+        isBestSeller: false,
       },
     });
 
@@ -142,7 +155,14 @@ describe('ProductService', () => {
         siteCode: 'IN',
         userId: 'user-1',
         subcategoryId: '33333333-3333-3333-3333-333333333333',
-        body: { productCode: 'VC-01', name: 'Dup', active: true },
+        body: {
+          productCode: 'VC-01',
+          name: 'Dup',
+          active: true,
+          isFeatured: false,
+          isRecent: false,
+          isBestSeller: false,
+        },
       }),
     ).rejects.toBeInstanceOf(ConflictError);
   });
@@ -174,6 +194,164 @@ describe('ProductService', () => {
         userId: 'user-1',
         subcategoryId: '33333333-3333-3333-3333-333333333333',
         productId: '55555555-5555-5555-5555-555555555555',
+      }),
+    ).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('returns a public product detail payload with related products', async () => {
+    const product = makeProduct();
+    findActivePublicBySlug.mockResolvedValue({
+      ...product,
+      bannerUrl: 'http://res.cloudinary.com/demo/image/upload/banner.jpg',
+      bannerPublicId: 'banner',
+      sizeChartUrl: null,
+      sizeChartPublicId: null,
+      sizes: [{ id: 's1', label: '30 ml', sortOrder: 0, active: true }],
+      colors: [{ id: 'c1', name: 'Clear', hex: '#ffffff', sortOrder: 0, active: true }],
+      galleryImages: [
+        {
+          id: 'g1',
+          imageUrl: 'https://res.cloudinary.com/demo/image/upload/a.jpg',
+          imagePublicId: 'a',
+          isPrimary: true,
+          sortOrder: 0,
+        },
+      ],
+      videos: [],
+      infoSections: [{ id: 'i1', title: 'Ingredients', body: '<p>Water</p>', sortOrder: 0 }],
+      editorialReviews: [{ rating: 5 }],
+      reviews: [{ rating: 3 }],
+      highlights: [{ id: 'h1', text: 'Lightweight', sortOrder: 0 }],
+      tax: { cgst: { toString: () => '9' }, sgst: { toString: () => '9' } },
+      coupon: null,
+      tags: [{ tag: { id: 't1', name: 'Serum' } }],
+      variants: [
+        {
+          id: 'v1',
+          sku: null,
+          name: '30 ml / Clear',
+          price: { toString: () => '1499' },
+          sizeLabel: '30 ml',
+          colorLabel: 'Clear',
+          profileImageUrl: null,
+          profileImagePublicId: null,
+          isActive: true,
+          inventory: { quantityOnHand: 7 },
+        },
+      ],
+    });
+    listRelatedActive.mockResolvedValue([
+      {
+        id: '66666666-6666-6666-6666-666666666666',
+        slug: 'hydra-cream',
+        name: 'Hydra Cream',
+        galleryImages: [
+          { imageUrl: 'https://res.cloudinary.com/demo/image/upload/b.jpg' },
+        ],
+        variants: [{ price: { toString: () => '999' } }],
+      },
+    ]);
+
+    const result = await service.getPublicBySlug({
+      siteId: product.siteId,
+      siteCode: 'IN',
+      slug: product.slug,
+    });
+
+    expect(result.slug).toBe('vitamin-c-serum');
+    expect(result.banner?.url).toMatch(/^https:\/\//);
+    expect(result.variants[0]?.quantity).toBe(7);
+    expect(result.variants[0]?.price).toBe(1499);
+    expect(result.infoSections[0]?.title).toBe('Ingredients');
+    expect(result.relatedProducts).toHaveLength(1);
+    expect(result.relatedProducts[0]?.slug).toBe('hydra-cream');
+    expect(result.averageRating).toBe(4);
+    expect(result.reviewCount).toBe(2);
+  });
+
+  it('lists public product cards for the landing rail', async () => {
+    listActivePublicCards.mockResolvedValue([
+      {
+        id: '55555555-5555-5555-5555-555555555555',
+        slug: 'vitamin-c-serum',
+        name: 'Vitamin C Serum',
+        isFeatured: true,
+        isRecent: false,
+        isBestSeller: false,
+        subcategory: { name: 'Serums' },
+        galleryImages: [
+          { imageUrl: 'http://res.cloudinary.com/demo/image/upload/a.jpg' },
+        ],
+        variants: [
+          {
+            id: 'v1',
+            price: { toString: () => '1499' },
+            inventory: { quantityOnHand: 4 },
+          },
+        ],
+        editorialReviews: [{ rating: 5 }],
+        reviews: [],
+      },
+    ]);
+
+    const result = await service.listPublic({
+      siteId: 'site',
+      siteCode: 'IN',
+      limit: 15,
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.imageUrl).toMatch(/^https:\/\//);
+    expect(result[0]?.categoryName).toBe('Serums');
+    expect(result[0]?.averageRating).toBe(5);
+    expect(result[0]?.defaultVariantId).toBe('v1');
+  });
+
+  it('returns highlight buckets by landing flags', async () => {
+    listActivePublicByFlag.mockImplementation(
+      async (
+        _siteId: string,
+        flag: 'isRecent' | 'isFeatured' | 'isBestSeller',
+      ) => {
+        if (flag === 'isFeatured') {
+          return [
+            {
+              id: 'f1',
+              slug: 'featured',
+              name: 'Featured',
+              isFeatured: true,
+              isRecent: false,
+              isBestSeller: false,
+              subcategory: { name: 'Care' },
+              galleryImages: [],
+              variants: [],
+              editorialReviews: [],
+              reviews: [],
+            },
+          ];
+        }
+        return [];
+      },
+    );
+
+    const result = await service.listPublicHighlights({
+      siteId: 'site',
+      siteCode: 'IN',
+    });
+
+    expect(result.featured).toHaveLength(1);
+    expect(result.recent).toEqual([]);
+    expect(result.bestSellers).toEqual([]);
+  });
+
+  it('throws when public product slug is missing or inactive', async () => {
+    findActivePublicBySlug.mockResolvedValue(null);
+
+    await expect(
+      service.getPublicBySlug({
+        siteId: 'site',
+        siteCode: 'IN',
+        slug: 'missing',
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
   });

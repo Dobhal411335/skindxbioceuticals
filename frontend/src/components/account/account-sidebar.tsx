@@ -20,6 +20,8 @@ import { authService } from "@/features/auth/auth.service";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAuth } from "@/hooks/useAuth";
 import { clearCredentials } from "@/store/slices/authSlice";
+import { clearCart } from "@/store/slices/cartSlice";
+import { clearWishlist } from "@/store/slices/wishlistSlice";
 import { cn } from "@/lib/utils";
 
 function SidebarNav({
@@ -44,6 +46,8 @@ function SidebarNav({
     try {
       await authService.logout();
       dispatch(clearCredentials());
+      dispatch(clearCart());
+      dispatch(clearWishlist());
       onNavigate?.();
       router.push("/");
     } finally {

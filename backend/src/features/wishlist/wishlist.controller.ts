@@ -2,7 +2,11 @@ import type { Request, Response } from 'express';
 import { UnauthorizedError } from '@/utils/AppError';
 import { sendCreated, sendNoContent, sendSuccess } from '@/utils/apiResponse';
 import { wishlistService } from './wishlist.service';
-import type { AddWishlistItemInput, WishlistItemIdParam } from './wishlist.validation';
+import type {
+  AddWishlistItemInput,
+  SyncWishlistInput,
+  WishlistItemIdParam,
+} from './wishlist.validation';
 
 /**
  * Wishlist controller - HTTP concerns only (req/res/status).
@@ -34,6 +38,17 @@ export class WishlistController {
     const params = req.params as unknown as WishlistItemIdParam;
     await this.service.removeItem(req.user.id, params.itemId);
     sendNoContent(res);
+  };
+
+  sync = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new UnauthorizedError();
+    }
+    // Idempotency-Key is optional; wishlist union merge is naturally idempotent.
+    void req.header('Idempotency-Key');
+    const body = req.body as SyncWishlistInput;
+    const data = await this.service.syncWishlist(req.user.id, body);
+    sendSuccess(res, data, 'Wishlist synced');
   };
 }
 

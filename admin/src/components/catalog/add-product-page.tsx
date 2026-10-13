@@ -47,6 +47,7 @@ import {
   patchSubcategoryProduct,
   updateSubcategoryProduct,
 } from "@/services/api/catalog";
+import { storefrontBaseUrl } from "@/config/env";
 import { ApiError } from "@/services/api/errors";
 import { showError, showSuccess } from "@/lib/toast";
 import type { SiteCode } from "@/types/auth";
@@ -61,11 +62,16 @@ function createEmptyValues(): CatalogProductFormValues {
     productCode: "",
     name: "",
     active: true,
+    isFeatured: false,
+    isRecent: false,
+    isBestSeller: false,
   };
 }
 
-function storefrontProductUrl(slug: string): string {
-  return `/shop/${slug}`;
+/** Absolute public PDP URL for the given site (production/storefront origin). */
+function storefrontProductUrl(siteCode: SiteCode, slug: string): string {
+  const base = storefrontBaseUrl(siteCode);
+  return `${base}/products/${encodeURIComponent(slug)}`;
 }
 
 export function AddProductPage({
@@ -170,8 +176,25 @@ export function AddProductPage({
     }
   };
 
+  const handleToggleFlag = async (
+    product: CatalogProductDto,
+    flag: "isFeatured" | "isRecent" | "isBestSeller",
+  ) => {
+    try {
+      await patchSubcategoryProduct(siteCode, subcategoryId, product.id, {
+        [flag]: !product[flag],
+      });
+      showSuccess("Landing flag updated");
+      await load();
+    } catch (error) {
+      showError(
+        error instanceof ApiError ? error.message : "Failed to update landing flag",
+      );
+    }
+  };
+
   const handleCopyUrl = async (product: CatalogProductDto) => {
-    const url = storefrontProductUrl(product.slug);
+    const url = storefrontProductUrl(siteCode, product.slug);
     try {
       await navigator.clipboard.writeText(url);
       showSuccess("Product URL copied");
@@ -186,6 +209,9 @@ export function AddProductPage({
       productCode: product.productCode,
       name: product.name,
       active: product.active,
+      isFeatured: product.isFeatured,
+      isRecent: product.isRecent,
+      isBestSeller: product.isBestSeller,
     });
     setErrors({});
     setPendingDelete(null);
@@ -251,65 +277,94 @@ export function AddProductPage({
               </CardTitle>
             </div>
             <CardDescription>
-              Add the product code and name for {subcategoryLabel}.
+              Add the product code, name, and optional landing flags for{" "}
+              {subcategoryLabel}.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <form
-              onSubmit={handleSubmit}
-              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto]"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="product-code">Product code</Label>
-                <Input
-                  id="product-code"
-                  value={values.productCode}
-                  onChange={(event) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      productCode: event.target.value,
-                    }))
-                  }
-                  placeholder="e.g. VC-01"
-                />
-                {errors.productCode ? (
-                  <p className="text-sm text-destructive">{errors.productCode}</p>
-                ) : null}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="product-name">Product name</Label>
-                <Input
-                  id="product-name"
-                  value={values.name}
-                  onChange={(event) =>
-                    setValues((prev) => ({ ...prev, name: event.target.value }))
-                  }
-                  placeholder="e.g. Vitamin C Serum"
-                />
-                {errors.name ? (
-                  <p className="text-sm text-destructive">{errors.name}</p>
-                ) : null}
-              </div>
-              <div className="flex items-end gap-2 pb-0.5">
-                <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
-                  <Switch
-                    checked={values.active}
-                    onCheckedChange={(checked) =>
-                      setValues((prev) => ({ ...prev, active: checked }))
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto]">
+                <div className="space-y-2">
+                  <Label htmlFor="product-code">Product code</Label>
+                  <Input
+                    id="product-code"
+                    value={values.productCode}
+                    onChange={(event) =>
+                      setValues((prev) => ({
+                        ...prev,
+                        productCode: event.target.value,
+                      }))
                     }
+                    placeholder="e.g. VC-01"
                   />
-                  <span className="text-sm">Active</span>
+                  {errors.productCode ? (
+                    <p className="text-sm text-destructive">{errors.productCode}</p>
+                  ) : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="product-name">Product name</Label>
+                  <Input
+                    id="product-name"
+                    value={values.name}
+                    onChange={(event) =>
+                      setValues((prev) => ({ ...prev, name: event.target.value }))
+                    }
+                    placeholder="e.g. Vitamin C Serum"
+                  />
+                  {errors.name ? (
+                    <p className="text-sm text-destructive">{errors.name}</p>
+                  ) : null}
+                </div>
+                <div className="flex items-end gap-2 pb-0.5">
+                  <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+                    <Switch
+                      checked={values.active}
+                      onCheckedChange={(checked) =>
+                        setValues((prev) => ({ ...prev, active: checked }))
+                      }
+                    />
+                    <span className="text-sm">Active</span>
+                  </div>
+                </div>
+                <div className="flex items-end gap-2">
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Saving…" : "Save"}
+                  </Button>
+                  {editingId ? (
+                    <Button type="button" variant="ghost" onClick={resetForm}>
+                      Cancel
+                    </Button>
+                  ) : null}
                 </div>
               </div>
-              <div className="flex items-end gap-2">
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Saving…" : "Save"}
-                </Button>
-                {editingId ? (
-                  <Button type="button" variant="ghost" onClick={resetForm}>
-                    Cancel
-                  </Button>
-                ) : null}
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+                  <Switch
+                    checked={values.isRecent}
+                    onCheckedChange={(checked) =>
+                      setValues((prev) => ({ ...prev, isRecent: checked }))
+                    }
+                  />
+                  <span className="text-sm">Recent</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+                  <Switch
+                    checked={values.isFeatured}
+                    onCheckedChange={(checked) =>
+                      setValues((prev) => ({ ...prev, isFeatured: checked }))
+                    }
+                  />
+                  <span className="text-sm">Featured</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+                  <Switch
+                    checked={values.isBestSeller}
+                    onCheckedChange={(checked) =>
+                      setValues((prev) => ({ ...prev, isBestSeller: checked }))
+                    }
+                  />
+                  <span className="text-sm">Best seller</span>
+                </div>
               </div>
             </form>
           </CardContent>
@@ -319,8 +374,8 @@ export function AddProductPage({
           <CardHeader className="border-b border-border/70">
             <CardTitle className="text-lg font-semibold">Products</CardTitle>
             <CardDescription>
-              Edit name, open full product details, copy URL, delete, or toggle
-              active status.
+              Edit name, toggle landing flags, open full product details, copy
+              URL, delete, or toggle active status.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
@@ -333,12 +388,15 @@ export function AddProductPage({
                 No products in this subcategory yet.
               </p>
             ) : (
-              <Table className="min-w-[720px]">
+              <Table className="min-w-[960px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product name</TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Active</TableHead>
+                    <TableHead>Recent</TableHead>
+                    <TableHead>Featured</TableHead>
+                    <TableHead>Best seller</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -353,7 +411,34 @@ export function AddProductPage({
                         <Switch
                           checked={product.active}
                           onCheckedChange={() => void handleToggleActive(product)}
-                          aria-label={`Toggle ${product.name}`}
+                          aria-label={`Toggle active for ${product.name}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={product.isRecent}
+                          onCheckedChange={() =>
+                            void handleToggleFlag(product, "isRecent")
+                          }
+                          aria-label={`Toggle recent for ${product.name}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={product.isFeatured}
+                          onCheckedChange={() =>
+                            void handleToggleFlag(product, "isFeatured")
+                          }
+                          aria-label={`Toggle featured for ${product.name}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={product.isBestSeller}
+                          onCheckedChange={() =>
+                            void handleToggleFlag(product, "isBestSeller")
+                          }
+                          aria-label={`Toggle best seller for ${product.name}`}
                         />
                       </TableCell>
                       <TableCell className="text-right">

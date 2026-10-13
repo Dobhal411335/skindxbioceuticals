@@ -8,21 +8,44 @@ import { Plus } from "lucide-react";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { CatalogProduct } from "@/data/catalog";
+import {
+  primaryImageUrl,
+  rupeesToPaise,
+} from "@/features/products/product-selection";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { formatPaiseToInr } from "@/lib/utils";
+import { showError, showSuccess } from "@/lib/toast";
+import { formatInr } from "@/lib/utils";
 import { addCartItem } from "@/store/slices/cartSlice";
+import type { PublicProductDetail, PublicRelatedProduct } from "@/types/product";
 
 type FrequentlyBoughtProps = {
-  product: CatalogProduct;
+  product: PublicProductDetail;
 };
 
+type BundleItem = PublicRelatedProduct & { isCurrent?: boolean };
+
 export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
-  const bundle = useMemo(() => product.bundle ?? [], [product.bundle]);
+  const related = product.relatedProducts.slice(0, 4);
+  const currentPrice = product.variants[0]?.price ?? 0;
+  const bundle: BundleItem[] = useMemo(
+    () => [
+      {
+        id: product.id,
+        slug: product.slug,
+        name: product.name,
+        price: currentPrice,
+        imageUrl: primaryImageUrl(product) || null,
+        isCurrent: true,
+      },
+      ...related,
+    ],
+    [product, related, currentPrice],
+  );
+
   const dispatch = useAppDispatch();
   const { openCart } = useCartUi();
   const [selected, setSelected] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries((product.bundle ?? []).map((item) => [item.id, true])),
+    Object.fromEntries(bundle.map((item) => [item.id, true])),
   );
 
   const selectedItems = useMemo(
@@ -30,28 +53,50 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
     [bundle, selected],
   );
 
-  const total = selectedItems.reduce((sum, item) => sum + item.priceInPaise, 0);
-  const compare = Math.round(total * 1.1);
+  const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
 
   function addAll() {
-    selectedItems.forEach((item) => {
-      dispatch(
-        addCartItem({
-          productId: item.id,
-          variantId: "bundle",
-          slug: item.slug,
-          name: item.name,
-          image: item.image,
-          alt: item.alt,
-          unitPriceInPaise: item.priceInPaise,
-          quantity: 1,
-        }),
-      );
-    });
-    openCart();
+    try {
+      selectedItems.forEach((item) => {
+        if (item.isCurrent) {
+          const variant = product.variants[0];
+          if (!variant || variant.quantity <= 0) return;
+          dispatch(
+            addCartItem({
+              productId: product.id,
+              variantId: variant.id,
+              slug: product.slug,
+              name: product.name,
+              image: primaryImageUrl(product),
+              alt: product.name,
+              unitPriceInPaise: rupeesToPaise(variant.price),
+              quantity: 1,
+            }),
+          );
+          return;
+        }
+
+        dispatch(
+          addCartItem({
+            productId: item.id,
+            variantId: "related",
+            slug: item.slug,
+            name: item.name,
+            image: item.imageUrl ?? "",
+            alt: item.name,
+            unitPriceInPaise: rupeesToPaise(item.price),
+            quantity: 1,
+          }),
+        );
+      });
+      showSuccess("Added selected items to cart.", { id: "cart.add.bundle" });
+      openCart();
+    } catch {
+      showError("Could not add items to cart.", { id: "cart.add.error" });
+    }
   }
 
-  if (bundle.length === 0) return null;
+  if (related.length === 0) return null;
 
   return (
     <section className="border-y border-border bg-surface/60">
@@ -66,7 +111,7 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
                 {index > 0 ? (
                   <Plus className="size-4 text-muted-foreground" aria-hidden />
                 ) : null}
-                <article className="w-40 rounded-lg border border-border bg-background p-3">
+                <article className="w-52 rounded-lg border border-border bg-background p-4 sm:w-56">
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <Checkbox
                       checked={selected[item.id] ?? false}
@@ -79,24 +124,28 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
                       aria-label={`Include ${item.name}`}
                     />
                   </div>
-                  <Link href={`/shop/${item.slug}`} className="block">
-                    <div className="relative mb-2 aspect-square overflow-hidden rounded-md bg-surface">
-                      <Image
-                        src={item.image}
-                        alt={item.alt}
-                        fill
-                        className="object-cover"
-                        sizes="160px"
-                      />
+                  <Link href={`/products/${item.slug}`} className="block">
+                    <div className="relative mb-3 aspect-square overflow-hidden rounded-md bg-surface">
+                      {item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          sizes="224px"
+                        />
+                      ) : null}
                     </div>
-                    <p className="line-clamp-2 text-xs font-medium">{item.name}</p>
+                    <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
                     <p className="mt-1 text-sm font-semibold">
-                      {formatPaiseToInr(item.priceInPaise)}
+                      {formatInr(item.price)}
                     </p>
                   </Link>
-                  <Button asChild variant="outline" size="sm" className="mt-2 w-full">
-                    <Link href={`/shop/${item.slug}`}>Choose options</Link>
-                  </Button>
+                  {!item.isCurrent ? (
+                    <Button asChild variant="outline" size="sm" className="mt-2 w-full">
+                      <Link href={`/products/${item.slug}`}>Choose options</Link>
+                    </Button>
+                  ) : null}
                 </article>
               </div>
             ))}
@@ -104,14 +153,7 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
 
           <div className="rounded-lg border border-border bg-background p-5">
             <p className="text-sm text-muted-foreground">Price total</p>
-            <p className="mt-1">
-              <span className="text-muted-foreground line-through">
-                {formatPaiseToInr(compare)}
-              </span>{" "}
-              <span className="text-lg font-semibold text-destructive">
-                {formatPaiseToInr(total)}
-              </span>
-            </p>
+            <p className="mt-1 text-lg font-semibold">{formatInr(total)}</p>
             <Button
               type="button"
               className="mt-4 w-full"
@@ -120,10 +162,6 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
             >
               Add all to cart
             </Button>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Bundle total is a UI preview. Final pricing is confirmed server-side
-              at checkout.
-            </p>
           </div>
         </div>
       </div>

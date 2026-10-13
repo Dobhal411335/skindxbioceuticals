@@ -12,6 +12,8 @@ function toRecord(row: {
   description: string | null;
   status: ProductStatus;
   isFeatured: boolean;
+  isRecent: boolean;
+  isBestSeller: boolean;
   createdAt: Date;
   updatedAt: Date;
 }): ProductRecord {
@@ -25,6 +27,8 @@ function toRecord(row: {
     description: row.description,
     status: row.status,
     isFeatured: row.isFeatured,
+    isRecent: row.isRecent,
+    isBestSeller: row.isBestSeller,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -48,11 +52,144 @@ export class ProductRepository {
     return rows.map(toRecord);
   }
 
+  async listActivePublicCards(siteId: string, options: { limit: number }) {
+    return prisma.product.findMany({
+      where: { siteId, status: 'ACTIVE' },
+      orderBy: [{ isFeatured: 'desc' }, { updatedAt: 'desc' }, { name: 'asc' }],
+      take: options.limit,
+      include: {
+        subcategory: { select: { name: true } },
+        galleryImages: {
+          orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+          take: 1,
+        },
+        variants: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'asc' },
+          take: 1,
+          include: { inventory: true },
+        },
+        editorialReviews: {
+          where: { active: true },
+          select: { rating: true },
+        },
+        reviews: {
+          where: { isApproved: true },
+          select: { rating: true },
+        },
+      },
+    });
+  }
+
+  async listActivePublicByFlag(
+    siteId: string,
+    flag: 'isRecent' | 'isFeatured' | 'isBestSeller',
+    options: { limit: number },
+  ) {
+    return prisma.product.findMany({
+      where: {
+        siteId,
+        status: 'ACTIVE',
+        [flag]: true,
+      },
+      orderBy: [{ updatedAt: 'desc' }, { name: 'asc' }],
+      take: options.limit,
+      include: {
+        subcategory: { select: { name: true } },
+        galleryImages: {
+          orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+          take: 1,
+        },
+        variants: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'asc' },
+          take: 1,
+          include: { inventory: true },
+        },
+        editorialReviews: {
+          where: { active: true },
+          select: { rating: true },
+        },
+        reviews: {
+          where: { isApproved: true },
+          select: { rating: true },
+        },
+      },
+    });
+  }
+
   async findByIdForSite(siteId: string, productId: string): Promise<ProductRecord | null> {
     const row = await prisma.product.findFirst({
       where: { id: productId, siteId },
     });
     return row ? toRecord(row) : null;
+  }
+
+  async findActivePublicBySlug(siteId: string, slug: string) {
+    return prisma.product.findFirst({
+      where: { siteId, slug, status: 'ACTIVE' },
+      include: {
+        sizes: { where: { active: true }, orderBy: { sortOrder: 'asc' } },
+        colors: { where: { active: true }, orderBy: { sortOrder: 'asc' } },
+        galleryImages: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }] },
+        videos: { orderBy: { sortOrder: 'asc' } },
+        infoSections: { orderBy: { sortOrder: 'asc' } },
+        editorialReviews: {
+          where: { active: true },
+          orderBy: { sortOrder: 'asc' },
+        },
+        reviews: {
+          where: { isApproved: true },
+          select: { rating: true },
+        },
+        highlights: { orderBy: { sortOrder: 'asc' } },
+        tax: true,
+        coupon: { include: { coupon: true } },
+        tags: { include: { tag: true } },
+        variants: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'asc' },
+          include: { inventory: true },
+        },
+      },
+    });
+  }
+
+  async listRelatedActive(
+    siteId: string,
+    options: {
+      excludeProductId: string;
+      subcategoryId: string | null;
+      limit?: number;
+    },
+  ) {
+    const limit = options.limit ?? 4;
+    if (!options.subcategoryId) {
+      return [];
+    }
+
+    return prisma.product.findMany({
+      where: {
+        siteId,
+        status: 'ACTIVE',
+        subcategoryId: options.subcategoryId,
+        id: { not: options.excludeProductId },
+      },
+      orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
+      take: limit,
+      include: {
+        galleryImages: {
+          orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
+          take: 1,
+        },
+        variants: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'asc' },
+          take: 1,
+          include: { inventory: true },
+        },
+      },
+    });
   }
 
   async productCodeExists(
@@ -94,6 +231,8 @@ export class ProductRepository {
         description: data.description,
         status: data.status,
         isFeatured: data.isFeatured,
+        isRecent: data.isRecent,
+        isBestSeller: data.isBestSeller,
         categories: {
           create: [{ categoryId: data.subcategoryId }],
         },
@@ -125,6 +264,8 @@ export class ProductRepository {
           description: data.description,
           status: data.status,
           isFeatured: data.isFeatured,
+          isRecent: data.isRecent,
+          isBestSeller: data.isBestSeller,
         },
       });
     });
@@ -140,6 +281,9 @@ export class ProductRepository {
       name: string;
       slug: string;
       status: ProductStatus;
+      isFeatured: boolean;
+      isRecent: boolean;
+      isBestSeller: boolean;
     }>,
   ): Promise<ProductRecord | null> {
     const existing = await this.findByIdForSite(siteId, productId);
@@ -152,6 +296,9 @@ export class ProductRepository {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.slug !== undefined ? { slug: data.slug } : {}),
         ...(data.status !== undefined ? { status: data.status } : {}),
+        ...(data.isFeatured !== undefined ? { isFeatured: data.isFeatured } : {}),
+        ...(data.isRecent !== undefined ? { isRecent: data.isRecent } : {}),
+        ...(data.isBestSeller !== undefined ? { isBestSeller: data.isBestSeller } : {}),
       },
     });
     return toRecord(row);

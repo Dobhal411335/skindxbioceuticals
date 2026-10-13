@@ -15,10 +15,10 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
           Product categories will appear here once they are published for this storefront.
         </p>
         <Link
-          href="/shop"
+          href="/"
           className="mt-6 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
-          Browse the shop instead
+          Back to home
         </Link>
       </div>
     );

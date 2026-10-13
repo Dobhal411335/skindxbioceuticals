@@ -48,12 +48,13 @@ async function seedProduct(siteId: string) {
   const product = await prisma.product.create({
     data: {
       siteId,
+      productCode: `BS-${Date.now()}`,
       name: 'Barrier Serum',
-      slug: 'barrier-serum',
+      slug: `barrier-serum-${Date.now()}`,
       status: 'ACTIVE',
       variants: {
         create: {
-          sku: 'BS-30',
+          sku: `BS-30-${Date.now()}`,
           name: '30ml',
           price: '1299.00',
           currency: 'INR',
@@ -174,7 +175,7 @@ describe('Customer account APIs', () => {
               variantId: variant.id,
               productName: product.name,
               variantName: variant.name,
-              sku: variant.sku,
+              sku: variant.sku ?? 'BS-30',
               unitPrice: '1299.00',
               quantity: 1,
               lineTotal: '1299.00',
@@ -246,6 +247,90 @@ describe('Customer account APIs', () => {
 
       const after = await api().get('/api/v1/wishlist').set(ownerHeaders);
       expect(after.body.data.wishlist.items).toEqual([]);
+    });
+
+    it('rejects unauthenticated wishlist sync', async () => {
+      const response = await api()
+        .post('/api/v1/wishlist/sync')
+        .send({ items: [] });
+      expect(response.status).toBe(401);
+    });
+
+    it('merges guest wishlist items without duplicating existing products', async () => {
+      const sites = await ensureSites();
+      const owner = await createCustomer('wish.sync@skindx.test', 'Wish Sync');
+      const ownerHeaders = await authHeaderFor(owner.id, owner.email);
+      const productA = await seedProduct(sites.inId);
+      const productB = await prisma.product.create({
+        data: {
+          siteId: sites.inId,
+          productCode: 'RC-SYNC-1',
+          name: 'Repair Cream',
+          slug: 'repair-cream-sync',
+          status: 'ACTIVE',
+          variants: {
+            create: {
+              sku: 'RC-50-SYNC',
+              name: '50ml',
+              price: '999.00',
+              currency: 'INR',
+              isActive: true,
+              inventory: {
+                create: { quantityOnHand: 8, quantityReserved: 0 },
+              },
+            },
+          },
+        },
+        include: { variants: true },
+      });
+      const draft = await prisma.product.create({
+        data: {
+          siteId: sites.inId,
+          productCode: 'DR-SYNC-1',
+          name: 'Draft Only',
+          slug: 'draft-only-sync',
+          status: 'DRAFT',
+        },
+      });
+
+      await api()
+        .post('/api/v1/wishlist')
+        .set(ownerHeaders)
+        .send({ productId: productA.id });
+
+      const sync = await api()
+        .post('/api/v1/wishlist/sync')
+        .set(ownerHeaders)
+        .set('Idempotency-Key', 'wishlist-sync-test-1')
+        .send({
+          items: [
+            { productId: productA.id },
+            { productId: productB.id, variantId: productB.variants[0]?.id },
+            { productId: draft.id },
+            { productId: productB.id },
+          ],
+        });
+
+      expect(sync.status).toBe(200);
+      expect(sync.body.data.wishlist.items).toHaveLength(2);
+      expect(sync.body.data.skipped).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            productId: draft.id,
+            reason: 'INACTIVE_OR_WRONG_SITE',
+          }),
+        ]),
+      );
+
+      const again = await api()
+        .post('/api/v1/wishlist/sync')
+        .set(ownerHeaders)
+        .set('Idempotency-Key', 'wishlist-sync-test-1')
+        .send({
+          items: [{ productId: productA.id }, { productId: productB.id }],
+        });
+      expect(again.status).toBe(200);
+      expect(again.body.data.wishlist.items).toHaveLength(2);
     });
   });
 });

@@ -2,13 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart } from "lucide-react";
 
 import { HeaderAccountMenu } from "@/components/layout/header-account-menu";
 import { HeaderCartButton } from "@/components/layout/header-cart-button";
 import { HeaderSearchButton } from "@/components/layout/header-search-button";
+import { HeaderWishlistButton } from "@/components/layout/header-wishlist-button";
 import { MobileNav } from "@/components/layout/mobile-nav";
-import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,7 +19,6 @@ import {
 import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 import { useNavbarSections } from "@/providers/navbar-sections-provider";
 import { useTopAdvertisement } from "@/providers/top-advertisement-provider";
-
 const navTriggerClassName =
   "relative rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase text-foreground/80 transition-[color,background-color,transform] duration-200 ease-out hover:bg-transparent hover:text-foreground focus:bg-transparent active:scale-[0.98] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-foreground after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 data-open:bg-muted/50 data-open:text-foreground data-open:after:scale-x-100 data-popup-open:bg-muted/50 data-popup-open:text-foreground data-popup-open:after:scale-x-100";
 
@@ -65,7 +63,7 @@ export function SiteHeader() {
   const rightUtility = utilityItems[1];
 
   return (
-    <header className="border-b border-border bg-background">
+    <header className="relative z-50 border-b border-border bg-background">
       {(leftUtility || rightUtility) && (
         <div className="hidden border-b border-border bg-surface md:block">
           <div className="container-page flex items-center justify-between py-2 text-xs text-muted-foreground">
@@ -134,7 +132,7 @@ export function SiteHeader() {
                   <NavigationMenuTrigger className={navTriggerClassName}>
                     {link.label}
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent className="origin-top data-open:slide-in-from-top-2 data-closed:slide-out-to-top-1">
+                  <NavigationMenuContent className="z-50 origin-top data-open:slide-in-from-top-2 data-closed:slide-out-to-top-1">
                     <ul className="grid min-w-[220px] gap-1 p-1">
                       {link.href && link.href !== "#" ? (
                         <li>
@@ -171,16 +169,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-0.5">
           <HeaderSearchButton />
           <HeaderAccountMenu />
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="hidden sm:inline-flex"
-          >
-            <Link href="/account/wishlist" aria-label="Wishlist">
-              <Heart className="size-5" />
-            </Link>
-          </Button>
+          <HeaderWishlistButton />
           <HeaderCartButton />
         </div>
       </div>

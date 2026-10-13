@@ -41,7 +41,7 @@ export function CheckoutPageView() {
         <h1 className="text-2xl font-semibold">Checkout</h1>
         <p className="mt-3 text-muted-foreground">Your cart is empty.</p>
         <Button asChild className="mt-6">
-          <Link href="/shop/daily-barrier-serum">Browse products</Link>
+          <Link href="/category">Browse products</Link>
         </Button>
       </div>
     );

@@ -124,8 +124,8 @@ export function CartDrawer() {
                 <li key={item.id} className="flex gap-3">
                   <div className="relative size-20 shrink-0 overflow-hidden rounded-md bg-surface">
                     <Image
-                      src={item.image}
-                      alt={item.alt}
+                      src={item.image || "https://placehold.co/600x400/png"}
+                      alt={item.alt || "Product image"}
                       fill
                       className="object-cover"
                       sizes="80px"
@@ -135,7 +135,7 @@ export function CartDrawer() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <Link
-                          href={`/shop/${item.slug}`}
+                          href={`/products/${item.slug}`}
                           onClick={closeCart}
                           className="line-clamp-2 text-sm font-medium hover:underline"
                         >

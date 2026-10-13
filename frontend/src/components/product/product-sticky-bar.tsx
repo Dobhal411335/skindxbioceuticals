@@ -1,90 +1,194 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo } from "react";
 
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { CatalogProduct } from "@/data/catalog";
+  availableColors,
+  availableSizes,
+  buildVariantSelectOptions,
+  findExactVariant,
+  findMatchingVariant,
+  primaryImageUrl,
+  rupeesToPaise,
+} from "@/features/products/product-selection";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { showSuccess } from "@/lib/toast";
-import { formatPaiseToInr } from "@/lib/utils";
+import { showError, showSuccess } from "@/lib/toast";
+import { formatInr } from "@/lib/utils";
 import { addCartItem } from "@/store/slices/cartSlice";
+import type { PublicProductDetail } from "@/types/product";
 
 type ProductStickyBarProps = {
-  product: CatalogProduct;
+  product: PublicProductDetail;
+  sizeId: string | undefined;
+  colorId: string | undefined;
+  quantity: number;
+  onSizeChange: (sizeId: string) => void;
+  onColorChange: (colorId: string) => void;
+  onQuantityChange: (quantity: number) => void;
 };
 
-export function ProductStickyBar({ product }: ProductStickyBarProps) {
+export function ProductStickyBar({
+  product,
+  sizeId,
+  colorId,
+  quantity,
+  onSizeChange,
+  onColorChange,
+  onQuantityChange,
+}: ProductStickyBarProps) {
   const dispatch = useAppDispatch();
   const { openCart } = useCartUi();
-  const availableSizes = product.sizes.filter((size) => size.available);
-  const [sizeId, setSizeId] = useState(availableSizes[0]?.id ?? "");
-  const [quantity, setQuantity] = useState(1);
-  const selectedSize = product.sizes.find((size) => size.id === sizeId);
+
+  const sizes = useMemo(() => availableSizes(product), [product]);
+  const colors = useMemo(() => availableColors(product), [product]);
+  const selectedSize = sizes.find((size) => size.id === sizeId) ?? sizes[0];
+  const selectedColor =
+    colors.find((color) => color.id === colorId) ?? colors[0];
+  const selectedVariant =
+    sizes.length === 0 && colors.length === 0
+      ? findMatchingVariant(product, null, null)
+      : findExactVariant(product, selectedSize?.label, selectedColor?.name);
+  const availableQty = selectedVariant?.quantity ?? 0;
+  const unitPrice = selectedVariant?.price ?? 0;
+  const unavailable = !selectedVariant || availableQty <= 0;
+  const imageUrl = primaryImageUrl(product);
+
+  const options = useMemo(
+    () => buildVariantSelectOptions(product),
+    [product],
+  );
+
+  const selectedValue = useMemo(() => {
+    if (colors.length > 0 && sizes.length > 0) {
+      return `${selectedColor?.id ?? ""}::${selectedSize?.id ?? ""}`;
+    }
+    if (colors.length > 0) return selectedColor?.id ?? "";
+    if (sizes.length > 0) return selectedSize?.id ?? "";
+    return "";
+  }, [colors.length, sizes.length, selectedColor?.id, selectedSize?.id]);
+
+  function handleOptionChange(value: string) {
+    if (!value) return;
+
+    if (colors.length > 0 && sizes.length > 0) {
+      const [nextColorId, nextSizeId] = value.split("::");
+      if (nextColorId) onColorChange(nextColorId);
+      if (nextSizeId) onSizeChange(nextSizeId);
+      return;
+    }
+
+    if (colors.length > 0) {
+      onColorChange(value);
+      return;
+    }
+
+    if (sizes.length > 0) {
+      onSizeChange(value);
+    }
+  }
 
   function addToCart() {
-    dispatch(
-      addCartItem({
-        productId: product.id,
-        variantId: sizeId || "default",
-        slug: product.slug,
-        name: product.name,
-        image: product.images[0]?.src ?? "",
-        alt: product.images[0]?.alt ?? product.name,
-        variantLabel: selectedSize?.label,
-        unitPriceInPaise: product.priceInPaise,
-        quantity,
-      }),
-    );
-    showSuccess("Added to cart.", { id: "cart.add" });
-    openCart();
+    if (unavailable || !selectedVariant) {
+      showError("Product not available right now.", { id: "cart.add.error" });
+      return;
+    }
+
+    try {
+      dispatch(
+        addCartItem({
+          productId: product.id,
+          variantId: selectedVariant.id,
+          slug: product.slug,
+          name: product.name,
+          image: imageUrl,
+          alt: product.name,
+          variantLabel: [selectedColor?.name, selectedSize?.label]
+            .filter(Boolean)
+            .join(" / "),
+          unitPriceInPaise: rupeesToPaise(unitPrice),
+          quantity,
+        }),
+      );
+      showSuccess("Added to cart.", { id: "cart.add" });
+      openCart();
+    } catch {
+      showError("Could not add to cart. Please try again.", {
+        id: "cart.add.error",
+      });
+    }
   }
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
-      <div className="container-page flex flex-wrap items-center gap-3 py-3">
+      <div className="container-page flex w-full items-center gap-3 py-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="relative hidden size-12 overflow-hidden rounded-md bg-surface sm:block">
-            <Image
-              src={product.images[0]?.src ?? ""}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="48px"
-            />
-          </div>
-          <div className="min-w-0">
+          {imageUrl ? (
+            <div className="relative hidden size-12 shrink-0 overflow-hidden rounded-md bg-surface sm:block">
+              <Image
+                src={imageUrl}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="48px"
+              />
+            </div>
+          ) : null}
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{product.name}</p>
-            <p className="text-sm">{formatPaiseToInr(product.priceInPaise)}</p>
+            <p className="text-sm font-medium">{formatInr(unitPrice)}</p>
+            {selectedColor || selectedSize ? (
+              <p className="truncate text-xs text-muted-foreground">
+                {[selectedColor?.name, selectedSize?.label]
+                  .filter(Boolean)
+                  .join(" / ")}
+              </p>
+            ) : null}
+            {unavailable ? (
+              <p className="text-xs font-medium text-destructive">
+                Product not available right now.
+              </p>
+            ) : null}
           </div>
         </div>
 
-        {availableSizes.length > 0 ? (
-          <Select value={sizeId} onValueChange={setSizeId}>
-            <SelectTrigger className="w-[8.5rem]">
-              <SelectValue placeholder="Size" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableSizes.map((size) => (
-                <SelectItem key={size.id} value={size.id}>
-                  {size.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {options.length > 0 ? (
+          <select
+            aria-label="Colour and size"
+            value={selectedValue}
+            onChange={(event) => handleOptionChange(event.target.value)}
+            className="h-10 max-w-[16rem] shrink-0 rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {options.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+                disabled={option.quantity <= 0}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
         ) : null}
 
-        <QuantityStepper size="sm" value={quantity} onChange={setQuantity} />
-        <Button type="button" onClick={addToCart}>
+        <QuantityStepper
+          size="sm"
+          className="shrink-0"
+          value={quantity}
+          onChange={onQuantityChange}
+          min={1}
+          max={Math.max(1, availableQty)}
+        />
+        <Button
+          type="button"
+          size="lg"
+          className="h-11 shrink-0 px-6"
+          disabled={unavailable}
+          onClick={addToCart}
+        >
           Add to cart
         </Button>
       </div>

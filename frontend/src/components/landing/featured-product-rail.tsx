@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { ProductCard } from "@/components/landing/product-card";
+import { StorefrontProductCard } from "@/components/landing/storefront-product-card";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -11,9 +11,18 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { productRail, products } from "@/data/landing";
+import { productRail } from "@/data/landing";
+import type { PublicProductCard } from "@/types/product";
 
-export function FeaturedProductRail() {
+type FeaturedProductRailProps = {
+  products: PublicProductCard[];
+};
+
+export function FeaturedProductRail({ products }: FeaturedProductRailProps) {
+  if (products.length === 0) {
+    return null;
+  }
+
   return (
     <section
       className="border-y border-border bg-surface/60"
@@ -36,14 +45,14 @@ export function FeaturedProductRail() {
         </div>
 
         <div className="relative min-w-0">
-          <Carousel opts={{ align: "start", loop: true }} className="w-full">
+          <Carousel opts={{ align: "start", loop: products.length > 3 }} className="w-full">
             <CarouselContent className="-ml-3">
-              {products.slice(0, 6).map((product) => (
+              {products.map((product) => (
                 <CarouselItem
                   key={product.id}
-                  className="basis-[70%] pl-3 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                  className="basis-[70%] pl-3 sm:basis-1/2 lg:basis-1/3"
                 >
-                  <ProductCard product={product} />
+                  <StorefrontProductCard product={product} />
                 </CarouselItem>
               ))}
             </CarouselContent>

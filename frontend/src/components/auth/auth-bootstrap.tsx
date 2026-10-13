@@ -4,7 +4,6 @@ import { useEffect } from "react";
 
 import { authService } from "@/features/auth/auth.service";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { useAppSelector } from "@/hooks/useAppSelector";
 import { tokenStore } from "@/services/api/token-store";
 import {
   clearCredentials,
@@ -15,16 +14,15 @@ import {
 /**
  * Restores a storefront session after full page reload using the HttpOnly refresh cookie.
  * Does not treat Redux state alone as proof of authentication.
+ *
+ * Runs once per mount. Do not depend on auth `status` here — dispatching `"loading"`
+ * would re-run the effect, cancel the in-flight bootstrap, and leave the navbar
+ * stuck on the account skeleton forever.
  */
 export function AuthBootstrap() {
   const dispatch = useAppDispatch();
-  const status = useAppSelector((state) => state.auth.status);
 
   useEffect(() => {
-    if (status !== "idle") {
-      return;
-    }
-
     let cancelled = false;
 
     const bootstrap = async () => {
@@ -66,7 +64,7 @@ export function AuthBootstrap() {
     return () => {
       cancelled = true;
     };
-  }, [dispatch, status]);
+  }, [dispatch]);
 
   return null;
 }

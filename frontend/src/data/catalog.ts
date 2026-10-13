@@ -1,3 +1,8 @@
+/**
+ * Legacy static catalogue stubs. Storefront PDP and category browsing use the
+ * public API (`/sites/:siteCode/products/:slug`, `/categories`). Keep only if
+ * other marketing surfaces still need local fixtures.
+ */
 export type CatalogColor = {
   id: string;
   label: string;

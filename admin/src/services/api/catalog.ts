@@ -174,7 +174,14 @@ export async function patchSubcategoryProduct(
   siteCode: SiteCode,
   subcategoryId: string,
   productId: string,
-  body: { active?: boolean; name?: string; productCode?: string },
+  body: {
+    active?: boolean;
+    name?: string;
+    productCode?: string;
+    isFeatured?: boolean;
+    isRecent?: boolean;
+    isBestSeller?: boolean;
+  },
 ): Promise<CatalogProductDto> {
   const { data } = await apiClient.patch<ApiSuccess<CatalogProductDto>>(
     endpoints.admin.subcategoryProduct(siteCode, subcategoryId, productId),

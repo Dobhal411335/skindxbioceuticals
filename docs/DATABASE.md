@@ -36,12 +36,12 @@
 
 ### Catalog
 - `Category` (phase 1 implemented): site-scoped hierarchical categories. Fields: `siteId`, `name`, `slug` (unique per site), optional `description`, `parentId` (null = main category; set = subcategory), optional `bannerUrl`/`bannerPublicId` (**subcategories only**; roots keep these null), `isActive`, `sortOrder`. Cascade delete with `Site` and parent category. Indexed by `(siteId)`, `(siteId, parentId)`, `(siteId, isActive, sortOrder)`.
-- `Product` (phase 1 + edit details): site-scoped. Fields: `productCode` (unique per site), optional `subcategoryId` FK to `Category` (Restrict on delete), `description` (overview HTML/text), optional `sizeChartUrl`/`sizeChartPublicId`, optional `bannerUrl`/`bannerPublicId` (logo/banner for Product Gallery admin section), `status` (`DRAFT`/`ACTIVE`/`ARCHIVED`), `isFeatured`. Slug unique per site. Indexed by `(subcategoryId)` and `(siteId, status)`.
+- `Product` (phase 1 + edit details): site-scoped. Fields: `productCode` (unique per site), optional `subcategoryId` FK to `Category` (Restrict on delete), `description` (overview HTML/text), optional `sizeChartUrl`/`sizeChartPublicId`, optional `bannerUrl`/`bannerPublicId` (logo/banner for Product Gallery admin section), `status` (`DRAFT`/`ACTIVE`/`ARCHIVED`), landing flags `isFeatured` / `isRecent` / `isBestSeller` (booleans, default false). Slug unique per site. Indexed by `(subcategoryId)`, `(siteId, status)`, and `(siteId, status, isFeatured|isRecent|isBestSeller)`. Migration: `20261013143000_product_landing_flags`.
 - `ProductCategory`: join table retained; phase 1 also writes the product↔subcategory link here when creating/updating catalog products.
 - `CatalogColor` / `CatalogTag` (implemented): site-scoped masters for color hex/name and tag names. Unique `(siteId, hex)` / `(siteId, name)` for colors; unique `(siteId, name)` for tags.
-- `ProductSize`: product-linked size labels (`label`, `sortOrder`, `active`); unique `(productId, label)`.
-- `ProductColor`: product-linked colors, optional FK to `CatalogColor`, plus `name`/`hex` for custom entries.
-- `ProductVariant` (extended for Price/Quantity): optional SKU (unique when set; not auto-generated for admin price/quantity offers), name, price, optional `vendorPrice`, `sizeLabel`, `colorLabel`, `weightGrams`, profile image URL/publicId, `subImages` JSON, inventory via `InventoryItem`. Variants referenced by cart/order are soft-deactivated instead of hard-deleted.
+- `ProductSize`: product-linked size labels (`label`, `sortOrder`, `active`); unique `(productId, label)`. Optional for catalog products — empty means the storefront shows no size selector.
+- `ProductColor`: product-linked colors, optional FK to `CatalogColor`, plus `name`/`hex` for custom entries. Optional — empty means no colour swatches on the storefront.
+- `ProductVariant` (extended for Price/Quantity): optional SKU (unique when set; not auto-generated for admin price/quantity offers), name, mandatory `price`, optional `vendorPrice`, optional nullable `sizeLabel` / `colorLabel` (both null = single base/default offer), `weightGrams`, profile image URL/publicId, `subImages` JSON, inventory via `InventoryItem`. No size/color FK columns — labels are denormalized strings. Variants referenced by cart/order are soft-deactivated instead of hard-deleted.
 - `ProductGalleryImage`: ordered product gallery with `imageUrl`/`imagePublicId`, `isPrimary`, `sortOrder` (admin gallery section; distinct from legacy `ProductMedia` Media FK).
 - `ProductVideo`, `ProductInfoSection`, `ProductHighlight`, `ProductEditorialReview`: product-detail content sections (videos, info tabs, highlights, admin-curated reviews distinct from customer `Review`).
 - `ProductTag`: join `Product` ↔ `CatalogTag`.
@@ -50,7 +50,7 @@
 - `ProductMedia`: legacy Media FK associations retained for later storefront wiring.
 - `Inventory` / `InventoryMovement`: stock quantities, reservations, adjustments, and auditable changes.
 
-Phase-1 create/list still uses name + code under a subcategory; full edit details are managed via admin product edit section APIs.
+Phase-1 create/list still uses name + code under a subcategory; full edit details are managed via admin product edit section APIs. Public storefront PDP reads ACTIVE products by `(siteId, slug)` and joins gallery, sizes, colors, variants+inventory, info sections, and related same-subcategory products (max 4).
 
 ### Customer and access
 - `User`: identity and account status; avoid unnecessary sensitive fields. Implemented fields include optional `passwordHash`, `emailVerifiedAt`, `welcomeEmailSentAt`, `status` (including `PENDING_VERIFICATION`), and `role`.
@@ -65,7 +65,8 @@ Phase-1 create/list still uses name + code under a subcategory; full edit detail
 Do not use a user-supplied email as the only permanent external identity key. Store the verified provider subject identifier.
 
 ### Commerce
-- `Cart`, `CartItem`: current cart state according to guest/customer-cart policy.
+- `Cart`, `CartItem`: account cart for authenticated customers (`Cart.userId` unique). Guest cart for the `.in` storefront is browser `localStorage` only until login merge (no guest cart rows in PostgreSQL).
+- `Wishlist`, `WishlistItem` (implemented): one wishlist per customer (`Wishlist.userId` unique). Items are product-level (`@@unique([wishlistId, productId])`) with optional `variantId` (`onDelete: SetNull`). No quantity field. Ecommerce writes/sync accept active `IN` products only; guest wishlist bags live in client `localStorage` and merge via `POST /wishlist/sync` (union by `productId`).
 - `Coupon` (implemented admin CRUD): site-scoped discount codes (`siteId`, unique `(siteId, code)`). Stored as `type` (`PERCENTAGE` | `FIXED_AMOUNT` | `FREE_SHIPPING`) + `value`, plus optional `startsAt` / `endsAt`, `isActive`, usage fields. Admin create/edit supports amount **or** percent only (not both); `FREE_SHIPPING` is reserved for later checkout flows. Product-edit “Apply Coupon” lists active site coupons of type percent/amount.
 - `CouponRedemption`: eligibility and redemption constraints (planned; not yet modeled).
 - `Order`: customer/contact snapshot, address snapshot, totals, currency, status, site, timestamps.

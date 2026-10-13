@@ -54,6 +54,7 @@ When adding or changing `src/lib/toast` or features that emit toasts:
 Add browser-level tests for critical journeys once the UI is implemented:
 - Customer signup/login and Google sign-in flow boundaries.
 - Product browsing and cart operations.
+- Wishlist guest localStorage add/remove, post-login `/wishlist/sync` merge, and ownership isolation (see `backend/tests/integration/customer-account.test.ts` and frontend guest-wishlist / sync-bridge tests).
 - Checkout and payment test mode.
 - Order confirmation/history.
 - Admin site switching and permission boundaries.

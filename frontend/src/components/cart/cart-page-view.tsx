@@ -59,7 +59,7 @@ export function CartPageView() {
         <div className="mt-10 rounded-lg border border-border p-8 text-center">
           <p className="text-muted-foreground">Your cart is empty.</p>
           <Button asChild className="mt-4">
-            <Link href="/shop/daily-barrier-serum">Continue shopping</Link>
+            <Link href="/category">Continue shopping</Link>
           </Button>
         </div>
       ) : (
@@ -91,7 +91,7 @@ export function CartPageView() {
                     </div>
                     <div>
                       <Link
-                        href={`/shop/${item.slug}`}
+                          href={`/products/${item.slug}`}
                         className="text-sm font-medium hover:underline"
                       >
                         {item.name}
@@ -271,7 +271,7 @@ export function CartPageView() {
               </Button>
             )}
             <Button asChild variant="outline" className="mt-2 w-full" size="lg">
-              <Link href="/shop/daily-barrier-serum">Continue shopping</Link>
+              <Link href="/category">Continue shopping</Link>
             </Button>
           </aside>
         </div>

@@ -1,6 +1,11 @@
 import { apiClient } from "@/services/api/axios";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
-import type { Wishlist, WishlistItem } from "@/features/wishlist/wishlist.types";
+import type {
+  Wishlist,
+  WishlistItem,
+  WishlistSyncPayload,
+  WishlistSyncResult,
+} from "@/features/wishlist/wishlist.types";
 
 type Envelope<T> = {
   success: boolean;
@@ -26,5 +31,19 @@ export const wishlistService = {
 
   async remove(itemId: string): Promise<void> {
     await apiClient.delete(API_ENDPOINTS.WISHLIST.ITEM(itemId));
+  },
+
+  async sync(
+    payload: WishlistSyncPayload,
+    idempotencyKey?: string,
+  ): Promise<WishlistSyncResult> {
+    const response = await apiClient.post<Envelope<WishlistSyncResult>>(
+      API_ENDPOINTS.WISHLIST.SYNC,
+      payload,
+      idempotencyKey
+        ? { headers: { "Idempotency-Key": idempotencyKey } }
+        : undefined,
+    );
+    return response.data.data;
   },
 };

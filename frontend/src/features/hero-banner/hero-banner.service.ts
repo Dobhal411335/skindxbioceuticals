@@ -72,7 +72,7 @@ export function mapHeroBannerConfigToStorefront(
       buttonUrl:
         slide.layoutType === "FULL_WIDTH"
           ? optionalHref(slide.buttonUrl, "")
-          : optionalHref(slide.buttonUrl, "/shop"),
+          : optionalHref(slide.buttonUrl, "/category"),
       button2Label: slide.button2Label.trim(),
       button2Url: optionalHref(slide.button2Url, "/categories"),
       mobileImageUrl: preferHttps(slide.mobileImageUrl.trim()),

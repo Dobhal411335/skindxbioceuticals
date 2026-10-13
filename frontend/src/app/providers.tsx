@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { AuthBootstrap } from "@/components/auth/auth-bootstrap";
+import { CartWishlistSyncBridge } from "@/components/cart/cart-wishlist-sync-bridge";
 import { env } from "@/config/env";
 import { ToastHost } from "@/lib/toast";
 import { StoreProvider } from "@/store/provider";
@@ -22,6 +23,7 @@ export function Providers({ children }: ProvidersProps) {
     <GoogleOAuthProvider clientId={env.googleClientId}>
       <StoreProvider>
         <AuthBootstrap />
+        <CartWishlistSyncBridge />
         {children}
         <ToastHost />
       </StoreProvider>

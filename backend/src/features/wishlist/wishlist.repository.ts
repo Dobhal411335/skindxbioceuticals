@@ -71,6 +71,20 @@ export class WishlistRepository {
     });
   }
 
+  async findProductEligibility(productId: string) {
+    return this.db.product.findUnique({
+      where: { id: productId },
+      include: {
+        site: true,
+        variants: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'asc' },
+          take: 1,
+        },
+      },
+    });
+  }
+
   async findVariantForProduct(productId: string, variantId: string) {
     return this.db.productVariant.findFirst({
       where: {
@@ -89,6 +103,27 @@ export class WishlistRepository {
         variantId,
       },
       include: wishlistItemInclude,
+    });
+  }
+
+  /**
+   * Insert guest sync lines; unique (wishlistId, productId) conflicts are ignored.
+   */
+  async addItemsIgnoreDuplicates(
+    wishlistId: string,
+    items: Array<{ productId: string; variantId: string | null }>,
+  ): Promise<void> {
+    if (items.length === 0) {
+      return;
+    }
+
+    await this.db.wishlistItem.createMany({
+      data: items.map((item) => ({
+        wishlistId,
+        productId: item.productId,
+        variantId: item.variantId,
+      })),
+      skipDuplicates: true,
     });
   }
 

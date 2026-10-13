@@ -53,7 +53,7 @@ export function CategoryDetail({ category }: CategoryDetailProps) {
                 {subcategory.products.map((product) => (
                   <Link
                     key={product.id}
-                    href={`/shop/${product.slug}`}
+                    href={`/products/${product.slug}`}
                     className="group rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">

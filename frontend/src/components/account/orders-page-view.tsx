@@ -89,7 +89,7 @@ export function OrdersPageView() {
               You haven&apos;t placed any orders yet.
             </p>
             <Button asChild>
-              <Link href="/shop">Start Shopping</Link>
+              <Link href="/category">Start Shopping</Link>
             </Button>
           </CardContent>
         </Card>

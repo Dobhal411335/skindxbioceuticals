@@ -18,6 +18,8 @@ export const API_ENDPOINTS = {
     LIST: "/products",
     DETAIL: (id: string) => `/products/${id}`,
     CATEGORIES: "/products/categories",
+    PUBLIC_DETAIL: (siteCode: string, slug: string) =>
+      `/sites/${siteCode}/products/${encodeURIComponent(slug)}`,
   },
   CART: {
     ROOT: "/cart",
@@ -25,6 +27,7 @@ export const API_ENDPOINTS = {
   },
   WISHLIST: {
     ROOT: "/wishlist",
+    SYNC: "/wishlist/sync",
     ITEM: (id: string) => `/wishlist/items/${id}`,
   },
   CHECKOUT: {

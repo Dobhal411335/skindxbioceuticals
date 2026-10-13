@@ -19,6 +19,10 @@ import { getCustomerReviews } from "@/features/customer-reviews/customer-reviews
 import { getLandingFaqs } from "@/features/faq/faq.service";
 import { getGalleryItems } from "@/features/gallery/gallery.service";
 import { getHeroBanners } from "@/features/hero-banner/hero-banner.service";
+import {
+  getLandingProductHighlights,
+  getLandingProducts,
+} from "@/features/products/product.service";
 import { getSocialPosts } from "@/features/social-posts/social-posts.service";
 
 export default async function HomePage() {
@@ -29,6 +33,8 @@ export default async function HomePage() {
     customerReviews,
     landingFaqs,
     heroSlides,
+    landingProducts,
+    productHighlights,
   ] = await Promise.all([
     getSocialPosts(),
     getGalleryItems(),
@@ -36,6 +42,8 @@ export default async function HomePage() {
     getCustomerReviews(),
     getLandingFaqs(),
     getHeroBanners(),
+    getLandingProducts(15),
+    getLandingProductHighlights(),
   ]);
 
   return (
@@ -48,9 +56,9 @@ export default async function HomePage() {
         highlightItems={aboutUsBanner.highlightItems}
         textSlides={aboutUsBanner.textSlides}
       />
-       <FeaturedProductRail />
+      <FeaturedProductRail products={landingProducts} />
       <PromoBannerRow />
-      <ProductHighlightColumns />
+      <ProductHighlightColumns highlights={productHighlights} />
       <TestimonialsGrid reviews={customerReviews} />
       <InsightsGrid />
       <BlogGrid />

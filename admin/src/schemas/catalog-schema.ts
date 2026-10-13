@@ -43,6 +43,9 @@ const productSchema = z.object({
     ),
   name: z.string().trim().min(1, "Product name is required").max(200),
   active: z.boolean(),
+  isFeatured: z.boolean(),
+  isRecent: z.boolean(),
+  isBestSeller: z.boolean(),
 });
 
 export function validateCategoryForm(
@@ -115,6 +118,9 @@ export function validateCatalogProductForm(
       productCode: result.data.productCode,
       name: result.data.name,
       active: result.data.active,
+      isFeatured: result.data.isFeatured,
+      isRecent: result.data.isRecent,
+      isBestSeller: result.data.isBestSeller,
     },
   };
 }

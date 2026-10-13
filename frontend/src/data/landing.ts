@@ -56,7 +56,7 @@ export const announcement =
   "Complimentary shipping on orders over ₹999 · SkinDx Bioc India";
 
 export const navLinks = [
-  { label: "Shop", href: "/shop" },
+  { label: "Shop", href: "/category" },
   { label: "Categories", href: "/categories" },
   { label: "About", href: "/about" },
   { label: "Blog", href: "/blog" },
@@ -112,7 +112,7 @@ export const promoPopup = {
     "Shop serums, cleansers, and essentials with clear product information. Static promo UI until CMS banners are connected.",
   cta: {
     label: "Shop now",
-    href: "/shop",
+    href: "/category",
   },
 };
 
@@ -120,7 +120,7 @@ export const hero = {
   eyebrow: "Clinical calm for everyday skin",
   title: "SkinDx Bioc",
   body: "Thoughtfully formulated skincare and biomedical essentials for the Indian storefront — clear information, calm design, and products you can evaluate with confidence.",
-  primaryCta: { label: "Shop products", href: "/shop" },
+  primaryCta: { label: "Shop products", href: "/category" },
   secondaryCta: { label: "Explore range", href: "/categories" },
   leftImage: {
     src: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?auto=format&fit=crop&w=900&q=80",
@@ -149,7 +149,7 @@ export const specials = {
   label: "Featured offers",
   title: "Curated selections worth a closer look",
   subtitle: "Explore seasonal highlights while stocks last. Offers update as inventory changes.",
-  cta: { label: "Shop now", href: "/shop" },
+  cta: { label: "Shop now", href: "/category" },
 };
 
 export const about = {
@@ -173,7 +173,7 @@ export const products: LandingProduct[] = [
     image:
       "https://images.unsplash.com/photo-1620916297397-a4a33220b72c?auto=format&fit=crop&w=800&q=80",
     alt: "Dropper bottle of facial serum",
-    href: "/shop/daily-barrier-serum",
+    href: "/products/daily-barrier-serum",
   },
   {
     id: "p2",
@@ -183,7 +183,7 @@ export const products: LandingProduct[] = [
     image:
       "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=800&q=80",
     alt: "Jar of moisturising cream",
-    href: "/shop/hydra-soft-cream",
+    href: "/products/hydra-soft-cream",
   },
   {
     id: "p3",
@@ -193,7 +193,7 @@ export const products: LandingProduct[] = [
     image:
       "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=800&q=80",
     alt: "Clear bottle of cleansing gel",
-    href: "/shop/gentle-cleansing-gel",
+    href: "/products/gentle-cleansing-gel",
   },
   {
     id: "p4",
@@ -203,7 +203,7 @@ export const products: LandingProduct[] = [
     image:
       "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&w=800&q=80",
     alt: "Night balm tin with soft lighting",
-    href: "/shop/calming-night-balm",
+    href: "/products/calming-night-balm",
   },
   {
     id: "p5",
@@ -213,7 +213,7 @@ export const products: LandingProduct[] = [
     image:
       "https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=800&q=80",
     alt: "Amber bottle of vitamin C emulsion",
-    href: "/shop/vitamin-c-emulsion",
+    href: "/products/vitamin-c-emulsion",
   },
   {
     id: "p6",
@@ -223,7 +223,7 @@ export const products: LandingProduct[] = [
     image:
       "https://images.unsplash.com/photo-1550572017-edd951aa8f72?auto=format&fit=crop&w=800&q=80",
     alt: "Sunscreen fluid bottle",
-    href: "/shop/spf-daily-fluid",
+    href: "/products/spf-daily-fluid",
   },
   {
     id: "p7",
@@ -233,7 +233,7 @@ export const products: LandingProduct[] = [
     image:
       "https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=800&q=80",
     alt: "Laboratory glassware representing formulation care",
-    href: "/shop/recovery-essence",
+    href: "/products/recovery-essence",
   },
   {
     id: "p8",
@@ -243,7 +243,7 @@ export const products: LandingProduct[] = [
     image:
       "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=800&q=80",
     alt: "Small lip balm product",
-    href: "/shop/lip-comfort-balm",
+    href: "/products/lip-comfort-balm",
   },
 ];
 
@@ -423,7 +423,7 @@ export const galleryItems: GalleryItem[] = [
 export const galleryFeaturedProduct = {
   name: "Hydra Soft Cream & Serum Set",
   priceLabel: "From ₹1,999",
-  href: "/shop",
+  href: "/category",
   image:
     "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=200&q=80",
   alt: "Hydra Soft Cream jar",
@@ -499,8 +499,8 @@ export const footer = {
       links: [
         { label: "FAQs", href: "/faq" },
         { label: "Gift cards", href: "/gift-cards" },
-        { label: "New arrivals", href: "/shop?sort=new" },
-        { label: "Bestsellers", href: "/shop?sort=bestsellers" },
+        { label: "New arrivals", href: "/category?sort=new" },
+        { label: "Bestsellers", href: "/category?sort=bestsellers" },
       ],
     },
     {
@@ -517,8 +517,8 @@ export const footer = {
 
 export const productRail = {
   title: "Discover what customers browse right now",
-  body: "A static preview of featured products. Prices and availability will come from the live catalogue.",
-  cta: { label: "Shop all collection", href: "/shop" },
+  body: "Browse active catalogue picks — prices and stock come from live inventory.",
+  cta: { label: "Shop all collection", href: "/category" },
 };
 
 export const blogIntro = {

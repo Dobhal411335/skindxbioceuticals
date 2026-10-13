@@ -61,13 +61,28 @@ export const productColorsSectionSchema = z.object({
     .max(50),
 });
 
+/** Empty strings become null so base (no size/color) offers validate cleanly. */
+const optionalVariantLabel = (max: number) =>
+  z.preprocess(
+    (value) => {
+      if (value == null) return null;
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    },
+    z.string().max(max).nullable(),
+  );
+
 export const productVariantsSectionSchema = z.object({
   variants: z
     .array(
       z.object({
         id: z.string().uuid().optional(),
-        sizeLabel: z.string().trim().max(40).nullable().optional(),
-        colorLabel: z.string().trim().max(80).nullable().optional(),
+        /** Optional — omit for a single base price/qty offer. */
+        sizeLabel: optionalVariantLabel(40),
+        /** Optional — omit for a single base price/qty offer. */
+        colorLabel: optionalVariantLabel(80),
+        /** Mandatory unit price (INR rupees). */
         price: z.coerce.number().finite().min(0).max(10_000_000),
         vendorPrice: z.coerce.number().finite().min(0).max(10_000_000).nullable().optional(),
         quantity: z.coerce.number().int().min(0).max(1_000_000),
@@ -154,9 +169,7 @@ export const productTagsSectionSchema = z.object({
 });
 
 export const productHighlightsSectionSchema = z.object({
-  highlights: z
-    .array(z.string().trim().min(1).max(300))
-    .max(30),
+  highlights: z.array(z.string().trim().min(1).max(300)).max(30),
 });
 
 export type ProductSizesSectionBody = z.infer<typeof productSizesSectionSchema>;

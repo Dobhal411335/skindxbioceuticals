@@ -56,7 +56,7 @@ export function SearchOverlay() {
             const form = new FormData(event.currentTarget);
             const query = String(form.get("q") ?? "").trim();
             closeSearch();
-            router.push(query ? `/shop?q=${encodeURIComponent(query)}` : "/shop");
+            router.push(query ? `/category?q=${encodeURIComponent(query)}` : "/category");
           }}
         >
           <Search className="size-5 shrink-0 text-muted-foreground" aria-hidden />

@@ -2,17 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Heart } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { wishlistService } from "@/features/wishlist/wishlist.service";
-import type { WishlistItem } from "@/features/wishlist/wishlist.types";
-import { showError, showSuccess } from "@/lib/toast";
-import { toApiError } from "@/services/api/errors";
+import { useAuth } from "@/hooks/useAuth";
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { useWishlistActions } from "@/hooks/useWishlistActions";
 
 function formatMoney(amount: string | null, currency: string | null) {
   if (amount == null) return "Price unavailable";
@@ -25,44 +24,25 @@ function formatMoney(amount: string | null, currency: string | null) {
 }
 
 export function WishlistPageView() {
-  const [items, setItems] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isLoading: authLoading, isAuthenticated } = useAuth();
+  const { items, remove } = useWishlistActions();
+  const status = useAppSelector((state) => state.wishlist.status);
+  const hydrated = useAppSelector((state) => state.wishlist.hydrated);
+  const error = useAppSelector((state) => state.wishlist.error);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const wishlist = await wishlistService.get();
-        if (!cancelled) setItems(wishlist.items);
-      } catch (err) {
-        if (!cancelled) {
-          setError(toApiError(err).message || "Unable to load wishlist.");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Wait for auth bootstrap + CartWishlistSyncBridge hydrate before empty state.
+  const loading =
+    authLoading ||
+    !hydrated ||
+    status === "syncing" ||
+    status === "loading";
 
   const removeItem = async (itemId: string) => {
     if (pendingId) return;
     setPendingId(itemId);
     try {
-      await wishlistService.remove(itemId);
-      setItems((current) => current.filter((item) => item.id !== itemId));
-      showSuccess("Removed from wishlist.", { id: "wishlist.remove" });
-    } catch (err) {
-      showError(toApiError(err).message || "Unable to remove item.", {
-        id: "wishlist.remove.error",
-      });
+      await remove(itemId);
     } finally {
       setPendingId(null);
     }
@@ -74,6 +54,7 @@ export function WishlistPageView() {
         <h1 className="font-display text-2xl font-semibold">Wishlist</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Products you have saved for later.
+          {!isAuthenticated ? " Sign in anytime to sync across devices." : null}
         </p>
       </div>
 
@@ -94,7 +75,7 @@ export function WishlistPageView() {
             <Heart className="size-10 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Your wishlist is empty.</p>
             <Button asChild>
-              <Link href="/shop">Discover Products</Link>
+              <Link href="/category">Discover Products</Link>
             </Button>
           </CardContent>
         </Card>
@@ -126,9 +107,11 @@ export function WishlistPageView() {
                   {item.available ? "In stock" : "Currently unavailable"}
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">
-                  <Button asChild size="sm" variant="outline">
-                    <Link href={`/shop/${item.productSlug}`}>View product</Link>
-                  </Button>
+                  {item.productSlug ? (
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/products/${item.productSlug}`}>View product</Link>
+                    </Button>
+                  ) : null}
                   <Button
                     size="sm"
                     variant="ghost"

@@ -27,6 +27,8 @@ import { authService } from "@/features/auth/auth.service";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAuth } from "@/hooks/useAuth";
 import { clearCredentials } from "@/store/slices/authSlice";
+import { clearCart } from "@/store/slices/cartSlice";
+import { clearWishlist } from "@/store/slices/wishlistSlice";
 
 export function HeaderAccountMenu() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -49,6 +51,8 @@ export function HeaderAccountMenu() {
     try {
       const result = await authService.logout();
       dispatch(clearCredentials());
+      dispatch(clearCart());
+      dispatch(clearWishlist());
       setMobileOpen(false);
       if (!result.serverRevoked) {
         // Client session is cleared; surface a non-blocking notice via query for the home page.
