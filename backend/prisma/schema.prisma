@@ -170,6 +170,7 @@ model Site {
   customerReviews        CustomerReview[]
   footerConfig           FooterConfig?
   topAdvertisementConfig TopAdvertisementConfig?
+  popupBannerConfig        PopupBannerConfig?
   aboutUsBannerConfig      AboutUsBannerConfig?
   promoBannerConfig        PromoBannerConfig?
   collectionBannerConfig   CollectionBannerConfig?
@@ -1162,6 +1163,26 @@ model TopAdvertisementConfig {
   items TopAdvertisementItem[]
 
   @@map("top_advertisement_configs")
+}
+
+/// Single site-scoped landing popup banner (one primary config per site).
+model PopupBannerConfig {
+  id              String   @id @default(uuid()) @db.Uuid
+  siteId          String   @unique @map("site_id") @db.Uuid
+  imageUrl        String   @default("") @map("image_url")
+  imagePublicId   String   @default("") @map("image_public_id")
+  miniHeading     String   @default("") @map("mini_heading")
+  heading         String   @default("")
+  subDescription  String   @default("") @map("sub_description") @db.Text
+  buttonLabel     String   @default("") @map("button_label")
+  buttonUrl       String   @default("") @map("button_url")
+  active          Boolean  @default(false)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@map("popup_banner_configs")
 }
 
 model TopAdvertisementItem {

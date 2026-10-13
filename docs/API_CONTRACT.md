@@ -159,6 +159,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/customer-reviews` | CRUD site-scoped curated customer testimonials | Admin + site access |
 | `/admin/sites/:siteCode/footer` | get/upsert site-scoped footer config | Admin + site access |
 | `/admin/sites/:siteCode/top-advertisement` | get/upsert site-scoped top advertisement (3 sections) | Admin + site access |
+| `/admin/sites/:siteCode/popup-banner` | get/upsert site-scoped landing popup banner | Admin + site access |
 | `/admin/sites/:siteCode/about-us-banner` | get/upsert site-scoped About Us home banner (3 sections) | Admin + site access |
 | `/admin/sites/:siteCode/promo-banners` | get/upsert site-scoped home promo banner row tiles | Admin + site access |
 | `/admin/sites/:siteCode/collection-banners` | get/upsert site-scoped post-gallery collection companion banner | Admin + site access |
@@ -259,6 +260,19 @@ One upsertable config per site with three section lists: announcement bar, heade
 ### Public top advertisement (storefront)
 
 - `GET /api/v1/sites/:siteCode/top-advertisement` — public read for an active site (no auth). Returns active items only, grouped as `announcements`, `utilityItems`, and `benefits`. Used by the `.in` storefront announcement bar, header utility strip, and feature benefits bar (falls back to static landing data when empty/unavailable).
+
+### Admin PopUp banner (implemented)
+
+One upsertable landing popup banner config per site (`PopupBannerConfig`).
+
+- `GET /api/v1/admin/sites/:siteCode/popup-banner` — Bearer admin JWT; `requireSiteAccess`. Returns the site record or empty defaults (`id: null`, `active: false`).
+- `PUT /api/v1/admin/sites/:siteCode/popup-banner` — upsert one row per site. Body: `imageUrl`, `imagePublicId`, `miniHeading`, `heading`, `subDescription`, `buttonLabel`, `buttonUrl`, `active`. When `active` is true, image, heading, button label, and button URL are required. `siteId` from authenticated site context only. Replaced Cloudinary `publicId`s are deleted best-effort.
+
+Uploads use existing media APIs with `feature=popup`: `POST /api/v1/media/images`.
+
+### Public PopUp banner (storefront)
+
+- `GET /api/v1/sites/:siteCode/popup-banner` — public read for an active site (no auth). Returns the config only when `active` is true; otherwise empty defaults (`id: null`, `active: false`). Used by the `.in` storefront `PromoPopupBanner`. Storefront dismiss uses **sessionStorage** key `skindx.popupBanner.dismissed.{siteCode}` (session-scoped, not localStorage). Empty/error/inactive responses hide the popup.
 
 ### Admin About Us banner (implemented)
 

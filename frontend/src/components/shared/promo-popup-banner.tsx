@@ -12,40 +12,67 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { promoPopup } from "@/data/landing";
+import {
+  fetchActivePopupBanner,
+  isPopupBannerDismissed,
+  markPopupBannerDismissed,
+} from "@/features/popup-banner/popup-banner.service";
+import type { StorefrontPopupBanner } from "@/types/popup-banner";
+
+const STOREFRONT_SITE_CODE = "IN" as const;
 
 type PromoPopupBannerProps = {
   /** Delay before opening so the page can paint first. */
   delayMs?: number;
+  siteCode?: "IN" | "COM";
 };
 
-export function PromoPopupBanner({ delayMs = 800 }: PromoPopupBannerProps) {
+export function PromoPopupBanner({
+  delayMs = 800,
+  siteCode = STOREFRONT_SITE_CODE,
+}: PromoPopupBannerProps) {
   const [open, setOpen] = useState(false);
+  const [banner, setBanner] = useState<StorefrontPopupBanner | null>(null);
 
   useEffect(() => {
-    if (!promoPopup.enabled) return;
+    let cancelled = false;
+    let timer: number | undefined;
 
-    try {
-      if (window.sessionStorage.getItem(promoPopup.storageKey) === "1") {
+    async function load() {
+      if (isPopupBannerDismissed(siteCode)) {
         return;
       }
-    } catch {
-      // Ignore storage failures and still show once per mount.
+
+      const next = await fetchActivePopupBanner(siteCode);
+      if (cancelled || !next) {
+        return;
+      }
+
+      setBanner(next);
+      timer = window.setTimeout(() => {
+        if (!cancelled) setOpen(true);
+      }, delayMs);
     }
 
-    const timer = window.setTimeout(() => setOpen(true), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [delayMs]);
+    void load();
+
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [delayMs, siteCode]);
 
   function dismiss(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
-      try {
-        window.sessionStorage.setItem(promoPopup.storageKey, "1");
-      } catch {
-        // no-op
-      }
+      markPopupBannerDismissed(siteCode);
     }
+  }
+
+  if (!banner) {
+    return null;
   }
 
   return (
@@ -57,40 +84,37 @@ export function PromoPopupBanner({ delayMs = 800 }: PromoPopupBannerProps) {
         <div className="grid sm:grid-cols-2">
           <div className="relative min-h-[14rem] bg-primary/15 sm:min-h-[22rem]">
             <Image
-              src={promoPopup.image.src}
-              alt={promoPopup.image.alt}
+              src={banner.imageUrl}
+              alt={banner.imageAlt}
               fill
               className="object-cover"
               sizes="(max-width: 640px) 100vw, 50vw"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-secondary/70 via-secondary/20 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-5 text-secondary-foreground sm:p-6">
-              <p className="text-xs font-semibold tracking-wide uppercase opacity-90">
-                {promoPopup.leftEyebrow}
-              </p>
-              <p className="mt-2 text-lg font-semibold leading-snug sm:text-xl">
-                {promoPopup.leftTitle}
-              </p>
-              <p className="mt-2 hidden text-sm text-secondary-foreground/90 sm:block">
-                {promoPopup.leftBody}
-              </p>
-            </div>
           </div>
 
           <div className="flex flex-col items-center justify-center px-6 py-10 text-center sm:px-10">
             <DialogHeader className="items-center space-y-3 text-center">
+                <p className="text-xs font-semibold tracking-wide uppercase opacity-90">
+                  {banner.miniHeading}
+                </p>
               <DialogTitle className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-                {promoPopup.heading}
+                {banner.heading}
               </DialogTitle>
-              <DialogDescription className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-                {promoPopup.description}
-              </DialogDescription>
+              {banner.subDescription ? (
+                <DialogDescription className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+                  {banner.subDescription}
+                </DialogDescription>
+              ) : (
+                <DialogDescription className="sr-only">
+                  Promotional popup
+                </DialogDescription>
+              )}
             </DialogHeader>
 
-            <Button asChild size="lg" variant="outline" className="mt-8 min-w-[12rem]">
-              <Link href={promoPopup.cta.href} onClick={() => dismiss(false)}>
-                {promoPopup.cta.label}
+            <Button asChild size="lg" variant="outline" className="mt-8 border border-black hover:bg-primary hover:text-white transition-colors duration-300 min-w-[12rem]">
+              <Link href={banner.buttonUrl} onClick={() => dismiss(false)}>
+                {banner.buttonLabel}
               </Link>
             </Button>
           </div>

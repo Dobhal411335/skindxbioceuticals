@@ -95,27 +95,6 @@ export type HeroBanner = {
 /** Backend/CMS hero banners. Empty until the API is wired. */
 export const heroBanners: HeroBanner[] = [];
 
-/** Homepage / storefront promo popup (static until CMS). */
-export const promoPopup = {
-  enabled: true,
-  storageKey: "skindx-promo-popup-dismissed",
-  image: {
-    src: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=900&q=80",
-    alt: "SkinDx skincare products on a clean surface",
-  },
-  leftEyebrow: "SkinDx Bioc",
-  leftTitle: "Discover calm, clear skincare for everyday shelves.",
-  leftBody:
-    "Browse the India catalogue with transparent pricing and pack details — no invented medical claims.",
-  heading: "Explore the SkinDx range",
-  description:
-    "Shop serums, cleansers, and essentials with clear product information. Static promo UI until CMS banners are connected.",
-  cta: {
-    label: "Shop now",
-    href: "/category",
-  },
-};
-
 export const hero = {
   eyebrow: "Clinical calm for everyday skin",
   title: "SkinDx Bioc",

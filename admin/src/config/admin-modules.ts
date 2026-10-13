@@ -33,6 +33,13 @@ function live(
 
 const BANNER_MODULES: AdminModuleDefinition[] = [
   live(
+    "banner-popup",
+    "banners/popup",
+    "PopUp Banner",
+    "Manage the landing popup banner for this website.",
+    ["IN", "COM"],
+  ),
+  live(
     "banner-top-advertisement",
     "banners/top-advertisement",
     "Top Advertisement Banner",
@@ -58,13 +65,6 @@ const BANNER_MODULES: AdminModuleDefinition[] = [
     "banners/hero",
     "Hero Banner",
     "Manage home hero carousel slides (image-only full-width, split dual, and associate-brand grid) for this website.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "banner-popup",
-    "banners/popup",
-    "PopUp Banner",
-    "Manage popup banners for this website.",
     ["IN", "COM"],
   ),
 ];

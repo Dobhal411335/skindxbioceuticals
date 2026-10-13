@@ -60,6 +60,9 @@ export const API_ENDPOINTS = {
   TOP_ADVERTISEMENT: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/top-advertisement`,
   },
+  POPUP_BANNER: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/popup-banner`,
+  },
   ABOUT_US_BANNER: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/about-us-banner`,
   },

@@ -84,6 +84,9 @@ function leaf(
 
 function bannerChildren(siteCode: SiteCode): SidebarNavItem[] {
   return [
+    leaf(siteCode, "banner-popup", "PopUp Banner", "banners/popup", ImageIcon, {
+      status: "active",
+    }),
     leaf(siteCode, "banner-top-advertisement", "Top Advertisement Banner", "banners/top-advertisement", ImageIcon, {
       status: "active",
     }),
@@ -101,7 +104,6 @@ function bannerChildren(siteCode: SiteCode): SidebarNavItem[] {
     leaf(siteCode, "banner-hero", "Hero Banner", "banners/hero", ImageIcon, {
       status: "active",
     }),
-    leaf(siteCode, "banner-popup", "PopUp Banner", "banners/popup", ImageIcon),
   ];
 }
 

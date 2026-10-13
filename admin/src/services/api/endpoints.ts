@@ -28,6 +28,8 @@ export const endpoints = {
     footer: (siteCode: string) => `/admin/sites/${siteCode}/footer`,
     topAdvertisement: (siteCode: string) =>
       `/admin/sites/${siteCode}/top-advertisement`,
+    popupBanner: (siteCode: string) =>
+      `/admin/sites/${siteCode}/popup-banner`,
     aboutUsBanner: (siteCode: string) =>
       `/admin/sites/${siteCode}/about-us-banner`,
     promoBanners: (siteCode: string) =>
