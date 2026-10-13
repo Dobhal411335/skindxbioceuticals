@@ -13,6 +13,14 @@ describe('Cloudinary Validation', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should allow insights feature folder', () => {
+      const result = uploadOptionsSchema.safeParse({
+        siteCode: 'IN',
+        feature: 'insights',
+      });
+      expect(result.success).toBe(true);
+    });
+
     it('should reject invalid siteCode', () => {
       const result = uploadOptionsSchema.safeParse({
         siteCode: 'INVALID',

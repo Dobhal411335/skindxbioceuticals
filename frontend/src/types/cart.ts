@@ -12,7 +12,14 @@ export type CartItem = {
   alt: string;
   variantLabel?: string;
   quantity: number;
+  /** Payable unit price after product discount (if any). */
   unitPriceInPaise: number;
+  /** List/original price before product discount. */
+  originalUnitPriceInPaise?: number;
+  /** Product-linked coupon code applied to this line. */
+  discountCode?: string | null;
+  /** Absolute discount amount per unit in paise. */
+  discountInPaise?: number;
 };
 
 export type CartTotals = {

@@ -4,8 +4,7 @@ import type { Metadata } from "next";
 import { BlogListItem } from "@/components/blog/blog-list-item";
 import { BlogSidebar } from "@/components/blog/blog-sidebar";
 import { OffersBanner } from "@/components/shared/offers-banner";
-import { Button } from "@/components/ui/button";
-import { blogPosts } from "@/data/blog";
+import { getBlogs, getRecentBlogs } from "@/features/blog/blog.service";
 
 export const metadata: Metadata = {
   title: "Blog | SkinDx Bioceuticals",
@@ -18,11 +17,10 @@ type BlogPageProps = {
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   const { category } = await searchParams;
-  const posts = category
-    ? blogPosts.filter(
-        (post) => post.category.toLowerCase() === category.toLowerCase(),
-      )
-    : blogPosts;
+  const [{ blogs, categories }, recent] = await Promise.all([
+    getBlogs(category),
+    getRecentBlogs(4),
+  ]);
 
   return (
     <>
@@ -38,17 +36,23 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             </nav>
             <h1 className="text-3xl font-semibold tracking-wide uppercase">Blog</h1>
             <div className="mt-8">
-              <BlogSidebar />
+              <BlogSidebar
+                categories={categories}
+                recent={recent}
+                activeCategory={category}
+              />
             </div>
           </div>
 
           <div>
-            {posts.length === 0 ? (
+            {blogs.length === 0 ? (
               <p className="py-10 text-sm text-muted-foreground">
-                No articles in this category yet.
+                {category
+                  ? "No articles in this category yet."
+                  : "No articles published yet."}
               </p>
             ) : (
-              posts.map((post, index) => (
+              blogs.map((post, index) => (
                 <BlogListItem
                   key={post.id}
                   post={post}
@@ -56,20 +60,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                 />
               ))
             )}
-
-            <div className="flex flex-wrap items-center justify-between gap-3 py-8">
-              <Button type="button" variant="outline" disabled>
-                Prev post
-              </Button>
-              <div className="flex items-center gap-3 text-sm">
-                <span className="font-semibold">1</span>
-                <span className="text-muted-foreground">2</span>
-                <span className="text-muted-foreground">Next</span>
-              </div>
-              <Button type="button" variant="outline" disabled>
-                Next post
-              </Button>
-            </div>
           </div>
         </div>
       </div>

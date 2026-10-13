@@ -24,6 +24,8 @@ export type PublicProductColor = {
   sortOrder: number;
 };
 
+export type ProductId = string;
+
 export type PublicProductVariant = {
   id: string;
   sku: string | null;
@@ -31,6 +33,7 @@ export type PublicProductVariant = {
   price: number;
   sizeLabel: string | null;
   colorLabel: string | null;
+  weightGrams: number | null;
   quantity: number;
   isActive: boolean;
   profileImage: PublicMediaRef | null;

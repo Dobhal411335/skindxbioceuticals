@@ -242,6 +242,7 @@ export class ProductService {
         price: decimalToNumber(row.price) ?? 0,
         sizeLabel: row.sizeLabel,
         colorLabel: row.colorLabel,
+        weightGrams: row.weightGrams ?? null,
         quantity: row.inventory?.quantityOnHand ?? 0,
         isActive: row.isActive,
         profileImage: toMediaRef(row.profileImageUrl, row.profileImagePublicId),

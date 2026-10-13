@@ -27,5 +27,6 @@ export const ALLOWED_FEATURE_FOLDERS = [
   'about',
   'hero',
   'reviews',
+  'insights',
   'general',
 ] as const;

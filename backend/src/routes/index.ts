@@ -14,7 +14,6 @@ import { paymentRoutes } from '@/features/payments/payment.routes';
 import { couponRoutes } from '@/features/coupons/coupon.routes';
 import { reviewRoutes } from '@/features/reviews/review.routes';
 import { inventoryRoutes } from '@/features/inventory/inventory.routes';
-import { blogRoutes } from '@/features/blog/blog.routes';
 import { enquiryRoutes } from '@/features/enquiries/enquiry.routes';
 import { adminRoutes } from '@/features/admin/admin.routes';
 import { companyBasicInfoPublicRoutes } from '@/features/company-basic-info/company-basic-info.public.routes';
@@ -26,7 +25,9 @@ import { footerPublicRoutes } from '@/features/footer/footer.public.routes';
 import { topAdvertisementPublicRoutes } from '@/features/top-advertisement/top-advertisement.public.routes';
 import { aboutUsBannerPublicRoutes } from '@/features/about-us-banner/about-us-banner.public.routes';
 import { faqPublicRoutes } from '@/features/faq/faq.public.routes';
+import { insightsPublicRoutes } from '@/features/insights/insights.public.routes';
 import { heroBannerPublicRoutes } from '@/features/hero-banner/hero-banner.public.routes';
+import { blogPublicRoutes } from '@/features/blog/blog.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
@@ -48,7 +49,6 @@ export function registerRoutes(app: Application): void {
   v1.use('/coupons', couponRoutes);
   v1.use('/reviews', reviewRoutes);
   v1.use('/inventory', inventoryRoutes);
-  v1.use('/blog', blogRoutes);
   v1.use('/enquiries', enquiryRoutes);
   v1.use('/admin', adminRoutes);
   v1.use('/media', mediaRoutes);
@@ -63,7 +63,9 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/top-advertisement', topAdvertisementPublicRoutes);
   v1.use('/sites/:siteCode/about-us-banner', aboutUsBannerPublicRoutes);
   v1.use('/sites/:siteCode/faq', faqPublicRoutes);
+  v1.use('/sites/:siteCode/insights', insightsPublicRoutes);
   v1.use('/sites/:siteCode/hero-banners', heroBannerPublicRoutes);
+  v1.use('/sites/:siteCode/blogs', blogPublicRoutes);
   v1.use('/sites/:siteCode/categories', categoryPublicRoutes);
   v1.use('/sites/:siteCode/products', productPublicRoutes);
 

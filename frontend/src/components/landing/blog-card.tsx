@@ -13,14 +13,17 @@ type BlogCardProps = {
 
 export function BlogCard({ post, variant = "carousel" }: BlogCardProps) {
   return (
-    <Card className="h-full overflow-hidden border-border shadow-none">
-      <Link href={post.href} className="group flex h-full flex-col focus-visible:outline-none">
-        <div className="relative aspect-[4/3] bg-surface">
+    <Card className="h-full gap-0 overflow-hidden border-border py-0 shadow-none">
+      <Link
+        href={post.href}
+        className="group flex h-full min-h-0 flex-col focus-visible:outline-none"
+      >
+        <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-surface">
           <Image
             src={post.image}
             alt={post.alt}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 33vw"
           />
           {variant === "insight" ? (
@@ -39,19 +42,19 @@ export function BlogCard({ post, variant = "carousel" }: BlogCardProps) {
         </div>
         <CardContent className="flex flex-1 flex-col gap-2 p-4">
           {variant !== "insight" ? (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-800">
               {post.date} · By {post.author}
             </p>
           ) : (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-800">
               by {post.author} | {post.date}
             </p>
           )}
-          <h3 className="font-display text-lg leading-snug font-semibold group-hover:text-primary">
+          <h3 className="font-display text-lg leading-snug font-semibold group-hover:text-primary line-clamp-2 text-ellipsis">
             {post.title}
           </h3>
           {variant === "grid" ? (
-            <p className="line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
+            <div dangerouslySetInnerHTML={{ __html: post.excerpt }} className="line-clamp-2 text-sm text-muted-foreground" />
           ) : null}
           {variant === "carousel" || variant === "grid" ? (
             <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium underline-offset-4 group-hover:underline">

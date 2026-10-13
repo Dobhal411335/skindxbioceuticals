@@ -92,12 +92,6 @@ enum EnquirySource {
   OTHER
 }
 
-enum BlogPostStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
-
 enum MediaType {
   IMAGE
   VIDEO
@@ -178,10 +172,13 @@ model Site {
   topAdvertisementConfig TopAdvertisementConfig?
   aboutUsBannerConfig    AboutUsBannerConfig?
   faqSections            FaqSection[]
+  insightCards           InsightCard[]
+  insightQaItems         InsightQa[]
   heroBannerSlides       HeroBannerSlide[]
   catalogColors          CatalogColor[]
   catalogTags            CatalogTag[]
   coupons                Coupon[]
+  blogs                  Blog[]
 
   @@map("sites")
 }
@@ -897,21 +894,30 @@ model Review {
 // Content (shared by .in / .com frontends)
 // =============================================================================
 
-model BlogPost {
-  id           String         @id @default(uuid()) @db.Uuid
-  title        String
-  slug         String         @unique
-  excerpt      String?
-  content      String
-  status       BlogPostStatus @default(DRAFT)
-  coverMediaId String?        @map("cover_media_id") @db.Uuid
-  publishedAt  DateTime?      @map("published_at")
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt @map("updated_at")
+model Blog {
+  id            String   @id @default(uuid()) @db.Uuid
+  siteId        String   @map("site_id") @db.Uuid
+  name          String
+  slug          String
+  category      String
+  title         String   @default("")
+  publishedAt   DateTime @default(now()) @map("published_at")
+  createdBy     String   @default("") @map("created_by")
+  imageUrl      String   @default("") @map("image_url")
+  imagePublicId String   @default("") @map("image_public_id")
+  description   String   @default("") @db.Text
+  blockquote    String   @default("") @db.Text
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  coverMedia Media? @relation(fields: [coverMediaId], references: [id])
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
-  @@map("blog_posts")
+  @@unique([siteId, slug])
+  @@index([siteId, active, publishedAt])
+  @@index([siteId, category, active, publishedAt])
+  @@index([siteId, createdAt])
+  @@map("blogs")
 }
 
 model Enquiry {
@@ -966,7 +972,6 @@ model Media {
   site         Site?          @relation(fields: [siteId], references: [id], onDelete: SetNull)
   createdBy    User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
   productMedia ProductMedia[]
-  blogPosts    BlogPost[]
 
   @@index([siteId])
   @@index([feature])
@@ -1284,6 +1289,46 @@ model FaqItem {
   @@index([sectionId, active, order])
   @@index([sectionId, showOnLanding])
   @@map("faq_items")
+}
+
+/// Landing Insights banner cards (distinct from full Blog CMS).
+model InsightCard {
+  id            String   @id @default(uuid()) @db.Uuid
+  siteId        String   @map("site_id") @db.Uuid
+  category      String
+  name          String
+  publishedAt   DateTime @default(now()) @map("published_at")
+  imageUrl      String   @default("") @map("image_url")
+  imagePublicId String   @default("") @map("image_public_id")
+  description   String   @default("") @db.Text
+  order         Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, order])
+  @@index([siteId, active, order])
+  @@map("insight_cards")
+}
+
+/// Landing Insights Q&A items (distinct from Website FAQ sections).
+model InsightQa {
+  id          String   @id @default(uuid()) @db.Uuid
+  siteId      String   @map("site_id") @db.Uuid
+  question    String
+  answer      String   @db.Text
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, order])
+  @@index([siteId, active, order])
+  @@map("insight_qa_items")
 }
 
 /// Site-scoped home hero carousel slides (full-width, split dual, multi-image).

@@ -8,6 +8,7 @@ import { ProductHighlights } from "@/components/product/product-highlights";
 import { ProductInfoTabs } from "@/components/product/product-info-tabs";
 import { ProductPurchasePanel } from "@/components/product/product-purchase-panel";
 import { ProductRecommendations } from "@/components/product/product-recommendations";
+import { ProductReviewsSection } from "@/components/product/product-reviews-section";
 import { ProductStickyBar } from "@/components/product/product-sticky-bar";
 import { ProductTrustSidebar } from "@/components/product/product-trust-sidebar";
 import {
@@ -50,6 +51,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
       <ProductHighlights highlights={product.highlights} />
       <ProductInfoTabs product={product} />
       <FrequentlyBought product={product} />
+      <ProductReviewsSection product={product} />
       <ProductRecommendations products={product.relatedProducts} />
       <ProductStickyBar
         product={product}

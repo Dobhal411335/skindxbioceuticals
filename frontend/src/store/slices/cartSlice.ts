@@ -62,6 +62,16 @@ const cartSlice = createSlice({
       const existing = state.items.find((item) => item.id === id);
       if (existing) {
         existing.quantity += quantity;
+        existing.unitPriceInPaise = action.payload.unitPriceInPaise;
+        existing.originalUnitPriceInPaise =
+          action.payload.originalUnitPriceInPaise;
+        existing.discountCode = action.payload.discountCode;
+        existing.discountInPaise = action.payload.discountInPaise;
+        existing.variantLabel = action.payload.variantLabel;
+        existing.image = action.payload.image;
+        existing.alt = action.payload.alt;
+        existing.name = action.payload.name;
+        existing.slug = action.payload.slug;
       } else {
         state.items.push({ ...action.payload, id, quantity });
       }

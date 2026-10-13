@@ -1,0 +1,428 @@
+"use client";
+
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { Copy, Newspaper, Pencil, Trash2 } from "lucide-react";
+
+import { AdminAppShell } from "@/components/layout/admin-app-shell";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { storefrontBaseUrl } from "@/config/env";
+import {
+  slugifyBlogName,
+  validateBlogCreateForm,
+  type BlogCreateFormErrors,
+} from "@/schemas/blog-schema";
+import {
+  createBlog,
+  deleteBlog,
+  fetchBlogs,
+  patchBlog,
+} from "@/services/api/blog";
+import { ApiError } from "@/services/api/errors";
+import { showError, showSuccess } from "@/lib/toast";
+import type { SiteCode } from "@/types/auth";
+import type { BlogCreateFormValues, BlogDto } from "@/types/blog";
+
+function createEmptyValues(): BlogCreateFormValues {
+  return {
+    name: "",
+    category: "",
+    slug: "",
+  };
+}
+
+function storefrontBlogUrl(siteCode: SiteCode, slug: string): string {
+  const base = storefrontBaseUrl(siteCode);
+  return `${base}/blog/${encodeURIComponent(slug)}`;
+}
+
+export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
+  const [blogs, setBlogs] = useState<BlogDto[]>([]);
+  const [values, setValues] = useState<BlogCreateFormValues>(createEmptyValues);
+  const [errors, setErrors] = useState<BlogCreateFormErrors>({});
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<BlogDto | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const loadBlogs = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const data = await fetchBlogs(siteCode);
+      setBlogs(data);
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : "Failed to load blogs";
+      setLoadError(message);
+      showError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [siteCode]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial blog list
+    void loadBlogs();
+  }, [loadBlogs]);
+
+  const resetForm = () => {
+    setValues(createEmptyValues());
+    setErrors({});
+    setSlugTouched(false);
+  };
+
+  const handleNameChange = (name: string) => {
+    setValues((prev) => ({
+      ...prev,
+      name,
+      slug: slugTouched ? prev.slug : slugifyBlogName(name),
+    }));
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const validated = validateBlogCreateForm(values);
+    if (!validated.ok) {
+      setErrors(validated.errors);
+      showError("Please fix the highlighted fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+    try {
+      await createBlog(siteCode, validated.data);
+      showSuccess("Blog created");
+      resetForm();
+      await loadBlogs();
+    } catch (error) {
+      showError(
+        error instanceof ApiError ? error.message : "Failed to create blog",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const startEditName = (blog: BlogDto) => {
+    setEditingNameId(blog.id);
+    setEditingName(blog.name);
+    setPendingDelete(null);
+  };
+
+  const cancelEditName = () => {
+    setEditingNameId(null);
+    setEditingName("");
+  };
+
+  const saveEditName = async (blogId: string) => {
+    const name = editingName.trim();
+    if (!name) {
+      showError("Blog name is required");
+      return;
+    }
+    setIsSavingName(true);
+    try {
+      await patchBlog(siteCode, blogId, { name });
+      showSuccess("Blog name updated");
+      cancelEditName();
+      await loadBlogs();
+    } catch (error) {
+      showError(
+        error instanceof ApiError ? error.message : "Failed to update blog name",
+      );
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteBlog(siteCode, pendingDelete.id);
+      showSuccess("Blog deleted");
+      if (editingNameId === pendingDelete.id) {
+        cancelEditName();
+      }
+      setPendingDelete(null);
+      await loadBlogs();
+    } catch (error) {
+      showError(
+        error instanceof ApiError ? error.message : "Failed to delete blog",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCopyUrl = async (blog: BlogDto) => {
+    const url = storefrontBlogUrl(siteCode, blog.slug);
+    try {
+      await navigator.clipboard.writeText(url);
+      showSuccess("Blog URL copied");
+    } catch {
+      showError("Could not copy URL");
+    }
+  };
+
+  return (
+    <AdminAppShell
+      siteCode={siteCode}
+      title="Manage Blog"
+      description="Create blog posts and open the editor to add content, media, and publish details."
+    >
+      <div className="mx-auto max-w-5xl space-y-6">
+        {loadError ? (
+          <Alert variant="destructive">
+            <AlertTitle>Could not load blogs</AlertTitle>
+            <AlertDescription>{loadError}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Card className="border-border bg-card shadow-sm">
+            <CardHeader className="border-b border-border/70">
+              <div className="flex items-center gap-2">
+                <Newspaper className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg font-semibold">Create blog</CardTitle>
+              </div>
+              <CardDescription>
+                Add a name and category. Slug is generated from the name and can
+                be edited before saving. Open Edit Blog to finish the article.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5 pt-6">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="blog-name">Blog name</Label>
+                  <Input
+                    id="blog-name"
+                    value={values.name}
+                    onChange={(event) => handleNameChange(event.target.value)}
+                    placeholder="e.g. Morning routine tips"
+                    aria-invalid={Boolean(errors.name)}
+                  />
+                  {errors.name ? (
+                    <p className="text-sm text-destructive">{errors.name}</p>
+                  ) : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="blog-category">Blog category</Label>
+                  <Input
+                    id="blog-category"
+                    value={values.category}
+                    onChange={(event) =>
+                      setValues((prev) => ({
+                        ...prev,
+                        category: event.target.value,
+                      }))
+                    }
+                    placeholder="e.g. Education"
+                    aria-invalid={Boolean(errors.category)}
+                  />
+                  {errors.category ? (
+                    <p className="text-sm text-destructive">{errors.category}</p>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating…" : "Create blog"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  disabled={isSubmitting}
+                >
+                  Clear
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+
+        <Card className="border-border bg-card shadow-sm">
+          <CardHeader className="border-b border-border/70">
+            <CardTitle className="text-lg font-semibold">Existing blogs</CardTitle>
+            <CardDescription>
+              Edit the display name inline, delete a post, or open the full editor.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            {isLoading ? (
+              <p className="py-8 text-sm text-muted-foreground">Loading blogs…</p>
+            ) : blogs.length === 0 ? (
+              <p className="py-8 text-sm text-muted-foreground">
+                No blogs yet. Create one above.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Slug</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {blogs.map((blog) => {
+                    const isEditing = editingNameId === blog.id;
+                    return (
+                      <TableRow key={blog.id}>
+                        <TableCell className="max-w-[220px] font-medium">
+                          {isEditing ? (
+                            <Input
+                              value={editingName}
+                              onChange={(event) =>
+                                setEditingName(event.target.value)
+                              }
+                              aria-label="Edit blog name"
+                            />
+                          ) : (
+                            blog.name
+                          )}
+                        </TableCell>
+                        <TableCell>{blog.category}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 shrink-0"
+                              onClick={() => void handleCopyUrl(blog)}
+                              aria-label={`Copy storefront URL for ${blog.name}`}
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            {isEditing ? (
+                              <>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  disabled={isSavingName}
+                                  onClick={() => void saveEditName(blog.id)}
+                                >
+                                  {isSavingName ? "Saving…" : "Save"}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditName}
+                                  disabled={isSavingName}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => startEditName(blog)}
+                              >
+                                <Pencil className="mr-1 size-3.5" aria-hidden />
+                                Edit name
+                              </Button>
+                            )}
+                            <Button asChild size="sm">
+                              <Link
+                                href={`/admin/${siteCode.toLowerCase()}/blog/${blog.id}/edit`}
+                              >
+                                Edit Blog
+                              </Link>
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setPendingDelete(blog)}
+                            >
+                              <Trash2 className="mr-1 size-3.5" aria-hidden />
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <AlertDialog
+        open={Boolean(pendingDelete)}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete blog?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes “{pendingDelete?.name}” and its cover
+              image. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDelete();
+              }}
+            >
+              {isDeleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AdminAppShell>
+  );
+}

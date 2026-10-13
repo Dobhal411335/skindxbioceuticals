@@ -10,6 +10,7 @@ import {
   HelpCircle,
   ImageIcon,
   LayoutDashboard,
+  Lightbulb,
   Link2,
   LogOut,
   MessageSquare,
@@ -170,6 +171,12 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           children: [
             leaf(siteCode, "stock-management", "Stock Management", "stock-management", Boxes),
             leaf(siteCode, "website-faq", "Website FAQ Section", "website-faq", HelpCircle, {
+              status: "active",
+            }),
+            leaf(siteCode, "manage-blog", "Manage Blog", "blog", Newspaper, {
+              status: "active",
+            }),
+            leaf(siteCode, "manage-insights", "Manage Insights", "insights", Lightbulb, {
               status: "active",
             }),
             leaf(siteCode, "create-person-profile", "Create Person Profile", "create-person-profile", UserRoundPlus),

@@ -104,6 +104,7 @@ export type PublicProductVariantDto = {
   price: number;
   sizeLabel: string | null;
   colorLabel: string | null;
+  weightGrams: number | null;
   quantity: number;
   isActive: boolean;
   profileImage: PublicMediaRefDto | null;

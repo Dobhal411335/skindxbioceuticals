@@ -9,6 +9,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
@@ -118,7 +120,7 @@ export function ProductGallery({
         <Carousel
           setApi={setThumbApi}
           opts={{ align: "start", dragFree: true }}
-          className="w-full"
+          className="relative w-full"
         >
           <CarouselContent className="-ml-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {images.map((image, index) => (
@@ -149,6 +151,12 @@ export function ProductGallery({
               </CarouselItem>
             ))}
           </CarouselContent>
+          {images.length > 4 ? (
+            <>
+              <CarouselPrevious className="left-0 size-8 border-border bg-background/90 shadow-sm" />
+              <CarouselNext className="right-0 size-8 border-border bg-background/90 shadow-sm" />
+            </>
+          ) : null}
         </Carousel>
       ) : null}
     </div>

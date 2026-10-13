@@ -67,6 +67,9 @@ export const API_ENDPOINTS = {
   FAQ: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/faq`,
   },
+  INSIGHTS: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/insights`,
+  },
   HERO_BANNERS: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/hero-banners`,
   },

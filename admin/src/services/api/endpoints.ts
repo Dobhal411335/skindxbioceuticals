@@ -31,6 +31,7 @@ export const endpoints = {
     aboutUsBanner: (siteCode: string) =>
       `/admin/sites/${siteCode}/about-us-banner`,
     faq: (siteCode: string) => `/admin/sites/${siteCode}/faq`,
+    insights: (siteCode: string) => `/admin/sites/${siteCode}/insights`,
     heroBanners: (siteCode: string) =>
       `/admin/sites/${siteCode}/hero-banners`,
     categories: (siteCode: string) =>
@@ -75,6 +76,9 @@ export const endpoints = {
     coupons: (siteCode: string) => `/admin/sites/${siteCode}/coupons`,
     coupon: (siteCode: string, couponId: string) =>
       `/admin/sites/${siteCode}/coupons/${couponId}`,
+    blogs: (siteCode: string) => `/admin/sites/${siteCode}/blogs`,
+    blog: (siteCode: string, blogId: string) =>
+      `/admin/sites/${siteCode}/blogs/${blogId}`,
   },
   media: {
     uploadImage: "/media/images",

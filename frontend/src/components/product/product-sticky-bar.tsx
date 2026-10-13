@@ -15,6 +15,7 @@ import {
   primaryImageUrl,
   rupeesToPaise,
 } from "@/features/products/product-selection";
+import { applyProductCoupon } from "@/features/products/product-pricing";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatInr } from "@/lib/utils";
@@ -53,7 +54,9 @@ export function ProductStickyBar({
       ? findMatchingVariant(product, null, null)
       : findExactVariant(product, selectedSize?.label, selectedColor?.name);
   const availableQty = selectedVariant?.quantity ?? 0;
-  const unitPrice = selectedVariant?.price ?? 0;
+  const listPrice = selectedVariant?.price ?? 0;
+  const priced = applyProductCoupon(listPrice, product.coupon);
+  const unitPrice = priced.unitPrice;
   const unavailable = !selectedVariant || availableQty <= 0;
   const imageUrl = primaryImageUrl(product);
 
@@ -110,6 +113,13 @@ export function ProductStickyBar({
             .filter(Boolean)
             .join(" / "),
           unitPriceInPaise: rupeesToPaise(unitPrice),
+          originalUnitPriceInPaise: priced.hasDiscount
+            ? rupeesToPaise(priced.originalPrice)
+            : undefined,
+          discountCode: priced.coupon?.code ?? null,
+          discountInPaise: priced.hasDiscount
+            ? rupeesToPaise(priced.discountAmount)
+            : undefined,
           quantity,
         }),
       );
@@ -139,7 +149,14 @@ export function ProductStickyBar({
           ) : null}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{product.name}</p>
-            <p className="text-sm font-medium">{formatInr(unitPrice)}</p>
+            <p className="text-sm font-medium">
+              {formatInr(unitPrice)}
+              {priced.hasDiscount ? (
+                <span className="ml-2 text-xs text-muted-foreground line-through">
+                  {formatInr(priced.originalPrice)}
+                </span>
+              ) : null}
+            </p>
             {selectedColor || selectedSize ? (
               <p className="truncate text-xs text-muted-foreground">
                 {[selectedColor?.name, selectedSize?.label]

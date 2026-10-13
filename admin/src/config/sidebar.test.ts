@@ -60,6 +60,8 @@ describe("getSidebarConfig", () => {
         "sub-dashboard",
         "stock-management",
         "website-faq",
+        "manage-blog",
+        "manage-insights",
         "vendor-partner",
         "add-direct-product",
         "create-product",
@@ -98,6 +100,16 @@ describe("getSidebarConfig", () => {
       "/admin/in/website-faq",
     );
     expect(inItems.find((item) => item.id === "website-faq")?.status).toBe("active");
+    expect(inItems.find((item) => item.id === "manage-blog")?.href).toBe(
+      "/admin/in/blog",
+    );
+    expect(inItems.find((item) => item.id === "manage-blog")?.status).toBe("active");
+    expect(inItems.find((item) => item.id === "manage-insights")?.href).toBe(
+      "/admin/in/insights",
+    );
+    expect(inItems.find((item) => item.id === "manage-insights")?.status).toBe(
+      "active",
+    );
     expect(inItems.find((item) => item.id === "create-category")?.href).toBe(
       "/admin/in/products/create-category",
     );

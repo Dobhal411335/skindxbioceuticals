@@ -148,7 +148,18 @@ export function CartDrawer() {
                         ) : null}
                         <p className="mt-1 text-sm font-semibold">
                           {formatPaiseToInr(item.unitPriceInPaise)}
+                          {item.originalUnitPriceInPaise != null &&
+                          item.originalUnitPriceInPaise > item.unitPriceInPaise ? (
+                            <span className="ml-2 text-xs font-normal text-muted-foreground line-through">
+                              {formatPaiseToInr(item.originalUnitPriceInPaise)}
+                            </span>
+                          ) : null}
                         </p>
+                        {item.discountCode ? (
+                          <p className="mt-0.5 text-[11px] font-medium text-green-700">
+                            {item.discountCode} applied
+                          </p>
+                        ) : null}
                       </div>
                       <Button
                         type="button"

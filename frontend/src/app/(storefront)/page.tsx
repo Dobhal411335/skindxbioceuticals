@@ -6,6 +6,7 @@ import { FeatureBenefitsBar } from "@/components/landing/feature-benefits-bar";
 import { FeaturedProductRail } from "@/components/landing/featured-product-rail";
 import { HeroSection } from "@/components/landing/hero-section";
 import { InsightsGrid } from "@/components/landing/insights-grid";
+import { InsightsQaSection } from "@/components/landing/insights-qa-section";
 import { MarqueeBanner } from "@/components/landing/marquee-banner";
 import { ProductHighlightColumns } from "@/components/landing/product-highlight-columns";
 import { PromoBannerRow } from "@/components/landing/promo-banner-row";
@@ -19,6 +20,7 @@ import { getCustomerReviews } from "@/features/customer-reviews/customer-reviews
 import { getLandingFaqs } from "@/features/faq/faq.service";
 import { getGalleryItems } from "@/features/gallery/gallery.service";
 import { getHeroBanners } from "@/features/hero-banner/hero-banner.service";
+import { getLandingInsights } from "@/features/insights/insights.service";
 import {
   getLandingProductHighlights,
   getLandingProducts,
@@ -32,6 +34,7 @@ export default async function HomePage() {
     aboutUsBanner,
     customerReviews,
     landingFaqs,
+    landingInsights,
     heroSlides,
     landingProducts,
     productHighlights,
@@ -41,6 +44,7 @@ export default async function HomePage() {
     getAboutUsBanner(),
     getCustomerReviews(),
     getLandingFaqs(),
+    getLandingInsights(),
     getHeroBanners(),
     getLandingProducts(15),
     getLandingProductHighlights(),
@@ -60,13 +64,14 @@ export default async function HomePage() {
       <PromoBannerRow />
       <ProductHighlightColumns highlights={productHighlights} />
       <TestimonialsGrid reviews={customerReviews} />
-      <InsightsGrid />
       <BlogGrid />
+      <InsightsGrid insights={landingInsights} />
       <FeatureBenefitsBar />
       <StyleGallery items={galleryItems} />
       <FaqSection items={landingFaqs} />
       <SocialPostsSection posts={socialPosts} />
       <MarqueeBanner />
+      <InsightsQaSection items={landingInsights.qaItems} />
     </>
   );
 }

@@ -103,7 +103,20 @@ export function CartPageView() {
                       ) : null}
                     </div>
                   </div>
-                  <p className="text-sm">{formatPaiseToInr(item.unitPriceInPaise)}</p>
+                  <div className="text-sm">
+                    <p>{formatPaiseToInr(item.unitPriceInPaise)}</p>
+                    {item.originalUnitPriceInPaise != null &&
+                    item.originalUnitPriceInPaise > item.unitPriceInPaise ? (
+                      <p className="text-xs text-muted-foreground line-through">
+                        {formatPaiseToInr(item.originalUnitPriceInPaise)}
+                      </p>
+                    ) : null}
+                    {item.discountCode ? (
+                      <p className="text-[11px] font-medium text-green-700">
+                        {item.discountCode}
+                      </p>
+                    ) : null}
+                  </div>
                   <QuantityStepper
                     size="sm"
                     value={item.quantity}

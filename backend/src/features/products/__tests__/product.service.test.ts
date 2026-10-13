@@ -233,6 +233,7 @@ describe('ProductService', () => {
           price: { toString: () => '1499' },
           sizeLabel: '30 ml',
           colorLabel: 'Clear',
+          weightGrams: 200,
           profileImageUrl: null,
           profileImagePublicId: null,
           isActive: true,
@@ -262,6 +263,7 @@ describe('ProductService', () => {
     expect(result.banner?.url).toMatch(/^https:\/\//);
     expect(result.variants[0]?.quantity).toBe(7);
     expect(result.variants[0]?.price).toBe(1499);
+    expect(result.variants[0]?.weightGrams).toBe(200);
     expect(result.infoSections[0]?.title).toBe('Ingredients');
     expect(result.relatedProducts).toHaveLength(1);
     expect(result.relatedProducts[0]?.slug).toBe('hydra-cream');

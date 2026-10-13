@@ -153,6 +153,20 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Manage FAQ sections and questions shown on the selected website.",
     ["IN", "COM"],
   ),
+  live(
+    "manage-blog",
+    "blog",
+    "Manage Blog",
+    "Create and edit site-scoped blog posts for the selected website.",
+    ["IN", "COM"],
+  ),
+  live(
+    "manage-insights",
+    "insights",
+    "Manage Insights",
+    "Manage landing Insights banner cards and Q&A for the selected website.",
+    ["IN", "COM"],
+  ),
   shell(
     "create-person-profile",
     "create-person-profile",

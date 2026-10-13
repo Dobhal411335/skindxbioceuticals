@@ -16,6 +16,8 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "banner-top-advertisement": endpoints.admin.topAdvertisement,
   "banner-about-us": endpoints.admin.aboutUsBanner,
   "website-faq": endpoints.admin.faq,
+  "manage-blog": endpoints.admin.blogs,
+  "manage-insights": endpoints.admin.insights,
   "banner-hero": endpoints.admin.heroBanners,
   "create-category": endpoints.admin.categories,
   "manage-products-category": endpoints.admin.categories,
@@ -42,6 +44,10 @@ describe("admin modules", () => {
     expect(findModuleBySlug("IN", ["banners", "hero"])?.status).toBe("live");
     expect(findModuleBySlug("IN", ["website-faq"])?.id).toBe("website-faq");
     expect(findModuleBySlug("IN", ["website-faq"])?.status).toBe("live");
+    expect(findModuleBySlug("IN", ["blog"])?.id).toBe("manage-blog");
+    expect(findModuleBySlug("IN", ["blog"])?.status).toBe("live");
+    expect(findModuleBySlug("IN", ["insights"])?.id).toBe("manage-insights");
+    expect(findModuleBySlug("IN", ["insights"])?.status).toBe("live");
     expect(findModuleBySlug("IN", ["products", "create-category"])?.id).toBe(
       "create-category",
     );

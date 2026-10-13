@@ -13,12 +13,14 @@ import { footerRoutes } from '@/features/footer/footer.routes';
 import { topAdvertisementRoutes } from '@/features/top-advertisement/top-advertisement.routes';
 import { aboutUsBannerRoutes } from '@/features/about-us-banner/about-us-banner.routes';
 import { faqRoutes } from '@/features/faq/faq.routes';
+import { insightsRoutes } from '@/features/insights/insights.routes';
 import { heroBannerRoutes } from '@/features/hero-banner/hero-banner.routes';
 import { categoryRoutes } from '@/features/categories/category.routes';
 import { subcategoryAdminRoutes } from '@/features/categories/subcategory.admin.routes';
 import { catalogProductRoutes } from '@/features/products/product.routes';
 import { productEditRoutes } from '@/features/products/product-edit.routes';
 import { couponAdminRoutes } from '@/features/coupons/coupon.admin.routes';
+import { blogAdminRoutes } from '@/features/blog/blog.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -49,6 +51,7 @@ router.use('/sites/:siteCode/footer', footerRoutes);
 router.use('/sites/:siteCode/top-advertisement', topAdvertisementRoutes);
 router.use('/sites/:siteCode/about-us-banner', aboutUsBannerRoutes);
 router.use('/sites/:siteCode/faq', faqRoutes);
+router.use('/sites/:siteCode/insights', insightsRoutes);
 router.use('/sites/:siteCode/hero-banners', heroBannerRoutes);
 router.use('/sites/:siteCode/categories', categoryRoutes);
 router.use(
@@ -58,5 +61,6 @@ router.use(
 router.use('/sites/:siteCode/products', productEditRoutes);
 router.use('/sites/:siteCode/coupons', couponAdminRoutes);
 router.use('/sites/:siteCode/subcategories', subcategoryAdminRoutes);
+router.use('/sites/:siteCode/blogs', blogAdminRoutes);
 
 export const adminRoutes = router;

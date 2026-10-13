@@ -161,6 +161,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/top-advertisement` | get/upsert site-scoped top advertisement (3 sections) | Admin + site access |
 | `/admin/sites/:siteCode/about-us-banner` | get/upsert site-scoped About Us home banner (3 sections) | Admin + site access |
 | `/admin/sites/:siteCode/faq` | get/upsert site-scoped FAQ sections and questions | Admin + site access |
+| `/admin/sites/:siteCode/insights` | get/upsert site-scoped landing insight cards and Q&A | Admin + site access |
 | `/admin/sites/:siteCode/hero-banners` | get/upsert site-scoped home hero carousel slides | Admin + site access |
 | `/admin/sites/:siteCode/categories` | CRUD site-scoped categories and nested subcategories | Admin + site access |
 | `/admin/sites/:siteCode/subcategories/:subcategoryId/products` | CRUD phase-1 products under a subcategory | Admin + site access |
@@ -281,6 +282,37 @@ Site-scoped FAQ groups (`sections[]`) each with nested Q&A items. Fields per sec
 
 - `GET /api/v1/sites/:siteCode/faq` — public read for an active site (no auth). Returns active sections and active items only.
 - `GET /api/v1/sites/:siteCode/faq?landing=true` — same, but only items with `showOnLanding: true` (empty sections omitted). Used by the `.in` storefront home FAQ snippet; the full FAQ page uses the unfiltered public read (falls back to static data when empty/unavailable).
+
+### Admin Insights (implemented)
+
+Site-scoped landing Insights strip (distinct from full Blog CMS and Website FAQ). Payload: `cards[]` and `qaItems[]`. Card fields: `category`, `name`, `publishedAt`, `imageUrl`, `imagePublicId`, TipTap HTML `description`, `active`, `order`. Q&A fields: `question`, `answer` (TipTap HTML), `active`, `order`.
+
+- `GET /api/v1/admin/sites/:siteCode/insights` — Bearer admin JWT; `requireSiteAccess`. Returns all cards/Q&A for the site (including inactive), ordered by `order`. Empty defaults are `{ cards: [], qaItems: [] }`.
+- `PUT /api/v1/admin/sites/:siteCode/insights` — replace all insight cards and Q&A for the site. Body: `cards[]`, `qaItems[]`. `siteId` from authenticated site context only.
+
+Uploads use existing media APIs with `feature=insights`: `POST /api/v1/media/images`.
+
+### Public Insights (storefront)
+
+- `GET /api/v1/sites/:siteCode/insights` — public read for an active site (no auth). Returns active cards and active Q&A only. Used by the `.in` storefront home Insights / Q&A section (falls back to static data when empty/unavailable).
+
+### Admin blogs (implemented)
+
+Site-scoped blog posts. Create with `name`, `category`, optional `slug` (auto-generated from name when omitted). Edit fills `title`, `publishedAt`, `createdBy`, cover image, TipTap HTML `description`, `blockquote`, and `active`.
+
+- `GET /api/v1/admin/sites/:siteCode/blogs` — Bearer admin JWT; `requireSiteAccess`. Optional `?category=`. Lists all blogs for the site (including inactive), newest `publishedAt` first.
+- `POST /api/v1/admin/sites/:siteCode/blogs` — create. Body: `name`, `category`, optional `slug`, optional `active` (default true). Title defaults to name; content/image fields start empty. Slug unique per site (`409` on conflict when explicit).
+- `GET /api/v1/admin/sites/:siteCode/blogs/:blogId` — one blog for edit.
+- `PUT /api/v1/admin/sites/:siteCode/blogs/:blogId` — full update. Body: `name`, `slug`, `category`, `title`, `publishedAt`, `createdBy`, `imageUrl`, `imagePublicId`, `description`, `blockquote`, `active`. Prefer HTTPS image URLs. Replacing `imagePublicId` deletes the previous Cloudinary asset best-effort.
+- `PATCH /api/v1/admin/sites/:siteCode/blogs/:blogId` — `{ name? }` and/or `{ active? }` (at least one required). Used for inline name edits on the admin list.
+- `DELETE /api/v1/admin/sites/:siteCode/blogs/:blogId` — deletes the row and its cover Cloudinary asset when present.
+
+Uploads use existing media APIs with `feature=blog`: `POST /api/v1/media/images`.
+
+### Public blogs (storefront)
+
+- `GET /api/v1/sites/:siteCode/blogs` — public read for an active site (no auth). Returns `{ blogs, categories }` with active blogs only. Optional `?category=`, `?limit=`, `?recent=true` (caps at 4). Used by `.in` `/blog`, landing `BlogGrid`, and sidebar recent articles (falls back to static data when the API is unavailable). Prefer HTTPS Cloudinary image URLs.
+- `GET /api/v1/sites/:siteCode/blogs/:slug` — public detail by site-scoped slug. Returns the active blog plus `related[]` cards (same category, excluding current, max 4: `name`, `imageUrl`, `publishedAt`, `createdBy`). Inactive/missing → `404`.
 
 ### Admin hero banners (implemented)
 

@@ -8,6 +8,7 @@ import { Heart, Ruler, Share2 } from "lucide-react";
 
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
+import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -18,6 +19,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import {
+  applyProductCoupon,
+  discountBannerText,
+  formatWeightGrams,
+  stockQtyBadgeClass,
+} from "@/features/products/product-pricing";
 import {
   availableColors,
   availableSizes,
@@ -92,9 +99,16 @@ export function ProductPurchasePanel({
   ]);
 
   const availableQty = selectedVariant?.quantity ?? 0;
-  const unitPrice = selectedVariant?.price ?? 0;
+  const listPrice = selectedVariant?.price ?? 0;
+  const priced = useMemo(
+    () => applyProductCoupon(listPrice, product.coupon),
+    [listPrice, product.coupon],
+  );
+  const unitPrice = priced.unitPrice;
   const subtotal = unitPrice * quantity;
   const unavailable = !selectedVariant || availableQty <= 0;
+  const discountLabel = discountBannerText(priced);
+  const selectedWeightLabel = formatWeightGrams(selectedVariant?.weightGrams);
 
   useEffect(() => {
     if (availableQty > 0 && quantity > availableQty) {
@@ -149,23 +163,35 @@ export function ProductPurchasePanel({
     return true;
   }
 
+  function cartPayload(qty: number) {
+    if (!selectedVariant) return null;
+    return {
+      productId: product.id,
+      variantId: selectedVariant.id,
+      slug: product.slug,
+      name: product.name,
+      image: primaryImageUrl(product),
+      alt: product.name,
+      variantLabel,
+      unitPriceInPaise: rupeesToPaise(unitPrice),
+      originalUnitPriceInPaise: priced.hasDiscount
+        ? rupeesToPaise(priced.originalPrice)
+        : undefined,
+      discountCode: priced.coupon?.code ?? null,
+      discountInPaise: priced.hasDiscount
+        ? rupeesToPaise(priced.discountAmount)
+        : undefined,
+      quantity: qty,
+    };
+  }
+
   function addToCart() {
     if (!requirePurchaseReady() || !selectedVariant) return;
+    const payload = cartPayload(quantity);
+    if (!payload) return;
 
     try {
-      dispatch(
-        addCartItem({
-          productId: product.id,
-          variantId: selectedVariant.id,
-          slug: product.slug,
-          name: product.name,
-          image: primaryImageUrl(product),
-          alt: product.name,
-          variantLabel,
-          unitPriceInPaise: rupeesToPaise(unitPrice),
-          quantity,
-        }),
-      );
+      dispatch(addCartItem(payload));
       showSuccess("Added to cart.", { id: "cart.add" });
       openCart();
     } catch {
@@ -177,27 +203,23 @@ export function ProductPurchasePanel({
 
   function buyNow() {
     if (!requirePurchaseReady() || !selectedVariant) return;
+    const payload = cartPayload(quantity);
+    if (!payload) return;
 
     try {
-      dispatch(
-        addCartItem({
-          productId: product.id,
-          variantId: selectedVariant.id,
-          slug: product.slug,
-          name: product.name,
-          image: primaryImageUrl(product),
-          alt: product.name,
-          variantLabel,
-          unitPriceInPaise: rupeesToPaise(unitPrice),
-          quantity,
-        }),
-      );
+      dispatch(addCartItem(payload));
       router.push("/checkout");
     } catch {
       showError("Could not start checkout. Please try again.", {
         id: "cart.buynow.error",
       });
     }
+  }
+
+  function scrollToReviews() {
+    document
+      .getElementById("product-reviews")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   async function onWishlistToggle() {
@@ -240,28 +262,73 @@ export function ProductPurchasePanel({
         <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
           {product.name}
         </h1>
-        <p className="mt-2 text-sm">
-          <span className="text-muted-foreground">Availability: </span>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-md border border-border bg-muted/60 px-2 py-0.5 font-mono text-xs font-medium tracking-wide text-foreground">
+            {product.productCode}
+          </span>
+          {selectedVariant?.sku ? (
+            <span className="text-xs text-muted-foreground">
+              SKU:{" "}
+              <span className="font-medium text-foreground">
+                {selectedVariant.sku}
+              </span>
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Availability:</span>
           <span className="font-medium">
             {unavailable ? "Out of stock" : "In stock"}
           </span>
-        </p>
-        {selectedVariant?.sku ? (
-          <p className="mt-1 text-sm text-muted-foreground">
-            SKU: <span className="font-medium text-foreground">{selectedVariant.sku}</span>
-          </p>
-        ) : null}
+          <span
+            className={cn(
+              "rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums",
+              stockQtyBadgeClass(availableQty),
+            )}
+          >
+            {availableQty} left
+          </span>
+        </div>
       </div>
 
       <div>
-        <p className="text-2xl font-semibold">{formatInr(unitPrice)}</p>
+        <div className="flex flex-wrap items-baseline gap-2">
+          <p className="text-2xl font-semibold">{formatInr(unitPrice)}</p>
+          {priced.hasDiscount ? (
+            <p className="text-base text-muted-foreground line-through">
+              {formatInr(priced.originalPrice)}
+            </p>
+          ) : null}
+        </div>
         <p className="text-xs text-muted-foreground">Inclusive of all taxes</p>
+        {discountLabel ? (
+          <p className="mt-2 inline-flex rounded-md bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">
+            {discountLabel}
+          </p>
+        ) : null}
         {unavailable ? (
           <p className="mt-2 text-sm font-medium text-destructive">
             Product not available right now.
           </p>
         ) : null}
       </div>
+
+      {product.reviewCount > 0 || product.averageRating > 0 ? (
+        <button
+          type="button"
+          onClick={scrollToReviews}
+          className="flex items-center gap-2 rounded-md text-left transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Jump to customer reviews"
+        >
+          <ProductRatingStars
+            averageRating={product.averageRating}
+            reviewCount={product.reviewCount}
+          />
+          <span className="text-xs font-medium text-foreground underline underline-offset-2">
+            Reviews
+          </span>
+        </button>
+      ) : null}
 
       {product.description ? (
         <DescriptionPreview html={product.description} />
@@ -317,10 +384,23 @@ export function ProductPurchasePanel({
         </fieldset>
       ) : null}
 
+      {sizes.length === 0 && selectedWeightLabel ? (
+        <p className="inline-flex rounded-sm border border-border bg-background px-2.5 py-1.5 text-sm font-medium">
+          {selectedWeightLabel}
+        </p>
+      ) : null}
+
       {sizes.length > 0 ? (
         <fieldset>
           <legend className="mb-2 text-sm font-medium">
-            Size{selectedSize ? `: ${selectedSize.label}` : ""}
+            Size
+            {selectedSize
+              ? `: ${
+                  selectedWeightLabel
+                    ? `${selectedSize.label} | ${selectedWeightLabel}`
+                    : selectedSize.label
+                }`
+              : ""}
           </legend>
           <div className="flex flex-wrap gap-2">
             {sizes.map((size) => {
@@ -338,6 +418,10 @@ export function ProductPurchasePanel({
                   : firstCompatibleColor(product, size.label)?.name,
               );
               const sizePrice = pairVariant?.price;
+              const weightLabel = formatWeightGrams(pairVariant?.weightGrams);
+              const sizeDisplay = weightLabel
+                ? `${size.label} | ${weightLabel}`
+                : size.label;
               return (
                 <button
                   key={size.id}
@@ -346,8 +430,8 @@ export function ProductPurchasePanel({
                   aria-pressed={sizeId === size.id}
                   title={
                     sizePrice != null
-                      ? `${size.label} — ${formatInr(sizePrice)}`
-                      : size.label
+                      ? `${sizeDisplay} — ${formatInr(sizePrice)}`
+                      : sizeDisplay
                   }
                   className={cn(
                     "flex min-w-11 flex-col items-center justify-center rounded-sm border px-2 py-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -359,7 +443,7 @@ export function ProductPurchasePanel({
                   )}
                   onClick={() => hasStock && selectSize(size.id)}
                 >
-                  <span>{size.label}</span>
+                  <span>{sizeDisplay}</span>
                   {hasStock && sizePrice != null ? (
                     <span
                       className={cn(

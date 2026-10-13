@@ -2,15 +2,28 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import type { BlogPost } from "@/data/blog";
+import { formatBlogDate } from "@/features/blog/blog.service";
+import type { StorefrontBlog } from "@/types/blog";
 import { cn } from "@/lib/utils";
 
 type BlogListItemProps = {
-  post: BlogPost;
+  post: StorefrontBlog;
   reversed?: boolean;
 };
 
+function excerptFromHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 180);
+}
+
 export function BlogListItem({ post, reversed = false }: BlogListItemProps) {
+  const excerpt = excerptFromHtml(post.description);
+  const imageSrc =
+    post.imageUrl || "https://placehold.co/800x600/png?text=SkinDx+Blog";
+
   return (
     <article
       className={cn(
@@ -24,15 +37,18 @@ export function BlogListItem({ post, reversed = false }: BlogListItemProps) {
         )}
       >
         <Image
-          src={post.image}
-          alt={post.alt}
+          src={imageSrc}
+          alt={post.title}
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-300 hover:scale-105"
           sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
       <div className={cn(reversed && "md:order-1")}>
-        <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+        <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+          {post.category}
+        </p>
+        <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
           <Link
             href={`/blog/${post.slug}`}
             className="hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -41,11 +57,15 @@ export function BlogListItem({ post, reversed = false }: BlogListItemProps) {
           </Link>
         </h2>
         <p className="mt-3 text-xs tracking-wide text-muted-foreground uppercase">
-          {post.date} · {post.author} · {post.commentsLabel}
+          {formatBlogDate(post.publishedAt)}
+          {post.createdBy ? ` · ${post.createdBy}` : ""}
         </p>
-        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-          {post.excerpt}
-        </p>
+        {excerpt ? (
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            {excerpt}
+            {excerpt.length >= 180 ? "…" : ""}
+          </p>
+        ) : null}
         <Button asChild variant="outline" className="mt-6">
           <Link href={`/blog/${post.slug}`}>View details</Link>
         </Button>

@@ -530,3 +530,9 @@ export const insightsIntro = {
   title: "Health insights & wellness notes",
   subtitle: "Short reads on routines, labels, and store updates.",
 };
+
+export const insightsQaIntro = {
+  title: "Questions & clarity",
+  subtitle:
+    "Straightforward answers about routines, labels, and shopping with SkinDx — informational only.",
+};
