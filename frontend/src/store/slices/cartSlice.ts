@@ -2,41 +2,32 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import type { CartExtrasState, CartItem } from "@/types/cart";
 
-export type CartStatus = "idle" | "loading" | "ready" | "error";
+export type CartStatus = "idle" | "loading" | "ready" | "error" | "syncing";
 
 export type CartState = {
   items: CartItem[];
   status: CartStatus;
+  hydrated: boolean;
+  error: string | null;
   extras: CartExtrasState;
 };
 
+/** Kept for optional gift-wrap / demo coupon paths (UI currently commented out). */
 const FREE_SHIPPING_THRESHOLD_PAISE = 99900;
 const GIFT_WRAP_PAISE = 100000;
 const DEMO_COUPON = "DISCOUNT10";
 const DEMO_COUPON_RATE = 0.1;
 
-const sampleItem: CartItem = {
-  id: "cart-sample-1",
-  productId: "p1",
-  variantId: "p1-default",
-  slug: "daily-barrier-serum",
-  name: "Daily Barrier Serum",
-  image:
-    "https://images.unsplash.com/photo-1620916297397-a4a33220b72c?auto=format&fit=crop&w=400&q=80",
-  alt: "Dropper bottle of facial serum",
-  variantLabel: "30 ml",
-  quantity: 2,
-  unitPriceInPaise: 149900,
-};
-
 const initialState: CartState = {
-  items: [sampleItem],
-  status: "ready",
+  items: [],
+  status: "idle",
+  hydrated: false,
+  error: null,
   extras: {
     notes: "",
     giftWrap: false,
     couponCode: "",
-    appliedCoupon: DEMO_COUPON,
+    appliedCoupon: null,
     termsAccepted: false,
   },
 };
@@ -52,15 +43,44 @@ const cartSlice = createSlice({
     setCartItems(state, action: PayloadAction<CartItem[]>) {
       state.items = action.payload;
       state.status = "ready";
+      state.hydrated = true;
+      state.error = null;
+    },
+    upsertCartItem(state, action: PayloadAction<CartItem>) {
+      const byId = state.items.findIndex((item) => item.id === action.payload.id);
+      const byVariant = state.items.findIndex(
+        (item) =>
+          item.productId === action.payload.productId &&
+          item.variantId === action.payload.variantId,
+      );
+      const index = byId >= 0 ? byId : byVariant;
+      if (index >= 0) {
+        state.items[index] = action.payload;
+      } else {
+        state.items.unshift(action.payload);
+      }
+      state.status = "ready";
+      state.hydrated = true;
+      state.error = null;
     },
     addCartItem(
       state,
-      action: PayloadAction<Omit<CartItem, "id" | "quantity"> & { quantity?: number }>,
+      action: PayloadAction<
+        Omit<CartItem, "id" | "quantity"> & { id?: string; quantity?: number }
+      >,
     ) {
       const quantity = action.payload.quantity ?? 1;
-      const id = cartLineId(action.payload.productId, action.payload.variantId);
-      const existing = state.items.find((item) => item.id === id);
+      const id =
+        action.payload.id ??
+        cartLineId(action.payload.productId, action.payload.variantId);
+      const existing = state.items.find(
+        (item) =>
+          item.id === id ||
+          (item.productId === action.payload.productId &&
+            item.variantId === action.payload.variantId),
+      );
       if (existing) {
+        existing.id = id;
         existing.quantity += quantity;
         existing.unitPriceInPaise = action.payload.unitPriceInPaise;
         existing.originalUnitPriceInPaise =
@@ -76,6 +96,7 @@ const cartSlice = createSlice({
         state.items.push({ ...action.payload, id, quantity });
       }
       state.status = "ready";
+      state.hydrated = true;
     },
     removeCartItem(state, action: PayloadAction<string>) {
       state.items = state.items.filter((item) => item.id !== action.payload);
@@ -91,6 +112,8 @@ const cartSlice = createSlice({
     clearCart(state) {
       state.items = [];
       state.status = "idle";
+      state.hydrated = false;
+      state.error = null;
       state.extras.appliedCoupon = null;
       state.extras.couponCode = "";
       state.extras.giftWrap = false;
@@ -99,6 +122,15 @@ const cartSlice = createSlice({
     },
     setCartStatus(state, action: PayloadAction<CartStatus>) {
       state.status = action.payload;
+    },
+    setCartError(state, action: PayloadAction<string | null>) {
+      state.error = action.payload;
+      if (action.payload) {
+        state.status = "error";
+      }
+    },
+    setCartHydrated(state, action: PayloadAction<boolean>) {
+      state.hydrated = action.payload;
     },
     setCartNotes(state, action: PayloadAction<string>) {
       state.extras.notes = action.payload;
@@ -123,11 +155,14 @@ const cartSlice = createSlice({
 
 export const {
   setCartItems,
+  upsertCartItem,
   addCartItem,
   removeCartItem,
   updateCartItemQuantity,
   clearCart,
   setCartStatus,
+  setCartError,
+  setCartHydrated,
   setCartNotes,
   setGiftWrap,
   setCouponCode,
@@ -135,8 +170,11 @@ export const {
   setTermsAccepted,
 } = cartSlice.actions;
 
+export { cartLineId };
+
 export default cartSlice.reducer;
 
+/** Payable subtotal (after product discounts). */
 export function selectCartSubtotal(items: CartItem[]) {
   return items.reduce(
     (sum, item) => sum + item.unitPriceInPaise * item.quantity,
@@ -144,6 +182,32 @@ export function selectCartSubtotal(items: CartItem[]) {
   );
 }
 
+/** Original / list-price subtotal before product discounts. */
+export function selectCartOriginalSubtotal(items: CartItem[]) {
+  return items.reduce((sum, item) => {
+    const original =
+      item.originalUnitPriceInPaise != null &&
+      item.originalUnitPriceInPaise > item.unitPriceInPaise
+        ? item.originalUnitPriceInPaise
+        : item.unitPriceInPaise;
+    return sum + original * item.quantity;
+  }, 0);
+}
+
+/** Product-level discount savings (original − payable). */
+export function selectCartProductDiscount(items: CartItem[]) {
+  return Math.max(0, selectCartOriginalSubtotal(items) - selectCartSubtotal(items));
+}
+
+export function selectCartDiscountPercent(items: CartItem[]) {
+  const original = selectCartOriginalSubtotal(items);
+  if (original <= 0) return 0;
+  const discount = selectCartProductDiscount(items);
+  if (discount <= 0) return 0;
+  return Math.round((discount / original) * 100);
+}
+
+/** @deprecated Cart-level demo coupon — kept for commented-out coupon UI. */
 export function selectCartDiscount(subtotalInPaise: number, coupon: string | null) {
   if (coupon?.toUpperCase() === DEMO_COUPON) {
     return Math.round(subtotalInPaise * DEMO_COUPON_RATE);

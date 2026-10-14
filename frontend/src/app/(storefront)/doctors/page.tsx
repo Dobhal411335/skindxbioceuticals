@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { DoctorsAboutSection } from "@/components/doctors/doctors-about-section";
-import { DoctorsAppointmentBar } from "@/components/doctors/doctors-appointment-bar";
-import { DoctorsGridSection } from "@/components/doctors/doctors-grid-section";
+import { DoctorsDirectory } from "@/components/doctors/doctors-directory";
 import { DoctorsServicesSection } from "@/components/doctors/doctors-services-section";
 import {
   getDoctorPageConfig,
@@ -57,8 +56,7 @@ export default async function DoctorsPage() {
         <>
           <DoctorsAboutSection config={pageConfig} />
           <DoctorsServicesSection config={pageConfig} />
-          <DoctorsAppointmentBar />
-          <DoctorsGridSection doctors={doctors} />
+          <DoctorsDirectory doctors={doctors} />
         </>
       )}
     </>

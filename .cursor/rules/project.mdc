@@ -41,6 +41,8 @@ Before implementing a task, read the relevant project documents:
 - Enforce authentication, authorization, and site scope on the backend.
 - Never trust client-supplied totals, roles, site access, or payment status.
 - Verify Razorpay signatures and webhooks server-side; make webhook processing idempotent.
+- Guest checkout is allowed on `.in` only after server-side email OTP verification; never trust client `emailVerified` flags. Persist `Order.contactEmail` with nullable `userId` and link guest orders only after verified login/registration/Google auth.
+- Payment create requires an `Idempotency-Key`; recalculate all amounts on the server; never mark paid from the browser callback alone.
 - Verify Google identity tokens server-side.
 - Validate external input and upload restrictions.
 - Do not invent medical/product claims, reviews, certifications, or compliance status.

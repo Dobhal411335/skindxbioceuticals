@@ -298,6 +298,15 @@ describe('ProductService', () => {
         ],
         editorialReviews: [{ rating: 5 }],
         reviews: [],
+        coupon: {
+          couponId: 'c1',
+          coupon: {
+            code: 'SAVE10',
+            type: 'PERCENTAGE',
+            value: { toString: () => '10' },
+            isActive: true,
+          },
+        },
       },
     ]);
 
@@ -313,6 +322,12 @@ describe('ProductService', () => {
     expect(result.items[0]?.averageRating).toBe(5);
     expect(result.items[0]?.defaultVariantId).toBe('v1');
     expect(result.items[0]?.compareAtPrice).toBe(1799);
+    expect(result.items[0]?.coupon).toEqual({
+      couponId: 'c1',
+      code: 'SAVE10',
+      type: 'PERCENTAGE',
+      value: 10,
+    });
     expect(result.meta).toEqual({
       page: 1,
       limit: 15,

@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { Eye, Minus, Plus } from "lucide-react";
 
+import {
+  ProductDiscountBadge,
+  ProductPriceDisplay,
+} from "@/components/catalog/product-price-display";
 import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
@@ -17,11 +21,14 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
-import { rupeesToPaise } from "@/features/products/product-selection";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { showError, showSuccess } from "@/lib/toast";
-import { cn, formatInr } from "@/lib/utils";
-import { addCartItem } from "@/store/slices/cartSlice";
+import {
+  applyProductCoupon,
+  buildCartPricingFields,
+  discountPercentForBadge,
+} from "@/features/products/product-pricing";
+import { useCartActions } from "@/hooks/useCartActions";
+import { showError } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import type {
   PublicProductCard,
   PublicProductHighlights,
@@ -82,9 +89,12 @@ function ProductListItem({
           >
             {product.name}
           </Link>
-          <p className="mt-1 text-sm font-semibold text-foreground sm:text-base">
-            {formatInr(product.price)}
-          </p>
+          <ProductPriceDisplay
+            price={product.price}
+            coupon={product.coupon}
+            size="sm"
+            className="mt-1"
+          />
         </div>
       </div>
     </li>
@@ -98,45 +108,45 @@ function FeaturedHighlightCard({
   product: PublicProductCard;
   onQuickView: (product: PublicProductCard) => void;
 }) {
-  const dispatch = useAppDispatch();
   const { openCart } = useCartUi();
+  const { add: addToCartAction } = useCartActions();
   const [quantity, setQuantity] = useState(1);
 
   const maxQty = product.quantity;
   const canAdd = Boolean(product.defaultVariantId) && maxQty > 0;
+  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const discountPercent = discountPercentForBadge(priced);
 
   function clampQty(next: number) {
     if (maxQty <= 0) return 1;
     return Math.min(maxQty, Math.max(1, next));
   }
 
-  function addToCart() {
+  async function addToCart() {
     if (!product.defaultVariantId || maxQty <= 0) {
       showError("This product is out of stock.", {
         id: "highlight.cart.error",
       });
       return;
     }
-    try {
-      dispatch(
-        addCartItem({
-          productId: product.id,
-          variantId: product.defaultVariantId,
-          slug: product.slug,
-          name: product.name,
-          image: product.imageUrl ?? "",
-          alt: product.name,
-          unitPriceInPaise: rupeesToPaise(product.price),
-          quantity: clampQty(quantity),
-        }),
-      );
-      showSuccess("Added to cart.", { id: "highlight.cart" });
-      openCart();
-    } catch {
-      showError("Could not add to cart. Please try again.", {
-        id: "highlight.cart.error",
-      });
-    }
+    const pricing = buildCartPricingFields(
+      product.price,
+      product.coupon ?? null,
+    );
+    const ok = await addToCartAction({
+      productId: product.id,
+      variantId: product.defaultVariantId,
+      slug: product.slug,
+      name: product.name,
+      image: product.imageUrl ?? "",
+      alt: product.name,
+      unitPriceInPaise: pricing.unitPriceInPaise,
+      originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
+      discountCode: pricing.discountCode,
+      discountInPaise: pricing.discountInPaise,
+      quantity: clampQty(quantity),
+    });
+    if (ok) openCart();
   }
 
   return (
@@ -151,6 +161,12 @@ function FeaturedHighlightCard({
           className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
           sizes="(max-width: 1024px) 100vw, 33vw"
         />
+        {discountPercent != null ? (
+          <ProductDiscountBadge
+            percent={discountPercent}
+            className="absolute top-2 left-2 z-10"
+          />
+        ) : null}
         <Button
           type="button"
           size="icon"
@@ -183,9 +199,14 @@ function FeaturedHighlightCard({
           reviewCount={product.reviewCount}
         />
       </div>
-      <p className="mt-2 text-center text-lg font-semibold">
-        {formatInr(product.price)}
-      </p>
+      <ProductPriceDisplay
+        price={product.price}
+        coupon={product.coupon}
+        priced={priced}
+        showBadge={false}
+        size="lg"
+        className="mt-2 justify-center"
+      />
 
       <div className="mt-4 flex items-center gap-2">
         <div className="inline-flex items-center rounded-full border border-border">
@@ -215,7 +236,7 @@ function FeaturedHighlightCard({
           type="button"
           className="flex-1"
           disabled={!canAdd}
-          onClick={addToCart}
+          onClick={() => void addToCart()}
         >
           Add to cart
         </Button>

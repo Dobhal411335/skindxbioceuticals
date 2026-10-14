@@ -16,10 +16,9 @@ import {
   rupeesToPaise,
 } from "@/features/products/product-selection";
 import { applyProductCoupon } from "@/features/products/product-pricing";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { showError, showSuccess } from "@/lib/toast";
+import { useCartActions } from "@/hooks/useCartActions";
+import { showError } from "@/lib/toast";
 import { formatInr } from "@/lib/utils";
-import { addCartItem } from "@/store/slices/cartSlice";
 import type { PublicProductDetail } from "@/types/product";
 
 type ProductStickyBarProps = {
@@ -41,7 +40,7 @@ export function ProductStickyBar({
   onColorChange,
   onQuantityChange,
 }: ProductStickyBarProps) {
-  const dispatch = useAppDispatch();
+  const { add: addToCartAction } = useCartActions();
   const { openCart } = useCartUi();
 
   const sizes = useMemo(() => availableSizes(product), [product]);
@@ -94,42 +93,33 @@ export function ProductStickyBar({
     }
   }
 
-  function addToCart() {
+  async function addToCart() {
     if (unavailable || !selectedVariant) {
       showError("Product not available right now.", { id: "cart.add.error" });
       return;
     }
 
-    try {
-      dispatch(
-        addCartItem({
-          productId: product.id,
-          variantId: selectedVariant.id,
-          slug: product.slug,
-          name: product.name,
-          image: imageUrl,
-          alt: product.name,
-          variantLabel: [selectedColor?.name, selectedSize?.label]
-            .filter(Boolean)
-            .join(" / "),
-          unitPriceInPaise: rupeesToPaise(unitPrice),
-          originalUnitPriceInPaise: priced.hasDiscount
-            ? rupeesToPaise(priced.originalPrice)
-            : undefined,
-          discountCode: priced.coupon?.code ?? null,
-          discountInPaise: priced.hasDiscount
-            ? rupeesToPaise(priced.discountAmount)
-            : undefined,
-          quantity,
-        }),
-      );
-      showSuccess("Added to cart.", { id: "cart.add" });
-      openCart();
-    } catch {
-      showError("Could not add to cart. Please try again.", {
-        id: "cart.add.error",
-      });
-    }
+    const ok = await addToCartAction({
+      productId: product.id,
+      variantId: selectedVariant.id,
+      slug: product.slug,
+      name: product.name,
+      image: imageUrl,
+      alt: product.name,
+      variantLabel: [selectedColor?.name, selectedSize?.label]
+        .filter(Boolean)
+        .join(" / "),
+      unitPriceInPaise: rupeesToPaise(unitPrice),
+      originalUnitPriceInPaise: priced.hasDiscount
+        ? rupeesToPaise(priced.originalPrice)
+        : undefined,
+      discountCode: priced.coupon?.code ?? null,
+      discountInPaise: priced.hasDiscount
+        ? rupeesToPaise(priced.discountAmount)
+        : undefined,
+      quantity,
+    });
+    if (ok) openCart();
   }
 
   return (
@@ -204,7 +194,7 @@ export function ProductStickyBar({
           size="lg"
           className="h-11 shrink-0 px-6"
           disabled={unavailable}
-          onClick={addToCart}
+          onClick={() => void addToCart()}
         >
           Add to cart
         </Button>

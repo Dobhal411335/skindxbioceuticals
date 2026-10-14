@@ -26,6 +26,7 @@ import { couponAdminRoutes } from '@/features/coupons/coupon.admin.routes';
 import { blogAdminRoutes } from '@/features/blog/blog.routes';
 import { doctorProfilesRoutes } from '@/features/doctors/doctor-profiles.routes';
 import { doctorPageRoutes } from '@/features/doctors/doctor-page.routes';
+import { doctorAppointmentsRoutes } from '@/features/doctor-appointments/doctor-appointments.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -72,5 +73,6 @@ router.use('/sites/:siteCode/subcategories', subcategoryAdminRoutes);
 router.use('/sites/:siteCode/blogs', blogAdminRoutes);
 router.use('/sites/:siteCode/doctors', doctorProfilesRoutes);
 router.use('/sites/:siteCode/doctor-page', doctorPageRoutes);
+router.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsRoutes);
 
 export const adminRoutes = router;

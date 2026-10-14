@@ -33,7 +33,8 @@ function createEmptyFormValues(): DoctorProfileFormValues {
     specialization: "",
     about: "",
     experienceYears: "",
-    consultancyType: "BY_APPOINTMENT",
+    state: "",
+    city: "",
     photoUrl: "",
     photoPublicId: "",
     active: true,
@@ -47,7 +48,8 @@ function dtoToFormValues(doctor: DoctorProfileDto): DoctorProfileFormValues {
     specialization: doctor.specialization,
     about: doctor.about,
     experienceYears: String(doctor.experienceYears ?? ""),
-    consultancyType: doctor.consultancyType,
+    state: doctor.state ?? "",
+    city: doctor.city ?? "",
     photoUrl: doctor.photoUrl,
     photoPublicId: doctor.photoPublicId,
     active: doctor.active,
@@ -60,6 +62,7 @@ export function DoctorProfilePage({ siteCode }: { siteCode: SiteCode }) {
   const [values, setValues] = useState<DoctorProfileFormValues>(createEmptyFormValues);
   const [errors, setErrors] = useState<DoctorProfileFormErrors>({});
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [formKey, setFormKey] = useState(0);
   const [pendingDelete, setPendingDelete] = useState<DoctorProfileDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,6 +96,8 @@ export function DoctorProfilePage({ siteCode }: { siteCode: SiteCode }) {
     setValues(createEmptyFormValues());
     setEditingId(null);
     setErrors({});
+    // Remount so Radix Select clears when state resets to empty.
+    setFormKey((key) => key + 1);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -244,6 +249,7 @@ export function DoctorProfilePage({ siteCode }: { siteCode: SiteCode }) {
 
         <div className="space-y-8">
           <DoctorProfileForm
+            key={formKey}
             siteCode={siteCode}
             values={values}
             errors={errors}

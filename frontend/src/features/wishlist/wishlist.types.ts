@@ -1,3 +1,10 @@
+export type WishlistItemCoupon = {
+  couponId: string;
+  code: string;
+  type: string;
+  value: number;
+};
+
 export type WishlistItem = {
   id: string;
   productId: string;
@@ -9,6 +16,7 @@ export type WishlistItem = {
   currency: string | null;
   available: boolean;
   createdAt: string;
+  coupon?: WishlistItemCoupon | null;
 };
 
 export type Wishlist = {

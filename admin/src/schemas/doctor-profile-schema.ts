@@ -1,3 +1,4 @@
+import { isIndiaState } from "@/lib/india-states";
 import type {
   DoctorProfileFormValues,
   DoctorProfilePayload,
@@ -34,8 +35,14 @@ export function validateDoctorProfileForm(
     errors.experienceYears = "Enter experience years between 0 and 80";
   }
 
-  if (!values.consultancyType) {
-    errors.consultancyType = "Consultancy type is required";
+  if (!values.state.trim() || !isIndiaState(values.state.trim())) {
+    errors.state = "Select a valid Indian state";
+  }
+
+  if (!values.city.trim()) {
+    errors.city = "City is required";
+  } else if (values.city.trim().length > 120) {
+    errors.city = "City must be 120 characters or fewer";
   }
 
   if (!values.photoUrl.trim()) {
@@ -60,6 +67,8 @@ export function validateDoctorProfileForm(
       name,
       specialization: values.specialization.trim(),
       about: values.about.trim(),
+      state: values.state.trim(),
+      city: values.city.trim(),
     },
   };
 }
@@ -73,7 +82,8 @@ export function toDoctorProfilePayload(
     specialization: values.specialization.trim(),
     about: values.about.trim(),
     experienceYears: Number(values.experienceYears),
-    consultancyType: values.consultancyType,
+    state: values.state.trim(),
+    city: values.city.trim(),
     photoUrl: values.photoUrl.trim(),
     photoPublicId: values.photoPublicId.trim(),
     active: values.active,

@@ -1,5 +1,4 @@
 import type { SiteCode } from '@/types/common';
-import type { DoctorConsultancyTypeValue } from './doctors.constants';
 
 export type SiteCodeDto = SiteCode;
 
@@ -10,7 +9,8 @@ export type DoctorProfileDto = {
   specialization: string;
   about: string;
   experienceYears: number;
-  consultancyType: DoctorConsultancyTypeValue;
+  state: string;
+  city: string;
   photoUrl: string;
   photoPublicId: string;
   active: boolean;
@@ -26,7 +26,8 @@ export type DoctorProfileRecord = {
   specialization: string;
   about: string;
   experienceYears: number;
-  consultancyType: DoctorConsultancyTypeValue;
+  state: string;
+  city: string;
   photoUrl: string;
   photoPublicId: string;
   active: boolean;
@@ -40,7 +41,8 @@ export type DoctorProfileWrite = {
   specialization: string;
   about: string;
   experienceYears: number;
-  consultancyType: DoctorConsultancyTypeValue;
+  state: string;
+  city: string;
   photoUrl: string;
   photoPublicId: string;
   active: boolean;

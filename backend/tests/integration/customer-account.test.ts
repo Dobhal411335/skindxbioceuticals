@@ -96,6 +96,23 @@ describe('Customer account APIs', () => {
       expect(res.body.data.user.hasPassword).toBe(true);
     });
 
+    it('rejects avatar upload without a file and clears avatar', async () => {
+      const user = await createCustomer('avatar@skindx.test');
+      const headers = await authHeaderFor(user.id, user.email);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { imageUrl: 'https://cdn.example.com/old.jpg' },
+      });
+
+      const missing = await api().post('/api/v1/me/avatar').set(headers);
+      expect(missing.status).toBe(422);
+
+      const cleared = await api().delete('/api/v1/me/avatar').set(headers);
+      expect(cleared.status).toBe(200);
+      expect(cleared.body.data.user.imageUrl).toBeNull();
+    });
+
     it('enforces address ownership across customers', async () => {
       const owner = await createCustomer('owner@skindx.test', 'Owner User');
       const other = await createCustomer('other@skindx.test', 'Other User');
@@ -160,6 +177,7 @@ describe('Customer account APIs', () => {
           userId: owner.id,
           status: 'CONFIRMED',
           currency: 'INR',
+          contactEmail: owner.email.toLowerCase(),
           subtotal: '1299.00',
           grandTotal: '1299.00',
           shippingAddress: {
@@ -186,7 +204,9 @@ describe('Customer account APIs', () => {
               status: 'CAPTURED',
               method: 'UPI',
               amount: '1299.00',
+              amountInPaise: 129900,
               currency: 'INR',
+              provider: 'razorpay',
             },
           },
         },

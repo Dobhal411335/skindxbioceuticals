@@ -30,6 +30,15 @@ function makeItem(overrides: Record<string, unknown> = {}) {
         },
       ],
       media: [],
+      coupon: {
+        couponId: 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1',
+        coupon: {
+          code: 'SAVE10',
+          type: 'PERCENTAGE',
+          value: 10,
+          isActive: true,
+        },
+      },
     },
     variant: {
       id: VARIANT_ID,
@@ -107,6 +116,12 @@ describe('WishlistService', () => {
     const result = await service.getWishlist(USER_ID);
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.productId).toBe(PRODUCT_ID);
+    expect(result.items[0]?.coupon).toEqual({
+      couponId: 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1',
+      code: 'SAVE10',
+      type: 'PERCENTAGE',
+      value: 10,
+    });
   });
 
   it('rejects add when product is not an active IN catalog item', async () => {

@@ -125,7 +125,7 @@ export class AdminService {
         grandTotal: Number(order.grandTotal),
         currency: order.currency,
         createdAt: order.createdAt.toISOString(),
-        customerEmail: order.user.email,
+        customerEmail: order.user?.email ?? order.contactEmail,
       })),
     };
   }

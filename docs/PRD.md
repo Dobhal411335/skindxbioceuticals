@@ -141,7 +141,7 @@ Do not assume every staff member may access both sites or all customer data. Do 
 1. Exact product categories and whether any products are prescription-only or otherwise regulated.
 2. Applicable licensing, sale, advertising, privacy, labelling, and product-claim requirements for each market.
 3. Shipping providers, serviceable regions, tax/GST rules, invoices, returns, cancellations, and refunds.
-4. Whether guest checkout is allowed.
+4. ~~Whether guest checkout is allowed.~~ **Resolved:** Guest checkout is allowed on `.in`. Guests must OTP-verify their email before payment. Eligible guest orders auto-link when the same verified email registers/logs in (including Google).
 5. Whether `.com` displays the full catalog or only selected products.
 6. Which product/content fields are shared versus site-specific.
 7. Admin staff, roles, approval workflow, and audit retention.

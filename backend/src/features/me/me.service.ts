@@ -1,6 +1,16 @@
 import type { Address } from '@prisma/client';
 import { authService } from '@/features/auth/auth.service';
-import { ForbiddenError, NotFoundError, UnauthorizedError } from '@/utils/AppError';
+import {
+  CloudinaryError,
+  uploadSingleImage,
+} from '@/lib/cloudinary';
+import { logger } from '@/lib/logger';
+import {
+  ForbiddenError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from '@/utils/AppError';
 import { meRepository } from './me.repository';
 import type { AddressDto, MeProfileUpdateDto } from './me.types';
 import type {
@@ -22,6 +32,52 @@ export class MeService {
       firstName: input.firstName,
       lastName: input.lastName,
     });
+    return { user: authService.toUserDto(updated) };
+  }
+
+  async uploadAvatar(
+    userId: string,
+    file: Express.Multer.File | undefined,
+  ): Promise<MeProfileUpdateDto> {
+    const user = await this.requireActiveCustomer(userId);
+    if (!file) {
+      throw new ValidationError('No file uploaded');
+    }
+
+    let uploaded;
+    try {
+      uploaded = await uploadSingleImage(file, {
+        siteCode: 'SHARED',
+        feature: 'profile',
+        entityId: user.id,
+      });
+    } catch (error) {
+      logger.error(
+        {
+          event: 'me.avatar.upload.failure',
+          context: 'ME',
+          userId: user.id,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        },
+        'Customer avatar upload failed',
+      );
+      if (error instanceof CloudinaryError) {
+        throw new ValidationError(error.message);
+      }
+      throw error;
+    }
+
+    const updated = await this.repository.updateImageUrl(user.id, uploaded.url);
+    logger.info(
+      { event: 'me.avatar.upload.success', context: 'ME', userId: user.id },
+      'Customer avatar updated',
+    );
+    return { user: authService.toUserDto(updated) };
+  }
+
+  async clearAvatar(userId: string): Promise<MeProfileUpdateDto> {
+    const user = await this.requireActiveCustomer(userId);
+    const updated = await this.repository.updateImageUrl(user.id, null);
     return { user: authService.toUserDto(updated) };
   }
 

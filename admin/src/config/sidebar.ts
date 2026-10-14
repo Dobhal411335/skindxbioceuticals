@@ -284,6 +284,7 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
               "Doctor's Profile Contact Request",
               "orders/doctor-contact-request",
               MessageSquare,
+              { status: "active" },
             ),
           ],
         },

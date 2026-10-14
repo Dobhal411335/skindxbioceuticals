@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useRef, useState } from "react";
+import { Eye, EyeOff, Upload } from "lucide-react";
 
 import { UserAvatar } from "@/components/account/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getUserDisplayName } from "@/features/auth/auth-user";
+import { getUserDisplayName, isValidImageUrl } from "@/features/auth/auth-user";
 import { authService } from "@/features/auth/auth.service";
 import { strongPasswordSchema } from "@/features/auth/auth.validation";
 import { meService } from "@/features/me/me.service";
@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
 import { setCredentials } from "@/store/slices/authSlice";
+import type { AuthUser } from "@/types/auth";
 import { z } from "zod";
 
 const profileSchema = z.object({
@@ -24,12 +25,17 @@ const profileSchema = z.object({
   lastName: z.string().trim().max(100).optional().or(z.literal("")),
 });
 
+const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
+const ALLOWED_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
 export function AccountDetailsView() {
   const { user, accessToken } = useAuth();
   const dispatch = useAppDispatch();
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [profileSaving, setProfileSaving] = useState(false);
+  const [avatarSaving, setAvatarSaving] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -52,6 +58,16 @@ export function AccountDetailsView() {
       )
     : null;
 
+  const applyUpdatedUser = (nextUser: AuthUser) => {
+    if (!accessToken) return;
+    dispatch(
+      setCredentials({
+        user: nextUser,
+        accessToken,
+      }),
+    );
+  };
+
   const saveProfile = async () => {
     const parsed = profileSchema.safeParse({ firstName, lastName });
     if (!parsed.success) {
@@ -67,14 +83,7 @@ export function AccountDetailsView() {
         firstName: parsed.data.firstName,
         lastName: parsed.data.lastName || null,
       });
-      if (accessToken) {
-        dispatch(
-          setCredentials({
-            user: result.user,
-            accessToken,
-          }),
-        );
-      }
+      applyUpdatedUser(result.user);
       showSuccess("Profile updated.", { id: "account.profile.success" });
     } catch (err) {
       showError(toApiError(err).message || "Unable to update profile.", {
@@ -82,6 +91,45 @@ export function AccountDetailsView() {
       });
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
+      showError("Use a JPG, PNG, or WebP image.", { id: "account.avatar.error" });
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      showError("Image must be 10MB or smaller.", { id: "account.avatar.error" });
+      return;
+    }
+
+    setAvatarSaving(true);
+    try {
+      const result = await meService.uploadAvatar(file);
+      applyUpdatedUser(result.user);
+      showSuccess("Profile photo updated.", { id: "account.avatar.success" });
+    } catch (err) {
+      showError(toApiError(err).message || "Unable to upload photo.", {
+        id: "account.avatar.error",
+      });
+    } finally {
+      setAvatarSaving(false);
+    }
+  };
+
+  const clearAvatar = async () => {
+    setAvatarSaving(true);
+    try {
+      const result = await meService.clearAvatar();
+      applyUpdatedUser(result.user);
+      showSuccess("Profile photo removed.", { id: "account.avatar.clear" });
+    } catch (err) {
+      showError(toApiError(err).message || "Unable to remove photo.", {
+        id: "account.avatar.error",
+      });
+    } finally {
+      setAvatarSaving(false);
     }
   };
 
@@ -160,14 +208,52 @@ export function AccountDetailsView() {
           <CardTitle className="text-base">Profile</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <UserAvatar user={user} size="lg" />
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="font-semibold">{getUserDisplayName(user)}</p>
               <p className="text-sm text-muted-foreground">{user.email}</p>
               {createdAt ? (
                 <p className="text-xs text-muted-foreground">Member since {createdAt}</p>
               ) : null}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) void uploadAvatar(file);
+                    event.target.value = "";
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  disabled={avatarSaving || profileSaving}
+                  onClick={() => avatarInputRef.current?.click()}
+                >
+                  <Upload className="size-4" />
+                  {avatarSaving ? "Uploading…" : "Change photo"}
+                </Button>
+                {isValidImageUrl(user.imageUrl) ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={avatarSaving || profileSaving}
+                    onClick={() => void clearAvatar()}
+                  >
+                    Remove photo
+                  </Button>
+                ) : null}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                JPG, PNG, or WebP up to 10MB.
+              </p>
             </div>
           </div>
 

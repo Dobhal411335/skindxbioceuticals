@@ -1,3 +1,10 @@
+export interface WishlistItemCouponDto {
+  couponId: string;
+  code: string;
+  type: string;
+  value: number;
+}
+
 export interface WishlistItemDto {
   id: string;
   productId: string;
@@ -9,6 +16,8 @@ export interface WishlistItemDto {
   currency: string | null;
   available: boolean;
   createdAt: string;
+  /** Product-linked default discount coupon when active. */
+  coupon: WishlistItemCouponDto | null;
 }
 
 export interface WishlistDto {

@@ -39,12 +39,11 @@ import {
   rupeesToPaise,
   sizeHasStock,
 } from "@/features/products/product-selection";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useCartActions } from "@/hooks/useCartActions";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
 import { plainTextForShare, shareContent } from "@/lib/share";
 import { showError, showSuccess } from "@/lib/toast";
 import { formatInr, cn } from "@/lib/utils";
-import { addCartItem } from "@/store/slices/cartSlice";
 import type { PublicProductDetail } from "@/types/product";
 
 type ProductPurchasePanelProps = {
@@ -66,7 +65,7 @@ export function ProductPurchasePanel({
   onColorChange,
   onQuantityChange,
 }: ProductPurchasePanelProps) {
-  const dispatch = useAppDispatch();
+  const { add: addToCartAction } = useCartActions();
   const router = useRouter();
   const { openCart } = useCartUi();
   const {
@@ -186,35 +185,34 @@ export function ProductPurchasePanel({
     };
   }
 
-  function addToCart() {
+  async function addToCart() {
     if (!requirePurchaseReady() || !selectedVariant) return;
     const payload = cartPayload(quantity);
-    if (!payload) return;
+    if (!payload?.variantId) return;
 
-    try {
-      dispatch(addCartItem(payload));
-      showSuccess("Added to cart.", { id: "cart.add" });
-      openCart();
-    } catch {
-      showError("Could not add to cart. Please try again.", {
-        id: "cart.add.error",
-      });
-    }
+    const ok = await addToCartAction({
+      ...payload,
+      variantId: payload.variantId,
+    });
+    if (ok) openCart();
   }
 
-  function buyNow() {
+  async function buyNow() {
     if (!requirePurchaseReady() || !selectedVariant) return;
     const payload = cartPayload(quantity);
-    if (!payload) return;
+    if (!payload?.variantId) return;
 
-    try {
-      dispatch(addCartItem(payload));
-      router.push("/checkout");
-    } catch {
+    const ok = await addToCartAction({
+      ...payload,
+      variantId: payload.variantId,
+    });
+    if (!ok) {
       showError("Could not start checkout. Please try again.", {
         id: "cart.buynow.error",
       });
+      return;
     }
+    router.push("/checkout");
   }
 
   function scrollToReviews() {
@@ -485,7 +483,7 @@ export function ProductPurchasePanel({
           size="lg"
           className="h-11 flex-1"
           disabled={!agreed || unavailable}
-          onClick={addToCart}
+          onClick={() => void addToCart()}
         >
           Add to cart
         </Button>
@@ -544,7 +542,7 @@ export function ProductPurchasePanel({
         size="lg"
         className="h-11 w-full"
         disabled={!agreed || unavailable}
-        onClick={buyNow}
+        onClick={() => void buyNow()}
       >
         Buy it now
       </Button>

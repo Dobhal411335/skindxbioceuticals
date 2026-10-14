@@ -153,6 +153,9 @@ A route, model-backed feature, or behavior change is not done until its tests ar
 - Totals are calculated server-side.
 - Invalid/expired coupons are rejected.
 - Inventory rules hold under concurrent or repeated requests.
+- Guest cannot create/pay before email OTP verification; expired/reused OTPs are rejected.
+- Idempotent `create-order` replays; conflicting payload with same key returns `409`.
+- Guest orders link to verified accounts on login/verify/Google without stealing another user's orders.
 - Browser-supplied payment success does not mark an order paid.
 - Invalid Razorpay checkout signatures are rejected.
 - Invalid webhook signatures are rejected.

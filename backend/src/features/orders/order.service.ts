@@ -72,6 +72,9 @@ export class OrderService {
         variantName: item.variantName,
         sku: item.sku,
         unitPrice: decimalToString(item.unitPrice),
+        originalUnitPrice: item.originalUnitPrice
+          ? decimalToString(item.originalUnitPrice)
+          : null,
         quantity: item.quantity,
         lineTotal: decimalToString(item.lineTotal),
       })),

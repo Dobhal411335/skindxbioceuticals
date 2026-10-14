@@ -22,6 +22,26 @@ export const meService = {
     return response.data.data;
   },
 
+  async uploadAvatar(file: File): Promise<ProfileUpdateResult> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post<Envelope<ProfileUpdateResult>>(
+      API_ENDPOINTS.ME.AVATAR,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return response.data.data;
+  },
+
+  async clearAvatar(): Promise<ProfileUpdateResult> {
+    const response = await apiClient.delete<Envelope<ProfileUpdateResult>>(
+      API_ENDPOINTS.ME.AVATAR,
+    );
+    return response.data.data;
+  },
+
   async listAddresses(): Promise<Address[]> {
     const response = await apiClient.get<Envelope<{ addresses: Address[] }>>(
       API_ENDPOINTS.ME.ADDRESSES,

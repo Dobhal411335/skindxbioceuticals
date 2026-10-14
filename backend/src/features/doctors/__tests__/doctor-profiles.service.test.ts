@@ -21,7 +21,8 @@ function makeRecord(overrides: Partial<DoctorProfileRecord> = {}): DoctorProfile
     specialization: 'Dermatology',
     about: 'Experienced clinician focused on clear, evidence-led care.',
     experienceYears: 12,
-    consultancyType: 'BY_APPOINTMENT',
+    state: 'Maharashtra',
+    city: 'Mumbai',
     photoUrl: 'https://cdn.example.com/doctor.jpg',
     photoPublicId: 'doctors/photo',
     active: true,
@@ -79,6 +80,8 @@ describe('DoctorProfilesService', () => {
 
     expect(listBySiteId).toHaveBeenCalledWith(record.siteId);
     expect(result).toEqual([toDoctorProfileDto(record, 'IN')]);
+    expect(result[0]?.state).toBe('Maharashtra');
+    expect(result[0]?.city).toBe('Mumbai');
   });
 
   it('prefers https Cloudinary URLs when mapping', async () => {
@@ -107,7 +110,8 @@ describe('DoctorProfilesService', () => {
         specialization: record.specialization,
         about: record.about,
         experienceYears: 12,
-        consultancyType: 'BY_APPOINTMENT',
+        state: 'Maharashtra',
+        city: 'Mumbai',
         photoUrl: record.photoUrl,
         photoPublicId: record.photoPublicId,
         active: true,
@@ -116,7 +120,12 @@ describe('DoctorProfilesService', () => {
 
     expect(create).toHaveBeenCalledWith(
       record.siteId,
-      expect.objectContaining({ order: 3, name: record.name }),
+      expect.objectContaining({
+        order: 3,
+        name: record.name,
+        state: 'Maharashtra',
+        city: 'Mumbai',
+      }),
     );
     expect(dto.id).toBe(record.id);
   });
@@ -152,7 +161,8 @@ describe('DoctorProfilesService', () => {
         specialization: updated.specialization,
         about: updated.about,
         experienceYears: updated.experienceYears,
-        consultancyType: updated.consultancyType,
+        state: 'Maharashtra',
+        city: 'Mumbai',
         photoUrl: updated.photoUrl,
         photoPublicId: 'doctors/new',
         active: true,
@@ -176,7 +186,8 @@ describe('DoctorProfilesService', () => {
           specialization: 'Derm',
           about: 'About',
           experienceYears: 1,
-          consultancyType: 'ONLINE',
+          state: 'Karnataka',
+          city: 'Bengaluru',
           photoUrl: 'https://cdn.example.com/a.jpg',
           photoPublicId: '',
           active: true,

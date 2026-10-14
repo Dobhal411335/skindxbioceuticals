@@ -99,6 +99,8 @@ Auth `user` DTO fields include: `id`, `email`, `role`, `firstName`, `lastName`, 
 All routes require `Authorization: Bearer` and `CUSTOMER` role. Ownership is always derived from `req.user.id`.
 
 - `PATCH /api/v1/me` — body `{ firstName, lastName? }`. Updates name only; never accepts role/status/email/password.
+- `POST /api/v1/me/avatar` — multipart `file` image upload (Cloudinary `feature=profile`). Updates `User.imageUrl` for the authenticated customer only. Missing file → `422`.
+- `DELETE /api/v1/me/avatar` — clears `User.imageUrl` for the authenticated customer.
 - `GET /api/v1/me/addresses` — list current customer's addresses.
 - `POST /api/v1/me/addresses` — create address; `isDefault: true` clears other defaults in a transaction.
 - `PATCH /api/v1/me/addresses/:addressId` — update owned address only (404 if not owned).
@@ -130,7 +132,44 @@ For each endpoint, document whether it is:
 - admin-only,
 - provider webhook.
 
-## 6. Planned endpoint groups
+## 6. Checkout, payments, and guest verification (implemented)
+
+Base path: `/api/v1`. Money in API responses for payment create uses **paise** for Razorpay; order history money fields remain decimal strings (rupees).
+
+### Guest checkout OTP
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| `POST` | `/checkout/guest/session` | Public + rate limit | Body `{ email }`. Returns opaque `sessionToken` once. |
+| `POST` | `/checkout/guest/send-otp` | Session token in body | Reuses auth OTP hashing + Brevo `sendOtpEmail`. |
+| `POST` | `/checkout/guest/verify-otp` | Session token + OTP | Sets `emailVerifiedAt` on `GuestCheckoutSession`. |
+
+### Payments (authenticated customer **or** verified guest)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| `POST` | `/payments/create-order` | Optional JWT **or** `guestSessionToken` | Requires `Idempotency-Key` header. Recalculates totals from DB variants; creates `Order` + Razorpay order. |
+| `POST` | `/payments/verify` | Optional JWT **or** guest session owning order | Verifies Razorpay checkout signature server-side; idempotent capture. |
+| `GET` | `/payments/status/:orderId` | Owner (JWT or guest session) | Reconciliation after modal dismiss/timeout. |
+| `GET` | `/payments/confirmation` | JWT owner **or** `confirmationToken` | Thank You page data. |
+| `POST` | `/webhooks/razorpay` | `X-Razorpay-Signature` on raw body | Idempotent via `WebhookEvent`; mounted before `express.json`. |
+
+Create-order body (trusted fields only for identity/lines; prices ignored):
+
+```json
+{
+  "items": [{ "variantId": "uuid", "quantity": 1 }],
+  "shippingAddress": { "lastName": "…", "line1": "…", "city": "…", "postalCode": "…", "country": "IN" },
+  "notes": "optional",
+  "guestSessionToken": "required when not authenticated"
+}
+```
+
+Idempotency: same key + same payload hash returns the existing Razorpay order; same key + different payload → `409`.
+
+Guest order linking: on verified login / email verify / Google auth, `linkGuestOrdersByVerifiedEmail` attaches `userId` where `contactEmail` matches and `userId` is null.
+
+## 6b. Planned endpoint groups (remaining)
 
 These are initial route groups to consider; define exact paths and schemas as features are implemented.
 
@@ -143,10 +182,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/cart` | retrieve/update current cart | Customer or supported guest-cart mechanism |
 | `/wishlist` | current customer's wishlist | Customer |
 | `/coupons` | validate coupon eligibility | Public/customer with rate limits; admin management |
-| `/checkout` | calculate server-authoritative totals and create checkout/order intent | Customer/guest policy |
 | `/orders` | create/read/cancel where permitted | Customer; admin permissions for management |
-| `/payments` | payment initiation/status | Customer plus backend verification |
-| `/webhooks/razorpay` | signed provider events | Provider signature verification; not browser auth |
 | `/enquiries` | submit and manage enquiries | Public submission with abuse controls; admin read/manage |
 | `/content` | public pages, banners, FAQs, blog content | Public read; admin write |
 | `/media` | signed upload authorization and asset management | Authorized admin/editor |
@@ -243,7 +279,7 @@ Uploads use existing media APIs with `feature=reviews`: `POST /api/v1/media/imag
 
 ### Admin doctor profiles (implemented)
 
-Site-scoped clinician cards for the `/doctors` storefront page. Fields: `name` (normalized to `Dr. …`), `specialization`, `about`, `experienceYears`, `consultancyType` (`BY_APPOINTMENT` | `ONLINE`), `photoUrl`, `photoPublicId`, optional `active`/`order`.
+Site-scoped clinician cards for the `/doctors` storefront page. Fields: `name` (normalized to `Dr. …`), `specialization`, `about`, `experienceYears`, `state` (Indian state/UT), `city`, `photoUrl`, `photoPublicId`, optional `active`/`order`.
 
 - `GET /api/v1/admin/sites/:siteCode/doctors` — Bearer admin JWT; `requireSiteAccess`. Returns all profiles for the site (including inactive), ordered by `order` asc then `createdAt` desc.
 - `POST /api/v1/admin/sites/:siteCode/doctors` — create. `siteId` from authenticated site context only. Prefer HTTPS photo URLs.
@@ -255,7 +291,19 @@ Uploads use existing media APIs with `feature=doctors`: `POST /api/v1/media/imag
 
 ### Public doctor profiles (storefront)
 
-- `GET /api/v1/sites/:siteCode/doctors` — public read for an active site (no auth). Returns active profiles only, ordered for the `.in` storefront `/doctors` cards grid.
+- `GET /api/v1/sites/:siteCode/doctors` — public read for an active site (no auth). Returns active profiles only (includes `state` + `city`), ordered for the `.in` storefront `/doctors` cards grid.
+
+### Admin doctor appointments (implemented)
+
+Site-scoped appointment requests submitted from storefront doctor cards. Fields: `doctorId`, `patientName`, `email`, `scheduledAt`, `problem`, `status` (`NEW` | `CONTACTED` | `CLOSED` | `CANCELLED`). List responses include `doctorName` and `doctorSpecialization`.
+
+- `GET /api/v1/admin/sites/:siteCode/doctor-appointments` — Bearer admin JWT; `requireSiteAccess`. Optional query: `doctorId`, `from`, `to` (ISO datetimes for `scheduledAt` range). Ordered by `scheduledAt` desc then `createdAt` desc.
+- `GET /api/v1/admin/sites/:siteCode/doctor-appointments/:appointmentId` — Bearer admin JWT; `requireSiteAccess`. Single request within the site.
+- `PATCH /api/v1/admin/sites/:siteCode/doctor-appointments/:appointmentId` — Bearer admin JWT; `requireSiteAccess`. Body: `{ status }` with one of `NEW` | `CONTACTED` | `CLOSED` | `CANCELLED`. Site-scoped; cannot patch across sites.
+
+### Public doctor appointments (storefront)
+
+- `POST /api/v1/sites/:siteCode/doctor-appointments` — public create for an active site (no auth). Body: `doctorId` (active doctor on that site), `patientName`, `email`, `scheduledAt` (future ISO datetime), `problem`. Optional honeypot field `website` (empty for humans). Rate-limited. `siteId` resolved from `siteCode` only.
 
 ### Admin doctor page (implemented)
 

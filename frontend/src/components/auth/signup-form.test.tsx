@@ -61,7 +61,7 @@ describe("SignupForm toasts", () => {
         expect.objectContaining({ id: "auth.signup.success" }),
       );
       expect(pushMock).toHaveBeenCalledWith(
-        "/account/verify-email?email=new%40example.com",
+        "/account/verify-email?email=new%40example.com&from=signup",
       );
     });
   });

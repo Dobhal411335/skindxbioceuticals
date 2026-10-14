@@ -25,7 +25,8 @@
 - `SocialPost` (implemented): site-scoped Instagram/Facebook posts (`postType` enum `INSTAGRAM` | `FACEBOOK`), thumbnail `imageUrl`/`imagePublicId`, external `postUrl`, `active`, `order`. Cascade delete with `Site`. Indexed by `(siteId, order)`, `(siteId, postType, order)`, and `(siteId, active, order)`.
 - `GalleryItem` (implemented): site-scoped lookbook media (`mediaType` enum `IMAGE` | `VIDEO`), `mediaUrl`/`mediaPublicId`, `active`. Cascade delete with `Site`. Indexed by `(siteId, createdAt)`, `(siteId, active, createdAt)`, and `(siteId, mediaType, createdAt)`.
 - `CustomerReview` (implemented): site-scoped curated storefront testimonials (`customerName`, `designation`, `description`, `rating` 1–5, `imageUrl`/`imagePublicId`, `active`, `order`). Distinct from product `Review` moderation. Cascade delete with `Site`. Indexed by `(siteId, order)` and `(siteId, active, order)`.
-- `DoctorProfile` (implemented): site-scoped clinician cards for `/doctors` (`name` stored as `Dr. …`, `specialization`, `about`, `experienceYears`, `consultancyType` enum `BY_APPOINTMENT` | `ONLINE`, `photoUrl`/`photoPublicId`, `active`, `order`). Cascade delete with `Site`. Indexed by `(siteId, order)` and `(siteId, active, order)`. Migration: `20261013230000_add_doctor_profiles_and_page`.
+- `DoctorProfile` (implemented): site-scoped clinician cards for `/doctors` (`name` stored as `Dr. …`, `specialization`, `about`, `experienceYears`, `state` (Indian state/UT), `city`, `photoUrl`/`photoPublicId`, `active`, `order`). Cascade delete with `Site`. Indexed by `(siteId, order)` and `(siteId, active, order)`. Migrations: `20261013230000_add_doctor_profiles_and_page`, `20261014100000_doctor_profile_location_and_appointments` (replaces removed `consultancyType` with `state`/`city`).
+- `DoctorAppointment` (implemented): site-scoped appointment requests from storefront doctor cards (`doctorId` FK → `DoctorProfile`, `patientName`, `email`, `scheduledAt`, `problem`, `status` enum `NEW` | `CONTACTED` | `CLOSED` | `CANCELLED`). Cascade delete with `Site` / doctor. Indexed by `(siteId, scheduledAt)`, `(siteId, doctorId, scheduledAt)`, and `(siteId, status)`. Migrations: `20261014100000_doctor_profile_location_and_appointments`, `20261014110000_doctor_appointment_status_cancelled`.
 - `DoctorPageConfig` / `DoctorServiceItem` (implemented): one optional doctors landing config per site (`siteId` unique). About fields: heading, description, `aboutHighlights` JSON string array, CTA label/url, primary + optional secondary image URL/publicId, optional `experienceYears` badge. Services section heading/subheading plus nested `DoctorServiceItem` rows (`iconKey` Lucide name, `name`, `description`, `readMoreUrl`, `order`, `active`). Nested services cascade with the parent config / site. Indexed by `(configId, order)`. Migration: `20261013230000_add_doctor_profiles_and_page`.
 - `FooterConfig` / `FooterColumn` / `FooterLink` (implemented): one optional footer config per site (`siteId` unique) with thank-you line, description, and ordered columns of links (`label`, `url`, `active`, `order`). Nested rows cascade with the parent config / site. Logo and social links live on `CompanyBasicInfo`, not footer config.
 - `TopAdvertisementConfig` / `TopAdvertisementItem` (implemented): one optional top-advertisement config per site (`siteId` unique) with typed items (`section` enum `ANNOUNCEMENT` | `UTILITY` | `BENEFIT`). Each item has `text`, optional `url`, and `active`. Nested items cascade with the parent config / site. Indexed by `(configId, section)`.
@@ -60,7 +61,7 @@
 Phase-1 create/list still uses name + code under a subcategory; full edit details are managed via admin product edit section APIs. Public storefront PDP reads ACTIVE products by `(siteId, slug)` and joins gallery, sizes, colors, variants+inventory, info sections, and related same-subcategory products (max 4).
 
 ### Customer and access
-- `User`: identity and account status; avoid unnecessary sensitive fields. Implemented fields include optional `passwordHash`, `emailVerifiedAt`, `welcomeEmailSentAt`, `status` (including `PENDING_VERIFICATION`), and `role`.
+- `User`: identity and account status; avoid unnecessary sensitive fields. Implemented fields include optional `passwordHash`, optional `imageUrl` (Google picture or customer-uploaded avatar via `POST /me/avatar`), `emailVerifiedAt`, `welcomeEmailSentAt`, `status` (including `PENDING_VERIFICATION`), and `role`.
 - `ExternalIdentity`: provider and provider subject ID for Google identity mapping (implemented: unique `(provider, providerUserId)`, FK to `User`; `User.passwordHash` is optional for Google-only customers).
 - `EmailVerificationToken`: hashed OTP/verification credential, purpose (`EMAIL_VERIFICATION`), expiry, attempt count, consumed timestamp (implemented). Never store plaintext OTPs.
 - `EmailOutbox`: minimal transactional email outbox (`templateKey`, `payloadJson`, status PENDING/SENT/FAILED) for reliable welcome-email delivery after verification.
@@ -76,9 +77,11 @@ Do not use a user-supplied email as the only permanent external identity key. St
 - `Wishlist`, `WishlistItem` (implemented): one wishlist per customer (`Wishlist.userId` unique). Items are product-level (`@@unique([wishlistId, productId])`) with optional `variantId` (`onDelete: SetNull`). No quantity field. Ecommerce writes/sync accept active `IN` products only; guest wishlist bags live in client `localStorage` and merge via `POST /wishlist/sync` (union by `productId`).
 - `Coupon` (implemented admin CRUD): site-scoped discount codes (`siteId`, unique `(siteId, code)`). Stored as `type` (`PERCENTAGE` | `FIXED_AMOUNT` | `FREE_SHIPPING`) + `value`, plus optional `startsAt` / `endsAt`, `isActive`, usage fields. Admin create/edit supports amount **or** percent only (not both); `FREE_SHIPPING` is reserved for later checkout flows. Product-edit “Apply Coupon” lists active site coupons of type percent/amount.
 - `CouponRedemption`: eligibility and redemption constraints (planned; not yet modeled).
-- `Order`: customer/contact snapshot, address snapshot, totals, currency, status, site, timestamps.
-- `OrderItem`: immutable purchase-time snapshot of product name/SKU/variant, quantity, unit amount, discount/tax breakdown as applicable.
-- `PaymentAttempt` / `Payment`: provider references, amount, currency, status, verified timestamps, and safe metadata.
+- `Order` (checkout implemented): `userId` **nullable** (guest until linked); required `contactEmail` (normalized snapshot, indexed, not unique); totals as `Decimal(12,2)`; optional `confirmationEmailSentAt` for one-shot confirmation email. Migration: `20261014120000_checkout_payments_guest_orders`.
+- `OrderItem`: immutable purchase-time snapshot of product name/SKU/variant, quantity, unit amount, line total.
+- `GuestCheckoutSession`: opaque `tokenHash`, email, OTP hash/expiry/attempts, `emailVerifiedAt`, optional `orderId`, short-lived `confirmationTokenHash` for Thank You access.
+- `Payment` (extended): Razorpay `providerOrderId` / `providerPaymentId` (unique), `amountInPaise`, `idempotencyScope`+`idempotencyKey` unique, `requestHash`, `failureCode`. Multiple rows per order allowed for retries; capture is conditional so inventory/email run once.
+- `WebhookEvent`: unique `(provider, providerEventId)` for webhook dedupe.
 - `Refund`: provider reference, amount, status, and audit trail where refunds are supported.
 - `Shipment` / `Fulfilment`: carrier reference, shipping state, and timestamps if fulfilment tracking is in scope.
 
@@ -115,8 +118,8 @@ One PostgreSQL database can support both sites. Separate databases are not requi
 - Calculate price, discounts, tax, shipping, and total on the backend from trusted records.
 - Store currency with every monetary aggregate/transaction.
 - Use transactions for order creation, inventory reservation, and related database state changes.
-- Define whether stock is reserved at checkout creation, payment initiation, or another documented point.
-- Define reservation expiry and release behavior for abandoned/failed payments.
+- Stock is **reserved** when `POST /payments/create-order` succeeds (inventory `RESERVATION`). On Razorpay create failure, reservations are **released** and the order cancelled. On payment **capture** (verify or webhook), reservation converts to `STOCK_OUT` once.
+- Abandoned pending payments: release/expiry job is a follow-up; failed create-order already releases.
 - Payment status must be driven by verified server-side provider responses/webhooks and reconciliation—not browser claims.
 - Make webhook event processing idempotent.
 - Keep order status and payment status separate; an order may exist while payment is pending or failed.

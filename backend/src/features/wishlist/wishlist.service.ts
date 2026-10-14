@@ -214,6 +214,16 @@ export class WishlistService {
       inventory != null
         ? inventory.quantityOnHand - inventory.quantityReserved
         : null;
+    const productCoupon = item.product.coupon;
+    const coupon =
+      productCoupon && productCoupon.coupon.isActive
+        ? {
+            couponId: productCoupon.couponId,
+            code: productCoupon.coupon.code,
+            type: productCoupon.coupon.type,
+            value: Number(productCoupon.coupon.value),
+          }
+        : null;
 
     return {
       id: item.id,
@@ -226,6 +236,7 @@ export class WishlistService {
       currency: variant?.currency ?? null,
       available: availableQty == null ? item.product.status === 'ACTIVE' : availableQty > 0,
       createdAt: item.createdAt.toISOString(),
+      coupon,
     };
   }
 }

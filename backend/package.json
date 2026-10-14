@@ -47,6 +47,7 @@
     "multer": "^2.4.0",
     "p-limit": "^3.1.0",
     "pino": "^10.4.0",
+    "razorpay": "^2.9.8",
     "zod": "^3.24.2"
   },
   "devDependencies": {

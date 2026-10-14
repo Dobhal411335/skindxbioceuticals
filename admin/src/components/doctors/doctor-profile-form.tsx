@@ -22,15 +22,13 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { INDIA_STATES } from "@/lib/india-states";
 import { showError, showSuccess } from "@/lib/toast";
 import type { DoctorProfileFormErrors } from "@/schemas/doctor-profile-schema";
 import { uploadDoctorPhoto } from "@/services/api/doctor-profile";
 import { ApiError } from "@/services/api/errors";
 import type { SiteCode } from "@/types/auth";
-import type {
-  DoctorConsultancyType,
-  DoctorProfileFormValues,
-} from "@/types/doctor-profile";
+import type { DoctorProfileFormValues } from "@/types/doctor-profile";
 
 type DoctorProfileFormProps = {
   siteCode: SiteCode;
@@ -212,49 +210,69 @@ export function DoctorProfileForm({
                 ) : null}
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="doctor-experience">
+                  Experience (years) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="doctor-experience"
+                  type="number"
+                  min={0}
+                  max={80}
+                  value={values.experienceYears}
+                  onChange={(event) =>
+                    onChange({ ...values, experienceYears: event.target.value })
+                  }
+                />
+                {errors.experienceYears ? (
+                  <p className="text-sm text-destructive">{errors.experienceYears}</p>
+                ) : null}
+              </div>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="doctor-experience">
-                    Experience (years) <span className="text-destructive">*</span>
+                  <Label htmlFor="doctor-state">
+                    State <span className="text-destructive">*</span>
                   </Label>
-                  <Input
-                    id="doctor-experience"
-                    type="number"
-                    min={0}
-                    max={80}
-                    value={values.experienceYears}
-                    onChange={(event) =>
-                      onChange({ ...values, experienceYears: event.target.value })
+                  <Select
+                    value={values.state || undefined}
+                    onValueChange={(value) =>
+                      onChange({
+                        ...values,
+                        state: value,
+                      })
                     }
-                  />
-                  {errors.experienceYears ? (
-                    <p className="text-sm text-destructive">{errors.experienceYears}</p>
+                  >
+                    <SelectTrigger id="doctor-state" className="w-full">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INDIA_STATES.map((state) => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.state ? (
+                    <p className="text-sm text-destructive">{errors.state}</p>
                   ) : null}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="doctor-consultancy">
-                    Consultancy <span className="text-destructive">*</span>
+                  <Label htmlFor="doctor-city">
+                    City <span className="text-destructive">*</span>
                   </Label>
-                  <Select
-                    value={values.consultancyType}
-                    onValueChange={(value) =>
-                      onChange({
-                        ...values,
-                        consultancyType: value as DoctorConsultancyType,
-                      })
+                  <Input
+                    id="doctor-city"
+                    value={values.city}
+                    placeholder="Mumbai"
+                    onChange={(event) =>
+                      onChange({ ...values, city: event.target.value })
                     }
-                  >
-                    <SelectTrigger id="doctor-consultancy" className="w-full">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="BY_APPOINTMENT">By appointment</SelectItem>
-                      <SelectItem value="ONLINE">Online</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.consultancyType ? (
-                    <p className="text-sm text-destructive">{errors.consultancyType}</p>
+                  />
+                  {errors.city ? (
+                    <p className="text-sm text-destructive">{errors.city}</p>
                   ) : null}
                 </div>
               </div>

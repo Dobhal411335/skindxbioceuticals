@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Heart, Minus, Plus } from "lucide-react";
 
+import {
+  ProductDiscountBadge,
+  ProductPriceDisplay,
+} from "@/components/catalog/product-price-display";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
@@ -25,6 +29,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProductBySlugClient } from "@/features/products/product.service";
 import {
+  applyProductCoupon,
+  buildCartPricingFields,
+  discountPercentForBadge,
+} from "@/features/products/product-pricing";
+import {
   availableColors,
   availableSizes,
   colorHasStock,
@@ -37,14 +46,12 @@ import {
   isColorCompatibleWithSize,
   isSizeCompatibleWithColor,
   primaryImageUrl,
-  rupeesToPaise,
   sizeHasStock,
 } from "@/features/products/product-selection";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useCartActions } from "@/hooks/useCartActions";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
-import { showError, showSuccess } from "@/lib/toast";
+import { showError } from "@/lib/toast";
 import { cn, formatInr } from "@/lib/utils";
-import { addCartItem } from "@/store/slices/cartSlice";
 import type { PublicProductDetail } from "@/types/product";
 
 type ProductQuickViewProps = {
@@ -248,9 +255,9 @@ export function ProductQuickView({
   open,
   onOpenChange,
 }: ProductQuickViewProps) {
-  const dispatch = useAppDispatch();
   const router = useRouter();
   const { openCart } = useCartUi();
+  const { add: addToCartAction } = useCartActions();
   const {
     toggle: toggleWishlist,
     isInWishlist,
@@ -321,7 +328,10 @@ export function ProductQuickView({
   }, [product]);
 
   const maxQty = selectedVariant?.quantity ?? 0;
-  const unitPrice = selectedVariant?.price ?? product?.variants[0]?.price ?? 0;
+  const listPrice =
+    selectedVariant?.price ?? product?.variants[0]?.price ?? 0;
+  const priced = applyProductCoupon(listPrice, product?.coupon ?? null);
+  const discountPercent = discountPercentForBadge(priced);
   const inStock = Boolean(selectedVariant && maxQty > 0);
   const inWishlist = product ? isInWishlist(product.id) : false;
   const canPurchase = Boolean(selectedVariant && maxQty > 0);
@@ -371,6 +381,10 @@ export function ProductQuickView({
 
   function buildCartPayload() {
     if (!product || !selectedVariant) return null;
+    const pricing = buildCartPricingFields(
+      selectedVariant.price,
+      product.coupon,
+    );
     return {
       productId: product.id,
       variantId: selectedVariant.id,
@@ -379,42 +393,39 @@ export function ProductQuickView({
       image: images[0] ?? primaryImageUrl(product) ?? "",
       alt: product.name,
       variantLabel: selectedVariant.name,
-      unitPriceInPaise: rupeesToPaise(selectedVariant.price),
+      unitPriceInPaise: pricing.unitPriceInPaise,
+      originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
+      discountCode: pricing.discountCode,
+      discountInPaise: pricing.discountInPaise,
       quantity: clampQty(quantity),
     };
   }
 
-  function addToCart() {
+  async function addToCart() {
     if (!requirePurchaseReady()) return;
     const payload = buildCartPayload();
     if (!payload) return;
 
-    try {
-      dispatch(addCartItem(payload));
-      showSuccess("Added to cart.", { id: "quickview.cart" });
-      onOpenChange(false);
-      openCart();
-    } catch {
-      showError("Could not add to cart. Please try again.", {
-        id: "quickview.cart.error",
-      });
-    }
+    const ok = await addToCartAction(payload);
+    if (!ok) return;
+    onOpenChange(false);
+    openCart();
   }
 
-  function buyNow() {
+  async function buyNow() {
     if (!requirePurchaseReady()) return;
     const payload = buildCartPayload();
     if (!payload) return;
 
-    try {
-      dispatch(addCartItem(payload));
-      onOpenChange(false);
-      router.push("/checkout");
-    } catch {
+    const ok = await addToCartAction(payload);
+    if (!ok) {
       showError("Could not start checkout. Please try again.", {
         id: "quickview.buynow.error",
       });
+      return;
     }
+    onOpenChange(false);
+    router.push("/checkout");
   }
 
   async function onWishlist() {
@@ -427,9 +438,10 @@ export function ProductQuickView({
         productName: product.name,
         productSlug: product.slug,
         imageUrl: images[0] ?? primaryImageUrl(product),
-        price: String(unitPrice),
+        price: String(listPrice),
         currency: "INR",
         available: inStock,
+        coupon: product.coupon,
       });
     } finally {
       setWishlistPending(false);
@@ -503,9 +515,17 @@ export function ProductQuickView({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <p className="text-2xl font-bold text-foreground">
-                    {formatInr(unitPrice)}
-                  </p>
+                  <ProductPriceDisplay
+                    price={listPrice}
+                    coupon={product.coupon}
+                    priced={priced}
+                    showBadge={false}
+                    size="lg"
+                    className="text-2xl [&_span:first-child]:text-2xl"
+                  />
+                  {discountPercent != null ? (
+                    <ProductDiscountBadge percent={discountPercent} />
+                  ) : null}
                   <span
                     className={cn(
                       "rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase",
@@ -673,7 +693,7 @@ export function ProductQuickView({
                   <Button
                     className="min-w-[8.5rem] flex-1"
                     size="lg"
-                    onClick={addToCart}
+                    onClick={() => void addToCart()}
                     disabled={!canPurchase}
                   >
                     Add to cart
@@ -685,7 +705,7 @@ export function ProductQuickView({
                   variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={buyNow}
+                  onClick={() => void buyNow()}
                   disabled={!canPurchase}
                 >
                   Buy it now

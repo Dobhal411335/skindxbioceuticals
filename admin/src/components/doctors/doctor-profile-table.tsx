@@ -28,10 +28,6 @@ type DoctorProfileTableProps = {
   onMove: (doctor: DoctorProfileDto, direction: "up" | "down") => void;
 };
 
-function consultancyLabel(value: DoctorProfileDto["consultancyType"]): string {
-  return value === "ONLINE" ? "Online" : "By appointment";
-}
-
 export function DoctorProfileTable({
   doctors,
   onEdit,
@@ -64,7 +60,7 @@ export function DoctorProfileTable({
                 <th className="px-3 py-3 font-medium">Doctor</th>
                 <th className="px-3 py-3 font-medium">Specialization</th>
                 <th className="w-28 px-3 py-3 text-center font-medium">Exp.</th>
-                <th className="w-36 px-3 py-3 text-center font-medium">Consultancy</th>
+                <th className="w-44 px-3 py-3 font-medium">Location</th>
                 <th className="w-28 px-3 py-3 text-center font-medium">Status</th>
                 <th className="w-40 px-4 py-3 text-right font-medium">Actions</th>
               </tr>
@@ -105,8 +101,8 @@ export function DoctorProfileTable({
                     <td className="px-3 py-4 text-center">
                       {doctor.experienceYears} yrs
                     </td>
-                    <td className="px-3 py-4 text-center text-muted-foreground">
-                      {consultancyLabel(doctor.consultancyType)}
+                    <td className="px-3 py-4 text-muted-foreground">
+                      {[doctor.city, doctor.state].filter(Boolean).join(", ") || "—"}
                     </td>
                     <td className="px-3 py-4 text-center">
                       <button type="button" onClick={() => onToggleActive(doctor)}>

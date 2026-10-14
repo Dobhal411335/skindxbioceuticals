@@ -5,7 +5,11 @@ import { Provider } from "react-redux";
 import { Suspense } from "react";
 
 import { VerifyEmailForm } from "@/components/auth/verify-email-form";
-import authReducer from "@/store/slices/authSlice";
+import authReducer, {
+  clearCredentials,
+  setCredentials,
+} from "@/store/slices/authSlice";
+import type { AuthUser } from "@/types/auth";
 
 const verifyMock = jest.fn();
 const resendMock = jest.fn();
@@ -16,7 +20,8 @@ const showInfoMock = jest.fn();
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ replace: replaceMock, push: jest.fn() }),
-  useSearchParams: () => new URLSearchParams("email=a%40example.com"),
+  useSearchParams: () =>
+    new URLSearchParams("email=a%40example.com&from=signup"),
 }));
 
 jest.mock("@/features/auth/auth.service", () => ({
@@ -33,8 +38,18 @@ jest.mock("@/lib/toast", () => ({
   showWarning: jest.fn(),
 }));
 
-function renderForm() {
+function renderForm(options?: { authenticatedUser?: AuthUser }) {
   const store = configureStore({ reducer: { auth: authReducer } });
+  if (options?.authenticatedUser) {
+    store.dispatch(
+      setCredentials({
+        user: options.authenticatedUser,
+        accessToken: "token",
+      }),
+    );
+  } else {
+    store.dispatch(clearCredentials());
+  }
   return render(
     <Provider store={store}>
       <Suspense>
@@ -52,13 +67,20 @@ describe("VerifyEmailForm toasts", () => {
     showSuccessMock.mockReset();
     showErrorMock.mockReset();
     showInfoMock.mockReset();
+    // input-otp password-manager badge probes this; jsdom does not implement it.
+    document.elementFromPoint = jest.fn(() => null);
   });
 
-  it("toasts success only after verification succeeds", async () => {
+  it("shows welcome toast and panel only after verification succeeds", async () => {
     const user = userEvent.setup();
     verifyMock.mockResolvedValue({
       accessToken: "token",
-      user: { id: "1", email: "a@example.com", role: "CUSTOMER" },
+      user: {
+        id: "1",
+        email: "a@example.com",
+        role: "CUSTOMER",
+        firstName: "Ada",
+      },
     });
     renderForm();
 
@@ -67,10 +89,20 @@ describe("VerifyEmailForm toasts", () => {
 
     await waitFor(() => {
       expect(showSuccessMock).toHaveBeenCalledWith(
-        "Email verified successfully.",
+        "Welcome to SkinDx Bioceuticals!",
         expect.objectContaining({ id: "auth.verify.success" }),
       );
     });
+
+    expect(
+      screen.getByRole("heading", {
+        name: /welcome to skindx bioceuticals, ada/i,
+      }),
+    ).toBeInTheDocument();
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: /continue shopping/i }));
+    expect(replaceMock).toHaveBeenCalledWith("/");
   });
 
   it("toasts an error for invalid OTP and never success", async () => {
@@ -106,5 +138,23 @@ describe("VerifyEmailForm toasts", () => {
         expect.objectContaining({ id: "auth.verify.resend.success" }),
       );
     });
+  });
+
+  it("shows welcome panel for an already-authenticated session after refresh", () => {
+    renderForm({
+      authenticatedUser: {
+        id: "1",
+        email: "a@example.com",
+        role: "CUSTOMER",
+        firstName: "Ada",
+      },
+    });
+
+    expect(
+      screen.getByRole("heading", {
+        name: /welcome to skindx bioceuticals, ada/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/verification code/i)).not.toBeInTheDocument();
   });
 });

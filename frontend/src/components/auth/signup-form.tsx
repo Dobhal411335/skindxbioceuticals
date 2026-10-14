@@ -63,9 +63,10 @@ export function SignupForm() {
       const result = await authService.register(parsed.data);
       showInfo("Check your email for a verification code.", {
         id: "auth.signup.success",
+        description: "Enter the code on the next screen to join SkinDx Bioceuticals.",
       });
       router.push(
-        `/account/verify-email?email=${encodeURIComponent(result.email)}`,
+        `/account/verify-email?email=${encodeURIComponent(result.email)}&from=signup`,
       );
     } catch (error) {
       showError(

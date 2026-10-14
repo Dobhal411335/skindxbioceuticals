@@ -1,4 +1,5 @@
-import type { PublicProductDetail } from "@/types/product";
+import { rupeesToPaise } from "@/features/products/product-selection";
+import type { PublicProductCoupon, PublicProductDetail } from "@/types/product";
 
 export type ProductCoupon = NonNullable<PublicProductDetail["coupon"]>;
 
@@ -13,10 +14,18 @@ export type PricedUnit = {
   hasDiscount: boolean;
 };
 
+export type CartPricingFields = {
+  unitPriceInPaise: number;
+  originalUnitPriceInPaise?: number;
+  discountCode?: string | null;
+  discountInPaise?: number;
+  priced: PricedUnit;
+};
+
 /** Apply a product-linked coupon to a variant list price (rupees). */
 export function applyProductCoupon(
   price: number,
-  coupon: PublicProductDetail["coupon"],
+  coupon: PublicProductDetail["coupon"] | PublicProductCoupon | null | undefined,
 ): PricedUnit {
   if (!coupon || coupon.value <= 0 || price <= 0) {
     return {
@@ -90,4 +99,35 @@ export function discountBannerText(priced: PricedUnit): string | null {
       ? `${priced.coupon.value}% off`
       : `₹${priced.discountAmount} off`;
   return `${amountLabel} with ${priced.coupon.code}`;
+}
+
+/** Badge percent for cards (`-10%`). Null when no discount. */
+export function discountPercentForBadge(priced: PricedUnit): number | null {
+  if (!priced.hasDiscount || priced.originalPrice <= 0) return null;
+  if (priced.coupon?.type.toUpperCase() === "PERCENTAGE") {
+    return Math.round(priced.coupon.value);
+  }
+  const percent = Math.round(
+    (priced.discountAmount / priced.originalPrice) * 100,
+  );
+  return percent > 0 ? percent : null;
+}
+
+/** Cart line price fields from list price + product coupon (matches PDP). */
+export function buildCartPricingFields(
+  listPriceRupees: number,
+  coupon: PublicProductDetail["coupon"] | PublicProductCoupon | null | undefined,
+): CartPricingFields {
+  const priced = applyProductCoupon(listPriceRupees, coupon ?? null);
+  return {
+    unitPriceInPaise: rupeesToPaise(priced.unitPrice),
+    originalUnitPriceInPaise: priced.hasDiscount
+      ? rupeesToPaise(priced.originalPrice)
+      : undefined,
+    discountCode: priced.coupon?.code ?? null,
+    discountInPaise: priced.hasDiscount
+      ? rupeesToPaise(priced.discountAmount)
+      : undefined,
+    priced,
+  };
 }

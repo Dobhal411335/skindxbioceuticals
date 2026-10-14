@@ -29,6 +29,20 @@ export class MeRepository {
     });
   }
 
+  async updateImageUrl(
+    userId: string,
+    imageUrl: string | null,
+  ): Promise<UserWithMemberships> {
+    return this.db.user.update({
+      where: { id: userId },
+      data: { imageUrl },
+      include: {
+        siteMemberships: { include: { site: true } },
+        externalIdentities: true,
+      },
+    });
+  }
+
   async listAddresses(userId: string): Promise<Address[]> {
     return this.db.address.findMany({
       where: { userId },

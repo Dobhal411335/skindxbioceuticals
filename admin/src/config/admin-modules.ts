@@ -267,11 +267,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Cancelled order records for the .in storefront.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "order-doctor-contact",
     "orders/doctor-contact-request",
     "Doctor's Profile Contact Request",
-    "Contact requests associated with doctor profiles.",
+    "Appointment requests submitted from doctor profile cards on the storefront.",
     ["IN", "COM"],
   ),
 

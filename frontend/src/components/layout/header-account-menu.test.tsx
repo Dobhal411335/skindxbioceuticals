@@ -13,6 +13,7 @@ import type { AuthUser } from "@/types/auth";
 
 const pushMock = jest.fn();
 const logoutMock = jest.fn();
+const showSuccessMock = jest.fn();
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock, replace: jest.fn() }),
@@ -22,6 +23,13 @@ jest.mock("@/features/auth/auth.service", () => ({
   authService: {
     logout: (...args: unknown[]) => logoutMock(...args),
   },
+}));
+
+jest.mock("@/lib/toast", () => ({
+  showSuccess: (...args: unknown[]) => showSuccessMock(...args),
+  showError: jest.fn(),
+  showInfo: jest.fn(),
+  showWarning: jest.fn(),
 }));
 
 function renderMenu(user?: AuthUser | null, status: "idle" | "loading" | "authenticated" | "unauthenticated" = "unauthenticated") {
@@ -73,6 +81,7 @@ describe("HeaderAccountMenu", () => {
   beforeEach(() => {
     pushMock.mockReset();
     logoutMock.mockReset();
+    showSuccessMock.mockReset();
     logoutMock.mockResolvedValue({ serverRevoked: true });
     Object.defineProperty(window, "matchMedia", {
       writable: true,
@@ -121,13 +130,17 @@ describe("HeaderAccountMenu", () => {
     expect(screen.getByRole("menuitem", { name: /log out/i })).toBeInTheDocument();
   });
 
-  it("logs out, clears session, and redirects home", async () => {
+  it("logs out, clears session, toasts success, and redirects home", async () => {
     const user = userEvent.setup();
     renderMenu(passwordUser, "authenticated");
     await user.click(screen.getByRole("button", { name: /open account menu/i }));
     await user.click(await screen.findByRole("menuitem", { name: /log out/i }));
     await waitFor(() => {
       expect(logoutMock).toHaveBeenCalled();
+      expect(showSuccessMock).toHaveBeenCalledWith(
+        "Logged out successfully.",
+        expect.objectContaining({ id: "auth.logout.success" }),
+      );
       expect(pushMock).toHaveBeenCalledWith("/");
     });
   });

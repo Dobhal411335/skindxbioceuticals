@@ -15,6 +15,7 @@ const wishlistItemInclude = {
         include: { media: true },
       },
       site: true,
+      coupon: { include: { coupon: true } },
     },
   },
   variant: {

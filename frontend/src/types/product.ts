@@ -83,6 +83,13 @@ export type PublicRelatedProduct = {
   imageUrl: string | null;
 };
 
+export type PublicProductCoupon = {
+  couponId: string;
+  code: string;
+  type: string;
+  value: number;
+};
+
 /** Compact storefront card for landing rail / highlight columns / shop PLP. */
 export type PublicProductCard = {
   id: string;
@@ -100,6 +107,8 @@ export type PublicProductCard = {
   isFeatured: boolean;
   isRecent: boolean;
   isBestSeller: boolean;
+  /** Product-linked default discount coupon. */
+  coupon?: PublicProductCoupon | null;
 };
 
 export type PublicProductListMeta = {
@@ -178,12 +187,7 @@ export type PublicProductDetail = {
   tags: PublicProductTag[];
   highlights: PublicProductHighlight[];
   tax: { cgst: number; sgst: number } | null;
-  coupon: {
-    couponId: string;
-    code: string;
-    type: string;
-    value: number;
-  } | null;
+  coupon: PublicProductCoupon | null;
   relatedProducts: PublicRelatedProduct[];
   averageRating: number;
   reviewCount: number;

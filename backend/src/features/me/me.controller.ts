@@ -21,6 +21,22 @@ export class MeController {
     sendSuccess(res, data, 'Profile updated');
   };
 
+  uploadAvatar = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new UnauthorizedError();
+    }
+    const data = await this.service.uploadAvatar(req.user.id, req.file);
+    sendSuccess(res, data, 'Profile photo updated');
+  };
+
+  clearAvatar = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new UnauthorizedError();
+    }
+    const data = await this.service.clearAvatar(req.user.id);
+    sendSuccess(res, data, 'Profile photo removed');
+  };
+
   listAddresses = async (req: Request, res: Response): Promise<void> => {
     if (!req.user) {
       throw new UnauthorizedError();

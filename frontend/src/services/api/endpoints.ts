@@ -25,7 +25,9 @@ export const API_ENDPOINTS = {
   },
   CART: {
     ROOT: "/cart",
+    ITEMS: "/cart/items",
     ITEM: (id: string) => `/cart/items/${id}`,
+    SYNC: "/cart/sync",
   },
   WISHLIST: {
     ROOT: "/wishlist",
@@ -35,6 +37,15 @@ export const API_ENDPOINTS = {
   CHECKOUT: {
     ROOT: "/checkout",
     SESSION: "/checkout/session",
+    GUEST_SESSION: "/checkout/guest/session",
+    GUEST_SEND_OTP: "/checkout/guest/send-otp",
+    GUEST_VERIFY_OTP: "/checkout/guest/verify-otp",
+  },
+  PAYMENTS: {
+    CREATE_ORDER: "/payments/create-order",
+    VERIFY: "/payments/verify",
+    STATUS: (orderId: string) => `/payments/status/${orderId}`,
+    CONFIRMATION: "/payments/confirmation",
   },
   ORDERS: {
     LIST: "/orders",
@@ -42,6 +53,7 @@ export const API_ENDPOINTS = {
   },
   ME: {
     ROOT: "/me",
+    AVATAR: "/me/avatar",
     ADDRESSES: "/me/addresses",
     ADDRESS: (id: string) => `/me/addresses/${id}`,
   },
@@ -82,5 +94,10 @@ export const API_ENDPOINTS = {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/categories`,
     PUBLIC_DETAIL: (siteCode: string, categorySlug: string) =>
       `/sites/${siteCode}/categories/${encodeURIComponent(categorySlug)}`,
+  },
+  DOCTORS: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/doctors`,
+    APPOINTMENTS: (siteCode: string) =>
+      `/sites/${siteCode}/doctor-appointments`,
   },
 } as const;

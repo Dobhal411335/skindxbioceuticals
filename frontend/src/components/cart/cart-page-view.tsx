@@ -2,44 +2,29 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Gift, ShieldCheck, X } from "lucide-react";
+import { ShieldCheck, X } from "lucide-react";
 
+import { CartLinePrice } from "@/components/cart/cart-line-price";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useCartActions } from "@/hooks/useCartActions";
 import { useCartTotals } from "@/hooks/useCartTotals";
 import { formatPaiseToInr } from "@/lib/utils";
-import {
-  applyCoupon,
-  DEMO_COUPON,
-  GIFT_WRAP_PAISE,
-  removeCartItem,
-  setCartNotes,
-  setCouponCode,
-  setGiftWrap,
-  setTermsAccepted,
-  updateCartItemQuantity,
-} from "@/store/slices/cartSlice";
+import { setCartNotes, setTermsAccepted } from "@/store/slices/cartSlice";
 
 export function CartPageView() {
   const dispatch = useAppDispatch();
+  const { setQuantity, remove } = useCartActions();
   const {
     items,
     extras,
-    subtotalInPaise,
+    originalSubtotalInPaise,
     discountInPaise,
-    giftWrapInPaise,
+    discountPercent,
     totalInPaise,
   } = useCartTotals();
 
@@ -91,7 +76,7 @@ export function CartPageView() {
                     </div>
                     <div>
                       <Link
-                          href={`/products/${item.slug}`}
+                        href={`/products/${item.slug}`}
                         className="text-sm font-medium hover:underline"
                       >
                         {item.name}
@@ -103,61 +88,25 @@ export function CartPageView() {
                       ) : null}
                     </div>
                   </div>
-                  <div className="text-sm">
-                    <p>{formatPaiseToInr(item.unitPriceInPaise)}</p>
-                    {item.originalUnitPriceInPaise != null &&
-                    item.originalUnitPriceInPaise > item.unitPriceInPaise ? (
-                      <p className="text-xs text-muted-foreground line-through">
-                        {formatPaiseToInr(item.originalUnitPriceInPaise)}
-                      </p>
-                    ) : null}
-                    {item.discountCode ? (
-                      <p className="text-[11px] font-medium text-green-700">
-                        {item.discountCode}
-                      </p>
-                    ) : null}
-                  </div>
+                  <CartLinePrice item={item} mode="unit" />
                   <QuantityStepper
                     size="sm"
                     value={item.quantity}
-                    onChange={(quantity) =>
-                      dispatch(updateCartItemQuantity({ id: item.id, quantity }))
-                    }
+                    onChange={(quantity) => void setQuantity(item.id, quantity)}
                   />
-                  <p className="text-sm font-semibold">
-                    {formatPaiseToInr(item.unitPriceInPaise * item.quantity)}
-                  </p>
+                  <CartLinePrice item={item} mode="line" />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon-sm"
                     aria-label={`Remove ${item.name}`}
-                    onClick={() => dispatch(removeCartItem(item.id))}
+                    onClick={() => void remove(item.id)}
                   >
                     <X className="size-4" />
                   </Button>
                 </li>
               ))}
             </ul>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4">
-              <div className="flex items-center gap-3">
-                <Gift className="size-5 text-muted-foreground" aria-hidden />
-                <div>
-                  <p className="text-sm font-semibold">Do you want a gift wrap?</p>
-                  <p className="text-xs text-muted-foreground">
-                    Only for {formatPaiseToInr(GIFT_WRAP_PAISE)}
-                  </p>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant={extras.giftWrap ? "secondary" : "outline"}
-                onClick={() => dispatch(setGiftWrap(!extras.giftWrap))}
-              >
-                {extras.giftWrap ? "Added" : "Add"}
-              </Button>
-            </div>
 
             <div>
               <Label htmlFor="cart-notes" className="mb-2 block">
@@ -182,81 +131,29 @@ export function CartPageView() {
             <h2 className="text-sm font-semibold tracking-wide uppercase">
               Order summary
             </h2>
-            <div className="mt-4 flex items-center justify-between text-sm">
-              <span>Subtotal</span>
-              <span>{formatPaiseToInr(subtotalInPaise)}</span>
-            </div>
-
-            <div className="mt-5 space-y-2">
-              <p className="text-sm font-medium">Estimate shipping</p>
-              <Select defaultValue="IN">
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Country" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="IN">India</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select defaultValue="MH">
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="State" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MH">Maharashtra</SelectItem>
-                  <SelectItem value="KA">Karnataka</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input placeholder="PIN code" inputMode="numeric" />
-              <Button type="button" className="w-full">
-                Calculate shipping
-              </Button>
-            </div>
-
-            <div className="mt-5 space-y-2">
-              <Label htmlFor="cart-coupon">Coupon code</Label>
-              <Input
-                id="cart-coupon"
-                value={extras.couponCode}
-                onChange={(event) => dispatch(setCouponCode(event.target.value))}
-                placeholder="Enter coupon code"
-              />
-              <p className="text-xs text-muted-foreground">
-                Coupon code will be applied on the checkout page. Demo: {DEMO_COUPON}
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  const code = extras.couponCode.trim().toUpperCase();
-                  dispatch(applyCoupon(code === DEMO_COUPON ? DEMO_COUPON : null));
-                }}
-              >
-                Apply coupon
-              </Button>
-            </div>
-
-            <div className="mt-5 space-y-2 border-t border-border pt-4 text-sm">
-              {discountInPaise > 0 && extras.appliedCoupon ? (
+            <div className="mt-4 space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span>Subtotal</span>
+                <span>{formatPaiseToInr(originalSubtotalInPaise)}</span>
+              </div>
+              {discountInPaise > 0 ? (
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Discount ({extras.appliedCoupon})</span>
+                  <span>Discount ({discountPercent}%)</span>
                   <span>-{formatPaiseToInr(discountInPaise)}</span>
                 </div>
               ) : null}
-              {giftWrapInPaise > 0 ? (
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Gift wrap</span>
-                  <span>{formatPaiseToInr(giftWrapInPaise)}</span>
-                </div>
-              ) : null}
-              <div className="flex justify-between text-base font-semibold">
+              <div className="flex justify-between border-t border-border pt-4 text-base font-semibold">
                 <span>Total</span>
                 <span>{formatPaiseToInr(totalInPaise)}</span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Tax included and shipping calculated at checkout
-              </p>
             </div>
+
+            {/* Coupon UI commented out for now
+            <div className="mt-5 space-y-2">
+              <Label htmlFor="cart-coupon">Coupon code</Label>
+              ...
+            </div>
+            */}
 
             <div className="mt-4 flex items-start gap-2">
               <Checkbox

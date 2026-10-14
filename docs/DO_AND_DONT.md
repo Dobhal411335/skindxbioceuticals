@@ -34,7 +34,8 @@ These rules apply to frontend, backend, admin, tests, and documentation. If a ta
 ### Integrations
 - DO use **Cloudinary** for managed image/media uploads and delivery.
 - DO use **Brevo** for configured transactional email.
-- DO use **Razorpay** for payments on `.in`.
+- DO use **Razorpay** for payments on `.in` (authenticated or OTP-verified guest checkout).
+- DO link eligible guest orders to a verified account email on login / email verify / Google auth.
 - DO use a supported Google OAuth/OIDC flow for Google sign-in.
 - DO keep provider calls inside server-side integration modules.
 - DO use signed/restricted upload flows, server-side payment verification, and verified webhooks.
@@ -63,6 +64,9 @@ These rules apply to frontend, backend, admin, tests, and documentation. If a ta
 - DON'T trust frontend prices, totals, roles, site identifiers, or payment status.
 - DON'T mark an order paid solely because the browser says payment succeeded.
 - DON'T skip Razorpay signature verification or webhook idempotency.
+- DON'T allow guest payment without server-side email OTP verification.
+- DON'T expose guest orders by order ID alone; require ownership JWT or confirmation token.
+- DON'T create a new Razorpay order on every Pay click when a pending idempotent attempt is still valid.
 - DON'T authorize admin access only in the UI.
 - DON'T treat the website selector or knowing a site code as authorization.
 - DON'T ship a fake admin forgot-password experience when no recovery API exists.

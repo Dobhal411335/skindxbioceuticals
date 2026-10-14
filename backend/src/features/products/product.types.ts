@@ -47,6 +47,13 @@ export type CatalogProductDto = {
   updatedAt: string;
 };
 
+export type PublicProductCouponDto = {
+  couponId: string;
+  code: string;
+  type: string;
+  value: number;
+} | null;
+
 /** Compact storefront card used by landing rail / highlight columns / shop PLP. */
 export type PublicProductCardDto = {
   id: string;
@@ -64,6 +71,8 @@ export type PublicProductCardDto = {
   isFeatured: boolean;
   isRecent: boolean;
   isBestSeller: boolean;
+  /** Product-linked default discount coupon (same shape as detail). */
+  coupon: PublicProductCouponDto;
 };
 
 export type PublicProductListMetaDto = {
@@ -175,13 +184,6 @@ export type PublicProductHighlightDto = {
 export type PublicProductTaxDto = {
   cgst: number;
   sgst: number;
-} | null;
-
-export type PublicProductCouponDto = {
-  couponId: string;
-  code: string;
-  type: string;
-  value: number;
 } | null;
 
 export type PublicRelatedProductDto = {

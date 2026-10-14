@@ -313,6 +313,10 @@ export class AuthService {
     await this.scheduleAndSendWelcomeEmail(activated);
 
     await this.repository.updateLastLogin(activated.id);
+    const { linkGuestOrdersByVerifiedEmail } = await import(
+      '@/features/orders/guest-order-linking.service'
+    );
+    await linkGuestOrdersByVerifiedEmail(activated.id, activated.email);
     logger.info(
       { event: 'auth.email_verify.success', context: 'AUTH', userId: activated.id },
       'Email verification succeeded',
@@ -420,6 +424,10 @@ export class AuthService {
     }
 
     await this.repository.updateLastLogin(user.id);
+    const { linkGuestOrdersByVerifiedEmail } = await import(
+      '@/features/orders/guest-order-linking.service'
+    );
+    await linkGuestOrdersByVerifiedEmail(user.id, user.email);
     logger.info(
       { event: 'auth.login.success', context: 'AUTH', userId: user.id },
       'Login succeeded',

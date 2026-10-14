@@ -83,11 +83,15 @@ Support email/password authentication and Google sign-in/sign-up.
 - Never accept the final payable amount, discount, tax, or order total as authoritative from the browser.
 - Verify the Razorpay checkout signature on the backend using the documented algorithm and secret.
 - Verify webhook signatures using the raw request body as required by the provider's documentation.
-- Make webhook processing idempotent and tolerate retries.
+- Make webhook processing idempotent and tolerate retries (`WebhookEvent` unique provider event ids).
 - Validate that payment/order IDs correspond to the expected local order, amount, and currency.
 - Do not mark an order paid based only on a success redirect or frontend callback.
 - Store only necessary provider references and payment status; never store card numbers, CVVs, or payment credentials.
-- Keep Razorpay keys/secrets in server-side environment configuration; expose only explicitly public identifiers where required.
+- Keep Razorpay keys/secrets in server-side environment configuration; expose only explicitly public identifiers where required (`NEXT_PUBLIC_RAZORPAY_KEY_ID` only on the storefront).
+- Require `Idempotency-Key` on payment create; scope keys to `user:<id>` or `guest:<sessionId>`.
+- Guest checkout: OTP-verify email before payment using hashed OTPs (same crypto helpers as account verification). Never trust `emailVerified: true` from the client.
+- Guest orders store `contactEmail` with nullable `userId`. Link only after the account email is verified; never transfer an order already owned by another user.
+- Thank You access for guests uses a short-lived confirmation token (hashed at rest), not reusable OTPs in URLs.
 - Define refund, cancellation, reconciliation, and failed-payment flows before production.
 
 ## 7. Cloudinary/media security

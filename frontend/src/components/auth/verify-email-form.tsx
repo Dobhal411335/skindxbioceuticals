@@ -3,29 +3,91 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { CheckCircle2, Mail, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getAuthErrorMessage } from "@/features/auth/auth-errors";
+import { getUserDisplayName } from "@/features/auth/auth-user";
 import { authService } from "@/features/auth/auth.service";
 import {
   getSafeRedirectPath,
   verifyEmailFormSchema,
 } from "@/features/auth/auth.validation";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useAuth } from "@/hooks/useAuth";
 import { showError, showInfo, showSuccess } from "@/lib/toast";
 import { setCredentials } from "@/store/slices/authSlice";
+import type { AuthUser } from "@/types/auth";
 
 const RESEND_COOLDOWN_SECONDS = 60;
+const OTP_LENGTH = 6;
+
+function WelcomeVerifiedPanel({
+  user,
+  redirectPath,
+  onContinue,
+}: {
+  user: AuthUser;
+  redirectPath: string;
+  onContinue: () => void;
+}) {
+  const displayName = getUserDisplayName(user);
+  const firstName =
+    typeof user.firstName === "string" && user.firstName.trim()
+      ? user.firstName.trim()
+      : null;
+
+  return (
+    <div className="mx-auto w-full max-w-md rounded-xl border border-border bg-background p-6 text-center shadow-sm sm:p-8">
+      <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-[#f3a827]/15 text-[#c98912]">
+        <CheckCircle2 className="size-8" aria-hidden />
+      </div>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+        Welcome to SkinDx Bioceuticals
+        {firstName ? `, ${firstName}` : ""}
+      </h1>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        Your email is verified
+        {displayName && !firstName ? ` for ${displayName}` : ""}. You&apos;re all
+        set to explore clinician-trusted skincare and manage your account.
+      </p>
+      <Button
+        type="button"
+        className="mt-7 h-11 w-full rounded-full bg-[#f3a827] text-white uppercase hover:bg-[#e0981f]"
+        size="lg"
+        onClick={onContinue}
+      >
+        Continue shopping
+      </Button>
+      <p className="mt-4 text-xs text-muted-foreground">
+        Or go to{" "}
+        <Link
+          href={redirectPath === "/" ? "/account/dashboard" : redirectPath}
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          your account
+        </Link>
+      </p>
+    </div>
+  );
+}
 
 function VerifyEmailFormInner() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user: sessionUser, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const initialEmail = searchParams.get("email")?.trim() ?? "";
+  const redirectPath = getSafeRedirectPath(searchParams.get("redirect"));
 
   const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState("");
@@ -33,6 +95,10 @@ function VerifyEmailFormInner() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [verifiedUser, setVerifiedUser] = useState<AuthUser | null>(null);
+
+  // Prefer just-verified local state; after refresh, restore from the authenticated session.
+  const welcomeUser = verifiedUser ?? (isAuthenticated ? sessionUser : null);
 
   useEffect(() => {
     if (cooldown <= 0) {
@@ -42,8 +108,8 @@ function VerifyEmailFormInner() {
     return () => window.clearTimeout(timer);
   }, [cooldown]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     setFieldErrors({});
 
     const parsed = verifyEmailFormSchema.safeParse({ email, otp });
@@ -68,8 +134,11 @@ function VerifyEmailFormInner() {
           accessToken: data.accessToken,
         }),
       );
-      showSuccess("Email verified successfully.", { id: "auth.verify.success" });
-      router.replace(getSafeRedirectPath(searchParams.get("redirect")));
+      setVerifiedUser(data.user);
+      showSuccess("Welcome to SkinDx Bioceuticals!", {
+        id: "auth.verify.success",
+        description: "Your email is verified. Enjoy exploring our products.",
+      });
     } catch (error) {
       showError(
         getAuthErrorMessage(
@@ -80,6 +149,18 @@ function VerifyEmailFormInner() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleOtpChange = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    setOtp(digits);
+    if (fieldErrors.otp) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next.otp;
+        return next;
+      });
     }
   };
 
@@ -101,6 +182,7 @@ function VerifyEmailFormInner() {
     try {
       await authService.resendVerification({ email: emailCheck.data });
       setCooldown(RESEND_COOLDOWN_SECONDS);
+      setOtp("");
       showInfo(
         "If an unverified account exists for this email, a new code has been sent.",
         { id: "auth.verify.resend.success" },
@@ -115,10 +197,36 @@ function VerifyEmailFormInner() {
     }
   };
 
+  if (isAuthLoading && !welcomeUser) {
+    return (
+      <div className="mx-auto flex w-full max-w-md items-center justify-center rounded-xl border border-border bg-background p-10 text-sm text-muted-foreground shadow-sm">
+        Checking session…
+      </div>
+    );
+  }
+
+  if (welcomeUser) {
+    return (
+      <WelcomeVerifiedPanel
+        user={welcomeUser}
+        redirectPath={redirectPath}
+        onContinue={() => router.replace(redirectPath)}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-md rounded-xl border border-border bg-background p-6 shadow-sm sm:p-8">
       <div className="mb-6 flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Verify your email</h1>
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f3a827]/15 text-[#c98912]">
+            <Mail className="size-5" aria-hidden />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Verify your email</h1>
+            <p className="text-xs text-muted-foreground">One last step to activate your account</p>
+          </div>
+        </div>
         <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
           <Link href="/">
             <X className="size-4" aria-hidden />
@@ -129,9 +237,9 @@ function VerifyEmailFormInner() {
 
       <Separator className="mb-6" />
 
-      <p className="mb-5 text-sm text-muted-foreground">
-        Enter the verification code we sent to your email. Do not share this code with
-        anyone.
+      <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
+        Enter the 6-digit code we sent to your inbox. The next box focuses
+        automatically as you type. Do not share this code with anyone.
       </p>
 
       <form className="space-y-5" onSubmit={(event) => void handleSubmit(event)} noValidate>
@@ -157,35 +265,50 @@ function VerifyEmailFormInner() {
           ) : null}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           <Label htmlFor="verify-otp">
             Verification code <span className="text-destructive">*</span>
           </Label>
-          <Input
+          <InputOTP
             id="verify-otp"
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            required
+            maxLength={OTP_LENGTH}
+            pattern={REGEXP_ONLY_DIGITS}
             value={otp}
-            onChange={(event) => setOtp(event.target.value.replace(/\s/g, ""))}
+            onChange={handleOtpChange}
             disabled={isSubmitting}
-            className="h-11 rounded-full tracking-[0.3em]"
-            placeholder="••••••"
-            maxLength={8}
-          />
+            autoComplete="one-time-code"
+            inputMode="numeric"
+            containerClassName="justify-between gap-1 sm:gap-2"
+            aria-invalid={Boolean(fieldErrors.otp)}
+            aria-label="Verification code"
+          >
+            <InputOTPGroup className="w-full justify-between gap-1.5 sm:gap-2">
+              {Array.from({ length: OTP_LENGTH }, (_, index) => (
+                <InputOTPSlot
+                  key={index}
+                  index={index}
+                  aria-invalid={Boolean(fieldErrors.otp)}
+                  className="size-11 flex-1 rounded-lg border border-input text-base font-semibold first:rounded-lg last:rounded-lg sm:size-12 sm:text-lg"
+                />
+              ))}
+            </InputOTPGroup>
+          </InputOTP>
           {fieldErrors.otp ? (
             <p className="text-xs text-destructive" role="alert">
               {fieldErrors.otp}
             </p>
-          ) : null}
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Paste works too — the code fills all boxes at once.
+            </p>
+          )}
         </div>
 
         <Button
           type="submit"
           className="h-11 w-full rounded-full bg-[#f3a827] text-white uppercase hover:bg-[#e0981f]"
           size="lg"
-          disabled={isSubmitting}
+          disabled={isSubmitting || otp.length !== OTP_LENGTH}
         >
           {isSubmitting ? "Verifying…" : "Verify email"}
         </Button>

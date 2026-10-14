@@ -1,5 +1,3 @@
-export type DoctorConsultancyType = "BY_APPOINTMENT" | "ONLINE";
-
 export type DoctorProfile = {
   id: string;
   siteCode: "IN" | "COM";
@@ -7,7 +5,8 @@ export type DoctorProfile = {
   specialization: string;
   about: string;
   experienceYears: number;
-  consultancyType: DoctorConsultancyType;
+  state: string;
+  city: string;
   photoUrl: string;
   photoPublicId: string;
   active: boolean;
@@ -40,4 +39,13 @@ export type DoctorPageConfig = {
   servicesHeading: string;
   servicesSubheading: string;
   services: DoctorServiceItem[];
+};
+
+export type DoctorAppointmentCreatePayload = {
+  doctorId: string;
+  patientName: string;
+  email: string;
+  scheduledAt: string;
+  problem: string;
+  website?: string;
 };

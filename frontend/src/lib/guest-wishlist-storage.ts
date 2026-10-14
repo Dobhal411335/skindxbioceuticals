@@ -21,6 +21,13 @@ function asUuidOrNull(value: unknown): string | null {
   return z.string().uuid().safeParse(asString).success ? asString : null;
 }
 
+const guestWishlistCouponSchema = z.object({
+  couponId: z.string().min(1),
+  code: z.string().min(1),
+  type: z.string().min(1),
+  value: z.number(),
+});
+
 const guestWishlistItemSchema = z.object({
   // Prefer UUID products from the API, but keep any non-empty id so persist never silently no-ops.
   productId: z.string().min(1),
@@ -31,6 +38,7 @@ const guestWishlistItemSchema = z.object({
   price: z.string().nullable().optional(),
   currency: z.string().nullable().optional(),
   available: z.boolean().optional(),
+  coupon: guestWishlistCouponSchema.nullable().optional(),
 });
 
 const guestWishlistBagSchema = z.object({
@@ -47,6 +55,12 @@ export type GuestWishlistItem = {
   price?: string | null;
   currency?: string | null;
   available?: boolean;
+  coupon?: {
+    couponId: string;
+    code: string;
+    type: string;
+    value: number;
+  } | null;
 };
 
 export type GuestWishlistBag = {
@@ -65,6 +79,7 @@ function sanitizeItem(raw: unknown): GuestWishlistItem | null {
   if (!productId) return null;
 
   const variantId = asUuidOrNull(record.variantId);
+  const couponParsed = guestWishlistCouponSchema.safeParse(record.coupon);
   const candidate = {
     productId,
     variantId,
@@ -77,6 +92,12 @@ function sanitizeItem(raw: unknown): GuestWishlistItem | null {
     currency: asNullableString(record.currency) ?? null,
     available:
       typeof record.available === "boolean" ? record.available : undefined,
+    coupon:
+      record.coupon === null
+        ? null
+        : couponParsed.success
+          ? couponParsed.data
+          : undefined,
   };
 
   const parsed = guestWishlistItemSchema.safeParse(candidate);

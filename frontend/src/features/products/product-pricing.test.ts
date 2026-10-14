@@ -1,6 +1,8 @@
 import {
   applyProductCoupon,
+  buildCartPricingFields,
   discountBannerText,
+  discountPercentForBadge,
   formatWeightGrams,
   stockQtyBadgeClass,
 } from "@/features/products/product-pricing";
@@ -50,6 +52,35 @@ describe("applyProductCoupon", () => {
     });
     expect(result.unitPrice).toBe(0);
     expect(result.hasDiscount).toBe(true);
+  });
+
+  it("exposes badge percent and cart pricing fields", () => {
+    const percent = applyProductCoupon(1000, {
+      couponId: "c1",
+      code: "SAVE10",
+      type: "PERCENTAGE",
+      value: 10,
+    });
+    expect(discountPercentForBadge(percent)).toBe(10);
+
+    const fixed = applyProductCoupon(500, {
+      couponId: "c2",
+      code: "FLAT50",
+      type: "FIXED_AMOUNT",
+      value: 50,
+    });
+    expect(discountPercentForBadge(fixed)).toBe(10);
+
+    const cart = buildCartPricingFields(1000, {
+      couponId: "c1",
+      code: "SAVE10",
+      type: "PERCENTAGE",
+      value: 10,
+    });
+    expect(cart.unitPriceInPaise).toBe(90000);
+    expect(cart.originalUnitPriceInPaise).toBe(100000);
+    expect(cart.discountInPaise).toBe(10000);
+    expect(cart.discountCode).toBe("SAVE10");
   });
 });
 

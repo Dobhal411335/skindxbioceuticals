@@ -216,19 +216,26 @@ This is a conceptual starting point, not a final Prisma schema. Confirm pricing,
 - Never expose stack traces, SQL, secrets, provider credentials, or sensitive customer fields.
 - Use pagination for growing collections.
 - Enforce authorization and site scope on every relevant backend operation.
-- Use idempotency for payment/webhook/order operations where appropriate.
+- Use idempotency for payment/webhook/order operations where appropriate (`Idempotency-Key` on `POST /payments/create-order`).
 - Keep API documentation current (OpenAPI is recommended once routes stabilize).
+
+### Checkout modes (`.in`)
+
+- **Authenticated:** verified `CUSTOMER` JWT; order `userId` set; `contactEmail` = account email.
+- **Guest:** `GuestCheckoutSession` + email OTP before payment; order `userId` null until linked; Thank You via short-lived confirmation token.
+- Cart UI remains Redux/`localStorage`-oriented for this phase; payment create accepts `variantId`+`qty` and recalculates prices server-side.
+- Razorpay client: `backend/src/lib/integrations/razorpay.client.ts`. Webhook raw-body route is mounted in `app.ts` before `express.json`.
 
 ## 8. Data and transactions
 
 - PostgreSQL is the source of truth for orders, payments, inventory, users, and content.
 - Use Prisma migrations committed to version control.
 - Use database transactions for multi-step changes such as order creation and inventory reservation.
-- Store money as integer minor units (e.g. paise) plus currency, not floating-point values.
+- Persist order/payment money as `Decimal(12,2)` rupees (existing schema); convert to integer **paise** only for Razorpay API amounts (`Payment.amountInPaise`).
 - Preserve an order-item snapshot of relevant product name, SKU, price, quantity, and tax/discount details at purchase time.
 - Do not assume a payment capture and an order status update are the same operation.
-- Make webhook handling idempotent and resilient to retries or out-of-order delivery.
-- Define stock reservation, expiry, cancellation, refund, and reconciliation rules before production.
+- Make webhook handling idempotent and resilient to retries or out-of-order delivery (`WebhookEvent`).
+- Reserve stock on payment create-order; convert to stock-out once on capture; release on Razorpay create failure.
 
 ## 9. Environments and deployment
 

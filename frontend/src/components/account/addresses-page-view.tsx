@@ -16,6 +16,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   addressFormSchema,
@@ -25,15 +32,22 @@ import { meService } from "@/features/me/me.service";
 import type { Address } from "@/features/me/me.types";
 import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
+import {
+  DEFAULT_COUNTRY_CODE,
+  DEFAULT_COUNTRY_LABEL,
+  formatCountryLabel,
+  INDIA_STATES,
+  isIndiaState,
+} from "@/utils/states";
 
 const emptyForm: AddressFormValues = {
   label: "",
   line1: "",
   line2: "",
   city: "",
-  state: "",
+  state: "" as AddressFormValues["state"],
   postalCode: "",
-  country: "IN",
+  country: DEFAULT_COUNTRY_CODE,
   isDefault: false,
 };
 
@@ -101,9 +115,11 @@ export function AddressesPageView() {
       line1: address.line1,
       line2: address.line2 ?? "",
       city: address.city,
-      state: address.state,
+      state: isIndiaState(address.state)
+        ? address.state
+        : ("" as AddressFormValues["state"]),
       postalCode: address.postalCode,
-      country: address.country,
+      country: DEFAULT_COUNTRY_CODE,
       isDefault: address.isDefault,
     });
     setFieldErrors({});
@@ -112,7 +128,10 @@ export function AddressesPageView() {
 
   const submitForm = async () => {
     setError(null);
-    const parsed = addressFormSchema.safeParse(form);
+    const parsed = addressFormSchema.safeParse({
+      ...form,
+      country: DEFAULT_COUNTRY_CODE,
+    });
     if (!parsed.success) {
       const next: Record<string, string> = {};
       for (const issue of parsed.error.issues) {
@@ -132,7 +151,7 @@ export function AddressesPageView() {
         city: parsed.data.city,
         state: parsed.data.state,
         postalCode: parsed.data.postalCode,
-        country: parsed.data.country,
+        country: DEFAULT_COUNTRY_CODE,
         isDefault: parsed.data.isDefault,
       };
 
@@ -244,7 +263,7 @@ export function AddressesPageView() {
                       <br />
                       {address.city}, {address.state} {address.postalCode}
                       <br />
-                      {address.country}
+                      {formatCountryLabel(address.country)}
                     </p>
                   </div>
                 </div>
@@ -288,9 +307,7 @@ export function AddressesPageView() {
                 ["line1", "Address line 1"],
                 ["line2", "Address line 2"],
                 ["city", "City"],
-                ["state", "State"],
                 ["postalCode", "Postal code"],
-                ["country", "Country"],
               ] as const
             ).map(([key, label]) => (
               <div key={key} className="space-y-1.5">
@@ -307,6 +324,47 @@ export function AddressesPageView() {
                 ) : null}
               </div>
             ))}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="state">State</Label>
+              <Select
+                value={isIndiaState(form.state) ? form.state : undefined}
+                onValueChange={(value) =>
+                  setForm((current) => ({
+                    ...current,
+                    state: value as AddressFormValues["state"],
+                  }))
+                }
+              >
+                <SelectTrigger id="state" className="w-full" aria-invalid={Boolean(fieldErrors.state)}>
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDIA_STATES.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {fieldErrors.state ? (
+                <p className="text-xs text-destructive">{fieldErrors.state}</p>
+              ) : null}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                value={DEFAULT_COUNTRY_LABEL}
+                disabled
+                readOnly
+              />
+              <p className="text-xs text-muted-foreground">
+                Deliveries are currently limited to India.
+              </p>
+            </div>
+
             <label className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={Boolean(form.isDefault)}

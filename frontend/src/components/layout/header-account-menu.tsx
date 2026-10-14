@@ -26,8 +26,12 @@ import { getUserDisplayName } from "@/features/auth/auth-user";
 import { authService } from "@/features/auth/auth.service";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAuth } from "@/hooks/useAuth";
+import { showSuccess } from "@/lib/toast";
+import { clearGuestCart } from "@/lib/guest-cart-storage";
+import { clearGuestWishlist } from "@/lib/guest-wishlist-storage";
 import { clearCredentials } from "@/store/slices/authSlice";
 import { clearCart } from "@/store/slices/cartSlice";
+import { clearWishlist } from "@/store/slices/wishlistSlice";
 import { clearWishlist } from "@/store/slices/wishlistSlice";
 
 export function HeaderAccountMenu() {
@@ -53,7 +57,10 @@ export function HeaderAccountMenu() {
       dispatch(clearCredentials());
       dispatch(clearCart());
       dispatch(clearWishlist());
+      clearGuestCart();
+      clearGuestWishlist();
       setMobileOpen(false);
+      showSuccess("Logged out successfully.", { id: "auth.logout.success" });
       if (!result.serverRevoked) {
         // Client session is cleared; surface a non-blocking notice via query for the home page.
         router.push("/?logout=partial");

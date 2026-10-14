@@ -1,8 +1,6 @@
 import { z } from 'zod';
-import {
-  DOCTOR_CONSULTANCY_TYPES,
-  normalizeDoctorName,
-} from './doctors.constants';
+import { INDIA_STATES } from '@/lib/india-states';
+import { normalizeDoctorName } from './doctors.constants';
 
 const siteCodeSchema = z
   .enum(['IN', 'COM', 'in', 'com'])
@@ -28,7 +26,8 @@ export const doctorProfileBodySchema = z.object({
   specialization: z.string().trim().min(1, 'Specialization is required').max(160),
   about: z.string().trim().min(1, 'About is required').max(2000),
   experienceYears: z.coerce.number().int().min(0).max(80),
-  consultancyType: z.enum(DOCTOR_CONSULTANCY_TYPES),
+  state: z.enum(INDIA_STATES, { message: 'Select a valid Indian state' }),
+  city: z.string().trim().min(1, 'City is required').max(120),
   photoUrl: photoUrlSchema,
   photoPublicId: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
@@ -87,18 +86,6 @@ export function normalizeDoctorProfileInput(raw: unknown): unknown {
             ? photo.publicId.trim()
             : (payload.photoPublicId ?? '');
 
-  const consultancyRaw =
-    typeof payload.consultancyType === 'string'
-      ? payload.consultancyType.trim().toUpperCase().replace(/[\s-]+/g, '_')
-      : payload.consultancyType;
-
-  const consultancyType =
-    consultancyRaw === 'BY_APPOINTMENT' || consultancyRaw === 'APPOINTMENT'
-      ? 'BY_APPOINTMENT'
-      : consultancyRaw === 'ONLINE'
-        ? 'ONLINE'
-        : payload.consultancyType;
-
   return {
     ...payload,
     name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
@@ -107,9 +94,10 @@ export function normalizeDoctorProfileInput(raw: unknown): unknown {
         ? payload.specialization.trim()
         : payload.specialization,
     about: typeof payload.about === 'string' ? payload.about.trim() : payload.about,
+    state: typeof payload.state === 'string' ? payload.state.trim() : payload.state,
+    city: typeof payload.city === 'string' ? payload.city.trim() : payload.city,
     photoUrl,
     photoPublicId,
-    consultancyType,
     active: payload.active ?? true,
     order:
       payload.order === '' || payload.order === undefined || payload.order === null

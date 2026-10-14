@@ -8,6 +8,7 @@ import { productRoutes } from '@/features/products/product.routes';
 import { productPublicRoutes } from '@/features/products/product.public.routes';
 import { categoryPublicRoutes } from '@/features/categories/category.public.routes';
 import { cartRoutes } from '@/features/cart/cart.routes';
+import { guestCheckoutRoutes } from '@/features/checkout/guest-checkout.routes';
 import { wishlistRoutes } from '@/features/wishlist/wishlist.routes';
 import { orderRoutes } from '@/features/orders/order.routes';
 import { paymentRoutes } from '@/features/payments/payment.routes';
@@ -33,6 +34,7 @@ import { heroBannerPublicRoutes } from '@/features/hero-banner/hero-banner.publi
 import { blogPublicRoutes } from '@/features/blog/blog.public.routes';
 import { doctorProfilesPublicRoutes } from '@/features/doctors/doctor-profiles.public.routes';
 import { doctorPagePublicRoutes } from '@/features/doctors/doctor-page.public.routes';
+import { doctorAppointmentsPublicRoutes } from '@/features/doctor-appointments/doctor-appointments.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
@@ -48,6 +50,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/users', userRoutes);
   v1.use('/products', productRoutes);
   v1.use('/cart', cartRoutes);
+  v1.use('/checkout/guest', guestCheckoutRoutes);
   v1.use('/wishlist', wishlistRoutes);
   v1.use('/orders', orderRoutes);
   v1.use('/payments', paymentRoutes);
@@ -76,6 +79,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/blogs', blogPublicRoutes);
   v1.use('/sites/:siteCode/doctors', doctorProfilesPublicRoutes);
   v1.use('/sites/:siteCode/doctor-page', doctorPagePublicRoutes);
+  v1.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsPublicRoutes);
   v1.use('/sites/:siteCode/categories', categoryPublicRoutes);
   v1.use('/sites/:siteCode/products', productPublicRoutes);
 

@@ -45,6 +45,10 @@ export class GoogleAuthService {
       const identity = await this.verifyGoogleCredential(credential);
       const user = await this.resolveCustomer(identity);
       await this.repository.updateLastLogin(user.id);
+      const { linkGuestOrdersByVerifiedEmail } = await import(
+        '@/features/orders/guest-order-linking.service'
+      );
+      await linkGuestOrdersByVerifiedEmail(user.id, user.email);
       logger.info(
         { event: 'auth.google.success', context: 'AUTH', userId: user.id },
         'Google sign-in succeeded',

@@ -72,6 +72,7 @@ export class ProductRepository {
       where: { isApproved: true },
       select: { rating: true },
     },
+    coupon: { include: { coupon: true } },
   };
 
   async listActivePublicCards(siteId: string, options: { limit: number }) {

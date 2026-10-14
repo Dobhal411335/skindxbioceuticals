@@ -5,20 +5,23 @@ import Link from "next/link";
 import { useState } from "react";
 import { Eye, Minus, Plus } from "lucide-react";
 
+import {
+  ProductDiscountBadge,
+  ProductPriceDisplay,
+} from "@/components/catalog/product-price-display";
 import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
-import { rupeesToPaise } from "@/features/products/product-selection";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { useAppSelector } from "@/hooks/useAppSelector";
-import { showError, showSuccess } from "@/lib/toast";
-import { cn, formatInr } from "@/lib/utils";
 import {
-  addCartItem,
-  removeCartItem,
-  updateCartItemQuantity,
-} from "@/store/slices/cartSlice";
+  applyProductCoupon,
+  buildCartPricingFields,
+  discountPercentForBadge,
+} from "@/features/products/product-pricing";
+import { useCartActions } from "@/hooks/useCartActions";
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { showError } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import type { CatalogViewMode, PublicProductCard } from "@/types/product";
 
 type CatalogProductCardProps = {
@@ -30,27 +33,22 @@ function cartLineId(productId: string, variantId?: string | null) {
   return `${productId}:${variantId ?? "default"}`;
 }
 
-function discountPercent(
-  price: number,
-  compareAtPrice: number | null | undefined,
-): number | null {
-  if (compareAtPrice == null || compareAtPrice <= price || price <= 0) {
-    return null;
-  }
-  return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
-}
-
 export function CatalogProductCard({
   product,
   viewMode,
 }: CatalogProductCardProps) {
-  const dispatch = useAppDispatch();
   const { openCart } = useCartUi();
+  const { add: addToCartAction, setQuantity, remove } = useCartActions();
   const [quickOpen, setQuickOpen] = useState(false);
 
   const lineId = cartLineId(product.id, product.defaultVariantId);
   const cartItem = useAppSelector((state) =>
-    state.cart.items.find((item) => item.id === lineId),
+    state.cart.items.find(
+      (item) =>
+        item.id === lineId ||
+        (item.productId === product.id &&
+          item.variantId === product.defaultVariantId),
+    ),
   );
   const cartQty = cartItem?.quantity ?? 0;
 
@@ -59,69 +57,55 @@ export function CatalogProductCard({
     product.imageUrl || "https://placehold.co/600x600/png?text=SkinDx";
   const canAdd =
     Boolean(product.defaultVariantId) && product.quantity > 0;
-  const compareAt = product.compareAtPrice ?? null;
-  const discount = discountPercent(product.price, compareAt);
+  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const discount = discountPercentForBadge(priced);
   const isList = viewMode === "list";
 
-  function addToCart() {
+  async function addToCart() {
     if (!product.defaultVariantId || product.quantity <= 0) {
       showError("This product is out of stock.", {
         id: "catalog.cart.error",
       });
       return;
     }
-    try {
-      dispatch(
-        addCartItem({
-          productId: product.id,
-          variantId: product.defaultVariantId,
-          slug: product.slug,
-          name: product.name,
-          image: product.imageUrl ?? "",
-          alt: product.name,
-          unitPriceInPaise: rupeesToPaise(product.price),
-          originalUnitPriceInPaise:
-            compareAt != null && compareAt > product.price
-              ? rupeesToPaise(compareAt)
-              : undefined,
-          quantity: 1,
-        }),
-      );
-      showSuccess("Added to cart.", { id: "catalog.cart" });
-      openCart();
-    } catch {
-      showError("Could not add to cart. Please try again.", {
-        id: "catalog.cart.error",
-      });
-    }
+    const pricing = buildCartPricingFields(
+      product.price,
+      product.coupon ?? null,
+    );
+    const ok = await addToCartAction({
+      productId: product.id,
+      variantId: product.defaultVariantId,
+      slug: product.slug,
+      name: product.name,
+      image: product.imageUrl ?? "",
+      alt: product.name,
+      unitPriceInPaise: pricing.unitPriceInPaise,
+      originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
+      discountCode: pricing.discountCode,
+      discountInPaise: pricing.discountInPaise,
+      quantity: 1,
+    });
+    if (ok) openCart();
   }
 
-  function setQuantity(next: number) {
+  function onSetQuantity(next: number) {
     if (!cartItem) return;
     if (next <= 0) {
-      dispatch(removeCartItem(lineId));
+      void remove(cartItem.id);
       return;
     }
     const capped = Math.min(next, Math.max(product.quantity, 1));
-    dispatch(updateCartItemQuantity({ id: lineId, quantity: capped }));
+    void setQuantity(cartItem.id, capped);
   }
 
   const priceBlock = (
-    <div className="flex flex-wrap items-baseline gap-2">
-      <span
-        className={cn(
-          "text-lg font-bold",
-          discount ? "text-primary" : "text-foreground",
-        )}
-      >
-        {formatInr(product.price)}
-      </span>
-      {discount && compareAt != null ? (
-        <span className="text-sm text-muted-foreground line-through">
-          {formatInr(compareAt)}
-        </span>
-      ) : null}
-    </div>
+    <ProductPriceDisplay
+      price={product.price}
+      coupon={product.coupon}
+      priced={priced}
+      showBadge={false}
+      size="lg"
+    />
   );
 
   const cartControls =
@@ -133,7 +117,7 @@ export function CatalogProductCard({
           variant="ghost"
           className="size-9 rounded-full"
           aria-label="Decrease quantity"
-          onClick={() => setQuantity(cartQty - 1)}
+          onClick={() => onSetQuantity(cartQty - 1)}
         >
           <Minus className="size-3.5" />
         </Button>
@@ -147,7 +131,7 @@ export function CatalogProductCard({
           className="size-9 rounded-full"
           aria-label="Increase quantity"
           disabled={cartQty >= product.quantity}
-          onClick={() => setQuantity(cartQty + 1)}
+          onClick={() => onSetQuantity(cartQty + 1)}
         >
           <Plus className="size-3.5" />
         </Button>
@@ -157,7 +141,7 @@ export function CatalogProductCard({
         type="button"
         className="w-full rounded-full font-semibold"
         disabled={!canAdd}
-        onClick={addToCart}
+        onClick={() => void addToCart()}
       >
         {canAdd ? "Add To Cart" : "Out of stock"}
       </Button>
@@ -187,10 +171,11 @@ export function CatalogProductCard({
         />
       </Link>
 
-      {discount ? (
-        <span className="absolute top-2 left-2 rounded-md bg-primary px-1.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
-          -{discount}%
-        </span>
+      {discount != null ? (
+        <ProductDiscountBadge
+          percent={discount}
+          className="absolute top-2 left-2 z-10"
+        />
       ) : null}
 
       <Button

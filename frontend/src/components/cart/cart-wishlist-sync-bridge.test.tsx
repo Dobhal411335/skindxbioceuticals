@@ -10,19 +10,29 @@ import {
   CartWishlistSyncBridge,
 } from "@/components/cart/cart-wishlist-sync-bridge";
 import authReducer, { setCredentials } from "@/store/slices/authSlice";
+import cartReducer from "@/store/slices/cartSlice";
 import wishlistReducer from "@/store/slices/wishlistSlice";
 import {
   GUEST_WISHLIST_STORAGE_KEY,
   writeGuestWishlist,
 } from "@/lib/guest-wishlist-storage";
 
-const getMock = jest.fn();
-const syncMock = jest.fn();
+const getWishlistMock = jest.fn();
+const syncWishlistMock = jest.fn();
+const getCartMock = jest.fn();
+const syncCartMock = jest.fn();
 
 jest.mock("@/features/wishlist/wishlist.service", () => ({
   wishlistService: {
-    get: (...args: unknown[]) => getMock(...args),
-    sync: (...args: unknown[]) => syncMock(...args),
+    get: (...args: unknown[]) => getWishlistMock(...args),
+    sync: (...args: unknown[]) => syncWishlistMock(...args),
+  },
+}));
+
+jest.mock("@/features/cart/cart.service", () => ({
+  cartService: {
+    get: (...args: unknown[]) => getCartMock(...args),
+    sync: (...args: unknown[]) => syncCartMock(...args),
   },
 }));
 
@@ -38,6 +48,7 @@ function makeStore() {
     reducer: {
       auth: authReducer,
       wishlist: wishlistReducer,
+      cart: cartReducer,
     },
   });
 }
@@ -45,8 +56,11 @@ function makeStore() {
 describe("CartWishlistSyncBridge", () => {
   beforeEach(() => {
     window.localStorage.clear();
-    getMock.mockReset();
-    syncMock.mockReset();
+    getWishlistMock.mockReset();
+    syncWishlistMock.mockReset();
+    getCartMock.mockReset();
+    syncCartMock.mockReset();
+    getCartMock.mockResolvedValue({ id: "cart-1", items: [] });
     __resetWishlistSyncBridgeForTests();
   });
 
@@ -76,7 +90,7 @@ describe("CartWishlistSyncBridge", () => {
 
   it("syncs guest bag on auth, applies server state, and clears localStorage", async () => {
     writeGuestWishlist([{ productId: PRODUCT_ID, productSlug: "serum" }]);
-    syncMock.mockResolvedValue({
+    syncWishlistMock.mockResolvedValue({
       wishlist: {
         id: "w1",
         items: [
@@ -126,7 +140,8 @@ describe("CartWishlistSyncBridge", () => {
     );
 
     await waitFor(() => {
-      expect(syncMock).toHaveBeenCalled();
+      expect(syncWishlistMock).toHaveBeenCalled();
+      expect(getCartMock).toHaveBeenCalled();
       expect(store.getState().wishlist.items[0]?.id).toBe("server-1");
       expect(window.localStorage.getItem(GUEST_WISHLIST_STORAGE_KEY)).toBeNull();
     });
@@ -134,7 +149,7 @@ describe("CartWishlistSyncBridge", () => {
 
   it("keeps guest localStorage when sync fails", async () => {
     writeGuestWishlist([{ productId: PRODUCT_ID }]);
-    syncMock.mockRejectedValue(new Error("network"));
+    syncWishlistMock.mockRejectedValue(new Error("network"));
 
     const store = makeStore();
     store.dispatch(
@@ -161,7 +176,7 @@ describe("CartWishlistSyncBridge", () => {
     );
 
     await waitFor(() => {
-      expect(syncMock).toHaveBeenCalled();
+      expect(syncWishlistMock).toHaveBeenCalled();
       expect(window.localStorage.getItem(GUEST_WISHLIST_STORAGE_KEY)).not.toBeNull();
     });
   });

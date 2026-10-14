@@ -5,16 +5,23 @@ import Link from "next/link";
 import { useState } from "react";
 import { Eye, Heart } from "lucide-react";
 
+import {
+  ProductDiscountBadge,
+  ProductPriceDisplay,
+} from "@/components/catalog/product-price-display";
 import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
-import { rupeesToPaise } from "@/features/products/product-selection";
+import {
+  applyProductCoupon,
+  buildCartPricingFields,
+  discountPercentForBadge,
+} from "@/features/products/product-pricing";
+import { useCartActions } from "@/hooks/useCartActions";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { showError, showSuccess } from "@/lib/toast";
-import { cn, formatInr } from "@/lib/utils";
-import { addCartItem } from "@/store/slices/cartSlice";
+import { showError } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import type { PublicProductCard } from "@/types/product";
 
 type StorefrontProductCardProps = {
@@ -26,8 +33,8 @@ export function StorefrontProductCard({
   product,
   className,
 }: StorefrontProductCardProps) {
-  const dispatch = useAppDispatch();
   const { openCart } = useCartUi();
+  const { add: addToCartAction } = useCartActions();
   const {
     toggle: toggleWishlist,
     isInWishlist,
@@ -42,32 +49,32 @@ export function StorefrontProductCard({
   const inWishlist = isInWishlist(product.id);
   const canAdd =
     Boolean(product.defaultVariantId) && product.quantity > 0;
+  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const discountPercent = discountPercentForBadge(priced);
 
-  function addToCart() {
+  async function addToCart() {
     if (!product.defaultVariantId || product.quantity <= 0) {
       showError("This product is out of stock.", { id: "rail.cart.error" });
       return;
     }
-    try {
-      dispatch(
-        addCartItem({
-          productId: product.id,
-          variantId: product.defaultVariantId,
-          slug: product.slug,
-          name: product.name,
-          image: product.imageUrl ?? "",
-          alt: product.name,
-          unitPriceInPaise: rupeesToPaise(product.price),
-          quantity: 1,
-        }),
-      );
-      showSuccess("Added to cart.", { id: "rail.cart" });
-      openCart();
-    } catch {
-      showError("Could not add to cart. Please try again.", {
-        id: "rail.cart.error",
-      });
-    }
+    const pricing = buildCartPricingFields(
+      product.price,
+      product.coupon ?? null,
+    );
+    const ok = await addToCartAction({
+      productId: product.id,
+      variantId: product.defaultVariantId,
+      slug: product.slug,
+      name: product.name,
+      image: product.imageUrl ?? "",
+      alt: product.name,
+      unitPriceInPaise: pricing.unitPriceInPaise,
+      originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
+      discountCode: pricing.discountCode,
+      discountInPaise: pricing.discountInPaise,
+      quantity: 1,
+    });
+    if (ok) openCart();
   }
 
   async function onWishlist() {
@@ -83,6 +90,7 @@ export function StorefrontProductCard({
         price: String(product.price),
         currency: "INR",
         available: product.quantity > 0,
+        coupon: product.coupon ?? null,
       });
     } finally {
       setWishlistPending(false);
@@ -110,6 +118,13 @@ export function StorefrontProductCard({
               sizes="(max-width: 768px) 70vw, 25vw"
             />
           </Link>
+
+          {discountPercent != null ? (
+            <ProductDiscountBadge
+              percent={discountPercent}
+              className="absolute top-2 left-2 z-10"
+            />
+          ) : null}
 
           <div className="absolute top-2.5 right-2.5 flex flex-col gap-2">
             <Button
@@ -164,9 +179,13 @@ export function StorefrontProductCard({
             reviewCount={product.reviewCount}
             className="text-foreground"
           />
-          <p className="text-lg font-bold text-primary">
-            {formatInr(product.price)}
-          </p>
+          <ProductPriceDisplay
+            price={product.price}
+            coupon={product.coupon}
+            priced={priced}
+            showBadge={false}
+            size="lg"
+          />
 
           <Button
             type="button"
@@ -177,7 +196,7 @@ export function StorefrontProductCard({
                 : "",
             )}
             disabled={!canAdd}
-            onClick={addToCart}
+            onClick={() => void addToCart()}
           >
             {canAdd ? "Add To Cart" : "Out of stock"}
           </Button>

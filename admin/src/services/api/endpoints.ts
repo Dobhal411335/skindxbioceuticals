@@ -89,6 +89,10 @@ export const endpoints = {
     doctor: (siteCode: string, doctorId: string) =>
       `/admin/sites/${siteCode}/doctors/${doctorId}`,
     doctorPage: (siteCode: string) => `/admin/sites/${siteCode}/doctor-page`,
+    doctorAppointments: (siteCode: string) =>
+      `/admin/sites/${siteCode}/doctor-appointments`,
+    doctorAppointment: (siteCode: string, appointmentId: string) =>
+      `/admin/sites/${siteCode}/doctor-appointments/${appointmentId}`,
   },
   media: {
     uploadImage: "/media/images",

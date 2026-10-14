@@ -16,6 +16,7 @@ export type CustomerOrderItem = {
   variantName: string;
   sku: string;
   unitPrice: string;
+  originalUnitPrice: string | null;
   quantity: number;
   lineTotal: string;
 };

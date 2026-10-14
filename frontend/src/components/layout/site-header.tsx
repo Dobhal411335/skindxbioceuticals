@@ -166,7 +166,7 @@ export function SiteHeader() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <div className="ml-auto flex items-center gap-0.5">
+        <div className="ml-auto flex items-center gap-2">
           <HeaderSearchButton />
           <HeaderAccountMenu />
           <HeaderWishlistButton />

@@ -8,14 +8,11 @@ import { Plus } from "lucide-react";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  primaryImageUrl,
-  rupeesToPaise,
-} from "@/features/products/product-selection";
-import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { showError, showSuccess } from "@/lib/toast";
+import { buildCartPricingFields } from "@/features/products/product-pricing";
+import { primaryImageUrl } from "@/features/products/product-selection";
+import { useCartActions } from "@/hooks/useCartActions";
+import { showError, showInfo, showSuccess } from "@/lib/toast";
 import { formatInr } from "@/lib/utils";
-import { addCartItem } from "@/store/slices/cartSlice";
 import type { PublicProductDetail, PublicRelatedProduct } from "@/types/product";
 
 type FrequentlyBoughtProps = {
@@ -42,7 +39,7 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
     [product, related, currentPrice],
   );
 
-  const dispatch = useAppDispatch();
+  const { add: addToCartAction } = useCartActions();
   const { openCart } = useCartUi();
   const [selected, setSelected] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(bundle.map((item) => [item.id, true])),
@@ -55,115 +52,99 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
 
   const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
 
-  function addAll() {
-    try {
-      selectedItems.forEach((item) => {
-        if (item.isCurrent) {
-          const variant = product.variants[0];
-          if (!variant || variant.quantity <= 0) return;
-          dispatch(
-            addCartItem({
-              productId: product.id,
-              variantId: variant.id,
-              slug: product.slug,
-              name: product.name,
-              image: primaryImageUrl(product),
-              alt: product.name,
-              unitPriceInPaise: rupeesToPaise(variant.price),
-              quantity: 1,
-            }),
-          );
-          return;
-        }
+  async function addAll() {
+    const current = selectedItems.find((item) => item.isCurrent);
+    const relatedSelected = selectedItems.filter((item) => !item.isCurrent);
+    let added = 0;
 
-        dispatch(
-          addCartItem({
-            productId: item.id,
-            variantId: "related",
-            slug: item.slug,
-            name: item.name,
-            image: item.imageUrl ?? "",
-            alt: item.name,
-            unitPriceInPaise: rupeesToPaise(item.price),
-            quantity: 1,
-          }),
-        );
+    if (current) {
+      const variant = product.variants.find((row) => row.isActive) ?? product.variants[0];
+      if (variant && variant.quantity > 0) {
+        const pricing = buildCartPricingFields(variant.price, product.coupon);
+        const ok = await addToCartAction({
+          productId: product.id,
+          variantId: variant.id,
+          slug: product.slug,
+          name: product.name,
+          image: primaryImageUrl(product),
+          alt: product.name,
+          unitPriceInPaise: pricing.unitPriceInPaise,
+          originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
+          discountCode: pricing.discountCode,
+          discountInPaise: pricing.discountInPaise,
+          quantity: 1,
+        });
+        if (ok) added += 1;
+      }
+    }
+
+    if (relatedSelected.length > 0) {
+      showInfo("Open related products to choose options before adding them.", {
+        id: "cart.add.bundle.related",
       });
+    }
+
+    if (added > 0) {
       showSuccess("Added selected items to cart.", { id: "cart.add.bundle" });
       openCart();
-    } catch {
-      showError("Could not add items to cart.", { id: "cart.add.error" });
+      return;
     }
+
+    showError("Could not add items to cart.", { id: "cart.add.error" });
   }
 
   if (related.length === 0) return null;
 
   return (
-    <section className="border-y border-border bg-surface/60">
-      <div className="container-page section-space">
-        <h2 className="font-display text-2xl font-semibold tracking-tight">
-          Frequently bought together
-        </h2>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_16rem]">
-          <div className="flex flex-wrap items-center gap-3">
-            {bundle.map((item, index) => (
-              <div key={item.id} className="flex items-center gap-3">
-                {index > 0 ? (
-                  <Plus className="size-4 text-muted-foreground" aria-hidden />
-                ) : null}
-                <article className="w-52 rounded-lg border border-border bg-background p-4 sm:w-56">
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <Checkbox
-                      checked={selected[item.id] ?? false}
-                      onCheckedChange={(checked) =>
-                        setSelected((current) => ({
-                          ...current,
-                          [item.id]: checked === true,
-                        }))
-                      }
-                      aria-label={`Include ${item.name}`}
-                    />
-                  </div>
-                  <Link href={`/products/${item.slug}`} className="block">
-                    <div className="relative mb-3 aspect-square overflow-hidden rounded-md bg-surface">
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          sizes="224px"
-                        />
-                      ) : null}
-                    </div>
-                    <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
-                    <p className="mt-1 text-sm font-semibold">
-                      {formatInr(item.price)}
-                    </p>
-                  </Link>
-                  {!item.isCurrent ? (
-                    <Button asChild variant="outline" size="sm" className="mt-2 w-full">
-                      <Link href={`/products/${item.slug}`}>Choose options</Link>
-                    </Button>
-                  ) : null}
-                </article>
+    <section className="space-y-4 rounded-xl border border-border p-4 sm:p-6">
+      <h2 className="font-display text-xl font-semibold">Frequently bought together</h2>
+      <div className="flex flex-wrap items-center gap-3">
+        {bundle.map((item, index) => (
+          <div key={item.id} className="flex items-center gap-3">
+            {index > 0 ? <Plus className="size-4 text-muted-foreground" /> : null}
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-2">
+              <Checkbox
+                checked={Boolean(selected[item.id])}
+                onCheckedChange={(checked) =>
+                  setSelected((prev) => ({
+                    ...prev,
+                    [item.id]: checked === true,
+                  }))
+                }
+              />
+              <div className="relative size-14 overflow-hidden rounded-md bg-surface">
+                <Image
+                  src={item.imageUrl || "https://placehold.co/112x112/png?text=SkinDx"}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                />
               </div>
-            ))}
+              <div className="min-w-0">
+                {item.isCurrent ? (
+                  <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
+                ) : (
+                  <Link
+                    href={`/products/${item.slug}`}
+                    className="line-clamp-2 text-sm font-medium hover:underline"
+                  >
+                    {item.name}
+                  </Link>
+                )}
+                <p className="text-xs text-muted-foreground">{formatInr(item.price)}</p>
+              </div>
+            </label>
           </div>
-
-          <div className="rounded-lg border border-border bg-background p-5">
-            <p className="text-sm text-muted-foreground">Price total</p>
-            <p className="mt-1 text-lg font-semibold">{formatInr(total)}</p>
-            <Button
-              type="button"
-              className="mt-4 w-full"
-              disabled={selectedItems.length === 0}
-              onClick={addAll}
-            >
-              Add all to cart
-            </Button>
-          </div>
-        </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-sm">
+          Total: <span className="font-semibold">{formatInr(total)}</span>
+        </p>
+        <Button type="button" onClick={() => void addAll()}>
+          Add selected to cart
+        </Button>
       </div>
     </section>
   );

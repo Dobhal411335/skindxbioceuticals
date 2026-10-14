@@ -8,7 +8,10 @@ import {
 } from "@/lib/guest-wishlist-storage";
 import { showError, showSuccess } from "@/lib/toast";
 import { wishlistService } from "@/features/wishlist/wishlist.service";
-import type { WishlistItem } from "@/features/wishlist/wishlist.types";
+import type {
+  WishlistItem,
+  WishlistItemCoupon,
+} from "@/features/wishlist/wishlist.types";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
@@ -29,6 +32,7 @@ export type WishlistAddInput = {
   price?: string | null;
   currency?: string | null;
   available?: boolean;
+  coupon?: WishlistItemCoupon | null;
 };
 
 function guestItemId(productId: string): string {
@@ -45,6 +49,7 @@ function toGuestBagItem(item: WishlistItem): GuestWishlistItem {
     price: item.price,
     currency: item.currency,
     available: item.available,
+    coupon: item.coupon ?? null,
   };
 }
 
@@ -99,6 +104,7 @@ export function useWishlistActions() {
         currency: input.currency ?? null,
         available: input.available ?? true,
         createdAt: new Date().toISOString(),
+        coupon: input.coupon ?? null,
       };
       const nextItems = [
         next,

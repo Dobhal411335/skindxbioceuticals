@@ -20,10 +20,6 @@ export const DOCTOR_SERVICE_ICON_KEYS = [
 
 export type DoctorServiceIconKey = (typeof DOCTOR_SERVICE_ICON_KEYS)[number];
 
-export const DOCTOR_CONSULTANCY_TYPES = ['BY_APPOINTMENT', 'ONLINE'] as const;
-
-export type DoctorConsultancyTypeValue = (typeof DOCTOR_CONSULTANCY_TYPES)[number];
-
 /**
  * Store display names as `Dr. {name}`, normalizing if the user already typed a Dr. prefix.
  */

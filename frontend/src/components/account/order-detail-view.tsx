@@ -77,28 +77,81 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <ul className="space-y-2">
-              {order.items.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex justify-between gap-3 border-b border-border py-2 text-sm last:border-0"
-                >
-                  <div>
-                    <p className="font-medium">{item.productName}</p>
-                    <p className="text-muted-foreground">
-                      {item.variantName} · Qty {item.quantity}
-                    </p>
-                  </div>
-                  <p className="font-medium">
-                    {formatMoney(item.lineTotal, order.currency)}
-                  </p>
-                </li>
-              ))}
+              {order.items.map((item) => {
+                const unit = Number(item.unitPrice);
+                const original =
+                  item.originalUnitPrice != null
+                    ? Number(item.originalUnitPrice)
+                    : null;
+                const hasDiscount =
+                  original != null && original > unit && original > 0;
+                const discountPercent = hasDiscount
+                  ? Math.round(((original - unit) / original) * 100)
+                  : 0;
+
+                return (
+                  <li
+                    key={item.id}
+                    className="flex justify-between gap-3 border-b border-border py-2 text-sm last:border-0"
+                  >
+                    <div>
+                      <p className="font-medium">{item.productName}</p>
+                      <p className="text-muted-foreground">
+                        {item.variantName} · Qty {item.quantity}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {formatMoney(item.unitPrice, order.currency)} each
+                        {hasDiscount ? (
+                          <span className="ml-2 line-through">
+                            {formatMoney(item.originalUnitPrice!, order.currency)}
+                          </span>
+                        ) : null}
+                      </p>
+                      {hasDiscount ? (
+                        <p className="text-[11px] font-medium text-green-700">
+                          {discountPercent}% off
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">
+                        {formatMoney(item.lineTotal, order.currency)}
+                      </p>
+                      {hasDiscount ? (
+                        <p className="text-xs text-muted-foreground line-through">
+                          {formatMoney(
+                            String((original! * item.quantity).toFixed(2)),
+                            order.currency,
+                          )}
+                        </p>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>{formatMoney(order.subtotal, order.currency)}</span>
               </div>
+              {Number(order.discountTotal) > 0 ? (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>
+                    Discount
+                    {Number(order.subtotal) > 0
+                      ? ` (${Math.round(
+                          (Number(order.discountTotal) /
+                            Number(order.subtotal)) *
+                            100,
+                        )}%)`
+                      : ""}
+                  </span>
+                  <span>
+                    -{formatMoney(order.discountTotal, order.currency)}
+                  </span>
+                </div>
+              ) : null}
               <div className="flex justify-between font-semibold">
                 <span>Total</span>
                 <span>{formatMoney(order.grandTotal, order.currency)}</span>

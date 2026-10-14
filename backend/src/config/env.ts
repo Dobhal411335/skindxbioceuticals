@@ -78,6 +78,15 @@ const envSchema = z.object({
   OTP_EXPIRES_IN_MINUTES: z.coerce.number().int().positive().default(10),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().nonnegative().default(60),
+
+  // Razorpay (server-only secrets — never expose KEY_SECRET / WEBHOOK_SECRET to the browser)
+  RAZORPAY_KEY_ID: z.string().min(1, 'RAZORPAY_KEY_ID is required'),
+  RAZORPAY_KEY_SECRET: z.string().min(1, 'RAZORPAY_KEY_SECRET is required'),
+  RAZORPAY_WEBHOOK_SECRET: z.string().min(1, 'RAZORPAY_WEBHOOK_SECRET is required'),
+
+  // Guest checkout session lifetime (hours)
+  GUEST_CHECKOUT_SESSION_HOURS: z.coerce.number().int().positive().default(24),
+  GUEST_CONFIRMATION_TOKEN_MINUTES: z.coerce.number().int().positive().default(60),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -95,7 +95,29 @@ type CardSource = {
   }>;
   editorialReviews: Array<{ rating: number }>;
   reviews: Array<{ rating: number }>;
+  coupon?: {
+    couponId: string;
+    coupon: {
+      code: string;
+      type: string;
+      value: { toString(): string } | number;
+      isActive?: boolean;
+    };
+  } | null;
 };
+
+function toPublicCardCouponDto(
+  coupon: CardSource['coupon'],
+): PublicProductCardDto['coupon'] {
+  if (!coupon) return null;
+  if (coupon.coupon.isActive === false) return null;
+  return {
+    couponId: coupon.couponId,
+    code: coupon.coupon.code,
+    type: coupon.coupon.type,
+    value: decimalToNumber(coupon.coupon.value) ?? 0,
+  };
+}
 
 export function toPublicProductCardDto(
   row: CardSource,
@@ -124,6 +146,7 @@ export function toPublicProductCardDto(
     isFeatured: row.isFeatured,
     isRecent: row.isRecent,
     isBestSeller: row.isBestSeller,
+    coupon: toPublicCardCouponDto(row.coupon),
   };
 }
 
