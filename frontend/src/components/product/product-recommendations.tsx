@@ -23,7 +23,7 @@ function toLandingProduct(product: PublicRelatedProduct): LandingProduct {
   return {
     id: product.id,
     name: product.name,
-    category: "Related",
+    category: product.categoryName ?? "Related",
     pricePaise: rupeesToPaise(product.price),
     image: product.imageUrl ?? "",
     alt: product.name,

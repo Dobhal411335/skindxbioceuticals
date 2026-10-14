@@ -33,6 +33,11 @@ function createEmptyFormValues(): GalleryItemFormValues {
     mediaType: "image",
     mediaUrl: "",
     mediaPublicId: "",
+    clickUrl: "",
+    heading: "",
+    description: "",
+    buttonLabel: "",
+    buttonUrl: "",
     active: true,
   };
 }
@@ -42,6 +47,11 @@ function dtoToFormValues(item: GalleryItemDto): GalleryItemFormValues {
     mediaType: item.mediaType,
     mediaUrl: item.mediaUrl,
     mediaPublicId: item.mediaPublicId,
+    clickUrl: item.clickUrl ?? "",
+    heading: item.heading ?? "",
+    description: item.description ?? "",
+    buttonLabel: item.buttonLabel ?? "",
+    buttonUrl: item.buttonUrl ?? "",
     active: item.active,
   };
 }
@@ -188,7 +198,7 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
     <AdminAppShell
       siteCode={siteCode}
       title="Gallery Section"
-      description="Manage lookbook images and short videos for the storefront."
+      description="Manage lookbook images, videos, and text cards for the storefront."
     >
       <div className="mx-auto w-full max-w-[1400px] space-y-6">
         <div>
@@ -196,8 +206,8 @@ export function GalleryPage({ siteCode }: { siteCode: SiteCode }) {
             Gallery Section
           </h2>
           <p className="text-sm text-muted-foreground">
-            Site-scoped media for {siteCode === "IN" ? ".in" : ".com"} homepage
-            lookbook.
+            Site-scoped media and text cards for{" "}
+            {siteCode === "IN" ? ".in" : ".com"} homepage lookbook.
           </p>
         </div>
 

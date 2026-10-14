@@ -57,14 +57,20 @@ function InsightCardItem({ card }: { card: StorefrontInsightCard }) {
           {formatInsightDate(card.publishedAt)}
         </p>
 
-        {!open ? (
-          <>
-            {card.excerpt ? (
-              <p className="mt-1 line-clamp-3 text-justify text-sm leading-relaxed text-muted-foreground">
-                {card.excerpt}
-              </p>
-            ) : null}
-            {fullHtml ? (
+        <div className="relative">
+          {/* Collapsed/truncated view: show fullHtml in 3 lines */}
+          <div
+            className={`transition-[max-height,opacity] duration-400 ease-in-out overflow-hidden ${
+              open ? "max-h-0 opacity-0 pointer-events-none" : "max-h-40 opacity-100"
+            }`}
+            style={{ willChange: "max-height, opacity" }}
+            aria-hidden={open}
+          >
+            <div
+              dangerouslySetInnerHTML={{ __html: fullHtml }}
+              className="rich-html text-justify mt-1 line-clamp-3 text-justify text-sm text-muted-foreground"
+            />
+            {fullHtml && (
               <button
                 type="button"
                 onClick={() => setOpen(true)}
@@ -73,23 +79,35 @@ function InsightCardItem({ card }: { card: StorefrontInsightCard }) {
                 Read more{" "}
                 <ArrowRight className="inline-block size-4" aria-hidden />
               </button>
-            ) : null}
-          </>
-        ) : (
-          <div className="mt-1 space-y-3">
-            <div
-              className="rich-html text-justify text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]"
-              dangerouslySetInnerHTML={{ __html: fullHtml }}
-            />
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="text-left text-xs font-bold tracking-[0.12em] text-foreground uppercase underline decoration-primary decoration-1 underline-offset-4 transition-colors hover:text-primary"
-            >
-              Show less
-            </button>
+            )}
           </div>
-        )}
+
+          {/* Expanded/full content view */}
+          <div
+            className={`transition-[max-height,opacity] duration-400 ease-in-out overflow-hidden ${
+              open ? "max-h-[28rem] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+            }`}
+            style={{ willChange: "max-height, opacity" }}
+            aria-hidden={!open}
+          >
+            <div className="mt-1 space-y-3">
+              <div
+                className="rich-html text-justify text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]"
+                dangerouslySetInnerHTML={{ __html: fullHtml }}
+              />
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="text-left text-xs font-bold tracking-[0.12em] text-foreground uppercase underline decoration-primary decoration-1 underline-offset-4 transition-colors hover:text-primary"
+              >
+                Show less
+              </button>
+            </div>
+          </div>
+        </div>
+ 
+
+  
       </div>
     </article>
   );
@@ -104,7 +122,7 @@ export function InsightsGrid({ insights }: InsightsGridProps) {
   if (cards.length === 0)  return null;
 
   return (
-    <section className="container-page section-space" aria-labelledby="insights-heading">
+    <section className="container-page section-space " aria-labelledby="insights-heading">
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
           <InsightCardItem key={card.id} card={card} />

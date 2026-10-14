@@ -192,8 +192,15 @@ export type PublicRelatedProductDto = {
   id: string;
   slug: string;
   name: string;
+  categoryName: string | null;
   price: number;
   imageUrl: string | null;
+  averageRating: number;
+  reviewCount: number;
+  defaultVariantId: string | null;
+  quantity: number;
+  coupon: PublicProductCouponDto;
+  tax: { cgst: number; sgst: number } | null;
 };
 
 export type PublicProductDetailDto = {

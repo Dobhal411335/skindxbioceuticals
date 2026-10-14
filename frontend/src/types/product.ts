@@ -75,19 +75,26 @@ export type PublicProductHighlight = {
   sortOrder: number;
 };
 
-export type PublicRelatedProduct = {
-  id: string;
-  slug: string;
-  name: string;
-  price: number;
-  imageUrl: string | null;
-};
-
 export type PublicProductCoupon = {
   couponId: string;
   code: string;
   type: string;
   value: number;
+};
+
+export type PublicRelatedProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  categoryName: string | null;
+  price: number;
+  imageUrl: string | null;
+  averageRating: number;
+  reviewCount: number;
+  defaultVariantId: string | null;
+  quantity: number;
+  coupon?: PublicProductCoupon | null;
+  tax?: { cgst: number; sgst: number } | null;
 };
 
 /** Compact storefront card for landing rail / highlight columns / shop PLP. */

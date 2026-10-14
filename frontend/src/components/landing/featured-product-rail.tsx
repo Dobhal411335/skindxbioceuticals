@@ -39,7 +39,7 @@ export function FeaturedProductRail({ products }: FeaturedProductRailProps) {
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
             {productRail.body}
           </p>
-          <Button asChild className="mt-8 rounded-full px-6" size="lg">
+          <Button asChild className="mt-8 rounded-full p-6" size="lg">
             <Link href={productRail.cta.href}>{productRail.cta.label}</Link>
           </Button>
         </div>

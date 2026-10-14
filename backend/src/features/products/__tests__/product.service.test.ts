@@ -250,10 +250,21 @@ describe('ProductService', () => {
         id: '66666666-6666-6666-6666-666666666666',
         slug: 'hydra-cream',
         name: 'Hydra Cream',
+        subcategory: { name: 'Serums' },
         galleryImages: [
           { imageUrl: 'https://res.cloudinary.com/demo/image/upload/b.jpg' },
         ],
-        variants: [{ price: { toString: () => '999' } }],
+        variants: [
+          {
+            id: 'rv1',
+            price: { toString: () => '999' },
+            inventory: { quantityOnHand: 5 },
+          },
+        ],
+        editorialReviews: [{ rating: 4 }],
+        reviews: [],
+        coupon: null,
+        tax: null,
       },
     ]);
 
@@ -271,6 +282,13 @@ describe('ProductService', () => {
     expect(result.infoSections[0]?.title).toBe('Ingredients');
     expect(result.relatedProducts).toHaveLength(1);
     expect(result.relatedProducts[0]?.slug).toBe('hydra-cream');
+    expect(result.relatedProducts[0]?.categoryName).toBe('Serums');
+    expect(result.relatedProducts[0]?.averageRating).toBe(4);
+    expect(result.relatedProducts[0]?.reviewCount).toBe(1);
+    expect(result.relatedProducts[0]?.defaultVariantId).toBe('rv1');
+    expect(result.relatedProducts[0]?.quantity).toBe(5);
+    expect(result.relatedProducts[0]?.coupon).toBeNull();
+    expect(result.relatedProducts[0]?.tax).toBeNull();
     expect(result.averageRating).toBe(4);
     expect(result.reviewCount).toBe(2);
   });
@@ -474,9 +492,26 @@ describe('ProductService', () => {
               isBestSeller: false,
               subcategory: { name: 'Care' },
               galleryImages: [],
-              variants: [],
+              variants: [
+                {
+                  id: 'v1',
+                  price: 150,
+                  compareAtPrice: null,
+                  inventory: { quantityOnHand: 10 },
+                },
+              ],
               editorialReviews: [],
               reviews: [],
+              coupon: {
+                couponId: 'c1',
+                coupon: {
+                  code: 'SAVE50',
+                  type: 'FIXED_AMOUNT',
+                  value: 50,
+                  isActive: true,
+                },
+              },
+              tax: null,
             },
           ];
         }
@@ -490,6 +525,12 @@ describe('ProductService', () => {
     });
 
     expect(result.featured).toHaveLength(1);
+    expect(result.featured[0]?.coupon).toEqual({
+      couponId: 'c1',
+      code: 'SAVE50',
+      type: 'FIXED_AMOUNT',
+      value: 50,
+    });
     expect(result.recent).toEqual([]);
     expect(result.bestSellers).toEqual([]);
   });

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
@@ -42,12 +42,12 @@ function HighlightCard({ item }: { item: StorefrontHighlightItem }) {
           />
         </div>
         <div className="flex flex-1 flex-col gap-3 p-4">
-          <h3 className="font-display text-sm leading-snug font-semibold group-hover:text-primary">
+          <h3 className="font-display text-md leading-snug font-semibold group-hover:text-primary">
             {item.title}
           </h3>
           <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium underline-offset-4 group-hover:underline">
             {item.buttonLabel}
-            <ArrowRight className="size-3.5" aria-hidden />
+            <ArrowUpRight className="h-4 w-4" aria-hidden />
           </span>
         </div>
       </Link>
@@ -108,10 +108,10 @@ function TextSlidesBlock({ slides }: { slides: StorefrontTextSlide[] }) {
         <CarouselContent>
           {slides.map((slide) => (
             <CarouselItem key={slide.id}>
-              <h2 className="font-display text-xl font-semibold tracking-tight">
+              <h2 className="font-display text-2xl line-clamp-2 text-ellipsis font-semibold tracking-tight">
                 {slide.title}
               </h2>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
                 {slide.body}
               </p>
             </CarouselItem>

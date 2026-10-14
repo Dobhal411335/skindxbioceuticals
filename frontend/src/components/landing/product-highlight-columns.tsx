@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, Minus, Plus } from "lucide-react";
+import { Eye, Minus, Plus, ArrowUpRight, ShoppingCart } from "lucide-react";
 
 import {
   ProductDiscountBadge,
@@ -41,12 +41,15 @@ function ProductListItem({
   product: PublicProductCard;
   onQuickView: (product: PublicProductCard) => void;
 }) {
+  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const discountPercent = discountPercentForBadge(priced);
+
   return (
     <li>
       <div
         className={cn(
-          "group relative flex gap-4 rounded-xl border border-transparent p-3",
-          "transition-all duration-300 hover:scale-[1.02] hover:border-border hover:bg-muted/60",
+          "group relative flex gap-4 rounded-xl border border-border p-3",
+          "transition-all duration-300 hover:scale-[1.02] hover:border-primary hover:bg-muted/60",
         )}
       >
         <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-surface sm:size-24">
@@ -61,15 +64,21 @@ function ProductListItem({
               }
               alt={product.name}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className="object-contain transition-transform duration-300 group-hover:scale-105"
               sizes="96px"
             />
           </Link>
+          {discountPercent != null ? (
+            <ProductDiscountBadge
+              percent={discountPercent}
+              className="absolute top-1 left-1 z-20"
+            />
+          ) : null}
           <button
             type="button"
             aria-label={`Quick look ${product.name}`}
             className={cn(
-              "absolute inset-0 flex items-center justify-center bg-foreground/35 text-background",
+              "absolute inset-0 z-10 flex items-center justify-center bg-foreground/35 text-background",
               "opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-visible:opacity-100",
             )}
             onClick={() => onQuickView(product)}
@@ -80,18 +89,27 @@ function ProductListItem({
           </button>
         </div>
         <div className="min-w-0 flex-1 self-center">
-          <p className="text-[11px] font-semibold tracking-wider text-primary uppercase">
+          <p className="text-[11px] line-clamp-1 font-semibold tracking-[0.08em] text-primary uppercase">
             {product.categoryName ?? "Product"}
           </p>
           <Link
             href={`/products/${product.slug}`}
-            className="mt-0.5 line-clamp-2 text-sm font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-[15px]"
+            className="mt-0.5 line-clamp-2 text-sm leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-[14px]"
           >
             {product.name}
           </Link>
+          <div className="mt-1">
+            <ProductRatingStars
+              averageRating={product.averageRating}
+              reviewCount={product.reviewCount}
+              className="text-foreground"
+            />
+          </div>
           <ProductPriceDisplay
             price={product.price}
             coupon={product.coupon}
+            priced={priced}
+            showBadge={false}
             size="sm"
             className="mt-1"
           />
@@ -160,7 +178,7 @@ function FeaturedHighlightCard({
           }
           alt={product.name}
           fill
-          className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+          className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
           sizes="(max-width: 1024px) 100vw, 33vw"
         />
         {discountPercent != null ? (
@@ -174,31 +192,32 @@ function FeaturedHighlightCard({
           size="icon"
           variant="secondary"
           className={cn(
-            "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 size-11 rounded-full border-2 border-foreground/40 bg-card text-foreground shadow-sm",
+            "absolute left-1/2 top-1/2 z-10 size-11 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-foreground/40 bg-card text-foreground shadow-sm",
             "opacity-0 transition-opacity duration-200",
             "group-hover:opacity-100 focus-visible:opacity-100",
-            "group-hover:bg-gray-200 hover:bg-gray-200",
-            "hover:border-foreground hover:bg-foreground hover:text-background"
+            "hover:border-foreground hover:bg-foreground hover:text-background",
           )}
           aria-label={`Quick look ${product.name}`}
           onClick={() => onQuickView(product)}
         >
           <Eye className="size-5" />
         </Button>
-   
-
       </div>
 
-      <p className="text-center text-[11px] font-semibold tracking-wider text-primary uppercase">
+      <p className="text-center text-[11px] font-semibold line-clamp-2 ellipsis tracking-[0.08em] text-primary uppercase">
         {product.categoryName ?? "Product"}
       </p>
-      <h3 className="mt-1 text-center font-display text-xl font-semibold">
+      <Link
+        href={`/products/${product.slug}`}
+        className="mt-1 line-clamp-2 ellipsis text-center font-display text-xl font-semibold transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
         {product.name}
-      </h3>
+      </Link>
       <div className="mt-2 flex justify-center">
         <ProductRatingStars
           averageRating={product.averageRating}
           reviewCount={product.reviewCount}
+          className="text-foreground"
         />
       </div>
       <ProductPriceDisplay
@@ -211,7 +230,7 @@ function FeaturedHighlightCard({
       />
 
       <div className="mt-4 flex items-center gap-2">
-        <div className="inline-flex items-center rounded-full border border-border">
+        <div className="inline-flex items-center rounded border border-black">
           <button
             type="button"
             className="px-2.5 py-1.5"
@@ -221,7 +240,7 @@ function FeaturedHighlightCard({
           >
             <Minus className="size-3.5" />
           </button>
-          <span className="min-w-7 border-x border-border px-2 py-1.5 text-center text-sm">
+          <span className="min-w-7 border-x border-black px-2 py-1.5 text-center text-sm">
             {canAdd ? quantity : 0}
           </span>
           <button
@@ -236,16 +255,17 @@ function FeaturedHighlightCard({
         </div>
         <Button
           type="button"
-          className="flex-1"
+          className="flex-1 px-4 py-5 rounded-full"
           disabled={!canAdd}
           onClick={() => void addToCart()}
         >
+          <ShoppingCart className="size-4" />
           Add to cart
         </Button>
       </div>
 
-      <Button asChild variant="outline" className="mt-3 w-full" size="lg">
-        <Link href={`/products/${product.slug}`}>View details</Link>
+      <Button asChild variant="outline" className="mt-3 w-full border border-black hover:border-primary hover:bg-primary hover:text-white transition-all duration-300 hover:shadow-md" size="lg">
+        <Link href={`/products/${product.slug}`}>View details <ArrowUpRight className="size-4" /></Link>
       </Button>
     </div>
   );
@@ -273,6 +293,9 @@ export function ProductHighlightColumns({
     return null;
   }
 
+  if(recent.length === 0) return null;
+
+
   return (
     <section
       className="container-page section-space"
@@ -283,12 +306,8 @@ export function ProductHighlightColumns({
       </h2>
       <div className="grid gap-8 lg:grid-cols-3">
         <div>
-          <h3 className="mb-4 text-lg font-semibold">Recent products</h3>
-          {recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No recent products flagged yet.
-            </p>
-          ) : (
+          <h3 className="mb-4 text-xl font-semibold">Recent products</h3>
+          
             <ul className="space-y-2">
               {recent.map((product) => (
                 <ProductListItem
@@ -298,13 +317,12 @@ export function ProductHighlightColumns({
                 />
               ))}
             </ul>
-          )}
         </div>
 
         <Card className="border-2 border-primary/40 shadow-none">
-          <CardContent className="flex h-full flex-col p-5">
+          <CardContent className="flex h-full flex-col p-3">
             <div className="mb-4 text-center">
-              <h3 className="text-lg font-semibold">Featured products</h3>
+              <h3 className="text-xl font-semibold">Featured products</h3>
               <p className="mt-1 text-xs text-muted-foreground">
                 Trusted essentials curated for everyday care.
               </p>
@@ -335,7 +353,7 @@ export function ProductHighlightColumns({
         </Card>
 
         <div>
-          <h3 className="mb-4 text-lg font-semibold">Our bestsellers</h3>
+          <h3 className="mb-4 text-xl font-semibold">Our bestsellers</h3>
           {bestSellers.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No bestsellers flagged yet.

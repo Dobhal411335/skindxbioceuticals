@@ -71,16 +71,6 @@ export function SocialPostsSection({ posts }: SocialPostsSectionProps) {
   if (posts.length === 0) {
     return null;
   }
-
-  const itemBasis =
-    posts.length <= 3
-      ? posts.length === 1
-        ? "basis-full"
-        : posts.length === 2
-          ? "basis-1/2"
-          : "basis-1/3"
-      : "basis-[45%] sm:basis-1/3 md:basis-1/5";
-
   return (
     <section
       className="w-full overflow-hidden py-10 md:py-12"
@@ -88,7 +78,7 @@ export function SocialPostsSection({ posts }: SocialPostsSectionProps) {
     >
       <div className="container-page">
         <Carousel
-          opts={{ align: "start", loop: posts.length > 3 }}
+          opts={{ align: "start", loop: posts.length > 4 }}
           setApi={setApi}
           className="w-full"
         >
@@ -97,8 +87,18 @@ export function SocialPostsSection({ posts }: SocialPostsSectionProps) {
               const isFacebook = post.postType === "facebook";
               const Icon = isFacebook ? FacebookIcon : InstagramIcon;
 
+              // Refined column width: always use column sizing for cards (never full width for 3)
+              let cardBasis = "basis-full";
+              if (posts.length === 2) {
+                cardBasis = "basis-1/4";
+              } else if (posts.length === 3) {
+                cardBasis = "basis-1/4";
+              } else if (posts.length > 3) {
+                cardBasis = "basis-1/4";
+              }
+
               return (
-                <CarouselItem key={post.id} className={`pl-4 ${itemBasis}`}>
+                <CarouselItem key={post.id} className={`pl-4 ${cardBasis}`}>
                   <a
                     href={post.postUrl}
                     target="_blank"
@@ -127,7 +127,7 @@ export function SocialPostsSection({ posts }: SocialPostsSectionProps) {
               );
             })}
           </CarouselContent>
-          {posts.length > 1 ? (
+          {posts.length > 4 ? (
             <>
               <CarouselPrevious className="left-1 hidden border-border bg-background sm:flex" />
               <CarouselNext className="right-1 hidden border-border bg-background sm:flex" />

@@ -22,9 +22,9 @@ export function InsightsQaSection({ items = [] }: InsightsQaSectionProps) {
         <div>
           <h2
             id="insights-qa-heading"
-            className="font-display text-3xl font-semibold tracking-tight text-secondary sm:text-4xl"
+            className="font-body text-4xl font-semibold tracking-tight text-secondary"
           >
-            {insightsQaIntro.title}
+            #{insightsQaIntro.title}
           </h2>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
             {insightsQaIntro.subtitle}

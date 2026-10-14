@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, Heart } from "lucide-react";
+import { Eye, Heart, ShoppingCart } from "lucide-react";
 
 import {
   ProductDiscountBadge,
@@ -103,7 +103,7 @@ export function StorefrontProductCard({
     <>
       <article
         className={cn(
-          "group flex h-full flex-col rounded-xl border border-border bg-card p-3 shadow-none transition-[border-color,box-shadow] duration-300 hover:border-primary hover:shadow-sm",
+          "group flex h-full flex-col rounded-xl border border-border bg-card p-2 shadow-none transition-[border-color,box-shadow] duration-300 hover:border-primary hover:shadow-sm",
           className,
         )}
       >
@@ -116,7 +116,7 @@ export function StorefrontProductCard({
               src={imageUrl}
               alt={product.name}
               fill
-              className="object-contain p-3 transition-transform duration-300 group-hover:scale-[1.04]"
+              className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
               sizes="(max-width: 768px) 70vw, 25vw"
             />
           </Link>
@@ -172,7 +172,7 @@ export function StorefrontProductCard({
           </p>
           <Link
             href={href}
-            className="line-clamp-3 text-base leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="line-clamp-2 ellipsis text-base leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {product.name}
           </Link>
@@ -192,15 +192,22 @@ export function StorefrontProductCard({
           <Button
             type="button"
             className={cn(
-              "mt-auto w-full rounded-full font-semibold transition-colors duration-300",
+              "mt-auto w-full rounded-full font-semibold transition-colors duration-300 p-5",
               canAdd
-                ? "bg-primary text-primary-foreground group-hover:bg-foreground group-hover:text-background"
+                ? "bg-primary text-primary-foreground"
                 : "",
             )}
             disabled={!canAdd}
             onClick={() => void addToCart()}
           >
-            {canAdd ? "Add To Cart" : "Out of stock"}
+            {canAdd ? (
+              <>
+                <ShoppingCart className="size-4" />
+                <span>Add To Cart</span>
+              </>
+            ) : (
+              "Out of stock"
+            )}
           </Button>
         </div>
       </article>

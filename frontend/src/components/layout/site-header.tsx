@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { useEffect, useState } from "react";
+
 import { HeaderAccountMenu } from "@/components/layout/header-account-menu";
 import { HeaderCartButton } from "@/components/layout/header-cart-button";
 import { HeaderSearchButton } from "@/components/layout/header-search-button";
@@ -16,6 +18,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 import { useNavbarSections } from "@/providers/navbar-sections-provider";
 import { useTopAdvertisement } from "@/providers/top-advertisement-provider";
@@ -56,6 +59,18 @@ export function SiteHeader() {
   const company = useCompanyBasicInfo();
   const navLinks = useNavbarSections();
   const { utilityItems } = useTopAdvertisement();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const brandName = company.companyName?.trim() || "SkinDx";
   const logoUrl =
     company.mainLogo?.url?.trim() || company.mobileUiLogo?.url?.trim() || "";
@@ -63,7 +78,7 @@ export function SiteHeader() {
   const rightUtility = utilityItems[1];
 
   return (
-    <header className="relative z-50 border-b border-border bg-background">
+    <>
       {(leftUtility || rightUtility) && (
         <div className="hidden border-b border-border bg-surface md:block">
           <div className="container-page flex items-center justify-between py-2 text-xs text-muted-foreground">
@@ -82,6 +97,13 @@ export function SiteHeader() {
           </div>
         </div>
       )}
+
+      <header
+        className={cn(
+          "sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur transition-shadow duration-200 supports-backdrop-filter:bg-background/80",
+          isScrolled && "shadow-sm",
+        )}
+      >
 
       <div className="container-page flex items-center gap-3 py-3 lg:gap-6 lg:py-4">
         <MobileNav />
@@ -174,5 +196,6 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
-  );
+  </>
+);
 }

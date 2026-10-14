@@ -41,7 +41,7 @@ export function CartTaxSummary({
 
   // `contents` lets rows participate in the parent summary stack.
   if (className === "contents") {
-    return <div className="contents">{rows}</div>;
+    return <div className="contents ">{rows}</div>;
   }
 
   return <div className={className}>{rows}</div>;

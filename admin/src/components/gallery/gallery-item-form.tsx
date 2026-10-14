@@ -11,7 +11,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { showError, showSuccess } from "@/lib/toast";
 import type { GalleryItemFormErrors } from "@/schemas/gallery-schema";
 import {
@@ -34,7 +44,7 @@ type GalleryItemFormProps = {
   onReset: () => void;
 };
 
-function detectMediaType(file: File): GalleryMediaType | null {
+function detectMediaType(file: File): Exclude<GalleryMediaType, "text_card"> | null {
   if (file.type.startsWith("image/")) return "image";
   if (file.type.startsWith("video/")) return "video";
   const name = file.name.toLowerCase();
@@ -56,6 +66,7 @@ export function GalleryItemForm({
 }: GalleryItemFormProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
+  const isTextCard = values.mediaType === "text_card";
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -79,6 +90,10 @@ export function GalleryItemForm({
         mediaType,
         mediaUrl: uploaded.url,
         mediaPublicId: uploaded.publicId,
+        heading: "",
+        description: "",
+        buttonLabel: "",
+        buttonUrl: "",
       });
       showSuccess(mediaType === "video" ? "Video uploaded" : "Image uploaded");
     } catch (error) {
@@ -101,85 +116,211 @@ export function GalleryItemForm({
           </CardTitle>
         </div>
         <CardDescription>
-          Replace media or toggle visibility for an existing item. Use the upload
-          panel above to add many files at once.
+          Update media click URLs, text cards, or visibility. Use the upload panel
+          above to add many files at once.
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         <form onSubmit={onSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold">
-                Media preview <span className="text-destructive">*</span>
-              </Label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.jpg,.jpeg,.png,.webp,.mp4,.webm,.mov"
-                className="hidden"
-                onChange={(event) => void handleUpload(event)}
-              />
-              <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-muted/40">
-                {values.mediaUrl ? (
-                  values.mediaType === "video" ? (
-                    <video
-                      src={values.mediaUrl}
-                      className="h-full w-full object-cover"
-                      muted
-                      playsInline
-                      controls
-                    />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary previews
-                    <img
-                      src={values.mediaUrl}
-                      alt="Gallery preview"
-                      className="h-full w-full object-cover"
-                    />
-                  )
-                ) : (
-                  <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
-                    <Video className="size-8 opacity-40" />
-                    <p className="text-sm">No media selected</p>
-                  </div>
-                )}
+            {isTextCard ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="gallery-heading">
+                    Heading <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="gallery-heading"
+                    value={values.heading}
+                    disabled={!isEditing}
+                    onChange={(event) =>
+                      onChange({ ...values, heading: event.target.value })
+                    }
+                    placeholder="HÄLLAN"
+                  />
+                  {errors.heading ? (
+                    <p className="text-sm text-destructive">{errors.heading}</p>
+                  ) : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gallery-description">
+                    Sub description <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="gallery-description"
+                    value={values.description}
+                    disabled={!isEditing}
+                    rows={4}
+                    onChange={(event) =>
+                      onChange({ ...values, description: event.target.value })
+                    }
+                    placeholder="Short supporting line for the lookbook card"
+                  />
+                  {errors.description ? (
+                    <p className="text-sm text-destructive">{errors.description}</p>
+                  ) : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gallery-button-label">
+                    Button label <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="gallery-button-label"
+                    value={values.buttonLabel}
+                    disabled={!isEditing}
+                    onChange={(event) =>
+                      onChange({ ...values, buttonLabel: event.target.value })
+                    }
+                    placeholder="Shop now"
+                  />
+                  {errors.buttonLabel ? (
+                    <p className="text-sm text-destructive">{errors.buttonLabel}</p>
+                  ) : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gallery-button-url">
+                    Button click URL <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="gallery-button-url"
+                    value={values.buttonUrl}
+                    disabled={!isEditing}
+                    onChange={(event) =>
+                      onChange({ ...values, buttonUrl: event.target.value })
+                    }
+                    placeholder="/shop or https://…"
+                  />
+                  {errors.buttonUrl ? (
+                    <p className="text-sm text-destructive">{errors.buttonUrl}</p>
+                  ) : null}
+                </div>
               </div>
-              {errors.mediaUrl ? (
-                <p className="text-sm text-destructive">{errors.mediaUrl}</p>
-              ) : null}
-              <Button
-                type="button"
-                variant="outline"
-                disabled={uploading || !isEditing}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <UploadCloud className="size-4" />
-                )}
-                Replace media
-              </Button>
-            </div>
+            ) : (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">
+                  Media preview <span className="text-destructive">*</span>
+                </Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.jpg,.jpeg,.png,.webp,.mp4,.webm,.mov"
+                  className="hidden"
+                  onChange={(event) => void handleUpload(event)}
+                />
+                <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-muted/40">
+                  {values.mediaUrl ? (
+                    values.mediaType === "video" ? (
+                      <video
+                        src={values.mediaUrl}
+                        className="h-full w-full object-cover"
+                        muted
+                        playsInline
+                        controls
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary previews
+                      <img
+                        src={values.mediaUrl}
+                        alt="Gallery preview"
+                        className="h-full w-full object-cover"
+                      />
+                    )
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                      <Video className="size-8 opacity-40" />
+                      <p className="text-sm">No media selected</p>
+                    </div>
+                  )}
+                </div>
+                {errors.mediaUrl ? (
+                  <p className="text-sm text-destructive">{errors.mediaUrl}</p>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={uploading || !isEditing}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <UploadCloud className="size-4" />
+                  )}
+                  Replace media
+                </Button>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="gallery-active">Active</Label>
-                <select
-                  id="gallery-active"
-                  className="flex h-9 w-full max-w-xs rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50"
-                  value={values.active ? "true" : "false"}
-                  disabled={!isEditing}
-                  onChange={(event) =>
+                <Label>Item type</Label>
+                <Select
+                  value={values.mediaType}
+                  disabled={!isEditing || !isTextCard}
+                  onValueChange={(value) => {
+                    if (value !== "text_card") return;
                     onChange({
                       ...values,
-                      active: event.target.value === "true",
-                    })
-                  }
+                      mediaType: "text_card",
+                      mediaUrl: "",
+                      mediaPublicId: "",
+                      clickUrl: "",
+                    });
+                  }}
                 >
-                  <option value="true">Visible</option>
-                  <option value="false">Hidden</option>
-                </select>
+                  <SelectTrigger className="max-w-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="image">Image</SelectItem>
+                    <SelectItem value="video">Video</SelectItem>
+                    <SelectItem value="text_card">Text card</SelectItem>
+                  </SelectContent>
+                </Select>
+                {!isTextCard ? (
+                  <p className="text-xs text-muted-foreground">
+                    Media type follows the uploaded file. Create text cards from the
+                    panel above.
+                  </p>
+                ) : null}
+              </div>
+
+              {!isTextCard ? (
+                <div className="space-y-2">
+                  <Label htmlFor="gallery-click-url">Button click URL</Label>
+                  <Input
+                    id="gallery-click-url"
+                    value={values.clickUrl}
+                    disabled={!isEditing}
+                    onChange={(event) =>
+                      onChange({ ...values, clickUrl: event.target.value })
+                    }
+                    placeholder="/product/… or https://… (optional)"
+                  />
+                  {errors.clickUrl ? (
+                    <p className="text-sm text-destructive">{errors.clickUrl}</p>
+                  ) : null}
+                  <p className="text-xs text-muted-foreground">
+                    Optional. When set, the storefront wraps this media in a link.
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 max-w-xs">
+                <div className="space-y-0.5">
+                  <Label htmlFor="gallery-active">Active</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {values.active ? "Visible on storefront" : "Hidden"}
+                  </p>
+                </div>
+                <Switch
+                  id="gallery-active"
+                  checked={values.active}
+                  disabled={!isEditing}
+                  onCheckedChange={(checked) =>
+                    onChange({ ...values, active: checked })
+                  }
+                />
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">

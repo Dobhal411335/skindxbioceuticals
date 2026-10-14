@@ -32,13 +32,13 @@ function ReviewCard({ review }: { review: CustomerReview }) {
   return (
     <figure className="flex h-full flex-col items-center gap-5 px-2 text-center">
       <div
-        className="flex justify-center gap-0.5 text-foreground"
+        className="flex justify-center gap-0.5 text-yellow-500"
         aria-label={`${rating} out of 5 stars`}
       >
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
-            className={`size-4 ${i < rating ? "fill-current" : "text-muted-foreground/30"}`}
+            className={`size-5 ${i < rating ? "fill-current" : "text-black"}`}
             aria-hidden
           />
         ))}

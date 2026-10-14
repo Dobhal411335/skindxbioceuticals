@@ -22,6 +22,11 @@ function makeRecord(overrides: Partial<GalleryItemRecord> = {}): GalleryItemReco
     mediaType: 'IMAGE',
     mediaUrl: 'https://cdn.example.com/gallery.jpg',
     mediaPublicId: 'gallery/item',
+    clickUrl: '',
+    heading: '',
+    description: '',
+    buttonLabel: '',
+    buttonUrl: '',
     active: true,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -55,7 +60,7 @@ describe('GalleryService', () => {
   });
 
   it('lists and maps items for a site', async () => {
-    const record = makeRecord();
+    const record = makeRecord({ clickUrl: '/shop' });
     listBySiteId.mockResolvedValue([record]);
 
     const result = await service.listForSite(record.siteId, 'IN', 'image');
@@ -63,6 +68,7 @@ describe('GalleryService', () => {
     expect(listBySiteId).toHaveBeenCalledWith(record.siteId, 'IMAGE');
     expect(result).toEqual([toGalleryItemDto(record, 'IN')]);
     expect(result[0]?.mediaType).toBe('image');
+    expect(result[0]?.clickUrl).toBe('/shop');
   });
 
   it('prefers https Cloudinary URLs when mapping', async () => {
@@ -89,6 +95,11 @@ describe('GalleryService', () => {
         mediaType: 'image',
         mediaUrl: record.mediaUrl,
         mediaPublicId: record.mediaPublicId,
+        clickUrl: '/products',
+        heading: '',
+        description: '',
+        buttonLabel: '',
+        buttonUrl: '',
         active: true,
       },
     });
@@ -97,9 +108,56 @@ describe('GalleryService', () => {
       mediaType: 'IMAGE',
       mediaUrl: record.mediaUrl,
       mediaPublicId: record.mediaPublicId,
+      clickUrl: '/products',
+      heading: '',
+      description: '',
+      buttonLabel: '',
+      buttonUrl: '',
       active: true,
     });
     expect(dto.id).toBe(record.id);
+  });
+
+  it('creates text cards without media fields', async () => {
+    const record = makeRecord({
+      mediaType: 'TEXT_CARD',
+      mediaUrl: '',
+      mediaPublicId: '',
+      heading: 'HÄLLAN',
+      description: 'Calm textures for daily rituals.',
+      buttonLabel: 'Shop',
+      buttonUrl: '/shop',
+    });
+    create.mockResolvedValue(record);
+
+    await service.createForSite({
+      siteId: record.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      body: {
+        mediaType: 'text_card',
+        mediaUrl: 'https://cdn.example.com/ignored.jpg',
+        mediaPublicId: 'ignored',
+        clickUrl: '/ignored',
+        heading: 'HÄLLAN',
+        description: 'Calm textures for daily rituals.',
+        buttonLabel: 'Shop',
+        buttonUrl: '/shop',
+        active: true,
+      },
+    });
+
+    expect(create).toHaveBeenCalledWith(record.siteId, {
+      mediaType: 'TEXT_CARD',
+      mediaUrl: '',
+      mediaPublicId: '',
+      clickUrl: '',
+      heading: 'HÄLLAN',
+      description: 'Calm textures for daily rituals.',
+      buttonLabel: 'Shop',
+      buttonUrl: '/shop',
+      active: true,
+    });
   });
 
   it('throws NotFoundError when updating a missing item', async () => {
@@ -115,6 +173,11 @@ describe('GalleryService', () => {
           mediaType: 'video',
           mediaUrl: 'https://cdn.example.com/clip.mp4',
           mediaPublicId: 'gallery/clip',
+          clickUrl: '',
+          heading: '',
+          description: '',
+          buttonLabel: '',
+          buttonUrl: '',
           active: true,
         },
       }),
@@ -154,6 +217,30 @@ describe('GalleryService', () => {
     expect(deleteFn).toHaveBeenCalledWith(record.siteId, record.id);
   });
 
+  it('skips Cloudinary delete for text cards', async () => {
+    const record = makeRecord({
+      mediaType: 'TEXT_CARD',
+      mediaUrl: '',
+      mediaPublicId: '',
+      heading: 'Card',
+      description: 'Copy',
+      buttonLabel: 'Go',
+      buttonUrl: '/go',
+    });
+    findByIdForSite.mockResolvedValue(record);
+    deleteFn.mockResolvedValue(true);
+
+    await service.deleteForSite({
+      siteId: record.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      itemId: record.id,
+    });
+
+    expect(deleteStoredCloudinaryAsset).not.toHaveBeenCalled();
+    expect(deleteFn).toHaveBeenCalledWith(record.siteId, record.id);
+  });
+
   it('cleans up the previous Cloudinary asset when media is replaced', async () => {
     const existing = makeRecord({ mediaPublicId: 'gallery/old' });
     const updated = makeRecord({ mediaPublicId: 'gallery/new' });
@@ -170,6 +257,11 @@ describe('GalleryService', () => {
         mediaType: 'image',
         mediaUrl: 'https://cdn.example.com/new.jpg',
         mediaPublicId: 'gallery/new',
+        clickUrl: '',
+        heading: '',
+        description: '',
+        buttonLabel: '',
+        buttonUrl: '',
         active: true,
       },
     });

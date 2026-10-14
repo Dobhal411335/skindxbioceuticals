@@ -70,7 +70,7 @@ export function InsightsQaBlock({
     <div className="max-w-7xl space-y-10">
       {items.map((item) => (
         <div key={item.id} className="space-y-3">
-          <h3 className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+          <h3 className="font-body text-2xl font-semibold tracking-tight text-foreground underline decoration-primary decoration-1 underline-offset-4">
             {item.question}
           </h3>
           <div

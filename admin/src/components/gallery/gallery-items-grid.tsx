@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, Loader2, Pencil, Trash2, Video } from "lucide-react";
+import { ImageIcon, Loader2, Pencil, Trash2, Type, Video } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,28 @@ type GalleryItemsGridProps = {
   onToggleActive: (item: GalleryItemDto) => void;
 };
 
+function TypeBadge({ mediaType }: { mediaType: GalleryItemDto["mediaType"] }) {
+  if (mediaType === "video") {
+    return (
+      <span className="inline-flex items-center gap-1 text-foreground">
+        <Video className="size-3" /> Video
+      </span>
+    );
+  }
+  if (mediaType === "text_card") {
+    return (
+      <span className="inline-flex items-center gap-1 text-foreground">
+        <Type className="size-3" /> Text
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-foreground">
+      <ImageIcon className="size-3" /> Image
+    </span>
+  );
+}
+
 export function GalleryItemsGrid({
   items,
   pendingUploads = [],
@@ -46,7 +68,7 @@ export function GalleryItemsGrid({
           <CardTitle className="text-lg font-semibold">Gallery Items</CardTitle>
         </div>
         <CardDescription>
-          Toggle visibility, replace media, or remove items from the lookbook.
+          Toggle visibility, edit click URLs or text cards, or remove lookbook items.
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
@@ -91,15 +113,7 @@ export function GalleryItemsGrid({
                   </div>
                   <div className="absolute left-2 top-2 flex gap-1">
                     <Badge variant="secondary" className="bg-background/90">
-                      {pending.mediaType === "video" ? (
-                        <span className="inline-flex items-center gap-1 text-foreground">
-                          <Video className="size-3" /> Video
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-foreground">
-                          <ImageIcon className="size-3" /> Image
-                        </span>
-                      )}
+                      <TypeBadge mediaType={pending.mediaType} />
                     </Badge>
                     <Badge variant="secondary" className="bg-amber-50 text-amber-800">
                       Uploading
@@ -121,7 +135,23 @@ export function GalleryItemsGrid({
                 className="group relative overflow-hidden rounded-xl border border-border bg-muted/20"
               >
                 <div className="relative aspect-video overflow-hidden bg-muted/40">
-                  {item.mediaType === "video" ? (
+                  {item.mediaType === "text_card" ? (
+                    <div className="flex h-full flex-col justify-between bg-[#d8dde3] p-4">
+                      <div>
+                        <p className="font-semibold tracking-tight text-foreground">
+                          {item.heading || "Text card"}
+                        </p>
+                        <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                          {item.description}
+                        </p>
+                      </div>
+                      {item.buttonLabel ? (
+                        <p className="mt-3 text-xs font-medium underline underline-offset-2">
+                          {item.buttonLabel}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : item.mediaType === "video" ? (
                     <video
                       src={item.mediaUrl}
                       className="h-full w-full object-cover"
@@ -139,15 +169,7 @@ export function GalleryItemsGrid({
                   )}
                   <div className="absolute left-2 top-2 flex gap-1">
                     <Badge variant="secondary" className="bg-background/90">
-                      {item.mediaType === "video" ? (
-                        <span className="inline-flex items-center gap-1 text-foreground">
-                          <Video className="size-3" /> Video
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-foreground">
-                          <ImageIcon className="size-3" /> Image
-                        </span>
-                      )}
+                      <TypeBadge mediaType={item.mediaType} />
                     </Badge>
                     <Badge
                       variant="secondary"
@@ -163,9 +185,23 @@ export function GalleryItemsGrid({
                 </div>
 
                 <div className="space-y-3 p-3">
-                  <p className="truncate text-sm font-medium">
-                    Item #{index + 1}
-                  </p>
+                  <div>
+                    <p className="truncate text-sm font-medium">
+                      {item.mediaType === "text_card"
+                        ? item.heading || `Item #${index + 1}`
+                        : `Item #${index + 1}`}
+                    </p>
+                    {item.mediaType !== "text_card" && item.clickUrl ? (
+                      <p className="truncate text-xs text-muted-foreground">
+                        Link: {item.clickUrl}
+                      </p>
+                    ) : null}
+                    {item.mediaType === "text_card" && item.buttonUrl ? (
+                      <p className="truncate text-xs text-muted-foreground">
+                        Button: {item.buttonUrl}
+                      </p>
+                    ) : null}
+                  </div>
                   <div className="flex flex-wrap gap-1">
                     <Button
                       type="button"

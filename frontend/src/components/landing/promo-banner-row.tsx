@@ -20,7 +20,7 @@ type PromoBannerRowProps = {
 function PromoCta({ href, label }: { href: string; label: string }) {
   const isExternal = /^https?:\/\//i.test(href);
   const classes =
-    "mt-1 inline-flex w-fit items-center rounded-full bg-background px-5 py-2 text-xs font-semibold tracking-wide text-secondary transition-colors hover:bg-background/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+    "mt-1 inline-flex w-fit items-center rounded-full bg-background px-5 py-3 text-xs font-semibold tracking-wide text-secondary transition-colors hover:bg-background/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   if (isExternal) {
     return (
@@ -65,7 +65,7 @@ function PromoTile({ item }: { item: StorefrontPromoBanner }) {
           </p>
         ) : null}
         {item.heading ? (
-          <h3 className="font-display text-xl leading-snug font-semibold sm:text-2xl lg:text-[1.65rem]">
+          <h3 className="font-display text-xl leading-snug font-semibold sm:text-xl lg:text-[1.65rem]">
             {item.heading}
           </h3>
         ) : null}

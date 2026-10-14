@@ -16,6 +16,7 @@ import {
 import { FALLBACK_ABOUT_US_BANNER } from "@/features/about-us-banner/about-us-banner.defaults";
 import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
 import type { StorefrontAboutCard } from "@/types/about-us-banner";
+import { ArrowUpRight  } from "lucide-react";
 
 type AboutSplitProps = {
   cards?: StorefrontAboutCard[];
@@ -43,8 +44,8 @@ function AboutCardContent({ card }: { card: StorefrontAboutCard }) {
         <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
           {card.body}
         </p>
-        <Button asChild className="mt-8 w-fit rounded-full px-6" size="lg">
-          <Link href={card.cta.href}>{card.cta.label}</Link>
+        <Button asChild className="mt-8 w-fit rounded-full p-6 hover:px-10 hover:bg-primary" size="lg">
+          <Link href={card.cta.href}>{card.cta.label} <ArrowUpRight className="h-4 w-4" /></Link>
         </Button>
       </div>
     </div>

@@ -133,12 +133,12 @@ export function CollectionBannerSection({
         </div>
 
         <div className="lg:pt-4">
-          <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+          <p className="text-md font-semibold tracking-[0.18em] text-muted-foreground uppercase">
             {banner.sectionLabel}
           </p>
           <h2
             id="collection-banner-heading"
-            className="font-display mt-3 max-w-md text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
+            className="mt-3 max-w-md text-4xl font-semibold tracking-tight text-foreground"
           >
             {banner.sectionHeading}
           </h2>
@@ -156,7 +156,7 @@ export function CollectionBannerSection({
                   <li key={item.id} className="relative pl-5">
                     <span
                       className={cn(
-                        "absolute top-1 left-0 w-0.5 rounded-full bg-foreground transition-all duration-300",
+                        "absolute top-1 left-0 w-0.75 rounded-full bg-foreground transition-all duration-300",
                         isActive ? "h-5 opacity-100" : "h-0 opacity-0",
                       )}
                       aria-hidden
@@ -174,7 +174,7 @@ export function CollectionBannerSection({
                     >
                       <span
                         className={cn(
-                          "font-display text-xl tracking-tight sm:text-2xl",
+                          "text-2xl tracking-tight",
                           isActive ? "font-semibold" : "font-normal",
                         )}
                       >
@@ -182,7 +182,7 @@ export function CollectionBannerSection({
                       </span>
                       <span
                         className={cn(
-                          "mt-2 block overflow-hidden text-sm leading-relaxed text-muted-foreground transition-all duration-300",
+                          "mt-2 block overflow-hidden text-sm leading-relaxed line-clamp-2 text-ellipsis text-muted-foreground transition-all duration-300",
                           isActive
                             ? "max-h-40 opacity-100"
                             : "max-h-0 opacity-0",

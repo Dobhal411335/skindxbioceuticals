@@ -34,7 +34,7 @@ export function ProductDiscountBadge({
   return (
     <span
       className={cn(
-        "rounded-md bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold text-white",
+        "rounded border border-primary bg-emerald-600 px-1.5 py-1 text-xs font-semibold text-white",
         className,
       )}
     >
@@ -62,7 +62,7 @@ export function ProductPriceDisplay({
       <span
         className={cn(
           saleSizeClass[size],
-          priced.hasDiscount ? "text-primary" : "text-foreground",
+          priced.hasDiscount ? "text-primary text-lg" : "text-foreground text-base",
         )}
       >
         {formatInr(priced.unitPrice)}

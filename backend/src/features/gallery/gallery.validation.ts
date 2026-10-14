@@ -4,24 +4,93 @@ const siteCodeSchema = z
   .enum(['IN', 'COM', 'in', 'com'])
   .transform((value) => value.toUpperCase() as 'IN' | 'COM');
 
-export const galleryMediaTypeSchema = z.enum(['image', 'video']);
+export const galleryMediaTypeSchema = z.enum(['image', 'video', 'text_card']);
+
+/** Relative paths, hash links, absolute http(s) URLs, or empty. */
+const optionalUrlSchema = z
+  .string()
+  .trim()
+  .max(2000)
+  .refine(
+    (value) => {
+      if (value === '' || value === '#') return true;
+      if (value.startsWith('/') || value.startsWith('#')) return true;
+      try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'URL must be a path, hash link, or absolute http(s) URL' },
+  );
 
 const mediaUrlSchema = z
   .string()
   .trim()
-  .min(1, 'Media URL is required')
   .max(2000)
-  .url('Media URL must be a valid absolute URL')
-  .refine((value) => value.startsWith('https://') || value.startsWith('http://'), {
-    message: 'Media URL must use http or https',
-  });
+  .refine(
+    (value) => {
+      if (value === '') return true;
+      if (!z.string().url().safeParse(value).success) return false;
+      return value.startsWith('https://') || value.startsWith('http://');
+    },
+    { message: 'Media URL must be empty or an absolute http(s) URL' },
+  );
 
-export const galleryItemBodySchema = z.object({
-  mediaType: galleryMediaTypeSchema,
-  mediaUrl: mediaUrlSchema,
-  mediaPublicId: z.string().trim().max(500).default(''),
-  active: z.boolean().default(true),
-});
+export const galleryItemBodySchema = z
+  .object({
+    mediaType: galleryMediaTypeSchema,
+    mediaUrl: mediaUrlSchema.default(''),
+    mediaPublicId: z.string().trim().max(500).default(''),
+    clickUrl: optionalUrlSchema.default(''),
+    heading: z.string().trim().max(300).default(''),
+    description: z.string().trim().max(4000).default(''),
+    buttonLabel: z.string().trim().max(100).default(''),
+    buttonUrl: optionalUrlSchema.default(''),
+    active: z.boolean().default(true),
+  })
+  .superRefine((value, ctx) => {
+    if (value.mediaType === 'image' || value.mediaType === 'video') {
+      if (!value.mediaUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['mediaUrl'],
+          message: 'Media URL is required for image and video items',
+        });
+      }
+      return;
+    }
+
+    if (!value.heading) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['heading'],
+        message: 'Heading is required for text cards',
+      });
+    }
+    if (!value.description) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['description'],
+        message: 'Description is required for text cards',
+      });
+    }
+    if (!value.buttonLabel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['buttonLabel'],
+        message: 'Button label is required for text cards',
+      });
+    }
+    if (!value.buttonUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['buttonUrl'],
+        message: 'Button URL is required for text cards',
+      });
+    }
+  });
 
 export const galleryItemPatchSchema = z.object({
   active: z.boolean(),
@@ -79,14 +148,41 @@ export function normalizeGalleryItemInput(raw: unknown): unknown {
                 : (payload.mediaPublicId ?? '');
 
   const mediaTypeRaw = payload.mediaType ?? payload.type;
-  const mediaType =
-    typeof mediaTypeRaw === 'string' ? mediaTypeRaw.trim().toLowerCase() : mediaTypeRaw;
+  let mediaType: unknown = mediaTypeRaw;
+  if (typeof mediaTypeRaw === 'string') {
+    const normalized = mediaTypeRaw.trim().toLowerCase().replace(/-/g, '_');
+    if (normalized === 'text' || normalized === 'textcard' || normalized === 'text_card') {
+      mediaType = 'text_card';
+    } else {
+      mediaType = normalized;
+    }
+  }
 
   return {
     ...payload,
     mediaType,
-    mediaUrl,
-    mediaPublicId,
+    mediaUrl: mediaUrl ?? '',
+    mediaPublicId: mediaPublicId ?? '',
+    clickUrl:
+      typeof payload.clickUrl === 'string'
+        ? payload.clickUrl.trim()
+        : (payload.clickUrl ?? ''),
+    heading:
+      typeof payload.heading === 'string' ? payload.heading.trim() : (payload.heading ?? ''),
+    description:
+      typeof payload.description === 'string'
+        ? payload.description.trim()
+        : typeof payload.subDescription === 'string'
+          ? payload.subDescription.trim()
+          : (payload.description ?? ''),
+    buttonLabel:
+      typeof payload.buttonLabel === 'string'
+        ? payload.buttonLabel.trim()
+        : (payload.buttonLabel ?? ''),
+    buttonUrl:
+      typeof payload.buttonUrl === 'string'
+        ? payload.buttonUrl.trim()
+        : (payload.buttonUrl ?? ''),
     active: payload.active ?? true,
   };
 }

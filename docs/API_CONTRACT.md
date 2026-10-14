@@ -248,19 +248,24 @@ Unified Instagram + Facebook posts (`postType`: `instagram` | `facebook`) per si
 
 ### Admin gallery (implemented)
 
-Site-scoped lookbook media (`mediaType`: `image` | `video`) for IN and COM.
+Site-scoped lookbook items (`mediaType`: `image` | `video` | `text_card`) for IN and COM.
+
+Shared body fields: `mediaType`, optional `active` (default true).
+
+- **IMAGE / VIDEO**: require `mediaUrl` (prefer HTTPS) + `mediaPublicId`; optional `clickUrl` (path, hash, or absolute http(s) — storefront wraps media). Text fields (`heading`, `description`, `buttonLabel`, `buttonUrl`) are cleared server-side.
+- **TEXT_CARD**: require `heading`, `description`, `buttonLabel`, `buttonUrl` (path/hash/http(s)). Media fields are cleared server-side; no Cloudinary asset.
 
 - `GET /api/v1/admin/sites/:siteCode/gallery` — Bearer admin JWT; `requireSiteAccess`. Optional query `mediaType`. Returns all items for the site (including inactive), newest first by `createdAt`.
-- `POST /api/v1/admin/sites/:siteCode/gallery` — create. Body: `mediaType`, `mediaUrl`, `mediaPublicId`, optional `active`. `siteId` from authenticated site context only. Prefer HTTPS media URLs.
-- `PUT /api/v1/admin/sites/:siteCode/gallery/:itemId` — full update within the site (`mediaType`, `mediaUrl`, `mediaPublicId`, `active`).
+- `POST /api/v1/admin/sites/:siteCode/gallery` — create within authenticated site context.
+- `PUT /api/v1/admin/sites/:siteCode/gallery/:itemId` — full update within the site.
 - `PATCH /api/v1/admin/sites/:siteCode/gallery/:itemId` — partial update of `active` only.
-- `DELETE /api/v1/admin/sites/:siteCode/gallery/:itemId` — delete within the site.
+- `DELETE /api/v1/admin/sites/:siteCode/gallery/:itemId` — delete within the site (Cloudinary cleanup for media types only).
 
 Uploads use existing media APIs with `feature=gallery`: `POST /api/v1/media/images` and `POST /api/v1/media/videos`.
 
 ### Public gallery (storefront)
 
-- `GET /api/v1/sites/:siteCode/gallery` — public read for an active site (no auth). Returns active items only (media fields + `active`), newest first, for the `.in` storefront lookbook masonry.
+- `GET /api/v1/sites/:siteCode/gallery` — public read for an active site (no auth). Returns active items only (media + text-card fields + `active`), newest first, for the `.in` storefront lookbook masonry (≈3 desktop columns, ≤2 items per column).
 
 ### Admin customer reviews (implemented)
 
@@ -530,7 +535,7 @@ Response joins PDP-related data into one payload:
 - Active `variants[]` with mandatory `price` (INR rupees), `quantity` (inventory on hand), optional nullable `sizeLabel` / `colorLabel` (both null = base/default offer), optional `sku` / `profileImage`
 - `videos[]`, `infoSections[]` (title + HTML body), active `editorialReviews[]`, `tags[]`, `highlights[]`
 - Optional `tax` (`cgst`/`sgst`) and linked `coupon` summary for display
-- `relatedProducts[]` — up to 4 other ACTIVE products in the same subcategory (excluding current), each with `id`, `slug`, `name`, `price`, `imageUrl`
+- `relatedProducts[]` — all other ACTIVE products in the same subcategory (current product excluded), each with `id`, `slug`, `name`, `categoryName`, `price`, `imageUrl`, `averageRating`, `reviewCount`, `defaultVariantId`, `quantity`, optional `coupon`, and optional `tax`
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

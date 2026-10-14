@@ -372,21 +372,37 @@ export class ProductService {
       throw new NotFoundError('Product not found');
     }
 
+    // All ACTIVE products in the same subcategory; current product is excluded.
     const relatedRows = await this.repository.listRelatedActive(input.siteId, {
       excludeProductId: record.id,
       subcategoryId: record.subcategoryId,
-      limit: 4,
     });
 
     const relatedProducts: PublicRelatedProductDto[] = relatedRows.map((row) => {
       const primaryImage = row.galleryImages[0];
       const firstVariant = row.variants[0];
+      const relatedStats = averageReviewStats(
+        row.editorialReviews.map((review) => review.rating),
+        row.reviews.map((review) => review.rating),
+      );
       return {
         id: row.id,
         slug: row.slug,
         name: row.name,
+        categoryName: row.subcategory?.name ?? null,
         price: decimalToNumber(firstVariant?.price) ?? 0,
         imageUrl: primaryImage ? preferHttpsUrl(primaryImage.imageUrl) : null,
+        averageRating: relatedStats.averageRating,
+        reviewCount: relatedStats.reviewCount,
+        defaultVariantId: firstVariant?.id ?? null,
+        quantity: firstVariant?.inventory?.quantityOnHand ?? 0,
+        coupon: toPublicCardCouponDto(row.coupon),
+        tax: row.tax
+          ? {
+              cgst: decimalToNumber(row.tax.cgst) ?? 0,
+              sgst: decimalToNumber(row.tax.sgst) ?? 0,
+            }
+          : null,
       };
     });
 

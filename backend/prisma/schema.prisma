@@ -124,6 +124,7 @@ enum SocialPostType {
 enum GalleryMediaType {
   IMAGE
   VIDEO
+  TEXT_CARD
 }
 
 enum EmailOutboxStatus {
@@ -1161,8 +1162,16 @@ model GalleryItem {
   id            String           @id @default(uuid()) @db.Uuid
   siteId        String           @map("site_id") @db.Uuid
   mediaType     GalleryMediaType @map("media_type")
-  mediaUrl      String           @map("media_url")
+  /// Cloudinary URL for IMAGE/VIDEO; empty for TEXT_CARD.
+  mediaUrl      String           @default("") @map("media_url")
   mediaPublicId String           @default("") @map("media_public_id")
+  /// Optional click-through for IMAGE/VIDEO (wrap media in a link).
+  clickUrl      String           @default("") @map("click_url")
+  /// TEXT_CARD fields (empty for media items).
+  heading       String           @default("")
+  description   String           @default("") @db.Text
+  buttonLabel   String           @default("") @map("button_label")
+  buttonUrl     String           @default("") @map("button_url")
   active        Boolean          @default(true)
   createdAt     DateTime         @default(now()) @map("created_at")
   updatedAt     DateTime         @updatedAt @map("updated_at")

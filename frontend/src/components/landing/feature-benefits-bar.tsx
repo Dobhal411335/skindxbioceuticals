@@ -14,15 +14,15 @@ export function FeatureBenefitsBar() {
 
   return (
     <section
-      className="border-y border-border"
+      className="border-y border-black"
       aria-label="Shopping benefits"
     >
-      <div className="container-page grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
+      <div className="container-page grid gap-8 py-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
         {benefits.map((item, index) => {
           const titleNode = item.href ? (
             <Link
               href={item.href}
-              className="transition-colors hover:text-primary"
+              className="transition-colors hover:text-primary cursor-pointer hover:underline decoration-primary decoration-1 underline-offset-4"
             >
               {item.title}
             </Link>
@@ -38,10 +38,10 @@ export function FeatureBenefitsBar() {
               {index > 0 ? (
                 <Separator
                   orientation="vertical"
-                  className="absolute top-0 left-0 hidden h-full lg:block"
+                  className="absolute top-0 left-0 hidden h-full lg:block border-black border-r-2 border-l-0"
                 />
               ) : null}
-              <h3 className="text-sm font-semibold">{titleNode}</h3>
+              <h3 className="text-md  font-semibold">{titleNode}</h3>
             </div>
           );
         })}

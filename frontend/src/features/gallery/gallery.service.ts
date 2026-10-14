@@ -18,6 +18,17 @@ function apiBaseUrl(): string {
   return value.replace(/\/$/, "");
 }
 
+function isRenderableGalleryItem(item: GalleryItem): boolean {
+  if (!item.active) return false;
+  if (item.mediaType === "text_card") {
+    return Boolean(item.heading?.trim() && item.description?.trim());
+  }
+  return Boolean(
+    item.mediaUrl &&
+      (item.mediaType === "image" || item.mediaType === "video"),
+  );
+}
+
 /**
  * Server-side fetch of active site-scoped gallery items for the .in storefront.
  */
@@ -45,9 +56,16 @@ export const getGalleryItems = cache(async (): Promise<GalleryItem[]> => {
       return [];
     }
 
-    return payload.data.filter(
-      (item) => item.active && item.mediaUrl && (item.mediaType === "image" || item.mediaType === "video"),
-    );
+    return payload.data
+      .map((item) => ({
+        ...item,
+        clickUrl: item.clickUrl ?? "",
+        heading: item.heading ?? "",
+        description: item.description ?? "",
+        buttonLabel: item.buttonLabel ?? "",
+        buttonUrl: item.buttonUrl ?? "",
+      }))
+      .filter(isRenderableGalleryItem);
   } catch {
     return [];
   }

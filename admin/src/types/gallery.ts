@@ -1,6 +1,6 @@
 import type { SiteCode } from "@/types/auth";
 
-export type GalleryMediaType = "image" | "video";
+export type GalleryMediaType = "image" | "video" | "text_card";
 
 export type GalleryItemDto = {
   id: string;
@@ -8,6 +8,11 @@ export type GalleryItemDto = {
   mediaType: GalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
+  clickUrl: string;
+  heading: string;
+  description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -17,6 +22,11 @@ export type GalleryItemFormValues = {
   mediaType: GalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
+  clickUrl: string;
+  heading: string;
+  description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   active: boolean;
 };
 
@@ -24,6 +34,11 @@ export type GalleryItemPayload = {
   mediaType: GalleryMediaType;
   mediaUrl: string;
   mediaPublicId: string;
+  clickUrl: string;
+  heading: string;
+  description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   active: boolean;
 };
 
@@ -31,6 +46,6 @@ export type GalleryItemPayload = {
 export type GalleryPendingUpload = {
   id: string;
   fileName: string;
-  mediaType: GalleryMediaType;
+  mediaType: Exclude<GalleryMediaType, "text_card">;
   previewUrl: string;
 };

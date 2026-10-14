@@ -433,7 +433,8 @@ function ThankYouContent() {
       </div>
 
       {/* Action Navigation Section */}
-      {isPaid && isAuthenticated && !order.isGuest ? (
+      {/* Action Navigation Section */}
+      {isPaid && isAuthenticated ? (
         <div className="space-y-4 rounded-2xl border border-border/80 bg-white p-6 text-center shadow-sm">
           <p className="text-sm text-muted-foreground">
             Your order has been recorded. You can view order progress and invoices anytime in your account.
@@ -441,7 +442,7 @@ function ThankYouContent() {
           <div className="flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" className="shadow-sm">
               <Link href={`/account/orders/${order.orderId}`}>
-                View order details
+                View order
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
@@ -454,26 +455,31 @@ function ThankYouContent() {
         </div>
       ) : null}
 
-      {isPaid && order.isGuest ? (
+      {isPaid && !isAuthenticated ? (
         <div className="space-y-4 rounded-2xl border border-border/80 bg-white p-6 text-center shadow-sm">
           <p className="text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            We&apos;ve sent your receipt and tracking link to{" "}
+            We&apos;ve sent your receipt and tracking details to{" "}
             <span className="font-semibold text-foreground">
               {order.contactEmail}
             </span>
-            . To manage and track all your orders in one place, create an account using this email.
+            . To manage and track all your orders in one place, sign up or sign in using this email.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" className="shadow-sm">
+              <Link href={`/account/orders/${order.orderId}`}>
+                View order
+              </Link>
+            </Button>
+            <Button asChild variant="default" size="lg" className="shadow-sm">
               <Link
-                href={`/account/register?email=${encodeURIComponent(order.contactEmail)}&from=guest-order&redirect=${encodeURIComponent("/account/orders")}`}
+                href={`/account/register?email=${encodeURIComponent(order.contactEmail)}&from=guest-order&redirect=${encodeURIComponent(`/account/orders/${order.orderId}`)}`}
               >
                 Create account
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link
-                href={`/account/login?email=${encodeURIComponent(order.contactEmail)}&from=guest-order&redirect=${encodeURIComponent("/account/orders")}`}
+                href={`/account/login?email=${encodeURIComponent(order.contactEmail)}&from=guest-order&redirect=${encodeURIComponent(`/account/orders/${order.orderId}`)}`}
               >
                 Sign in
               </Link>

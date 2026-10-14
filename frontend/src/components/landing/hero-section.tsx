@@ -371,7 +371,7 @@ function HeroCarousel({ slides }: { slides: StorefrontHeroSlide[] }) {
         type="button"
         size="icon"
         variant="outline"
-        className="absolute top-1/2 left-2 z-50 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white sm:left-4 sm:size-14"
+        className="absolute top-1/2 left-2 z-20 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white sm:left-4 sm:size-14"
         onClick={() => api?.scrollPrev()}
         aria-label="Previous hero slide"
       >
@@ -381,7 +381,7 @@ function HeroCarousel({ slides }: { slides: StorefrontHeroSlide[] }) {
         type="button"
         size="icon"
         variant="outline"
-        className="absolute top-1/2 right-2 z-50 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white sm:right-4 sm:size-14"
+        className="absolute top-1/2 right-2 z-20 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white sm:right-4 sm:size-14"
         onClick={() => api?.scrollNext()}
         aria-label="Next hero slide"
       >
@@ -389,7 +389,7 @@ function HeroCarousel({ slides }: { slides: StorefrontHeroSlide[] }) {
       </Button>
 
       <div
-        className="absolute inset-x-0 bottom-5 z-50 flex items-center justify-center gap-2.5"
+        className="absolute inset-x-0 bottom-5 z-20 flex items-center justify-center gap-2.5"
         role="tablist"
         aria-label="Hero slides"
       >

@@ -1,13 +1,22 @@
 import type { GalleryMediaType as PrismaGalleryMediaType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import type { GalleryItemRecord, GalleryItemWrite } from './gallery.types';
+import type {
+  GalleryItemRecord,
+  GalleryItemWrite,
+  GalleryMediaTypePrisma,
+} from './gallery.types';
 
 function mapItem(row: {
   id: string;
   siteId: string;
-  mediaType: PrismaGalleryMediaType;
+  mediaType: string;
   mediaUrl: string;
   mediaPublicId: string;
+  clickUrl: string;
+  heading: string;
+  description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -15,24 +24,33 @@ function mapItem(row: {
   return {
     id: row.id,
     siteId: row.siteId,
-    mediaType: row.mediaType,
+    mediaType: row.mediaType as GalleryMediaTypePrisma,
     mediaUrl: row.mediaUrl,
     mediaPublicId: row.mediaPublicId,
+    clickUrl: row.clickUrl,
+    heading: row.heading,
+    description: row.description,
+    buttonLabel: row.buttonLabel,
+    buttonUrl: row.buttonUrl,
     active: row.active,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
 }
 
+function toClientMediaType(value: GalleryMediaTypePrisma): PrismaGalleryMediaType {
+  return value as PrismaGalleryMediaType;
+}
+
 export class GalleryRepository {
   async listBySiteId(
     siteId: string,
-    mediaType?: PrismaGalleryMediaType,
+    mediaType?: GalleryMediaTypePrisma,
   ): Promise<GalleryItemRecord[]> {
     const rows = await prisma.galleryItem.findMany({
       where: {
         siteId,
-        ...(mediaType !== undefined ? { mediaType } : {}),
+        ...(mediaType !== undefined ? { mediaType: toClientMediaType(mediaType) } : {}),
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -58,9 +76,14 @@ export class GalleryRepository {
     const row = await prisma.galleryItem.create({
       data: {
         siteId,
-        mediaType: data.mediaType,
+        mediaType: toClientMediaType(data.mediaType),
         mediaUrl: data.mediaUrl,
         mediaPublicId: data.mediaPublicId,
+        clickUrl: data.clickUrl,
+        heading: data.heading,
+        description: data.description,
+        buttonLabel: data.buttonLabel,
+        buttonUrl: data.buttonUrl,
         active: data.active,
       },
     });
@@ -83,9 +106,14 @@ export class GalleryRepository {
     const row = await prisma.galleryItem.update({
       where: { id: itemId },
       data: {
-        mediaType: data.mediaType,
+        mediaType: toClientMediaType(data.mediaType),
         mediaUrl: data.mediaUrl,
         mediaPublicId: data.mediaPublicId,
+        clickUrl: data.clickUrl,
+        heading: data.heading,
+        description: data.description,
+        buttonLabel: data.buttonLabel,
+        buttonUrl: data.buttonUrl,
         active: data.active,
       },
     });

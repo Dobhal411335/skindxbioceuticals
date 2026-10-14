@@ -15,7 +15,7 @@ import type {
   GalleryMediaTypeDto,
   SiteCodeDto,
 } from './gallery.types';
-import { toDtoMediaType, toPrismaMediaType } from './gallery.types';
+import { isGalleryMediaAsset, toDtoMediaType, toPrismaMediaType } from './gallery.types';
 
 function preferHttpsUrl(url: string): string {
   if (url.startsWith('http://res.cloudinary.com/')) {
@@ -29,8 +29,13 @@ export function toGalleryItemDto(record: GalleryItemRecord, siteCode: SiteCodeDt
     id: record.id,
     siteCode,
     mediaType: toDtoMediaType(record.mediaType),
-    mediaUrl: preferHttpsUrl(record.mediaUrl),
+    mediaUrl: record.mediaUrl ? preferHttpsUrl(record.mediaUrl) : '',
     mediaPublicId: record.mediaPublicId,
+    clickUrl: record.clickUrl,
+    heading: record.heading,
+    description: record.description,
+    buttonLabel: record.buttonLabel,
+    buttonUrl: record.buttonUrl,
     active: record.active,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
@@ -38,10 +43,29 @@ export function toGalleryItemDto(record: GalleryItemRecord, siteCode: SiteCodeDt
 }
 
 function bodyToWrite(body: GalleryItemBody): GalleryItemWrite {
+  if (body.mediaType === 'text_card') {
+    return {
+      mediaType: 'TEXT_CARD',
+      mediaUrl: '',
+      mediaPublicId: '',
+      clickUrl: '',
+      heading: body.heading,
+      description: body.description,
+      buttonLabel: body.buttonLabel,
+      buttonUrl: body.buttonUrl,
+      active: body.active,
+    };
+  }
+
   return {
     mediaType: toPrismaMediaType(body.mediaType),
     mediaUrl: preferHttpsUrl(body.mediaUrl),
     mediaPublicId: body.mediaPublicId ?? '',
+    clickUrl: body.clickUrl ?? '',
+    heading: '',
+    description: '',
+    buttonLabel: '',
+    buttonUrl: '',
     active: body.active,
   };
 }
@@ -109,7 +133,11 @@ export class GalleryService {
 
     const previousPublicId = existing.mediaPublicId.trim();
     const nextPublicId = data.mediaPublicId.trim();
-    if (previousPublicId && previousPublicId !== nextPublicId) {
+    if (
+      isGalleryMediaAsset(existing.mediaType) &&
+      previousPublicId &&
+      previousPublicId !== nextPublicId
+    ) {
       await deleteStoredCloudinaryAssetBestEffort(previousPublicId, {
         resourceType: mediaTypeToCloudinaryResourceType(existing.mediaType),
       });
@@ -166,7 +194,7 @@ export class GalleryService {
       throw new NotFoundError('Gallery item not found');
     }
 
-    if (existing.mediaPublicId.trim()) {
+    if (isGalleryMediaAsset(existing.mediaType) && existing.mediaPublicId.trim()) {
       await deleteStoredCloudinaryAsset(existing.mediaPublicId, {
         resourceType: mediaTypeToCloudinaryResourceType(existing.mediaType),
       });

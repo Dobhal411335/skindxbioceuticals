@@ -181,27 +181,8 @@ export class ProductRepository {
       },
       orderBy: [{ updatedAt: 'desc' }, { name: 'asc' }],
       take: options.limit,
-      include: {
-        subcategory: { select: { name: true } },
-        galleryImages: {
-          orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
-          take: 1,
-        },
-        variants: {
-          where: { isActive: true },
-          orderBy: { createdAt: 'asc' },
-          take: 1,
-          include: { inventory: true },
-        },
-        editorialReviews: {
-          where: { active: true },
-          select: { rating: true },
-        },
-        reviews: {
-          where: { isApproved: true },
-          select: { rating: true },
-        },
-      },
+      // Same card payload as rail/PLP so coupon + tax discounts render on highlights.
+      include: this.publicCardInclude,
     });
   }
 
@@ -247,10 +228,10 @@ export class ProductRepository {
     options: {
       excludeProductId: string;
       subcategoryId: string | null;
+      /** When omitted, returns every ACTIVE product in the subcategory except the current. */
       limit?: number;
     },
   ) {
-    const limit = options.limit ?? 4;
     if (!options.subcategoryId) {
       return [];
     }
@@ -263,19 +244,9 @@ export class ProductRepository {
         id: { not: options.excludeProductId },
       },
       orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
-      take: limit,
-      include: {
-        galleryImages: {
-          orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
-          take: 1,
-        },
-        variants: {
-          where: { isActive: true },
-          orderBy: { createdAt: 'asc' },
-          take: 1,
-          include: { inventory: true },
-        },
-      },
+      ...(options.limit != null ? { take: options.limit } : {}),
+      // Same card payload as rail/PLP so FBT cards can show category, ratings, coupon.
+      include: this.publicCardInclude,
     });
   }
 
