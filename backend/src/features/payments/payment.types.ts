@@ -39,6 +39,8 @@ export type OrderConfirmationResult = {
   discountTotal: string;
   shippingTotal: string;
   taxTotal: string;
+  cgstTotal: string;
+  sgstTotal: string;
   grandTotal: string;
   contactEmail: string;
   placedAt: string | null;
@@ -52,6 +54,10 @@ export type OrderConfirmationResult = {
     originalUnitPrice: string | null;
     quantity: number;
     lineTotal: string;
+    cgstPercent: string;
+    sgstPercent: string;
+    cgstAmount: string;
+    sgstAmount: string;
   }>;
   shippingAddress: unknown;
   isGuest: boolean;

@@ -56,6 +56,8 @@ export interface MoneyBreakdownEmailData {
   discount?: string;
   shipping?: string;
   tax?: string;
+  cgst?: string;
+  sgst?: string;
   total: string;
   currency: string;
 }

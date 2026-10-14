@@ -3,12 +3,18 @@ import { prisma } from '@/lib/prisma';
 const cartItemInclude = {
   product: {
     include: {
+      // Storefront cards use gallery; ProductMedia is often empty.
+      galleryImages: {
+        orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
+        take: 1,
+      },
       media: {
         orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
         take: 1,
         include: { media: true },
       },
       site: true,
+      tax: true,
       coupon: { include: { coupon: true } },
     },
   },

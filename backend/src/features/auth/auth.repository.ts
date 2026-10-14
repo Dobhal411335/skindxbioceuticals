@@ -176,6 +176,71 @@ export class AuthRepository {
     });
   }
 
+  async findGoogleIdentityByProviderUserId(providerUserId: string) {
+    return this.db.externalIdentity.findUnique({
+      where: {
+        provider_providerUserId: {
+          provider: 'GOOGLE',
+          providerUserId,
+        },
+      },
+    });
+  }
+
+  /**
+   * Attach a verified Google identity to an existing customer and mark email verified.
+   * Caller must ensure providerUserId is not linked to a different user.
+   */
+  async linkGoogleIdentityAndActivate(input: {
+    userId: string;
+    providerUserId: string;
+    emailVerifiedAt: Date;
+    firstName?: string;
+    lastName?: string;
+    imageUrl?: string;
+  }): Promise<UserWithMemberships> {
+    return this.db.$transaction(async (tx) => {
+      const existingLink = await tx.externalIdentity.findUnique({
+        where: {
+          provider_providerUserId: {
+            provider: 'GOOGLE',
+            providerUserId: input.providerUserId,
+          },
+        },
+      });
+      if (!existingLink) {
+        await tx.externalIdentity.create({
+          data: {
+            userId: input.userId,
+            provider: 'GOOGLE',
+            providerUserId: input.providerUserId,
+          },
+        });
+      }
+
+      await tx.emailVerificationToken.updateMany({
+        where: {
+          userId: input.userId,
+          purpose: 'EMAIL_VERIFICATION',
+          consumedAt: null,
+        },
+        data: { consumedAt: new Date() },
+      });
+
+      return tx.user.update({
+        where: { id: input.userId },
+        data: {
+          status: 'ACTIVE',
+          emailVerifiedAt: input.emailVerifiedAt,
+          ...(input.firstName ? { firstName: input.firstName } : {}),
+          ...(input.lastName ? { lastName: input.lastName } : {}),
+          ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+        },
+        include: userWithMemberships,
+      });
+    });
+  }
+
   async createPendingPasswordCustomer(input: {
     email: string;
     passwordHash: string;

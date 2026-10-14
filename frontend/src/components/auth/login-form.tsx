@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Eye, EyeOff, UserRound, X } from "lucide-react";
 
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
@@ -44,6 +44,13 @@ function LoginFormInner({ variant = "page" }: LoginFormProps) {
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const preset = searchParams.get("email");
+    if (preset && preset.includes("@")) {
+      setEmail(preset.trim().toLowerCase());
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

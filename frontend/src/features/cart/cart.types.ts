@@ -21,6 +21,8 @@ export type AccountCartItem = {
   currency: string;
   availableQuantity: number;
   available: boolean;
+  cgstPercent?: number;
+  sgstPercent?: number;
   coupon: CartItemCoupon;
   createdAt: string;
   updatedAt: string;

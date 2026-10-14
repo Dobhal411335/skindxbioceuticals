@@ -351,7 +351,10 @@ export class CartService {
       productName: item.product.name,
       productSlug: item.product.slug,
       variantName: item.variant.name,
-      imageUrl: item.product.media[0]?.media.url ?? null,
+      imageUrl:
+        item.product.galleryImages[0]?.imageUrl ??
+        item.product.media[0]?.media.url ??
+        null,
       quantity: item.quantity,
       listPrice: listPrice.toFixed(2),
       unitPrice: priced.unitPrice.toFixed(2),
@@ -360,6 +363,12 @@ export class CartService {
       currency: item.variant.currency ?? 'INR',
       availableQuantity: stock,
       available: stock > 0,
+      cgstPercent: item.product.tax
+        ? decimalToNumber(item.product.tax.cgst) ?? 0
+        : 0,
+      sgstPercent: item.product.tax
+        ? decimalToNumber(item.product.tax.sgst) ?? 0
+        : 0,
       coupon,
       createdAt: item.createdAt.toISOString(),
       updatedAt: item.updatedAt.toISOString(),

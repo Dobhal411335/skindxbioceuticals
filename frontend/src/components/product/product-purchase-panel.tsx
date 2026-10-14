@@ -181,6 +181,8 @@ export function ProductPurchasePanel({
       discountInPaise: priced.hasDiscount
         ? rupeesToPaise(priced.discountAmount)
         : undefined,
+      cgstPercent: product.tax?.cgst ?? 0,
+      sgstPercent: product.tax?.sgst ?? 0,
       quantity: qty,
     };
   }
@@ -284,7 +286,9 @@ export function ProductPurchasePanel({
             </p>
           ) : null}
         </div>
-        <p className="text-xs text-muted-foreground">Inclusive of all taxes</p>
+        <p className="text-xs text-muted-foreground">
+          Exclusive of CGST/SGST (added at cart &amp; checkout)
+        </p>
         {discountLabel ? (
           <p className="mt-2 inline-flex rounded-md bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">
             {discountLabel}

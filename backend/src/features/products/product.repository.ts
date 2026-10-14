@@ -73,6 +73,7 @@ export class ProductRepository {
       select: { rating: true },
     },
     coupon: { include: { coupon: true } },
+    tax: true,
   };
 
   async listActivePublicCards(siteId: string, options: { limit: number }) {

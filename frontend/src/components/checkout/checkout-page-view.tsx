@@ -5,9 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { Loader2, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ClipboardList,
+  Loader2,
+  MapPin,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 
-import { CartLinePrice, getCartLinePricing } from "@/components/cart/cart-line-price";
+import { getCartLinePricing } from "@/components/cart/cart-line-price";
+import { CartOrderSummaryRows } from "@/components/cart/cart-order-summary-rows";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { checkoutService } from "@/features/checkout/checkout.service";
 import type { RazorpaySuccessResponse } from "@/features/checkout/checkout.types";
 import {
@@ -33,7 +42,9 @@ import {
 } from "@/features/checkout/load-razorpay";
 import { meService } from "@/features/me/me.service";
 import type { Address } from "@/features/me/me.types";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useAppSelector } from "@/hooks/useAppSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useCartTotals } from "@/hooks/useCartTotals";
@@ -47,23 +58,63 @@ import {
 import { toApiError } from "@/services/api/errors";
 
 const GUEST_TOKEN_KEY = "skindx_guest_checkout_token";
+const GUEST_EMAIL_KEY = "skindx_guest_checkout_email";
+const GUEST_VERIFIED_KEY = "skindx_guest_checkout_verified";
 const CONFIRMATION_TOKEN_KEY = "skindx_order_confirmation_token";
 
 type GuestStep = "email" | "otp" | "verified";
 
+function clearGuestCheckoutStorage() {
+  sessionStorage.removeItem(GUEST_TOKEN_KEY);
+  sessionStorage.removeItem(GUEST_EMAIL_KEY);
+  sessionStorage.removeItem(GUEST_VERIFIED_KEY);
+}
+
 export function CheckoutPageView() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { setQuantity, remove, clear: clearCartAction } = useCartActions();
+  const { setQuantity, setItemNote, remove, clear: clearCartAction } = useCartActions();
+  const cartHydrated = useAppSelector((state) => state.cart.hydrated);
+  const cartStatus = useAppSelector((state) => state.cart.status);
+  const [editingNoteItemId, setEditingNoteItemId] = useState<string | null>(null);
+  const [itemNoteDraft, setItemNoteDraft] = useState("");
+
+  function startEditItemNote(itemId: string, currentNote?: string) {
+    setEditingNoteItemId(itemId);
+    setItemNoteDraft(currentNote || "");
+  }
+
+  function saveItemNote(itemId: string) {
+    setItemNote(itemId, itemNoteDraft);
+    setEditingNoteItemId(null);
+    setItemNoteDraft("");
+  }
+
+  function cancelItemNote() {
+    setEditingNoteItemId(null);
+    setItemNoteDraft("");
+  }
   const {
     items,
     extras,
     originalSubtotalInPaise,
+    subtotalInPaise,
     discountInPaise,
     discountPercent,
+    cgstInPaise,
+    sgstInPaise,
+    cgstPercent,
+    sgstPercent,
     totalInPaise,
   } = useCartTotals();
+
+  // Prefer local paint: only block empty-state while hydrate/sync is still pending.
+  const cartLoading =
+    items.length === 0 &&
+    (authLoading ||
+      !cartHydrated ||
+      cartStatus === "syncing" ||
+      cartStatus === "loading");
 
   const [email, setEmail] = useState("");
   const [guestStep, setGuestStep] = useState<GuestStep>("email");
@@ -148,13 +199,32 @@ export function CheckoutPageView() {
   }, [isAuthenticated, user?.id]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = sessionStorage.getItem(GUEST_TOKEN_KEY);
-    if (stored && !isAuthenticated) {
-      setGuestSessionToken(stored);
+    if (typeof window === "undefined" || isAuthenticated) return;
+    const storedToken = sessionStorage.getItem(GUEST_TOKEN_KEY);
+    const storedEmail = sessionStorage.getItem(GUEST_EMAIL_KEY);
+    const storedVerified = sessionStorage.getItem(GUEST_VERIFIED_KEY) === "1";
+    // Only restore a verified guest session when we have token + email from a
+    // real verify-otp success. Never treat a bare token as verified (that skipped
+    // OTP and left the email field empty).
+    if (storedToken && storedEmail && storedVerified) {
+      setGuestSessionToken(storedToken);
+      setEmail(storedEmail);
       setGuestStep("verified");
     }
   }, [isAuthenticated]);
+
+  if (cartLoading) {
+    return (
+      <div className="container-page section-space">
+        <h1 className="text-2xl font-semibold">Checkout</h1>
+        <div className="mt-8 space-y-4">
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-24 w-full max-w-md" />
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -172,11 +242,13 @@ export function CheckoutPageView() {
     !payBusy &&
     !authLoading &&
     !addressesLoading &&
-    lastName.trim() &&
-    line1.trim() &&
-    city.trim() &&
-    state.trim() &&
-    postalCode.trim() &&
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    line1.trim().length > 0 &&
+    city.trim().length > 0 &&
+    state.trim().length > 0 &&
+    postalCode.trim().length > 0 &&
+    phone.trim().length > 0 &&
     (isAuthenticated || guestStep === "verified");
 
   const hasSavedAddresses = isAuthenticated && savedAddresses.length > 0;
@@ -189,16 +261,27 @@ export function CheckoutPageView() {
     }
     setOtpBusy(true);
     try {
+      // Always bind the session to the email currently in the field. Reusing a
+      // stale token (e.g. after changing email or restoring storage) can send
+      // the OTP to a different inbox while this UI waits on the new address.
+      const storedEmail = sessionStorage.getItem(GUEST_EMAIL_KEY);
       let token = guestSessionToken;
-      if (!token) {
+      if (!token || storedEmail !== normalized || guestStep === "email") {
         const session = await checkoutService.startGuestSession(normalized);
         token = session.sessionToken;
         setGuestSessionToken(token);
         sessionStorage.setItem(GUEST_TOKEN_KEY, token);
+        sessionStorage.setItem(GUEST_EMAIL_KEY, normalized);
+        sessionStorage.removeItem(GUEST_VERIFIED_KEY);
       }
-      await checkoutService.sendGuestOtp(token);
+
+      const result = await checkoutService.sendGuestOtp(token);
       setGuestStep("otp");
-      showInfo("Verification code sent to your email.");
+      if (result.resendAvailableAt) {
+        showInfo("Please wait a moment before requesting another code.");
+      } else {
+        showInfo("Verification code sent to your email.");
+      }
     } catch {
       showError("Could not send verification code. Please try again.");
     } finally {
@@ -213,14 +296,29 @@ export function CheckoutPageView() {
     }
     setOtpBusy(true);
     try {
-      await checkoutService.verifyGuestOtp(guestSessionToken, otp);
+      const verified = await checkoutService.verifyGuestOtp(
+        guestSessionToken,
+        otp,
+      );
       setGuestStep("verified");
+      setEmail(verified.email);
+      sessionStorage.setItem(GUEST_TOKEN_KEY, guestSessionToken);
+      sessionStorage.setItem(GUEST_EMAIL_KEY, verified.email);
+      sessionStorage.setItem(GUEST_VERIFIED_KEY, "1");
       showSuccess("Email verified. You can complete payment.");
     } catch {
       showError("Invalid or expired code. Please try again.");
     } finally {
       setOtpBusy(false);
     }
+  }
+
+  function resetGuestEmailVerification() {
+    setGuestStep("email");
+    setGuestSessionToken(null);
+    setOtp("");
+    clearGuestCheckoutStorage();
+    idempotencyKeyRef.current = null;
   }
 
   function ensureIdempotencyKey() {
@@ -231,6 +329,40 @@ export function CheckoutPageView() {
   }
 
   async function payNow() {
+    if (!firstName.trim()) {
+      showError("Please enter your first name.");
+      return;
+    }
+    if (!lastName.trim()) {
+      showError("Please enter your last name.");
+      return;
+    }
+    if (!line1.trim()) {
+      showError("Please enter your delivery address.");
+      return;
+    }
+    if (!city.trim()) {
+      showError("Please enter your city.");
+      return;
+    }
+    if (!state.trim()) {
+      showError("Please select your state.");
+      return;
+    }
+    if (!postalCode.trim()) {
+      showError("Please enter your PIN code.");
+      return;
+    }
+    if (!phone.trim()) {
+      showError("Please enter your phone number.");
+      return;
+    }
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10) {
+      showError("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
     if (!canPay) return;
 
     const missingVariant = items.some((item) => !item.variantId);
@@ -242,7 +374,7 @@ export function CheckoutPageView() {
     setPayBusy(true);
     try {
       const shippingAddress = {
-        firstName: firstName.trim() || undefined,
+        firstName: firstName.trim(),
         lastName: lastName.trim(),
         line1: line1.trim(),
         line2: line2.trim() || undefined,
@@ -250,7 +382,7 @@ export function CheckoutPageView() {
         state: state.trim() || undefined,
         postalCode: postalCode.trim(),
         country: DEFAULT_COUNTRY_CODE,
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
       };
 
       if (
@@ -277,10 +409,22 @@ export function CheckoutPageView() {
         } catch (err) {
           showError(
             toApiError(err).message ||
-              "Could not save address. Continuing to payment…",
+            "Could not save address. Continuing to payment…",
           );
         }
       }
+
+      // Aggregate overall notes and per-item notes
+      const perItemNotes = items
+        .filter((item) => item.note?.trim())
+        .map(
+          (item) =>
+            `[${item.name}${item.variantLabel ? ` (${item.variantLabel})` : ""}]: ${item.note!.trim()}`,
+        );
+      const combinedNotes = [extras.notes?.trim(), ...perItemNotes]
+        .filter(Boolean)
+        .join("\n")
+        .slice(0, 2000);
 
       const created = await checkoutService.createPaymentOrder({
         items: items.map((item) => ({
@@ -288,7 +432,7 @@ export function CheckoutPageView() {
           quantity: item.quantity,
         })),
         shippingAddress,
-        notes: extras.notes || undefined,
+        notes: combinedNotes || undefined,
         guestSessionToken: isAuthenticated ? undefined : guestSessionToken ?? undefined,
         idempotencyKey: ensureIdempotencyKey(),
       });
@@ -338,7 +482,7 @@ export function CheckoutPageView() {
               verified.orderStatus === "CONFIRMED"
             ) {
               void clearCartAction();
-              sessionStorage.removeItem(GUEST_TOKEN_KEY);
+              clearGuestCheckoutStorage();
               idempotencyKeyRef.current = null;
               showSuccess("Payment successful.");
               const params = new URLSearchParams({ orderId: verified.orderId });
@@ -349,10 +493,9 @@ export function CheckoutPageView() {
             } else {
               showInfo("Payment is still processing. Checking status…");
               router.push(
-                `/checkout/thank-you?orderId=${verified.orderId}${
-                  verified.confirmationToken
-                    ? `&confirmationToken=${verified.confirmationToken}`
-                    : ""
+                `/checkout/thank-you?orderId=${verified.orderId}${verified.confirmationToken
+                  ? `&confirmationToken=${verified.confirmationToken}`
+                  : ""
                 }`,
               );
             }
@@ -433,10 +576,7 @@ export function CheckoutPageView() {
                     onChange={(e) => {
                       setEmail(e.target.value);
                       if (guestStep !== "email") {
-                        setGuestStep("email");
-                        setGuestSessionToken(null);
-                        sessionStorage.removeItem(GUEST_TOKEN_KEY);
-                        idempotencyKeyRef.current = null;
+                        resetGuestEmailVerification();
                       }
                     }}
                     placeholder="you@example.com"
@@ -490,26 +630,47 @@ export function CheckoutPageView() {
                       >
                         Resend
                       </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={resetGuestEmailVerification}
+                        disabled={otpBusy}
+                      >
+                        Change email
+                      </Button>
                     </div>
                   </div>
                 ) : null}
 
                 {guestStep === "verified" ? (
-                  <p className="text-sm font-medium text-green-700">
-                    Email verified — continue to delivery and payment.
-                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="text-sm font-medium text-green-700">
+                      Email verified — continue to delivery and payment.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetGuestEmailVerification}
+                    >
+                      Change email
+                    </Button>
+                  </div>
                 ) : null}
               </div>
             )}
           </section>
 
-          <section className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">Delivery</h2>
+          <section className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-5">
+            <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <MapPin className="size-5 text-primary" />
+                <h2 className="text-lg font-semibold tracking-tight">Delivery address</h2>
+              </div>
               {isAuthenticated ? (
                 <Link
                   href="/account/addresses"
-                  className="text-sm text-primary hover:underline"
+                  className="text-xs font-medium text-primary hover:underline"
                 >
                   Manage addresses
                 </Link>
@@ -523,14 +684,16 @@ export function CheckoutPageView() {
             ) : null}
 
             {hasSavedAddresses ? (
-              <div className="space-y-3 rounded-lg border border-border p-4">
-                <p className="text-sm font-medium">Use a saved address</p>
-                <ul className="space-y-3">
+              <div className="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Use a saved address
+                </p>
+                <ul className="space-y-2.5">
                   {savedAddresses.map((address) => {
                     const checked = selectedSavedAddressId === address.id;
                     return (
                       <li key={address.id}>
-                        <label className="flex cursor-pointer items-start gap-3 rounded-md p-1 hover:bg-muted/50">
+                        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border/60 bg-background p-3 transition-colors hover:bg-muted/40">
                           <Checkbox
                             checked={checked}
                             onCheckedChange={(value) => {
@@ -541,17 +704,18 @@ export function CheckoutPageView() {
                               }
                             }}
                             aria-label={`Use ${address.label || "saved address"}`}
+                            className="mt-0.5"
                           />
                           <span className="text-sm leading-snug">
-                            <span className="font-medium">
+                            <span className="font-medium text-foreground">
                               {address.label || "Address"}
                               {address.isDefault ? (
-                                <span className="ml-2 text-xs font-medium text-primary">
+                                <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
                                   Default
                                 </span>
                               ) : null}
                             </span>
-                            <span className="mt-0.5 block text-muted-foreground">
+                            <span className="mt-1 block text-xs text-muted-foreground">
                               {address.line1}
                               {address.line2 ? `, ${address.line2}` : ""}
                               <br />
@@ -570,129 +734,197 @@ export function CheckoutPageView() {
               </div>
             ) : null}
 
-            <Select value={DEFAULT_COUNTRY_CODE} disabled>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Country/Region" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={DEFAULT_COUNTRY_CODE}>India</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                placeholder="First name"
-                autoComplete="given-name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
-              <Input
-                placeholder="Last name"
-                autoComplete="family-name"
-                required
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-              />
-            </div>
-            <Input
-              placeholder="Address"
-              autoComplete="street-address"
-              required
-              value={line1}
-              onChange={(e) => {
-                setLine1(e.target.value);
-                setSelectedSavedAddressId(null);
-              }}
-            />
-            <Input
-              placeholder="Apartment, suite, etc. (optional)"
-              autoComplete="address-line2"
-              value={line2}
-              onChange={(e) => {
-                setLine2(e.target.value);
-                setSelectedSavedAddressId(null);
-              }}
-            />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                placeholder="City"
-                autoComplete="address-level2"
-                required
-                value={city}
-                onChange={(e) => {
-                  setCity(e.target.value);
-                  setSelectedSavedAddressId(null);
-                }}
-              />
-              <Select
-                value={state || undefined}
-                onValueChange={(value) => {
-                  setState(value);
-                  setSelectedSavedAddressId(null);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="State" />
-                </SelectTrigger>
-                <SelectContent>
-                  {INDIA_STATES.map((indiaState) => (
-                    <SelectItem key={indiaState} value={indiaState}>
-                      {indiaState}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                placeholder="PIN code"
-                autoComplete="postal-code"
-                inputMode="numeric"
-                required
-                value={postalCode}
-                onChange={(e) => {
-                  setPostalCode(e.target.value);
-                  setSelectedSavedAddressId(null);
-                }}
-              />
-              <Input
-                placeholder="Phone (optional)"
-                autoComplete="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
+            <div className="space-y-4">
+              <div>
+                <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  Country / Region
+                </Label>
+                <Select value={DEFAULT_COUNTRY_CODE} disabled>
+                  <SelectTrigger className="w-full bg-muted/40 font-medium">
+                    <SelectValue placeholder="Country/Region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={DEFAULT_COUNTRY_CODE}>India (IN)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="checkout-first-name" className="mb-1.5 block text-xs font-medium">
+                    First name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="checkout-first-name"
+                    placeholder="e.g. John"
+                    autoComplete="given-name"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="checkout-last-name" className="mb-1.5 block text-xs font-medium">
+                    Last name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="checkout-last-name"
+                    placeholder="e.g. Doe"
+                    autoComplete="family-name"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="checkout-address-line1" className="mb-1.5 block text-xs font-medium">
+                  Address line 1 <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="checkout-address-line1"
+                  placeholder="Street address, house number, area"
+                  autoComplete="street-address"
+                  required
+                  value={line1}
+                  onChange={(e) => {
+                    setLine1(e.target.value);
+                    setSelectedSavedAddressId(null);
+                  }}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="checkout-address-line2" className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  Apartment, suite, unit, building, floor (optional)
+                </Label>
+                <Input
+                  id="checkout-address-line2"
+                  placeholder="Apartment, suite, unit, floor, etc."
+                  autoComplete="address-line2"
+                  value={line2}
+                  onChange={(e) => {
+                    setLine2(e.target.value);
+                    setSelectedSavedAddressId(null);
+                  }}
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="checkout-city" className="mb-1.5 block text-xs font-medium">
+                    City <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="checkout-city"
+                    placeholder="e.g. Mumbai"
+                    autoComplete="address-level2"
+                    required
+                    value={city}
+                    onChange={(e) => {
+                      setCity(e.target.value);
+                      setSelectedSavedAddressId(null);
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1.5 block text-xs font-medium">
+                    State <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={state || undefined}
+                    onValueChange={(value) => {
+                      setState(value);
+                      setSelectedSavedAddressId(null);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INDIA_STATES.map((indiaState) => (
+                        <SelectItem key={indiaState} value={indiaState}>
+                          {indiaState}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="checkout-postal-code" className="mb-1.5 block text-xs font-medium">
+                    PIN code <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="checkout-postal-code"
+                    placeholder="6-digit PIN code"
+                    autoComplete="postal-code"
+                    inputMode="numeric"
+                    required
+                    value={postalCode}
+                    onChange={(e) => {
+                      setPostalCode(e.target.value);
+                      setSelectedSavedAddressId(null);
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="checkout-phone" className="mb-1.5 block text-xs font-medium">
+                    Phone number <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="checkout-phone"
+                    placeholder="10-digit mobile number"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
             {isAuthenticated && !hasSavedAddresses && !addressesLoading ? (
-              <div className="flex items-start gap-2 rounded-md border border-border p-3">
+              <div className="flex items-start gap-2.5 rounded-lg border border-border/80 bg-muted/20 p-3.5">
                 <Checkbox
                   id="checkout-save-address"
                   checked={saveAsDefault}
                   onCheckedChange={(checked) =>
                     setSaveAsDefault(checked === true)
                   }
+                  className="mt-0.5"
                 />
                 <Label
                   htmlFor="checkout-save-address"
-                  className="text-sm leading-snug font-normal"
+                  className="text-xs leading-snug font-normal cursor-pointer"
                 >
-                  Save this address to my account as the default delivery
-                  address
+                  Save this address to my account as the default delivery address
                 </Label>
               </div>
             ) : null}
           </section>
 
-          <section className="space-y-4">
-            <div>
-              <h2 className="text-lg font-semibold">Payment</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Pay securely with Razorpay. Your order is confirmed only after
-                our servers verify the payment.
-              </p>
+          {/* Payment Section Card */}
+          <section className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
+            <div className="flex items-center gap-2.5 border-b border-border/60 pb-3">
+              <ShieldCheck className="size-5 text-green-600" />
+              <div>
+                <h2 className="text-base font-semibold tracking-tight text-foreground">
+                  Payment
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Pay securely with Razorpay. Cards, UPI, Netbanking & Wallets accepted.
+                </p>
+              </div>
             </div>
+
             <Button
               type="button"
-              className="w-full"
+              className="w-full h-12 py-3.5 text-base font-semibold shadow-md shadow-primary/10 hover:shadow-lg transition-all"
               size="lg"
               disabled={!canPay}
               onClick={() => void payNow()}
@@ -706,8 +938,12 @@ export function CheckoutPageView() {
                 `Pay now · ${formatPaiseToInr(totalInPaise)}`
               )}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              <Link href="/cart" className="underline-offset-4 hover:underline">
+            <p className="text-center pt-1 text-xs text-muted-foreground">
+              <Link
+                href="/cart"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+              >
+                <ArrowLeft className="size-3.5" />
                 Return to cart
               </Link>
             </p>
@@ -715,88 +951,193 @@ export function CheckoutPageView() {
         </div>
       </div>
 
-      <aside className="border-t border-border bg-surface lg:border-t-0 lg:border-l">
-        <div className="container-page max-w-md py-10 lg:ml-0 lg:px-10">
-          <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase">
-            Order summary
-          </h2>
-          <ul className="space-y-5">
-            {items.map((item) => {
-              const pricing = getCartLinePricing(item);
-              return (
-                <li key={item.id} className="space-y-2">
-                  <div className="flex items-start gap-3">
-                    <div className="relative size-16 shrink-0 overflow-hidden rounded-md border border-border bg-background">
-                      <Image
-                        src={item.image || "https://placehold.co/64x64/png"}
-                        alt={item.alt || item.name}
-                        fill
-                        className="object-cover"
-                        sizes="64px"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{item.name}</p>
-                      {item.variantLabel ? (
-                        <p className="text-xs text-muted-foreground">
-                          {item.variantLabel}
-                        </p>
-                      ) : null}
-                      {pricing.hasDiscount ? (
-                        <p className="mt-0.5 text-[11px] font-medium text-green-700">
-                          {pricing.discountPercent}% off
-                          {item.discountCode ? ` · ${item.discountCode}` : ""}
-                        </p>
-                      ) : null}
-                      <CartLinePrice
-                        item={item}
-                        mode="unit"
-                        compact
-                        className="mt-1"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Remove ${item.name}`}
-                      onClick={() => void remove(item.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 pl-[4.75rem]">
-                    <QuantityStepper
-                      size="sm"
-                      value={item.quantity}
-                      onChange={(quantity) => void setQuantity(item.id, quantity)}
-                    />
-                    <CartLinePrice item={item} mode="line" compact />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+      <aside className="border-t border-border bg-muted/20 lg:border-t-0 lg:border-l">
+        <div className="container-page max-w-lg py-8 lg:ml-0 lg:px-8 space-y-5">
+          {/* Card 1: Order Products in Card Structure */}
+          <div className="rounded-xl border border-border/80 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between border-b border-border/60 pb-3">
+              <h2 className="text-sm font-semibold tracking-wide uppercase text-foreground">
+                Order summary
+              </h2>
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                {items.reduce((sum, item) => sum + item.quantity, 0)}{" "}
+                {items.reduce((sum, item) => sum + item.quantity, 0) === 1
+                  ? "item"
+                  : "items"}
+              </span>
+            </div>
 
-          <div className="mt-6 space-y-2 border-t border-border pt-4 text-sm">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{formatPaiseToInr(originalSubtotalInPaise)}</span>
-            </div>
-            {discountInPaise > 0 ? (
-              <div className="flex justify-between text-muted-foreground">
-                <span>Discount ({discountPercent}%)</span>
-                <span>-{formatPaiseToInr(discountInPaise)}</span>
-              </div>
-            ) : null}
-            <div className="flex justify-between text-muted-foreground">
-              <span>Shipping</span>
-              <span>Free</span>
-            </div>
-            <div className="flex justify-between pt-2 text-base font-semibold">
-              <span>Total</span>
-              <span>{formatPaiseToInr(totalInPaise)}</span>
-            </div>
+            <ul className="divide-y divide-border/60">
+              {items.map((item) => {
+                const pricing = getCartLinePricing(item);
+                const isEditing = editingNoteItemId === item.id;
+
+                return (
+                  <li key={item.id} className="py-4 first:pt-0 last:pb-0 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-surface">
+                        <Image
+                          src={item.image || "https://placehold.co/64x64/png"}
+                          alt={item.alt || item.name}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium leading-snug text-foreground">
+                          {item.name}
+                        </p>
+                        {item.variantLabel ? (
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {item.variantLabel}
+                          </p>
+                        ) : null}
+
+                        {/* Product price & discount displayed ONLY ONCE */}
+                        <div className="mt-1 flex flex-wrap items-baseline gap-2">
+                          <span className="text-sm font-semibold text-foreground">
+                            {formatPaiseToInr(pricing.payableUnitInPaise)}
+                          </span>
+                          {pricing.hasDiscount ? (
+                            <>
+                              <span className="text-xs font-normal text-muted-foreground line-through">
+                                {formatPaiseToInr(pricing.originalUnitInPaise)}
+                              </span>
+                              <span className="rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-950/40 dark:text-green-400">
+                                {pricing.discountPercent}% off
+                                {item.discountCode ? ` · ${item.discountCode}` : ""}
+                              </span>
+                            </>
+                          ) : item.discountCode ? (
+                            <span className="rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-950/40 dark:text-green-400">
+                              {item.discountCode} applied
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label={`Remove ${item.name}`}
+                        onClick={() => void remove(item.id)}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+
+                    {/* Stepper on left and Line total on right */}
+                    <div className="flex items-center justify-between gap-3 pl-[4.75rem]">
+                      <QuantityStepper
+                        size="sm"
+                        value={item.quantity}
+                        onChange={(quantity) => void setQuantity(item.id, quantity)}
+                      />
+                      <div className="text-right">
+                        <span className="text-xs text-muted-foreground mr-1.5">Line total:</span>
+                        <span className="text-sm font-semibold text-foreground">
+                          {formatPaiseToInr(pricing.linePayableInPaise)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Per-product note editor / view */}
+                    <div className="pl-[4.75rem]">
+                      {isEditing ? (
+                        <div className="space-y-2 rounded-md border border-border bg-muted/40 p-2.5">
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                            <ClipboardList className="size-3.5 text-muted-foreground" />
+                            <span>Item note</span>
+                          </div>
+                          <Textarea
+                            value={itemNoteDraft}
+                            onChange={(e) => setItemNoteDraft(e.target.value)}
+                            placeholder="Add special instructions for this item…"
+                            rows={2}
+                            className="text-xs resize-none bg-background"
+                            autoFocus
+                          />
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="xs"
+                              onClick={cancelItemNote}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="button"
+                              size="xs"
+                              onClick={() => saveItemNote(item.id)}
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : item.note ? (
+                        <div className="flex items-start justify-between gap-2 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5 text-xs">
+                          <div className="flex items-start gap-1.5 min-w-0 flex-1">
+                            <ClipboardList className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                            <p className="text-foreground/90 leading-snug break-words">
+                              <span className="font-medium text-muted-foreground">Note: </span>
+                              {item.note}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0 text-[11px]">
+                            <button
+                              type="button"
+                              onClick={() => startEditItemNote(item.id, item.note)}
+                              className="text-muted-foreground hover:text-foreground underline underline-offset-2"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setItemNote(item.id, "")}
+                              className="text-muted-foreground hover:text-destructive"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => startEditItemNote(item.id)}
+                          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <ClipboardList className="size-3.5" />
+                          <span>+ Add note</span>
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Card 2: Price summary breakdown in distinct white card */}
+          <div className="rounded-xl border border-border/80 bg-white p-5 shadow-sm">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Payment details
+            </h3>
+            <CartOrderSummaryRows
+              className="space-y-2.5 text-sm"
+              originalSubtotalInPaise={originalSubtotalInPaise}
+              subtotalInPaise={subtotalInPaise}
+              discountInPaise={discountInPaise}
+              discountPercent={discountPercent}
+              cgstInPaise={cgstInPaise}
+              sgstInPaise={sgstInPaise}
+              cgstPercent={cgstPercent}
+              sgstPercent={sgstPercent}
+              totalInPaise={totalInPaise}
+              showShipping
+            />
           </div>
         </div>
       </aside>

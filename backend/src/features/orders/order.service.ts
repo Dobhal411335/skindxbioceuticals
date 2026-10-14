@@ -15,7 +15,7 @@ export class OrderService {
   constructor(
     private readonly repository = orderRepository,
     private readonly users = authRepository,
-  ) {}
+  ) { }
 
   async listOrders(userId: string, query: ListOrdersQuery): Promise<PaginatedOrdersDto> {
     await this.requireActiveCustomer(userId);
@@ -62,6 +62,8 @@ export class OrderService {
       discountTotal: decimalToString(order.discountTotal),
       shippingTotal: decimalToString(order.shippingTotal),
       taxTotal: decimalToString(order.taxTotal),
+      cgstTotal: decimalToString(order.cgstTotal),
+      sgstTotal: decimalToString(order.sgstTotal),
       grandTotal: decimalToString(order.grandTotal),
       paymentStatus: order.payments[0]?.status ?? null,
       placedAt: order.placedAt?.toISOString() ?? null,
@@ -77,6 +79,16 @@ export class OrderService {
           : null,
         quantity: item.quantity,
         lineTotal: decimalToString(item.lineTotal),
+        cgstPercent: decimalToString(item.cgstPercent),
+        sgstPercent: decimalToString(item.sgstPercent),
+        cgstAmount: decimalToString(item.cgstAmount),
+        sgstAmount: decimalToString(item.sgstAmount),
+        image:
+          (item as unknown as {
+            variant?: {
+              product?: { media?: Array<{ media?: { url?: string } }> };
+            };
+          }).variant?.product?.media?.[0]?.media?.url ?? null,
       })),
     };
   }

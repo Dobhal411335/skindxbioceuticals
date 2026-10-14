@@ -397,6 +397,8 @@ export function ProductQuickView({
       originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
       discountCode: pricing.discountCode,
       discountInPaise: pricing.discountInPaise,
+      cgstPercent: product.tax?.cgst ?? 0,
+      sgstPercent: product.tax?.sgst ?? 0,
       quantity: clampQty(quantity),
     };
   }

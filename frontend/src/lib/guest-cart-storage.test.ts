@@ -3,10 +3,15 @@
  */
 
 import {
+  ACCOUNT_CART_CACHE_KEY,
+  clearAccountCartCache,
   clearGuestCart,
   GUEST_CART_STORAGE_KEY,
+  readAccountCartCache,
+  readCartLocalPaint,
   readGuestCart,
   toCartSyncPayload,
+  writeAccountCartCache,
   writeGuestCart,
 } from "@/lib/guest-cart-storage";
 
@@ -76,5 +81,26 @@ describe("guest-cart-storage", () => {
       }),
     );
     expect(readGuestCart().items).toEqual([]);
+  });
+
+  it("reads account cache for cross-tab paint when guest bag is empty", () => {
+    writeAccountCartCache([
+      { productId: PRODUCT_ID, variantId: VARIANT_ID, quantity: 1 },
+    ]);
+    expect(readCartLocalPaint().items).toHaveLength(1);
+    expect(readAccountCartCache().items[0]?.variantId).toBe(VARIANT_ID);
+    clearAccountCartCache();
+    expect(window.localStorage.getItem(ACCOUNT_CART_CACHE_KEY)).toBeNull();
+  });
+
+  it("prefers guest bag over account cache for local paint", () => {
+    const otherVariant = "33333333-3333-4333-8333-333333333333";
+    writeAccountCartCache([
+      { productId: PRODUCT_ID, variantId: VARIANT_ID, quantity: 1 },
+    ]);
+    writeGuestCart([
+      { productId: PRODUCT_ID, variantId: otherVariant, quantity: 2 },
+    ]);
+    expect(readCartLocalPaint().items[0]?.variantId).toBe(otherVariant);
   });
 });

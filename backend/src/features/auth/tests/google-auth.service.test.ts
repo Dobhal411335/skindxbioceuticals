@@ -69,7 +69,9 @@ describe('GoogleAuthService', () => {
   const repository = {
     findByExternalIdentity: jest.fn(),
     findByEmail: jest.fn(),
+    findGoogleIdentityByProviderUserId: jest.fn(),
     createGoogleCustomer: jest.fn(),
+    linkGoogleIdentityAndActivate: jest.fn(),
     updateLastLogin: jest.fn(),
   };
   const tokens = {
@@ -188,12 +190,33 @@ describe('GoogleAuthService', () => {
       await expect(service.resolveCustomer(identity)).resolves.toEqual(created);
     });
 
-    it('rejects password-account email conflicts without silent linking', async () => {
+    it('links Google to an existing password account when email is verified by Google', async () => {
+      const existing = customerUser({
+        passwordHash: 'hashed-password',
+        status: 'PENDING_VERIFICATION',
+        emailVerifiedAt: null,
+      });
+      const linked = customerUser({
+        passwordHash: 'hashed-password',
+        status: 'ACTIVE',
+        emailVerifiedAt: new Date(),
+        externalIdentities: [
+          { id: 'ei-1', provider: 'GOOGLE', providerUserId: identity.sub } as never,
+        ],
+      });
       repository.findByExternalIdentity.mockResolvedValue(null);
-      repository.findByEmail.mockResolvedValue(customerUser({ passwordHash: 'hashed-password' }));
+      repository.findByEmail.mockResolvedValue(existing);
+      repository.findGoogleIdentityByProviderUserId.mockResolvedValue(null);
+      repository.linkGoogleIdentityAndActivate.mockResolvedValue(linked);
 
-      await expectAppError(service.resolveCustomer(identity), 409);
+      await expect(service.resolveCustomer(identity)).resolves.toEqual(linked);
       expect(repository.createGoogleCustomer).not.toHaveBeenCalled();
+      expect(repository.linkGoogleIdentityAndActivate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: existing.id,
+          providerUserId: identity.sub,
+        }),
+      );
     });
 
     it('rejects suspended accounts', async () => {

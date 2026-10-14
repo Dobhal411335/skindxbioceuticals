@@ -120,7 +120,12 @@ function renderBreakdownHtml(
   if (breakdown.shipping) {
     lines.push(row('Shipping', breakdown.shipping));
   }
-  if (breakdown.tax) {
+  if (breakdown.cgst && Number(breakdown.cgst) > 0) {
+    lines.push(row('CGST', breakdown.cgst));
+  }
+  if (breakdown.sgst && Number(breakdown.sgst) > 0) {
+    lines.push(row('SGST', breakdown.sgst));
+  } else if (breakdown.tax && Number(breakdown.tax) > 0 && !(breakdown.cgst || breakdown.sgst)) {
     lines.push(row('Tax', breakdown.tax));
   }
   lines.push(row(`Total (${currency})`, total));
@@ -143,7 +148,14 @@ function renderBreakdownText(
   if (breakdown.subtotal) lines.push(`Subtotal: ${breakdown.subtotal}`);
   if (breakdown.discount) lines.push(`Discount: ${breakdown.discount}`);
   if (breakdown.shipping) lines.push(`Shipping: ${breakdown.shipping}`);
-  if (breakdown.tax) lines.push(`Tax: ${breakdown.tax}`);
+  if (breakdown.cgst && Number(breakdown.cgst) > 0) {
+    lines.push(`CGST: ${breakdown.cgst}`);
+  }
+  if (breakdown.sgst && Number(breakdown.sgst) > 0) {
+    lines.push(`SGST: ${breakdown.sgst}`);
+  } else if (breakdown.tax && Number(breakdown.tax) > 0 && !(breakdown.cgst || breakdown.sgst)) {
+    lines.push(`Tax: ${breakdown.tax}`);
+  }
   lines.push(`Total (${currency}): ${total}`);
   return lines;
 }

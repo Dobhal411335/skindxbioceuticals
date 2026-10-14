@@ -83,6 +83,8 @@ export function CatalogProductCard({
       originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
       discountCode: pricing.discountCode,
       discountInPaise: pricing.discountInPaise,
+      cgstPercent: product.tax?.cgst ?? 0,
+      sgstPercent: product.tax?.sgst ?? 0,
       quantity: 1,
     });
     if (ok) openCart();

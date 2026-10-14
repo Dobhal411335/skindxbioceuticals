@@ -116,6 +116,7 @@ One PostgreSQL database can support both sites. Separate databases are not requi
 ## 5. Order and payment integrity
 
 - Calculate price, discounts, tax, shipping, and total on the backend from trusted records.
+- Persist order tax snapshots at checkout: `Order.taxTotal`, `Order.cgstTotal`, `Order.sgstTotal`, and per-line `cgstPercent` / `sgstPercent` / `cgstAmount` / `sgstAmount` on `OrderItem` (do not recompute from live product tax for historical receipts).
 - Store currency with every monetary aggregate/transaction.
 - Use transactions for order creation, inventory reservation, and related database state changes.
 - Stock is **reserved** when `POST /payments/create-order` succeeds (inventory `RESERVATION`). On Razorpay create failure, reservations are **released** and the order cancelled. On payment **capture** (verify or webhook), reservation converts to `STOCK_OUT` once.

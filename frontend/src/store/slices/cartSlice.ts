@@ -55,7 +55,10 @@ const cartSlice = createSlice({
       );
       const index = byId >= 0 ? byId : byVariant;
       if (index >= 0) {
-        state.items[index] = action.payload;
+        state.items[index] = {
+          ...action.payload,
+          note: action.payload.note ?? state.items[index].note,
+        };
       } else {
         state.items.unshift(action.payload);
       }
@@ -92,11 +95,22 @@ const cartSlice = createSlice({
         existing.alt = action.payload.alt;
         existing.name = action.payload.name;
         existing.slug = action.payload.slug;
+        if (action.payload.note !== undefined) {
+          existing.note = action.payload.note;
+        }
       } else {
         state.items.push({ ...action.payload, id, quantity });
       }
       state.status = "ready";
       state.hydrated = true;
+    },
+    setCartItemNote(
+      state,
+      action: PayloadAction<{ id: string; note: string }>,
+    ) {
+      const item = state.items.find((entry) => entry.id === action.payload.id);
+      if (!item) return;
+      item.note = action.payload.note.trim() || undefined;
     },
     removeCartItem(state, action: PayloadAction<string>) {
       state.items = state.items.filter((item) => item.id !== action.payload);
@@ -164,6 +178,7 @@ export const {
   setCartError,
   setCartHydrated,
   setCartNotes,
+  setCartItemNote,
   setGiftWrap,
   setCouponCode,
   applyCoupon,

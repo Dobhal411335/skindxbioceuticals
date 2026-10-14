@@ -13,6 +13,10 @@ import authReducer, { setCredentials } from "@/store/slices/authSlice";
 import cartReducer from "@/store/slices/cartSlice";
 import wishlistReducer from "@/store/slices/wishlistSlice";
 import {
+  ACCOUNT_CART_CACHE_KEY,
+  writeAccountCartCache,
+} from "@/lib/guest-cart-storage";
+import {
   GUEST_WISHLIST_STORAGE_KEY,
   writeGuestWishlist,
 } from "@/lib/guest-wishlist-storage";
@@ -21,6 +25,8 @@ const getWishlistMock = jest.fn();
 const syncWishlistMock = jest.fn();
 const getCartMock = jest.fn();
 const syncCartMock = jest.fn();
+const addCartItemMock = jest.fn();
+const updateCartItemMock = jest.fn();
 
 jest.mock("@/features/wishlist/wishlist.service", () => ({
   wishlistService: {
@@ -33,6 +39,8 @@ jest.mock("@/features/cart/cart.service", () => ({
   cartService: {
     get: (...args: unknown[]) => getCartMock(...args),
     sync: (...args: unknown[]) => syncCartMock(...args),
+    addItem: (...args: unknown[]) => addCartItemMock(...args),
+    updateItem: (...args: unknown[]) => updateCartItemMock(...args),
   },
 }));
 
@@ -42,6 +50,10 @@ jest.mock("@/lib/toast", () => ({
 }));
 
 const PRODUCT_ID = "11111111-1111-4111-8111-111111111111";
+const PRODUCT_ID_B = "44444444-4444-4444-8444-444444444444";
+const VARIANT_A = "22222222-2222-4222-8222-222222222222";
+const VARIANT_B = "33333333-3333-4333-8333-333333333333";
+const VARIANT_C = "55555555-5555-4555-8555-555555555555";
 
 function makeStore() {
   return configureStore({
@@ -60,7 +72,10 @@ describe("CartWishlistSyncBridge", () => {
     syncWishlistMock.mockReset();
     getCartMock.mockReset();
     syncCartMock.mockReset();
+    addCartItemMock.mockReset();
+    updateCartItemMock.mockReset();
     getCartMock.mockResolvedValue({ id: "cart-1", items: [] });
+    getWishlistMock.mockResolvedValue({ id: "w1", items: [] });
     __resetWishlistSyncBridgeForTests();
   });
 
@@ -144,6 +159,132 @@ describe("CartWishlistSyncBridge", () => {
       expect(getCartMock).toHaveBeenCalled();
       expect(store.getState().wishlist.items[0]?.id).toBe("server-1");
       expect(window.localStorage.getItem(GUEST_WISHLIST_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  it("keeps account-cache-only products when DB has fewer lines", async () => {
+    writeAccountCartCache([
+      {
+        productId: PRODUCT_ID,
+        variantId: VARIANT_A,
+        quantity: 1,
+        productName: "A",
+      },
+      {
+        productId: PRODUCT_ID,
+        variantId: VARIANT_B,
+        quantity: 1,
+        productName: "B",
+      },
+      {
+        productId: PRODUCT_ID_B,
+        variantId: VARIANT_C,
+        quantity: 1,
+        productName: "C",
+      },
+    ]);
+
+    getCartMock.mockResolvedValue({
+      id: "cart-1",
+      items: [
+        {
+          id: "server-a",
+          productId: PRODUCT_ID,
+          variantId: VARIANT_A,
+          productName: "A",
+          productSlug: "a",
+          variantName: "Default",
+          imageUrl: null,
+          quantity: 1,
+          listPrice: "10",
+          unitPrice: "10",
+          discountAmount: "0",
+          discountCode: null,
+          currency: "INR",
+          availableQuantity: 5,
+          available: true,
+          coupon: null,
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+        {
+          id: "server-b",
+          productId: PRODUCT_ID,
+          variantId: VARIANT_B,
+          productName: "B",
+          productSlug: "b",
+          variantName: "Default",
+          imageUrl: null,
+          quantity: 1,
+          listPrice: "10",
+          unitPrice: "10",
+          discountAmount: "0",
+          discountCode: null,
+          currency: "INR",
+          availableQuantity: 5,
+          available: true,
+          coupon: null,
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    });
+
+    addCartItemMock.mockResolvedValue({
+      id: "server-c",
+      productId: PRODUCT_ID_B,
+      variantId: VARIANT_C,
+      productName: "C",
+      productSlug: "c",
+      variantName: "Default",
+      imageUrl: null,
+      quantity: 1,
+      listPrice: "10",
+      unitPrice: "10",
+      discountAmount: "0",
+      discountCode: null,
+      currency: "INR",
+      availableQuantity: 5,
+      available: true,
+      coupon: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    const store = makeStore();
+    store.dispatch(
+      setCredentials({
+        user: {
+          id: "user-merge",
+          email: "merge@b.com",
+          role: "CUSTOMER",
+          firstName: "Merge",
+          lastName: null,
+          imageUrl: null,
+          hasPassword: true,
+          linkedProviders: [],
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+        accessToken: "token",
+      }),
+    );
+
+    render(
+      <Provider store={store}>
+        <CartWishlistSyncBridge />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(getCartMock).toHaveBeenCalled();
+      expect(syncCartMock).not.toHaveBeenCalled();
+      expect(addCartItemMock).toHaveBeenCalledWith({
+        productId: PRODUCT_ID_B,
+        variantId: VARIANT_C,
+        quantity: 1,
+      });
+      expect(store.getState().cart.items).toHaveLength(3);
+      expect(window.localStorage.getItem(ACCOUNT_CART_CACHE_KEY)).not.toBeNull();
     });
   });
 

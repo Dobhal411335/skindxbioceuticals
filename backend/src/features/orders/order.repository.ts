@@ -10,7 +10,27 @@ const orderListInclude = {
 };
 
 const orderDetailInclude = {
-  items: true,
+  items: {
+    include: {
+      variant: {
+        select: {
+          product: {
+            select: {
+              media: {
+                where: { isPrimary: true },
+                take: 1,
+                select: {
+                  media: {
+                    select: { url: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   payments: {
     orderBy: { createdAt: 'desc' as const },
     take: 1,

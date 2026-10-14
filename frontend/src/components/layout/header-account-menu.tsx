@@ -27,11 +27,13 @@ import { authService } from "@/features/auth/auth.service";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAuth } from "@/hooks/useAuth";
 import { showSuccess } from "@/lib/toast";
-import { clearGuestCart } from "@/lib/guest-cart-storage";
+import {
+  clearAccountCartCache,
+  clearGuestCart,
+} from "@/lib/guest-cart-storage";
 import { clearGuestWishlist } from "@/lib/guest-wishlist-storage";
 import { clearCredentials } from "@/store/slices/authSlice";
 import { clearCart } from "@/store/slices/cartSlice";
-import { clearWishlist } from "@/store/slices/wishlistSlice";
 import { clearWishlist } from "@/store/slices/wishlistSlice";
 
 export function HeaderAccountMenu() {
@@ -58,6 +60,7 @@ export function HeaderAccountMenu() {
       dispatch(clearCart());
       dispatch(clearWishlist());
       clearGuestCart();
+      clearAccountCartCache();
       clearGuestWishlist();
       setMobileOpen(false);
       showSuccess("Logged out successfully.", { id: "auth.logout.success" });

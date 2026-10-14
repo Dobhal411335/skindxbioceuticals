@@ -207,6 +207,8 @@ export function DashboardView({ siteCode }: { siteCode: SiteCode }) {
                         <th className="py-2 pr-3 font-medium">Order</th>
                         <th className="py-2 pr-3 font-medium">Customer</th>
                         <th className="py-2 pr-3 font-medium">Status</th>
+                        <th className="py-2 pr-3 font-medium">CGST</th>
+                        <th className="py-2 pr-3 font-medium">SGST</th>
                         <th className="py-2 pr-3 font-medium">Total</th>
                         <th className="py-2 font-medium">Placed</th>
                       </tr>
@@ -217,6 +219,12 @@ export function DashboardView({ siteCode }: { siteCode: SiteCode }) {
                           <td className="py-2.5 pr-3 font-medium">{order.orderNumber}</td>
                           <td className="py-2.5 pr-3">{order.customerEmail ?? "—"}</td>
                           <td className="py-2.5 pr-3">{order.status}</td>
+                          <td className="py-2.5 pr-3">
+                            {formatCurrency(order.cgstTotal ?? 0, order.currency)}
+                          </td>
+                          <td className="py-2.5 pr-3">
+                            {formatCurrency(order.sgstTotal ?? 0, order.currency)}
+                          </td>
                           <td className="py-2.5 pr-3">
                             {formatCurrency(order.grandTotal, order.currency)}
                           </td>

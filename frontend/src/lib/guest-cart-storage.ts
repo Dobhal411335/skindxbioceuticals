@@ -5,6 +5,8 @@ import { z } from "zod";
  * Never stores tokens or secrets. Prices in cache are display-only until login sync.
  */
 export const GUEST_CART_STORAGE_KEY = "skindx.guest.cart.v1";
+/** Logged-in cross-tab display cache — never fed into additive /cart/sync. */
+export const ACCOUNT_CART_CACHE_KEY = "skindx.account.cart.cache.v1";
 
 function asNullableString(value: unknown): string | null | undefined {
   if (value === undefined) return undefined;
@@ -30,6 +32,9 @@ const guestCartItemSchema = z.object({
   originalUnitPriceInPaise: z.number().int().nonnegative().optional(),
   discountCode: z.string().nullable().optional(),
   discountInPaise: z.number().int().nonnegative().optional(),
+  cgstPercent: z.number().min(0).max(100).optional(),
+  sgstPercent: z.number().min(0).max(100).optional(),
+  note: z.string().max(500).optional(),
 });
 
 const guestCartBagSchema = z.object({
@@ -49,6 +54,9 @@ export type GuestCartItem = {
   originalUnitPriceInPaise?: number;
   discountCode?: string | null;
   discountInPaise?: number;
+  cgstPercent?: number;
+  sgstPercent?: number;
+  note?: string;
 };
 
 export type GuestCartBag = {
@@ -101,6 +109,18 @@ function sanitizeItem(raw: unknown): GuestCartItem | null {
       typeof record.discountInPaise === "number"
         ? Math.max(0, Math.round(record.discountInPaise))
         : undefined,
+    cgstPercent:
+      typeof record.cgstPercent === "number"
+        ? Math.min(100, Math.max(0, record.cgstPercent))
+        : undefined,
+    sgstPercent:
+      typeof record.sgstPercent === "number"
+        ? Math.min(100, Math.max(0, record.sgstPercent))
+        : undefined,
+    note:
+      typeof record.note === "string"
+        ? record.note.slice(0, 500)
+        : undefined,
   };
 
   const parsed = guestCartItemSchema.safeParse(candidate);
@@ -130,13 +150,13 @@ function sanitizeItems(rawItems: unknown[]): GuestCartItem[] {
   return Array.from(seen.values());
 }
 
-export function readGuestCart(): GuestCartBag {
+function readCartBag(storageKey: string): GuestCartBag {
   if (!canUseStorage()) {
     return { version: 1, items: [] };
   }
 
   try {
-    const raw = window.localStorage.getItem(GUEST_CART_STORAGE_KEY);
+    const raw = window.localStorage.getItem(storageKey);
     if (!raw) {
       return { version: 1, items: [] };
     }
@@ -150,7 +170,7 @@ export function readGuestCart(): GuestCartBag {
   }
 }
 
-export function writeGuestCart(items: GuestCartItem[]): boolean {
+function writeCartBag(storageKey: string, items: GuestCartItem[]): boolean {
   if (!canUseStorage()) {
     return false;
   }
@@ -161,12 +181,20 @@ export function writeGuestCart(items: GuestCartItem[]): boolean {
   };
 
   try {
-    window.localStorage.setItem(GUEST_CART_STORAGE_KEY, JSON.stringify(bag));
-    const verified = readGuestCart();
+    window.localStorage.setItem(storageKey, JSON.stringify(bag));
+    const verified = readCartBag(storageKey);
     return verified.items.length === bag.items.length;
   } catch {
     return false;
   }
+}
+
+export function readGuestCart(): GuestCartBag {
+  return readCartBag(GUEST_CART_STORAGE_KEY);
+}
+
+export function writeGuestCart(items: GuestCartItem[]): boolean {
+  return writeCartBag(GUEST_CART_STORAGE_KEY, items);
 }
 
 export function clearGuestCart(): void {
@@ -174,6 +202,29 @@ export function clearGuestCart(): void {
     return;
   }
   window.localStorage.removeItem(GUEST_CART_STORAGE_KEY);
+}
+
+/** Instant paint for logged-in users across tabs (not used for guest→account additive sync). */
+export function readAccountCartCache(): GuestCartBag {
+  return readCartBag(ACCOUNT_CART_CACHE_KEY);
+}
+
+export function writeAccountCartCache(items: GuestCartItem[]): boolean {
+  return writeCartBag(ACCOUNT_CART_CACHE_KEY, items);
+}
+
+export function clearAccountCartCache(): void {
+  if (!canUseStorage()) {
+    return;
+  }
+  window.localStorage.removeItem(ACCOUNT_CART_CACHE_KEY);
+}
+
+/** Prefer guest bag, else account cache — for first paint before auth finishes. */
+export function readCartLocalPaint(): GuestCartBag {
+  const guest = readGuestCart();
+  if (guest.items.length > 0) return guest;
+  return readAccountCartCache();
 }
 
 export function toCartSyncPayload(bag: GuestCartBag): Array<{

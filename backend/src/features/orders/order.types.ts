@@ -19,6 +19,10 @@ export interface OrderItemDto {
   originalUnitPrice: string | null;
   quantity: number;
   lineTotal: string;
+  cgstPercent: string;
+  sgstPercent: string;
+  cgstAmount: string;
+  sgstAmount: string;
 }
 
 export interface OrderDetailDto {
@@ -30,6 +34,8 @@ export interface OrderDetailDto {
   discountTotal: string;
   shippingTotal: string;
   taxTotal: string;
+  cgstTotal: string;
+  sgstTotal: string;
   grandTotal: string;
   paymentStatus: string | null;
   placedAt: string | null;

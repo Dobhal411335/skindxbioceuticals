@@ -4,7 +4,12 @@ import { generateOtpCode, hashOtp, otpExpiresAt } from '@/features/auth/otp.util
 import { secureCompare, sha256 } from '@/lib/crypto';
 import { emailService } from '@/lib/email';
 import { logger } from '@/lib/logger';
-import { ConflictError, ForbiddenError, UnauthorizedError, ValidationError } from '@/utils/AppError';
+import {
+  ConflictError,
+  ForbiddenError,
+  UnauthorizedError,
+  ValidationError,
+} from '@/utils/AppError';
 import { guestCheckoutRepository } from './guest-checkout.repository';
 import type {
   GuestSendOtpBody,
@@ -27,9 +32,7 @@ export class GuestCheckoutService {
   }> {
     const sessionToken = randomBytes(32).toString('base64url');
     const tokenHash = sha256(sessionToken);
-    const expiresAt = new Date(
-      Date.now() + env.GUEST_CHECKOUT_SESSION_HOURS * 60 * 60 * 1000,
-    );
+    const expiresAt = new Date(Date.now() + env.GUEST_CHECKOUT_SESSION_HOURS * 60 * 60 * 1000);
 
     const session = await this.repository.create({
       tokenHash,
@@ -59,30 +62,54 @@ export class GuestCheckoutService {
         const resendAvailableAt = new Date(
           session.otpLastSentAt.getTime() + cooldownMs,
         ).toISOString();
+        // Cooldown: do not claim a new email was sent.
         return { accepted: true, resendAvailableAt };
       }
     }
 
     const otp = generateOtpCode();
+    // Persist OTP before provider call so verify can succeed if mail was delivered
+    // but the HTTP response was lost. Only stamp otpLastSentAt after a successful submit
+    // so a failed send does not lock the guest into cooldown with no inbox code.
     await this.repository.update(session.id, {
       otpHash: hashOtp(otp),
       otpExpiresAt: otpExpiresAt(),
       otpAttemptCount: 0,
       otpConsumedAt: null,
-      otpLastSentAt: new Date(),
-      // Changing email verification requires re-verify if somehow email changed — session email is fixed at create.
+      // Session email is fixed at create; any new OTP invalidates prior verification.
       emailVerifiedAt: null,
     });
 
     try {
-      await this.mail.sendOtpEmail({
+      const result = await this.mail.sendOtpEmail({
         to: { email: session.email },
         siteCode: 'IN',
         otpCode: otp,
         purpose: GUEST_OTP_PURPOSE_LABEL,
         expiresInMinutes: env.OTP_EXPIRES_IN_MINUTES,
       });
+
+      if (!result.submitted) {
+        logger.error(
+          {
+            event: 'checkout.guest.otp.send_failed',
+            context: 'CHECKOUT',
+            sessionId: session.id,
+            err: result.errorCode ?? result.errorMessage ?? 'not_submitted',
+          },
+          'Guest OTP email was not submitted by provider',
+        );
+        await this.repository.update(session.id, {
+          otpHash: null,
+          otpExpiresAt: null,
+          otpConsumedAt: null,
+        });
+        throw new ValidationError('Unable to send verification code. Please try again.');
+      }
     } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
       logger.error(
         {
           event: 'checkout.guest.otp.send_failed',
@@ -92,8 +119,17 @@ export class GuestCheckoutService {
         },
         'Guest OTP email failed',
       );
+      await this.repository.update(session.id, {
+        otpHash: null,
+        otpExpiresAt: null,
+        otpConsumedAt: null,
+      });
       throw new ValidationError('Unable to send verification code. Please try again.');
     }
+
+    await this.repository.update(session.id, {
+      otpLastSentAt: new Date(),
+    });
 
     logger.info(
       { event: 'checkout.guest.otp.sent', context: 'CHECKOUT', sessionId: session.id },
@@ -175,9 +211,7 @@ export class GuestCheckoutService {
 
   async issueConfirmationToken(sessionId: string): Promise<string> {
     const token = randomBytes(32).toString('base64url');
-    const expiresAt = new Date(
-      Date.now() + env.GUEST_CONFIRMATION_TOKEN_MINUTES * 60 * 1000,
-    );
+    const expiresAt = new Date(Date.now() + env.GUEST_CONFIRMATION_TOKEN_MINUTES * 60 * 1000);
     await this.repository.update(sessionId, {
       confirmationTokenHash: sha256(token),
       confirmationTokenExpiresAt: expiresAt,

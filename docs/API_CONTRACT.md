@@ -86,7 +86,8 @@ Choose one consistent policy for using `400` versus `422`; document it and follo
 
 Shared session architecture with Google: short-lived access JWT in JSON (`Authorization: Bearer`), refresh token in HttpOnly cookie for storefront clients. Never store refresh tokens in `localStorage`. Rate-limited.
 
-- `POST /api/v1/auth/register` — body `{ name, email, password, confirmPassword }`. Creates `PENDING_VERIFICATION` customer, stores hashed email OTP, sends Brevo OTP for site `IN`. Returns `{ verificationRequired: true, email }`. **No session / tokens.** Conflicts with existing Active or Google-only accounts → `409`.
+- `POST /api/v1/auth/register` — body `{ name, email, password, confirmPassword }`. Creates `PENDING_VERIFICATION` customer, stores hashed email OTP, sends Brevo OTP for site `IN`. Returns `{ verificationRequired: true, email }`. **No session / tokens.** Conflicts with existing Active or Google-only accounts → `409`. Re-register on the same pending password email resends OTP.
+- `POST /api/v1/auth/google` — body `{ credential }` (Google ID token). Verifies token server-side. If the email already belongs to a customer (including pending password signup), attaches Google for that verified email and activates the account; then links eligible guest orders. New emails create an `ACTIVE` Google customer.
 - `POST /api/v1/auth/verify-email` — body `{ email, otp }`. Atomically consumes OTP, activates account, schedules welcome email once, returns `{ accessToken, user }` + refresh cookie.
 - `POST /api/v1/auth/resend-verification` — body `{ email }`. Generic acknowledgement; enforces resend cooldown.
 - `POST /api/v1/auth/login` — body `{ email, password }`. Verified customers get `{ accessToken, user }` + refresh cookie. Invalid credentials → generic `401`. Unverified → `403` with `errors.code = EMAIL_NOT_VERIFIED`. Suspended/inactive → `403`. Never grants admin.

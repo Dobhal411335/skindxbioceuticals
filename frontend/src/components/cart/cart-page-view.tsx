@@ -5,28 +5,47 @@ import Link from "next/link";
 import { ShieldCheck, X } from "lucide-react";
 
 import { CartLinePrice } from "@/components/cart/cart-line-price";
+import { CartOrderSummaryRows } from "@/components/cart/cart-order-summary-rows";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useAppSelector } from "@/hooks/useAppSelector";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useCartTotals } from "@/hooks/useCartTotals";
-import { formatPaiseToInr } from "@/lib/utils";
 import { setCartNotes, setTermsAccepted } from "@/store/slices/cartSlice";
 
 export function CartPageView() {
   const dispatch = useAppDispatch();
+  const { isLoading: authLoading } = useAuth();
   const { setQuantity, remove } = useCartActions();
+  const hydrated = useAppSelector((state) => state.cart.hydrated);
+  const status = useAppSelector((state) => state.cart.status);
   const {
     items,
     extras,
     originalSubtotalInPaise,
+    subtotalInPaise,
     discountInPaise,
     discountPercent,
+    cgstInPaise,
+    sgstInPaise,
+    cgstPercent,
+    sgstPercent,
     totalInPaise,
   } = useCartTotals();
+
+  // Prefer local paint: only block empty-state while hydrate/sync is still pending.
+  const loading =
+    items.length === 0 &&
+    (authLoading ||
+      !hydrated ||
+      status === "syncing" ||
+      status === "loading");
 
   return (
     <div className="container-page section-space">
@@ -40,7 +59,12 @@ export function CartPageView() {
 
       <h1 className="text-3xl font-semibold tracking-wide uppercase">Your cart</h1>
 
-      {items.length === 0 ? (
+      {loading ? (
+        <div className="mt-10 space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      ) : items.length === 0 ? (
         <div className="mt-10 rounded-lg border border-border p-8 text-center">
           <p className="text-muted-foreground">Your cart is empty.</p>
           <Button asChild className="mt-4">
@@ -131,22 +155,18 @@ export function CartPageView() {
             <h2 className="text-sm font-semibold tracking-wide uppercase">
               Order summary
             </h2>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span>Subtotal</span>
-                <span>{formatPaiseToInr(originalSubtotalInPaise)}</span>
-              </div>
-              {discountInPaise > 0 ? (
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Discount ({discountPercent}%)</span>
-                  <span>-{formatPaiseToInr(discountInPaise)}</span>
-                </div>
-              ) : null}
-              <div className="flex justify-between border-t border-border pt-4 text-base font-semibold">
-                <span>Total</span>
-                <span>{formatPaiseToInr(totalInPaise)}</span>
-              </div>
-            </div>
+            <CartOrderSummaryRows
+              className="mt-4 space-y-2 text-sm"
+              originalSubtotalInPaise={originalSubtotalInPaise}
+              subtotalInPaise={subtotalInPaise}
+              discountInPaise={discountInPaise}
+              discountPercent={discountPercent}
+              cgstInPaise={cgstInPaise}
+              sgstInPaise={sgstInPaise}
+              cgstPercent={cgstPercent}
+              sgstPercent={sgstPercent}
+              totalInPaise={totalInPaise}
+            />
 
             {/* Coupon UI commented out for now
             <div className="mt-5 space-y-2">

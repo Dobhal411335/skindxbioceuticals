@@ -23,7 +23,11 @@ function makeCartItem(overrides: Record<string, unknown> = {}) {
       slug: 'barrier-serum',
       status: 'ACTIVE',
       site: { code: 'IN', isActive: true },
+      galleryImages: [
+        { imageUrl: 'https://res.cloudinary.com/demo/image/upload/serum.jpg' },
+      ],
       media: [],
+      tax: { cgst: { toString: () => '9' }, sgst: { toString: () => '9' } },
       coupon: {
         couponId: 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1',
         coupon: {
@@ -98,6 +102,9 @@ describe('CartService', () => {
     expect(result.items[0]?.unitPrice).toBe('900.00');
     expect(result.items[0]?.discountCode).toBe('SAVE10');
     expect(result.items[0]?.discountAmount).toBe('100.00');
+    expect(result.items[0]?.imageUrl).toContain('serum.jpg');
+    expect(result.items[0]?.cgstPercent).toBe(9);
+    expect(result.items[0]?.sgstPercent).toBe(9);
   });
 
   it('adds a line capped at available stock', async () => {

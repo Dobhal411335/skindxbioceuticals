@@ -73,6 +73,8 @@ export type PublicProductCardDto = {
   isBestSeller: boolean;
   /** Product-linked default discount coupon (same shape as detail). */
   coupon: PublicProductCouponDto;
+  /** Optional product GST rates for cart tax display. */
+  tax: { cgst: number; sgst: number } | null;
 };
 
 export type PublicProductListMetaDto = {

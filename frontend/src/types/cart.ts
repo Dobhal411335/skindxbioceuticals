@@ -20,6 +20,12 @@ export type CartItem = {
   discountCode?: string | null;
   /** Absolute discount amount per unit in paise. */
   discountInPaise?: number;
+  /** Product CGST % (from catalog / account cart). */
+  cgstPercent?: number;
+  /** Product SGST % (from catalog / account cart). */
+  sgstPercent?: number;
+  /** Custom instructions / note for this specific item. */
+  note?: string;
 };
 
 export type CartTotals = {

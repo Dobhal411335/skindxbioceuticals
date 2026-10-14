@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
@@ -16,8 +16,9 @@ import { authService } from "@/features/auth/auth.service";
 import { registerFormSchema } from "@/features/auth/auth.validation";
 import { showError, showInfo } from "@/lib/toast";
 
-export function SignupForm() {
+function SignupFormInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState("");
@@ -27,6 +28,13 @@ export function SignupForm() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const preset = searchParams.get("email");
+    if (preset && preset.includes("@")) {
+      setEmail(preset.trim().toLowerCase());
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -278,5 +286,13 @@ export function SignupForm() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export function SignupForm() {
+  return (
+    <Suspense fallback={<div className="mx-auto w-full max-w-md p-6">Loading…</div>}>
+      <SignupFormInner />
+    </Suspense>
   );
 }

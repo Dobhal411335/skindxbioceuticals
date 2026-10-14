@@ -1,0 +1,8 @@
+-- Persist CGST/SGST snapshots on orders and order lines for receipts / admin.
+ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "cgst_total" DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "sgst_total" DECIMAL(12,2) NOT NULL DEFAULT 0;
+
+ALTER TABLE "order_items" ADD COLUMN IF NOT EXISTS "cgst_percent" DECIMAL(5,2) NOT NULL DEFAULT 0;
+ALTER TABLE "order_items" ADD COLUMN IF NOT EXISTS "sgst_percent" DECIMAL(5,2) NOT NULL DEFAULT 0;
+ALTER TABLE "order_items" ADD COLUMN IF NOT EXISTS "cgst_amount" DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE "order_items" ADD COLUMN IF NOT EXISTS "sgst_amount" DECIMAL(12,2) NOT NULL DEFAULT 0;

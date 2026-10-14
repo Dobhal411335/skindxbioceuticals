@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { CartLinePrice } from "@/components/cart/cart-line-price";
+import { CartOrderSummaryRows } from "@/components/cart/cart-order-summary-rows";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { Button } from "@/components/ui/button";
@@ -23,39 +24,57 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { useAuth } from "@/hooks/useAuth";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useCartTotals } from "@/hooks/useCartTotals";
-import { formatPaiseToInr, cn } from "@/lib/utils";
-import {
-  // applyCoupon,
-  // DEMO_COUPON,
-  setCartNotes,
-  // setCouponCode,
-  setTermsAccepted,
-} from "@/store/slices/cartSlice";
-
-type CartOption = "notes" | null;
-// type CartOption = "notes" | "coupon" | null; // coupon commented out
+import { setTermsAccepted } from "@/store/slices/cartSlice";
 
 export function CartDrawer() {
   const { isOpen, closeCart } = useCartUi();
   const dispatch = useAppDispatch();
-  const { setQuantity, remove } = useCartActions();
+  const { isLoading: authLoading } = useAuth();
+  const { setQuantity, setItemNote, remove } = useCartActions();
+  const hydrated = useAppSelector((state) => state.cart.hydrated);
+  const cartStatus = useAppSelector((state) => state.cart.status);
   const {
     items,
     extras,
     itemCount,
     originalSubtotalInPaise,
+    subtotalInPaise,
     discountInPaise,
     discountPercent,
+    cgstInPaise,
+    sgstInPaise,
+    cgstPercent,
+    sgstPercent,
     totalInPaise,
   } = useCartTotals();
-  const [activeOption, setActiveOption] = useState<CartOption>(null);
-  const [notesDraft, setNotesDraft] = useState(extras.notes);
-  // const [couponDraft, setCouponDraft] = useState(extras.couponCode);
+  const [editingNoteItemId, setEditingNoteItemId] = useState<string | null>(null);
+  const [itemNoteDraft, setItemNoteDraft] = useState("");
 
-  function toggleOption(option: Exclude<CartOption, null>) {
-    setActiveOption((current) => (current === option ? null : option));
+  const cartLoading =
+    items.length === 0 &&
+    (authLoading ||
+      !hydrated ||
+      cartStatus === "syncing" ||
+      cartStatus === "loading");
+
+  function startEditItemNote(itemId: string, currentNote?: string) {
+    setEditingNoteItemId(itemId);
+    setItemNoteDraft(currentNote || "");
+  }
+
+  function saveItemNote(itemId: string) {
+    setItemNote(itemId, itemNoteDraft);
+    setEditingNoteItemId(null);
+    setItemNoteDraft("");
+  }
+
+  function cancelItemNote() {
+    setEditingNoteItemId(null);
+    setItemNoteDraft("");
   }
 
   return (
@@ -73,153 +92,158 @@ export function CartDrawer() {
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
-          {items.length === 0 ? (
+          {cartLoading ? (
+            <p className="text-sm text-muted-foreground">Loading cart…</p>
+          ) : items.length === 0 ? (
             <p className="text-sm text-muted-foreground">Your cart is empty.</p>
           ) : (
-            <ul className="space-y-5">
+            <ul className="space-y-4">
               {items.map((item) => (
-                <li key={item.id} className="flex gap-3">
-                  <div className="relative size-20 shrink-0 overflow-hidden rounded-md bg-surface">
-                    <Image
-                      src={item.image || "https://placehold.co/600x400/png"}
-                      alt={item.alt || "Product image"}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <Link
-                          href={`/products/${item.slug}`}
-                          onClick={closeCart}
-                          className="line-clamp-2 text-sm font-medium hover:underline"
-                        >
-                          {item.name}
-                        </Link>
-                        {item.variantLabel ? (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {item.variantLabel}
-                          </p>
-                        ) : null}
-                        <div className="mt-1">
-                          <CartLinePrice item={item} mode="unit" compact />
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Remove ${item.name}`}
-                        onClick={() => void remove(item.id)}
-                      >
-                        <X className="size-4" />
-                      </Button>
-                    </div>
-                    <div className="mt-3">
-                      <QuantityStepper
-                        size="sm"
-                        value={item.quantity}
-                        onChange={(quantity) =>
-                          void setQuantity(item.id, quantity)
-                        }
+                <li
+                  key={item.id}
+                  className="rounded-lg border border-border/60 bg-card p-3 shadow-2xs"
+                >
+                  <div className="flex gap-3">
+                    <div className="relative size-20 shrink-0 overflow-hidden rounded-md bg-surface">
+                      <Image
+                        src={item.image || "https://placehold.co/600x400/png"}
+                        alt={item.alt || "Product image"}
+                        fill
+                        className="object-cover"
+                        sizes="80px"
                       />
                     </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <Link
+                            href={`/products/${item.slug}`}
+                            onClick={closeCart}
+                            className="line-clamp-2 text-sm font-medium hover:underline"
+                          >
+                            {item.name}
+                          </Link>
+                          {item.variantLabel ? (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {item.variantLabel}
+                            </p>
+                          ) : null}
+                          <div className="mt-1">
+                            <CartLinePrice item={item} mode="unit" compact />
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Remove ${item.name}`}
+                          onClick={() => void remove(item.id)}
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      </div>
+                      <div className="mt-3">
+                        <QuantityStepper
+                          size="sm"
+                          value={item.quantity}
+                          onChange={(quantity) =>
+                            void setQuantity(item.id, quantity)
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Per-product note display and inline editor */}
+                  {editingNoteItemId === item.id ? (
+                    <div className="mt-3 space-y-2 rounded-md border border-border bg-muted/30 p-2.5">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                        <ClipboardList className="size-3.5 text-muted-foreground" />
+                        <span>Item note</span>
+                      </div>
+                      <Textarea
+                        value={itemNoteDraft}
+                        onChange={(event) => setItemNoteDraft(event.target.value)}
+                        placeholder="Add special instructions for this item…"
+                        rows={2}
+                        className="text-xs resize-none bg-background"
+                        autoFocus
+                      />
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="xs"
+                          onClick={cancelItemNote}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          size="xs"
+                          onClick={() => saveItemNote(item.id)}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : item.note ? (
+                    <div className="mt-2.5 flex items-start justify-between gap-2 rounded-md border border-border/50 bg-muted/40 px-2.5 py-1.5 text-xs">
+                      <div className="flex items-start gap-1.5 min-w-0 flex-1">
+                        <ClipboardList className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                        <p className="text-foreground/90 leading-snug break-words">
+                          <span className="font-medium text-muted-foreground">Note: </span>
+                          {item.note}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 text-[11px]">
+                        <button
+                          type="button"
+                          onClick={() => startEditItemNote(item.id, item.note)}
+                          className="text-muted-foreground hover:text-foreground underline underline-offset-2"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setItemNote(item.id, "")}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-2 pt-1.5 border-t border-border/40">
+                      <button
+                        type="button"
+                        onClick={() => startEditItemNote(item.id)}
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ClipboardList className="size-3.5" />
+                        <span>+ Add note</span>
+                      </button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
           )}
-
-          <div className="mt-6 grid grid-cols-1 gap-2 border-y border-border py-3">
-            <button
-              type="button"
-              className={cn(
-                "flex flex-col items-center gap-1 rounded-md px-1 py-2 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                activeOption === "notes" && "bg-muted text-foreground",
-              )}
-              onClick={() => toggleOption("notes")}
-            >
-              <ClipboardList className="size-4" aria-hidden />
-              Notes
-            </button>
-            {/* Coupon option commented out for now
-            <button
-              type="button"
-              className={cn(
-                "flex flex-col items-center gap-1 rounded-md px-1 py-2 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground",
-                activeOption === "coupon" && "bg-muted text-foreground",
-              )}
-              onClick={() => toggleOption("coupon")}
-            >
-              <Tag className="size-4" aria-hidden />
-              Coupon
-            </button>
-            */}
-          </div>
-
-          {activeOption === "notes" ? (
-            <div className="mt-4 space-y-3 rounded-lg border border-border p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <ClipboardList className="size-4" aria-hidden />
-                Order special instructions
-              </div>
-              <Textarea
-                value={notesDraft}
-                onChange={(event) => setNotesDraft(event.target.value)}
-                placeholder="Add a note for fulfilment…"
-                rows={4}
-              />
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  className="flex-1"
-                  onClick={() => {
-                    dispatch(setCartNotes(notesDraft));
-                    setActiveOption(null);
-                  }}
-                >
-                  Save
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setActiveOption(null)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : null}
-
-          {/* Coupon panel commented out for now
-          {activeOption === "coupon" ? (
-            <div className="mt-4 space-y-3 rounded-lg border border-border p-4">
-              ...
-            </div>
-          ) : null}
-          */}
         </div>
 
         <div className="mt-auto space-y-3 border-t border-border px-4 py-4">
-          <div className="flex items-center justify-between text-sm">
-            <span>Subtotal</span>
-            <span className="font-medium">
-              {formatPaiseToInr(originalSubtotalInPaise)}
-            </span>
-          </div>
-          {discountInPaise > 0 ? (
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Discount ({discountPercent}%)</span>
-              <span>-{formatPaiseToInr(discountInPaise)}</span>
-            </div>
-          ) : null}
-          <div className="flex items-center justify-between text-base font-semibold">
-            <span>Total</span>
-            <span>{formatPaiseToInr(totalInPaise)}</span>
-          </div>
+          <CartOrderSummaryRows
+            className="space-y-2 text-sm"
+            originalSubtotalInPaise={originalSubtotalInPaise}
+            subtotalInPaise={subtotalInPaise}
+            discountInPaise={discountInPaise}
+            discountPercent={discountPercent}
+            cgstInPaise={cgstInPaise}
+            sgstInPaise={sgstInPaise}
+            cgstPercent={cgstPercent}
+            sgstPercent={sgstPercent}
+            totalInPaise={totalInPaise}
+          />
 
           <div className="flex items-start gap-2">
             <Checkbox

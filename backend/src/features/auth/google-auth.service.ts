@@ -26,7 +26,9 @@ export type VerifiedGoogleIdentity = {
 
 /**
  * Verifies Google ID tokens and maps them to application customer sessions.
- * Does not grant admin roles. Does not silently link to existing password accounts.
+ * Does not grant admin roles.
+ * May attach Google to an existing customer when the ID token proves the same
+ * verified email (guest order claim / incomplete password signup).
  */
 export class GoogleAuthService {
   private readonly client: OAuth2Client;
@@ -136,9 +138,36 @@ export class GoogleAuthService {
 
     const existing = await this.repository.findByEmail(identity.email);
     if (existing) {
-      throw new ConflictError(
-        'An account with this email already exists. Sign in with your password, then link Google from account settings.',
+      this.assertCustomerCanAuthenticate(existing);
+
+      const otherGoogle = existing.externalIdentities.find(
+        (row) => row.provider === 'GOOGLE' && row.providerUserId !== identity.sub,
       );
+      if (otherGoogle) {
+        throw new ConflictError(
+          'An account with this email is already linked to a different Google identity. Sign in with your password.',
+        );
+      }
+
+      // Google ID token with email_verified proves ownership of this email — safe to
+      // attach Google to the existing customer (pending password signup or password-only).
+      const providerTaken = await this.repository.findGoogleIdentityByProviderUserId(
+        identity.sub,
+      );
+      if (providerTaken && providerTaken.userId !== existing.id) {
+        throw new ConflictError(
+          'This Google account is already linked to a different user.',
+        );
+      }
+
+      return this.repository.linkGoogleIdentityAndActivate({
+        userId: existing.id,
+        providerUserId: identity.sub,
+        emailVerifiedAt: new Date(),
+        firstName: identity.firstName,
+        lastName: identity.lastName,
+        imageUrl: identity.imageUrl,
+      });
     }
 
     try {
@@ -171,8 +200,21 @@ export class GoogleAuthService {
           return racedIdentity;
         }
 
+        const racedEmail = await this.repository.findByEmail(identity.email);
+        if (racedEmail) {
+          this.assertCustomerCanAuthenticate(racedEmail);
+          return this.repository.linkGoogleIdentityAndActivate({
+            userId: racedEmail.id,
+            providerUserId: identity.sub,
+            emailVerifiedAt: new Date(),
+            firstName: identity.firstName,
+            lastName: identity.lastName,
+            imageUrl: identity.imageUrl,
+          });
+        }
+
         throw new ConflictError(
-          'An account with this email already exists. Sign in with your password, then link Google from account settings.',
+          'An account with this email already exists. Sign in with your password or Google.',
         );
       }
       throw error;

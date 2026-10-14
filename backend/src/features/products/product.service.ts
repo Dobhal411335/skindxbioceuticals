@@ -104,6 +104,10 @@ type CardSource = {
       isActive?: boolean;
     };
   } | null;
+  tax?: {
+    cgst: { toString(): string } | number;
+    sgst: { toString(): string } | number;
+  } | null;
 };
 
 function toPublicCardCouponDto(
@@ -147,6 +151,12 @@ export function toPublicProductCardDto(
     isRecent: row.isRecent,
     isBestSeller: row.isBestSeller,
     coupon: toPublicCardCouponDto(row.coupon),
+    tax: row.tax
+      ? {
+          cgst: decimalToNumber(row.tax.cgst) ?? 0,
+          sgst: decimalToNumber(row.tax.sgst) ?? 0,
+        }
+      : null,
   };
 }
 

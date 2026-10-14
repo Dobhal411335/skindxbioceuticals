@@ -19,6 +19,12 @@ export type CustomerOrderItem = {
   originalUnitPrice: string | null;
   quantity: number;
   lineTotal: string;
+  cgstPercent?: string;
+  sgstPercent?: string;
+  cgstAmount?: string;
+  sgstAmount?: string;
+  image?: string | null;
+  imageUrl?: string | null;
 };
 
 export type CustomerOrderDetail = {
@@ -30,6 +36,8 @@ export type CustomerOrderDetail = {
   discountTotal: string;
   shippingTotal: string;
   taxTotal: string;
+  cgstTotal?: string;
+  sgstTotal?: string;
   grandTotal: string;
   paymentStatus: string | null;
   placedAt: string | null;

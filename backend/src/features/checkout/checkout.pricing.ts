@@ -15,7 +15,13 @@ export type PricedLine = {
   lineOriginalTotal: number;
   linePayableTotal: number;
   discountAmount: number;
+  cgstPercent: number;
+  sgstPercent: number;
   taxRatePercent: number;
+  /** CGST amount from original (list) line total. */
+  lineCgst: number;
+  /** SGST amount from original (list) line total. */
+  lineSgst: number;
   lineTax: number;
 };
 
@@ -114,15 +120,19 @@ export function priceCheckoutLines(
         ? Math.max(compareAt, listPrice)
         : listPrice;
 
-    const cgst = variant.product.tax ? decimalToNumber(variant.product.tax.cgst) : 0;
-    const sgst = variant.product.tax ? decimalToNumber(variant.product.tax.sgst) : 0;
-    const taxRatePercent = cgst + sgst;
+    const cgstPercent = variant.product.tax
+      ? decimalToNumber(variant.product.tax.cgst) ?? 0
+      : 0;
+    const sgstPercent = variant.product.tax
+      ? decimalToNumber(variant.product.tax.sgst) ?? 0
+      : 0;
+    const taxRatePercent = cgstPercent + sgstPercent;
     const linePayableTotal = Math.round(priced.unitPrice * quantity * 100) / 100;
     const lineOriginalTotal = Math.round(originalUnitPrice * quantity * 100) / 100;
-    const lineTax =
-      taxRatePercent > 0
-        ? Math.round(linePayableTotal * (taxRatePercent / 100) * 100) / 100
-        : 0;
+    // Tax is calculated on the original (list) line total, then added to payable.
+    const lineCgst = round2(lineOriginalTotal * (cgstPercent / 100));
+    const lineSgst = round2(lineOriginalTotal * (sgstPercent / 100));
+    const lineTax = round2(lineCgst + lineSgst);
 
     return {
       variantId: variant.id,
@@ -136,20 +146,38 @@ export function priceCheckoutLines(
       lineOriginalTotal,
       linePayableTotal,
       discountAmount: Math.round((lineOriginalTotal - linePayableTotal) * 100) / 100,
+      cgstPercent,
+      sgstPercent,
       taxRatePercent,
+      lineCgst,
+      lineSgst,
       lineTax,
     };
   });
 }
 
+/**
+ * CGST/SGST are computed from original (list) line totals and added on top of payable.
+ */
 export function sumCheckoutTotals(lines: PricedLine[]) {
   const subtotal = round2(lines.reduce((s, l) => s + l.lineOriginalTotal, 0));
   const payable = round2(lines.reduce((s, l) => s + l.linePayableTotal, 0));
   const discountTotal = round2(Math.max(0, subtotal - payable));
-  const taxTotal = round2(lines.reduce((s, l) => s + l.lineTax, 0));
+  const cgstTotal = round2(lines.reduce((s, l) => s + l.lineCgst, 0));
+  const sgstTotal = round2(lines.reduce((s, l) => s + l.lineSgst, 0));
+  const taxTotal = round2(cgstTotal + sgstTotal);
   const shippingTotal = 0;
   const grandTotal = round2(payable + taxTotal + shippingTotal);
-  return { subtotal, discountTotal, taxTotal, shippingTotal, grandTotal, payable };
+  return {
+    subtotal,
+    discountTotal,
+    cgstTotal,
+    sgstTotal,
+    taxTotal,
+    shippingTotal,
+    grandTotal,
+    payable,
+  };
 }
 
 function round2(n: number): number {

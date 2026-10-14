@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useStore } from "react-redux";
 
 import { cartService } from "@/features/cart/cart.service";
+import type { AccountCartItem } from "@/features/cart/cart.types";
 import { mapAccountCartItemToCartItem } from "@/features/cart/map-account-cart-item";
 import { wishlistService } from "@/features/wishlist/wishlist.service";
 import type { WishlistItem } from "@/features/wishlist/wishlist.types";
@@ -11,10 +12,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import {
+  ACCOUNT_CART_CACHE_KEY,
   clearGuestCart,
   GUEST_CART_STORAGE_KEY,
+  readAccountCartCache,
+  readCartLocalPaint,
   readGuestCart,
   toCartSyncPayload,
+  writeAccountCartCache,
   writeGuestCart,
   type GuestCartItem,
 } from "@/lib/guest-cart-storage";
@@ -74,7 +79,29 @@ function guestItemsToCartItems(items: GuestCartItem[]): CartItem[] {
     originalUnitPriceInPaise: item.originalUnitPriceInPaise,
     discountCode: item.discountCode ?? null,
     discountInPaise: item.discountInPaise,
+    cgstPercent: item.cgstPercent ?? 0,
+    sgstPercent: item.sgstPercent ?? 0,
   }));
+}
+
+function cartItemsToGuestBag(items: CartItem[]): GuestCartItem[] {
+  return items
+    .filter((item) => Boolean(item.variantId))
+    .map((item) => ({
+      productId: item.productId,
+      variantId: item.variantId!,
+      quantity: item.quantity,
+      productName: item.name,
+      productSlug: item.slug,
+      imageUrl: item.image || null,
+      variantLabel: item.variantLabel,
+      unitPriceInPaise: item.unitPriceInPaise,
+      originalUnitPriceInPaise: item.originalUnitPriceInPaise,
+      discountCode: item.discountCode ?? null,
+      discountInPaise: item.discountInPaise,
+      cgstPercent: item.cgstPercent ?? 0,
+      sgstPercent: item.sgstPercent ?? 0,
+    }));
 }
 
 function hashGuestWishlistPayload(
@@ -95,8 +122,90 @@ function hashGuestCartPayload(
     .join("|");
 }
 
+function lineKey(productId: string, variantId?: string | null) {
+  return `${productId}:${variantId ?? ""}`;
+}
+
+/**
+ * Union local + server lines. Local-only products are kept (DB=2, LS=3 → 3).
+ * Overlaps take max quantity and prefer server ids/pricing with local image fallback.
+ */
+function unionCartItems(
+  localItems: CartItem[],
+  serverItems: AccountCartItem[],
+): CartItem[] {
+  const map = new Map<string, CartItem>();
+
+  for (const server of serverItems) {
+    const key = lineKey(server.productId, server.variantId);
+    map.set(key, mapAccountCartItemToCartItem(server));
+  }
+
+  for (const local of localItems) {
+    const key = lineKey(local.productId, local.variantId);
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, local);
+      continue;
+    }
+    map.set(key, {
+      ...existing,
+      quantity: Math.max(existing.quantity, local.quantity),
+      image: existing.image || local.image,
+      alt: existing.alt || local.alt,
+      name: existing.name || local.name,
+      slug: existing.slug || local.slug,
+      variantLabel: existing.variantLabel ?? local.variantLabel,
+    });
+  }
+
+  return Array.from(map.values());
+}
+
+async function pushLocalOnlyLinesToAccount(
+  merged: CartItem[],
+  serverItems: AccountCartItem[],
+): Promise<CartItem[]> {
+  const serverByKey = new Map(
+    serverItems.map((item) => [lineKey(item.productId, item.variantId), item]),
+  );
+  let next = merged;
+
+  for (const line of merged) {
+    if (!line.variantId) continue;
+    const key = lineKey(line.productId, line.variantId);
+    const server = serverByKey.get(key);
+    try {
+      if (!server) {
+        const created = await cartService.addItem({
+          productId: line.productId,
+          variantId: line.variantId,
+          quantity: line.quantity,
+        });
+        const mapped = mapAccountCartItemToCartItem(created, line.image);
+        next = next.map((row) =>
+          lineKey(row.productId, row.variantId) === key ? mapped : row,
+        );
+      } else if (line.quantity > server.quantity) {
+        const updated = await cartService.updateItem(server.id, {
+          quantity: line.quantity,
+        });
+        const mapped = mapAccountCartItemToCartItem(updated, line.image);
+        next = next.map((row) =>
+          lineKey(row.productId, row.variantId) === key ? mapped : row,
+        );
+      }
+    } catch {
+      // Keep local line; account catch-up can retry on next hydrate.
+    }
+  }
+
+  return next;
+}
+
 /**
  * Guest LS hydrate + post-auth cart/wishlist merge.
+ * Cart: paint localStorage first, then DB — local-only lines are kept and pushed up.
  */
 export function CartWishlistSyncBridge() {
   const dispatch = useAppDispatch();
@@ -106,6 +215,17 @@ export function CartWishlistSyncBridge() {
   const wishlistHydrated = useAppSelector((state) => state.wishlist.hydrated);
   const cartHydrated = useAppSelector((state) => state.cart.hydrated);
   const guestHydrateDone = useRef(false);
+  const cartLsHydrateDone = useRef(false);
+
+  // Instant cart paint from localStorage (before auth finishes).
+  useEffect(() => {
+    if (cartLsHydrateDone.current) return;
+    cartLsHydrateDone.current = true;
+    const bag = readCartLocalPaint();
+    if (bag.items.length === 0) return;
+    if (store.getState().cart.items.length > 0) return;
+    dispatch(setCartItems(guestItemsToCartItems(bag.items)));
+  }, [dispatch, store]);
 
   useEffect(() => {
     if (authStatus === "idle" || authStatus === "loading") {
@@ -154,23 +274,7 @@ export function CartWishlistSyncBridge() {
       } else {
         const currentCart = store.getState().cart.items;
         if (currentCart.length > 0) {
-          writeGuestCart(
-            currentCart
-              .filter((item) => Boolean(item.variantId))
-              .map((item) => ({
-                productId: item.productId,
-                variantId: item.variantId!,
-                quantity: item.quantity,
-                productName: item.name,
-                productSlug: item.slug,
-                imageUrl: item.image || null,
-                variantLabel: item.variantLabel,
-                unitPriceInPaise: item.unitPriceInPaise,
-                originalUnitPriceInPaise: item.originalUnitPriceInPaise,
-                discountCode: item.discountCode ?? null,
-                discountInPaise: item.discountInPaise,
-              })),
-          );
+          writeGuestCart(cartItemsToGuestBag(currentCart));
           dispatch(setCartItems(currentCart));
         } else {
           dispatch(setCartItems([]));
@@ -183,7 +287,7 @@ export function CartWishlistSyncBridge() {
       return;
     }
 
-    if (lastSyncedUserId === user.id && inFlightSync == null) {
+    if (lastSyncedUserId === user.id && !inFlightSync) {
       return;
     }
 
@@ -193,8 +297,20 @@ export function CartWishlistSyncBridge() {
 
       const wishlistBag = readGuestWishlist();
       const wishlistSyncItems = toSyncPayload(wishlistBag);
-      const cartBag = readGuestCart();
-      const cartSyncItems = toCartSyncPayload(cartBag);
+      const guestCartBag = readGuestCart();
+      const guestCartSyncItems = toCartSyncPayload(guestCartBag);
+      const accountCache = readAccountCartCache();
+      const localPaint =
+        guestCartBag.items.length > 0
+          ? guestItemsToCartItems(guestCartBag.items)
+          : accountCache.items.length > 0
+            ? guestItemsToCartItems(accountCache.items)
+            : store.getState().cart.items;
+
+      // Paint LS / cache immediately for logged-in users (before network).
+      if (localPaint.length > 0) {
+        dispatch(setCartItems(localPaint));
+      }
 
       let wishlistOk = false;
       let cartOk = false;
@@ -249,22 +365,19 @@ export function CartWishlistSyncBridge() {
       }
 
       try {
-        if (cartSyncItems.length === 0) {
-          const cart = await cartService.get();
-          dispatch(setCartItems(cart.items.map(mapAccountCartItemToCartItem)));
-          cartOk = true;
-        } else {
-          const key = `cart-sync:${user.id}:${hashGuestCartPayload(cartSyncItems)}`;
+        let serverItems: AccountCartItem[] = [];
+
+        // Guest bag only → additive /cart/sync (login merge). Never sync account cache.
+        if (guestCartSyncItems.length > 0) {
+          const key = `cart-sync:${user.id}:${hashGuestCartPayload(guestCartSyncItems)}`;
           const result = await cartService.sync(
-            { items: cartSyncItems },
+            { items: guestCartSyncItems },
             key,
           );
-          dispatch(
-            setCartItems(result.cart.items.map(mapAccountCartItemToCartItem)),
-          );
+          serverItems = result.cart.items;
           const mergedKeys = new Set(
-            result.cart.items.map(
-              (item) => `${item.productId}:${item.variantId}`,
+            result.cart.items.map((item) =>
+              lineKey(item.productId, item.variantId),
             ),
           );
           const permanentlySkipped = new Set(
@@ -276,26 +389,43 @@ export function CartWishlistSyncBridge() {
                   row.reason === "INVALID_VARIANT" ||
                   row.reason === "OUT_OF_STOCK",
               )
-              .map((row) => `${row.productId}:${row.variantId ?? ""}`),
+              .map((row) => lineKey(row.productId, row.variantId)),
           );
-          const allAccountedFor = cartSyncItems.every(
+          const allAccountedFor = guestCartSyncItems.every(
             (item) =>
-              mergedKeys.has(`${item.productId}:${item.variantId}`) ||
-              permanentlySkipped.has(`${item.productId}:${item.variantId}`),
+              mergedKeys.has(lineKey(item.productId, item.variantId)) ||
+              permanentlySkipped.has(lineKey(item.productId, item.variantId)),
           );
           if (allAccountedFor) {
             clearGuestCart();
           }
-          cartOk = true;
+        } else {
+          const cart = await cartService.get();
+          serverItems = cart.items;
         }
+
+        // Union so LS/cache-only products are not dropped (DB=2, local=3 → keep 3).
+        const localNow =
+          store.getState().cart.items.length > 0
+            ? store.getState().cart.items
+            : localPaint;
+        let merged = unionCartItems(localNow, serverItems);
+        merged = await pushLocalOnlyLinesToAccount(merged, serverItems);
+        dispatch(setCartItems(merged));
+        writeAccountCartCache(cartItemsToGuestBag(merged));
+        cartOk = true;
       } catch {
         dispatch(setCartError("Unable to sync cart."));
-        showError("Could not sync your cart. Guest items were kept.", {
+        showError("Could not sync your cart. Local items were kept.", {
           id: "cart.sync.error",
         });
-        if (cartBag.items.length > 0) {
-          dispatch(setCartItems(guestItemsToCartItems(cartBag.items)));
-          writeGuestCart(cartBag.items);
+        if (localPaint.length > 0) {
+          dispatch(setCartItems(localPaint));
+          if (guestCartBag.items.length > 0) {
+            writeGuestCart(guestCartBag.items);
+          } else {
+            writeAccountCartCache(cartItemsToGuestBag(localPaint));
+          }
         } else {
           dispatch(setCartItems([]));
         }
@@ -326,13 +456,23 @@ export function CartWishlistSyncBridge() {
 
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
-      if (isAuthenticated) return;
       if (event.key === GUEST_WISHLIST_STORAGE_KEY) {
+        if (isAuthenticated) return;
         const bag = readGuestWishlist();
         dispatch(setWishlistItems(guestItemsToWishlistItems(bag.items)));
       }
+
       if (event.key === GUEST_CART_STORAGE_KEY) {
+        if (isAuthenticated) return;
         const bag = readGuestCart();
+        if (bag.items.length === 0) return;
+        dispatch(setCartItems(guestItemsToCartItems(bag.items)));
+      }
+
+      // Logged-in cross-tab: paint account cache immediately (no empty flash).
+      if (event.key === ACCOUNT_CART_CACHE_KEY) {
+        const bag = readAccountCartCache();
+        if (bag.items.length === 0) return;
         dispatch(setCartItems(guestItemsToCartItems(bag.items)));
       }
     };

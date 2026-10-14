@@ -26,11 +26,12 @@ export const checkoutService = {
     return response.data.data;
   },
 
-  async sendGuestOtp(sessionToken: string): Promise<{ accepted: true }> {
-    const response = await apiClient.post<Envelope<{ accepted: true }>>(
-      API_ENDPOINTS.CHECKOUT.GUEST_SEND_OTP,
-      { sessionToken },
-    );
+  async sendGuestOtp(
+    sessionToken: string,
+  ): Promise<{ accepted: true; resendAvailableAt?: string }> {
+    const response = await apiClient.post<
+      Envelope<{ accepted: true; resendAvailableAt?: string }>
+    >(API_ENDPOINTS.CHECKOUT.GUEST_SEND_OTP, { sessionToken });
     return response.data.data;
   },
 

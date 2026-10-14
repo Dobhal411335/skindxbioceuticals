@@ -117,6 +117,8 @@ export function ProductStickyBar({
       discountInPaise: priced.hasDiscount
         ? rupeesToPaise(priced.discountAmount)
         : undefined,
+      cgstPercent: product.tax?.cgst ?? 0,
+      sgstPercent: product.tax?.sgst ?? 0,
       quantity,
     });
     if (ok) openCart();

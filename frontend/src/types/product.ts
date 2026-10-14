@@ -109,6 +109,8 @@ export type PublicProductCard = {
   isBestSeller: boolean;
   /** Product-linked default discount coupon. */
   coupon?: PublicProductCoupon | null;
+  /** Optional product GST rates for cart tax. */
+  tax?: { cgst: number; sgst: number } | null;
 };
 
 export type PublicProductListMeta = {

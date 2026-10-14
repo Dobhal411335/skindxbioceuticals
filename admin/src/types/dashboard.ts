@@ -32,6 +32,9 @@ export interface InDashboard {
     orderNumber: string;
     status: string;
     grandTotal: number;
+    taxTotal?: number;
+    cgstTotal?: number;
+    sgstTotal?: number;
     currency: string;
     createdAt: string;
     customerEmail: string | null;

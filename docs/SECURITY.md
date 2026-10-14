@@ -24,7 +24,8 @@ Support email/password authentication and Google sign-in/sign-up.
 - Use generic login/reset responses where needed to reduce account enumeration. Unverified password accounts that present a valid password receive `403` with `EMAIL_NOT_VERIFIED` so the client can continue verification without issuing a full session.
 - Rate-limit login, signup, password reset, verification, and sensitive account actions.
 - Email verification uses cryptographically random numeric OTPs (default length 6, expiry 10 minutes, max 5 attempts, 60s resend cooldown). Store only a hash; consume atomically; invalidate prior unconsumed OTPs on resend.
-- Do not silently link Google and password accounts on email match alone.
+- Do not link Google and password accounts on client-supplied email match alone.
+- Server-verified Google ID tokens with `email_verified=true` may attach Google to an existing customer row for the same normalized email (covers guest checkout claim and incomplete password signup). Do not attach when the Google `sub` is already tied to a different user.
 - Revoke sessions/refresh tokens on logout, password reset, and relevant security events. Refresh-token reuse after rotation revokes the user's refresh-token family.
 
 ### Google sign-in
@@ -32,7 +33,7 @@ Support email/password authentication and Google sign-in/sign-up.
 - Validate ID tokens server-side: signature, issuer, audience, expiry, and nonce/state as appropriate.
 - Use exact registered redirect URIs; do not accept arbitrary callback URLs.
 - Do not trust a client-supplied email or Google user ID without provider-token verification.
-- Link Google and password accounts only through a safe, verified account-linking process.
+- Link Google to an existing password/pending customer only after ID-token verification of the same email; never invent links from browser claims.
 - Do not request Google scopes the application does not need.
 
 ### Session/token handling

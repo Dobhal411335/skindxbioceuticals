@@ -24,6 +24,10 @@ export type CartItemDto = {
   currency: string;
   availableQuantity: number;
   available: boolean;
+  /** Product CGST % (0 when unset). */
+  cgstPercent: number;
+  /** Product SGST % (0 when unset). */
+  sgstPercent: number;
   coupon: CartItemCouponDto;
   createdAt: string;
   updatedAt: string;

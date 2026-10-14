@@ -28,7 +28,8 @@ describe('applyProductCouponRupees', () => {
 });
 
 describe('sumCheckoutTotals', () => {
-  it('computes original subtotal, discount, tax and grand total', () => {
+  it('adds CGST/SGST from original line totals onto payable', () => {
+    // Original 2000 @ 9%+9% → tax 360; payable 1800 → grand 2160
     const lines: PricedLine[] = [
       {
         variantId: 'v1',
@@ -42,15 +43,22 @@ describe('sumCheckoutTotals', () => {
         lineOriginalTotal: 2000,
         linePayableTotal: 1800,
         discountAmount: 200,
+        cgstPercent: 9,
+        sgstPercent: 9,
         taxRatePercent: 18,
-        lineTax: 324,
+        lineCgst: 180,
+        lineSgst: 180,
+        lineTax: 360,
       },
     ];
     const totals = sumCheckoutTotals(lines);
     expect(totals.subtotal).toBe(2000);
     expect(totals.discountTotal).toBe(200);
-    expect(totals.taxTotal).toBe(324);
+    expect(totals.cgstTotal).toBe(180);
+    expect(totals.sgstTotal).toBe(180);
+    expect(totals.taxTotal).toBe(360);
     expect(totals.shippingTotal).toBe(0);
-    expect(totals.grandTotal).toBe(2124);
+    expect(totals.payable).toBe(1800);
+    expect(totals.grandTotal).toBe(2160);
   });
 });
