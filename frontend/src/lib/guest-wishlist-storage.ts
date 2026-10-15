@@ -38,6 +38,7 @@ const guestWishlistItemSchema = z.object({
   price: z.string().nullable().optional(),
   currency: z.string().nullable().optional(),
   available: z.boolean().optional(),
+  quantity: z.number().int().nonnegative().optional(),
   coupon: guestWishlistCouponSchema.nullable().optional(),
 });
 
@@ -55,6 +56,7 @@ export type GuestWishlistItem = {
   price?: string | null;
   currency?: string | null;
   available?: boolean;
+  quantity?: number;
   coupon?: {
     couponId: string;
     code: string;
@@ -92,6 +94,12 @@ function sanitizeItem(raw: unknown): GuestWishlistItem | null {
     currency: asNullableString(record.currency) ?? null,
     available:
       typeof record.available === "boolean" ? record.available : undefined,
+    quantity:
+      typeof record.quantity === "number" &&
+      Number.isFinite(record.quantity) &&
+      record.quantity >= 0
+        ? Math.floor(record.quantity)
+        : undefined,
     coupon:
       record.coupon === null
         ? null

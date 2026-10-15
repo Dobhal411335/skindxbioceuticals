@@ -82,7 +82,7 @@ export function ShopFiltersSidebar({
         className="w-full"
       >
         <AccordionItem value="categories" className="py-5">
-          <AccordionTrigger className="py-0 text-sm font-semibold">
+          <AccordionTrigger className="py-0 text-md font-semibold">
             Product Categories
           </AccordionTrigger>
           <AccordionContent className="pt-3">
@@ -123,7 +123,7 @@ export function ShopFiltersSidebar({
         </AccordionItem>
 
         <AccordionItem value="price" className="py-5">
-          <AccordionTrigger className="py-0 text-sm font-semibold">
+          <AccordionTrigger className="py-0 text-md font-semibold">
             Price
           </AccordionTrigger>
           <AccordionContent className="pt-3">
@@ -156,6 +156,7 @@ export function ShopFiltersSidebar({
                       if (!Number.isFinite(next)) return;
                       updateRange([next, safeRange[1]]);
                     }}
+                    className="h-10 border-2 border-gray-500 rounded-md"
                   />
                 </div>
                 <div className="space-y-1">
@@ -174,10 +175,11 @@ export function ShopFiltersSidebar({
                       if (!Number.isFinite(next)) return;
                       updateRange([safeRange[0], next]);
                     }}
+                    className="h-10 border-2 border-gray-500 rounded-md"
                   />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-md text-black">
                 {formatInr(safeRange[0])} – {formatInr(safeRange[1])}
               </p>
             </div>
@@ -192,6 +194,7 @@ export function ShopFiltersSidebar({
             <div className="space-y-3">
               <label className="flex cursor-pointer items-center gap-2 text-sm">
                 <Checkbox
+                  className="h-5 w-5 border-2 border-gray-500"
                   checked={availability === "in_stock"}
                   onCheckedChange={() => toggleAvailability("in_stock")}
                 />
@@ -199,6 +202,7 @@ export function ShopFiltersSidebar({
               </label>
               <label className="flex cursor-pointer items-center gap-2 text-sm">
                 <Checkbox
+                  className="h-5 w-5 border-2 border-gray-500"
                   checked={availability === "out_of_stock"}
                   onCheckedChange={() => toggleAvailability("out_of_stock")}
                 />

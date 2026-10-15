@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -31,10 +32,18 @@ export function PromoPopupBanner({
   delayMs = 800,
   siteCode = STOREFRONT_SITE_CODE,
 }: PromoPopupBannerProps) {
+  const pathname = usePathname();
+  const isLandingPage = pathname === "/";
   const [open, setOpen] = useState(false);
   const [banner, setBanner] = useState<StorefrontPopupBanner | null>(null);
 
   useEffect(() => {
+    if (!isLandingPage) {
+      setOpen(false);
+      setBanner(null);
+      return;
+    }
+
     let cancelled = false;
     let timer: number | undefined;
 
@@ -62,7 +71,7 @@ export function PromoPopupBanner({
         window.clearTimeout(timer);
       }
     };
-  }, [delayMs, siteCode]);
+  }, [delayMs, isLandingPage, siteCode]);
 
   function dismiss(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -71,7 +80,7 @@ export function PromoPopupBanner({
     }
   }
 
-  if (!banner) {
+  if (!isLandingPage || !banner) {
     return null;
   }
 
@@ -95,9 +104,9 @@ export function PromoPopupBanner({
 
           <div className="flex flex-col items-center justify-center px-6 py-10 text-center sm:px-10">
             <DialogHeader className="items-center space-y-3 text-center">
-                <p className="text-xs font-semibold tracking-wide uppercase opacity-90">
-                  {banner.miniHeading}
-                </p>
+              <p className="text-xs font-semibold tracking-wide uppercase opacity-90">
+                {banner.miniHeading}
+              </p>
               <DialogTitle className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
                 {banner.heading}
               </DialogTitle>
@@ -106,13 +115,16 @@ export function PromoPopupBanner({
                   {banner.subDescription}
                 </DialogDescription>
               ) : (
-                <DialogDescription className="sr-only">
-                  Promotional popup
-                </DialogDescription>
+                <DialogDescription className="sr-only">Promotional popup</DialogDescription>
               )}
             </DialogHeader>
 
-            <Button asChild size="lg" variant="outline" className="mt-8 border border-black hover:bg-primary hover:text-white transition-colors duration-300 min-w-[12rem]">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="mt-8 border border-black hover:bg-primary hover:text-white transition-colors duration-300 min-w-[12rem]"
+            >
               <Link href={banner.buttonUrl} onClick={() => dismiss(false)}>
                 {banner.buttonLabel}
               </Link>

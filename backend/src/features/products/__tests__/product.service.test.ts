@@ -299,6 +299,7 @@ describe('ProductService', () => {
         id: '55555555-5555-5555-5555-555555555555',
         slug: 'vitamin-c-serum',
         name: 'Vitamin C Serum',
+        description: '<p>Brightening serum</p>',
         isFeatured: true,
         isRecent: false,
         isBestSeller: false,
@@ -337,6 +338,7 @@ describe('ProductService', () => {
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.imageUrl).toMatch(/^https:\/\//);
     expect(result.items[0]?.categoryName).toBe('Serums');
+    expect(result.items[0]?.description).toBe('<p>Brightening serum</p>');
     expect(result.items[0]?.averageRating).toBe(5);
     expect(result.items[0]?.defaultVariantId).toBe('v1');
     expect(result.items[0]?.compareAtPrice).toBe(1799);

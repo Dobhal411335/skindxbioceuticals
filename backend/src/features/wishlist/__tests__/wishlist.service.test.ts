@@ -116,12 +116,44 @@ describe('WishlistService', () => {
     const result = await service.getWishlist(USER_ID);
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.productId).toBe(PRODUCT_ID);
+    expect(result.items[0]?.quantity).toBe(5);
+    expect(result.items[0]?.available).toBe(true);
     expect(result.items[0]?.coupon).toEqual({
       couponId: 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1',
       code: 'SAVE10',
       type: 'PERCENTAGE',
       value: 10,
     });
+  });
+
+  it('returns quantityOnHand like product cards even when units are reserved', async () => {
+    const reserved = makeItem({
+      product: {
+        ...makeItem().product,
+        variants: [
+          {
+            id: VARIANT_ID,
+            price: { toString: () => '1299.00' },
+            currency: 'INR',
+            inventory: { quantityOnHand: 13, quantityReserved: 13 },
+          },
+        ],
+      },
+      variant: {
+        id: VARIANT_ID,
+        price: { toString: () => '1299.00' },
+        currency: 'INR',
+        inventory: { quantityOnHand: 13, quantityReserved: 13 },
+      },
+    });
+    findOrCreateWishlist.mockResolvedValue({
+      id: WISHLIST_ID,
+      items: [reserved],
+    });
+
+    const result = await service.getWishlist(USER_ID);
+    expect(result.items[0]?.quantity).toBe(13);
+    expect(result.items[0]?.available).toBe(true);
   });
 
   it('rejects add when product is not an active IN catalog item', async () => {

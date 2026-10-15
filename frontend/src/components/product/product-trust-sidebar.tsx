@@ -70,7 +70,7 @@ export function ProductTrustSidebar({
         </Accordion>
       </div>
 
-      {pairsWith ? (
+      {/* {pairsWith ? (
         <div>
           <h2 className="mb-3 text-sm font-semibold tracking-wide uppercase">
             Pairs well with
@@ -82,7 +82,7 @@ export function ProductTrustSidebar({
             <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-surface">
               {pairsWith.imageUrl ? (
                 <Image
-                  src={pairsWith.imageUrl}
+                  src={pairsWith.imageUrl ?? "https://placehold.co/64x64.png"}
                   alt={pairsWith.name}
                   fill
                   className="object-cover"
@@ -98,7 +98,7 @@ export function ProductTrustSidebar({
             </div>
           </Link>
         </div>
-      ) : null}
+      ) : null} */}
 
       {product.tags.length > 0 ? (
         <div>
@@ -109,7 +109,7 @@ export function ProductTrustSidebar({
             {product.tags.map((tag) => (
               <li
                 key={tag.id}
-                className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium"
+                className="rounded border border-gray-500 bg-gray-50 px-3 py-1 text-xs font-medium"
               >
                 {tag.name}
               </li>

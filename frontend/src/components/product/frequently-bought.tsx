@@ -316,11 +316,11 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
 
           <div className="w-full max-w-sm flex-shrink-0 xl:sticky xl:top-24">
             <div className="bg-card rounded-xl border border-border px-8 py-6 flex flex-col gap-5 shadow-sm justify-center">
-              <div>
-                <p className="text-base text-muted-foreground">
+              <div className="flex flex-col items-center justify-center">
+                <p className="text-xl font-semibold text-black">
                   Total for selected
                 </p>
-                <span className="font-bold text-2xl mt-1 block text-foreground">
+                <span className="font-bold text-3xl mt-1 block text-black">
                   {formatInr(total)}
                 </span>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -330,15 +330,13 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
               </div>
               <Button
                 size="lg"
-                className="w-full mt-2 rounded-full"
+                className="w-full mt-2 rounded-full border border-gray-500 hover:bg-primary hover:text-white cursor-pointer"
                 type="button"
                 onClick={() => void addAll()}
               >
+                <ShoppingCart className="size-4" />
                 Add selected to cart
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Same category products, excluding this item
-              </p>
             </div>
           </div>
         </div>

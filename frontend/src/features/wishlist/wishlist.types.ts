@@ -15,6 +15,8 @@ export type WishlistItem = {
   price: string | null;
   currency: string | null;
   available: boolean;
+  /** Sellable units left; optional on older guest cache entries. */
+  quantity?: number;
   createdAt: string;
   coupon?: WishlistItemCoupon | null;
 };

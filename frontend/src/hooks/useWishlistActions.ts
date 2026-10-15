@@ -32,6 +32,7 @@ export type WishlistAddInput = {
   price?: string | null;
   currency?: string | null;
   available?: boolean;
+  quantity?: number;
   coupon?: WishlistItemCoupon | null;
 };
 
@@ -49,6 +50,7 @@ function toGuestBagItem(item: WishlistItem): GuestWishlistItem {
     price: item.price,
     currency: item.currency,
     available: item.available,
+    quantity: item.quantity,
     coupon: item.coupon ?? null,
   };
 }
@@ -103,6 +105,7 @@ export function useWishlistActions() {
             : String(input.price),
         currency: input.currency ?? null,
         available: input.available ?? true,
+        quantity: input.quantity,
         createdAt: new Date().toISOString(),
         coupon: input.coupon ?? null,
       };

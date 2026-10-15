@@ -22,10 +22,10 @@ export function ProductHighlights({ highlights }: ProductHighlightsProps) {
 
   return (
     <section className="container-page pb-10">
-      <div className="rounded-lg border border-border bg-background p-5 sm:p-6">
+      <div className="rounded-lg border border-gray-500 bg-gray-50 p-5 sm:p-6">
         <div className="mb-4 flex items-center gap-2">
           <Info className="size-4 text-muted-foreground" aria-hidden />
-          <h2 className="text-base font-semibold tracking-tight">
+          <h2 className="text-xl font-semibold tracking-tight">
             Product Highlights
           </h2>
         </div>
@@ -38,7 +38,7 @@ export function ProductHighlights({ highlights }: ProductHighlightsProps) {
                 key={item.id}
                 className={
                   index < highlights.length - 1
-                    ? "border-b border-border py-4 first:pt-0"
+                    ? "border-b border-gray-500 py-4 first:pt-0"
                     : "py-4 first:pt-0 last:pb-0"
                 }
               >

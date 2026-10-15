@@ -61,6 +61,8 @@ export type PublicProductCardDto = {
   slug: string;
   name: string;
   categoryName: string | null;
+  /** TipTap/HTML overview; storefront list view may render a plain-text excerpt. */
+  description: string | null;
   price: number;
   compareAtPrice: number | null;
   imageUrl: string | null;

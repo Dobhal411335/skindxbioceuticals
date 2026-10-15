@@ -108,7 +108,7 @@ All routes require `Authorization: Bearer` and `CUSTOMER` role. Ownership is alw
 - `DELETE /api/v1/me/addresses/:addressId` — delete owned address only (404 if not owned).
 - `GET /api/v1/orders?page&pageSize` — paginated orders for the authenticated customer only.
 - `GET /api/v1/orders/:orderId` — order detail with items; 404 if not owned.
-- `GET /api/v1/wishlist` — current wishlist (created if missing) with product summary fields. Response omits non-`ACTIVE` / non-`IN` leftovers.
+- `GET /api/v1/wishlist` — current wishlist (created if missing) with product summary fields (`available`, `quantity` sellable units, price, coupon, etc.). Response omits non-`ACTIVE` / non-`IN` leftovers.
 - `POST /api/v1/wishlist` — body `{ productId, variantId? }`; active `IN` products only; conflict if duplicate.
 - `POST /api/v1/wishlist/sync` — merge guest wishlist into the account. Body `{ items: [{ productId, variantId? }] }` (max 100). Optional `Idempotency-Key` header (union merge is naturally idempotent via unique `(wishlistId, productId)`). Returns `{ wishlist, skipped[] }` where skip reasons are `INVALID_PRODUCT` | `INACTIVE_OR_WRONG_SITE` | `INVALID_VARIANT`. Guests are not a server concept — unauthenticated callers receive `401`.
 - `DELETE /api/v1/wishlist/items/:itemId` — remove owned wishlist item only.
@@ -520,7 +520,7 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 
 - `GET /api/v1/sites/:siteCode/products` — public list of ACTIVE products for an active site (no auth). Response `data` is an array of product cards; pagination/filter metadata is returned in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
   - Query (allowlisted): `q` (max 120), `categorySlug` (root category slug; products under that root’s active subcategories), `priceMin` / `priceMax` (first active variant price in INR rupees), `availability` (`in_stock` | `out_of_stock`), `sort` (`default` | `rating` | `price_asc` | `price_desc`), `page` (1-based, default 1), optional `offset` (preferred for infinite scroll with varying page sizes; when set, overrides `(page-1)*limit`), `limit` (default `15`, max `48`).
-  - Card fields: `id`, `slug`, `name`, `categoryName`, `price`, optional `compareAtPrice` (null when unset), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount`, `defaultVariantId`, `quantity`, and landing flags.
+  - Card fields: `id`, `slug`, `name`, `categoryName`, optional `description` (HTML overview; null when empty), `price`, optional `compareAtPrice` (null when unset), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount`, `defaultVariantId`, `quantity`, and landing flags.
   - Landing rail may call with only `limit`; shop PLP uses filters + pagination.
 - `GET /api/v1/sites/:siteCode/products/facets` — public read for shop filters: `{ categories: [{ id, name, slug, productCount, imageUrl }], price: { min, max } }`. Category image is the first ACTIVE product primary gallery image under that root (else null). Price min/max use each product’s first active variant by `createdAt` (same rule as cards).
 - `GET /api/v1/sites/:siteCode/products/highlights` — public read returning `{ recent, featured, bestSellers }` ACTIVE products flagged `isRecent` / `isFeatured` / `isBestSeller` (caps 4 / 8 / 4). Same card shape as the list endpoint.

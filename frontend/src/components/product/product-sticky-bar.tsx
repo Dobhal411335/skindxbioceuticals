@@ -20,6 +20,7 @@ import { useCartActions } from "@/hooks/useCartActions";
 import { showError } from "@/lib/toast";
 import { formatInr } from "@/lib/utils";
 import type { PublicProductDetail } from "@/types/product";
+import { ShoppingCart } from "lucide-react";
 
 type ProductStickyBarProps = {
   product: PublicProductDetail;
@@ -125,23 +126,23 @@ export function ProductStickyBar({
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-500 bg-background backdrop-blur supports-backdrop-filter:bg-background/80">
       <div className="container-page flex w-full items-center gap-3 py-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {imageUrl ? (
-            <div className="relative hidden size-12 shrink-0 overflow-hidden rounded-md bg-surface sm:block">
+            <div className="relative hidden size-16 shrink-0 overflow-hidden rounded bg-surface sm:block">
               <Image
-                src={imageUrl}
+                src={imageUrl ?? "https://placehold.co/64x64.png"}
                 alt=""
                 fill
                 className="object-cover"
-                sizes="48px"
+                sizes="52px"
               />
             </div>
           ) : null}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{product.name}</p>
-            <p className="text-sm font-medium">
+            <p className="truncate text-md font-semibold">{product.name}</p>
+            <p className="text-md font-medium">
               {formatInr(unitPrice)}
               {priced.hasDiscount ? (
                 <span className="ml-2 text-xs text-muted-foreground line-through">
@@ -194,11 +195,11 @@ export function ProductStickyBar({
         <Button
           type="button"
           size="lg"
-          className="h-11 shrink-0 px-6"
+          className="h-11 shrink-0 px-10"
           disabled={unavailable}
           onClick={() => void addToCart()}
         >
-          Add to cart
+          <ShoppingCart className="size-4 mr-2" /> Add to cart
         </Button>
       </div>
     </div>

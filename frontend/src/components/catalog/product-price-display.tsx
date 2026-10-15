@@ -58,7 +58,7 @@ export function ProductPriceDisplay({
   const percent = discountPercentForBadge(priced);
 
   return (
-    <div className={cn("flex flex-wrap items-baseline gap-2", className)}>
+    <div className={cn("flex flex-wrap items-center justify-center gap-2", className)}>
       <span
         className={cn(
           saleSizeClass[size],

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Heart, Ruler, Share2 } from "lucide-react";
+import { Heart, Ruler, Share2, ShoppingCart } from "lucide-react";
 
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
@@ -249,7 +249,7 @@ export function ProductPurchasePanel({
           {product.name}
         </h1>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-md border border-border bg-muted/60 px-2 py-0.5 font-mono text-xs font-medium tracking-wide text-foreground">
+          <span className="rounded border border-black bg-black text-white px-2 py-0.5 font-mono text-xs font-medium tracking-wide">
             {product.productCode}
           </span>
           {selectedVariant?.sku ? (
@@ -278,22 +278,22 @@ export function ProductPurchasePanel({
       </div>
 
       <div>
-        <div className="flex flex-wrap items-baseline gap-2">
-          <p className="text-2xl font-semibold">{formatInr(unitPrice)}</p>
+        <div className="flex flex-wrap items-center justify-start gap-2">
+          <p className="text-3xl font-semibold">{formatInr(unitPrice)}</p>
           {priced.hasDiscount ? (
             <p className="text-base text-muted-foreground line-through">
               {formatInr(priced.originalPrice)}
             </p>
           ) : null}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Exclusive of CGST/SGST (added at cart &amp; checkout)
-        </p>
         {discountLabel ? (
-          <p className="mt-2 inline-flex rounded-md bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">
+          <p className="mt-2 inline-flex rounded bg-primary text-white px-2.5 py-1 text-xs font-semibold">
             {discountLabel}
           </p>
         ) : null}
+        </div>
+        <p className="text-xs text-muted-foreground flex items-center justify-start gap-2">
+          <span className="font-bold text-red-900 text-lg">*</span> Exclusive of CGST/SGST (added at cart &amp; checkout)
+        </p>
         {unavailable ? (
           <p className="mt-2 text-sm font-medium text-destructive">
             Product not available right now.
@@ -312,7 +312,7 @@ export function ProductPurchasePanel({
             averageRating={product.averageRating}
             reviewCount={product.reviewCount}
           />
-          <span className="text-xs font-medium text-foreground underline underline-offset-2">
+          <span className="text-xs font-medium text-black underline underline-offset-2 cursor-pointer" onClick={scrollToReviews}>
             Reviews
           </span>
         </button>
@@ -458,7 +458,7 @@ export function ProductPurchasePanel({
           min={1}
           max={Math.max(1, availableQty)}
         />
-        <p className="text-sm">
+        <p className="text-md font-semibold">
           Subtotal: <span className="font-semibold">{formatInr(subtotal)}</span>
         </p>
       </div>
@@ -467,7 +467,7 @@ export function ProductPurchasePanel({
         <div>
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-1.5 text-sm text-black underline underline-offset-2 transition-colors hover:text-foreground cursor-pointer"
             onClick={() => setSizeGuideOpen(true)}
           >
             <Ruler className="size-4" aria-hidden />
@@ -485,17 +485,17 @@ export function ProductPurchasePanel({
         <Button
           type="button"
           size="lg"
-          className="h-11 flex-1"
+          className="h-12 flex-1 border border-gray-500 rounded-md hover:bg-primary hover:text-white cursor-pointer"
           disabled={!agreed || unavailable}
           onClick={() => void addToCart()}
         >
-          Add to cart
+          <ShoppingCart className="size-4" /> Add to cart
         </Button>
         <Button
           type="button"
           variant="outline"
           size="icon-lg"
-          className="size-11"
+          className="size-11 border border-gray-500 rounded-md cursor-pointer"
           aria-label={savedToWishlist ? "Remove from wishlist" : "Add to wishlist"}
           aria-pressed={savedToWishlist}
           disabled={wishlistPending || wishlistAuthLoading}
@@ -509,7 +509,7 @@ export function ProductPurchasePanel({
           type="button"
           variant="outline"
           size="icon-lg"
-          className="size-11"
+          className="size-11 border border-gray-500 rounded-md cursor-pointer"
           aria-label="Share product"
           onClick={() =>
             void shareContent({
@@ -544,7 +544,7 @@ export function ProductPurchasePanel({
         type="button"
         variant="outline"
         size="lg"
-        className="h-11 w-full"
+        className="h-12 w-full border border-gray-500 rounded-md hover:bg-primary hover:text-white cursor-pointer"
         disabled={!agreed || unavailable}
         onClick={() => void buyNow()}
       >
@@ -585,7 +585,7 @@ function DescriptionPreview({ html }: { html: string }) {
       {needsToggle || expanded ? (
         <button
           type="button"
-          className="mt-1.5 text-xs font-medium text-foreground underline underline-offset-2"
+          className="mt-1.5 text-xs font-medium text-black underline underline-offset-2 cursor-pointer"
           onClick={() => setExpanded((current) => !current)}
         >
           {expanded ? "Read less" : "Read more"}

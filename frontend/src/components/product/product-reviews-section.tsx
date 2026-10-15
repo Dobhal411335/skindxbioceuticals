@@ -68,7 +68,7 @@ function ReviewCard({
         ))}
       </div>
       {review.title ? (
-        <p className="text-sm font-semibold text-foreground">{review.title}</p>
+        <p className="text-xl font-semibold text-black">{review.title}</p>
       ) : null}
       <blockquote
         className="rich-html text-justify flex-1 text-[12px] leading-relaxed text-foreground/90"
@@ -127,12 +127,12 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
       <div className="container-page section-space">
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+            <p className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
               Reviews
             </p>
             <h2
               id="product-reviews-heading"
-              className="font-display mt-1 text-2xl font-semibold tracking-tight sm:text-3xl"
+              className="font-display mt-1 text-3xl font-semibold tracking-tight"
             >
               Customer reviews
             </h2>
@@ -192,10 +192,7 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
             ) : null}
           </Carousel>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Reviews are being collected for this product.
-          </p>
-        )}
+          null)}
       </div>
     </section>
   );

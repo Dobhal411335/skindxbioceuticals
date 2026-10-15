@@ -104,6 +104,8 @@ export type PublicProductCard = {
   slug: string;
   name: string;
   categoryName: string | null;
+  /** TipTap/HTML overview; list view shows a plain-text excerpt. */
+  description?: string | null;
   price: number;
   compareAtPrice?: number | null;
   imageUrl: string | null;

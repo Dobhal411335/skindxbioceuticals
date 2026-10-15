@@ -26,17 +26,17 @@ export function QuantityStepper({
   const buttonSize = size === "sm" ? "icon-sm" : "icon";
 
   return (
-    <div className={cn("inline-flex items-center", className)}>
+    <div className={cn("inline-flex items-center border border-gray-500 rounded-md", className)}>
       <Button
         type="button"
         variant="outline"
         size={buttonSize}
-        className="rounded-r-none"
+        className="rounded-r-none border border-r-black cursor-pointer"
         aria-label="Decrease quantity"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
       >
-        <Minus className="size-3.5" />
+        <Minus className="size-4" />
       </Button>
       <Input
         type="number"
@@ -59,12 +59,12 @@ export function QuantityStepper({
         type="button"
         variant="outline"
         size={buttonSize}
-        className="rounded-l-none"
+        className="rounded-l-none border border-l-black cursor-pointer"
         aria-label="Increase quantity"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
       >
-        <Plus className="size-3.5" />
+        <Plus className="size-4" />
       </Button>
     </div>
   );

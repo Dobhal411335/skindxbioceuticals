@@ -17,6 +17,7 @@ import {
   applyProductCoupon,
   buildCartPricingFields,
   discountPercentForBadge,
+  stockQtyBadgeClass,
 } from "@/features/products/product-pricing";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
@@ -92,6 +93,7 @@ export function StorefrontProductCard({
         price: String(product.price),
         currency: "INR",
         available: product.quantity > 0,
+        quantity: product.quantity,
         coupon: product.coupon ?? null,
       });
     } finally {
@@ -127,6 +129,15 @@ export function StorefrontProductCard({
               className="absolute top-2 left-2 z-10"
             />
           ) : null}
+
+          <span
+            className={cn(
+              "absolute bottom-2 left-2 z-10 rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums",
+              stockQtyBadgeClass(product.quantity),
+            )}
+          >
+            {product.quantity} left
+          </span>
 
           <div className="absolute top-2.5 right-2.5 flex flex-col gap-2">
             <Button
@@ -188,6 +199,25 @@ export function StorefrontProductCard({
             showBadge={false}
             size="lg"
           />
+
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span
+              className={cn(
+                "font-medium",
+                canAdd ? "text-success" : "text-destructive",
+              )}
+            >
+              {canAdd ? "In stock" : "Out of stock"}
+            </span>
+            <span
+              className={cn(
+                "rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums",
+                stockQtyBadgeClass(product.quantity),
+              )}
+            >
+              {product.quantity} left
+            </span>
+          </div>
 
           <Button
             type="button"

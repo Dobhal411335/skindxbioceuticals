@@ -82,6 +82,7 @@ type CardSource = {
   id: string;
   slug: string;
   name: string;
+  description?: string | null;
   isFeatured: boolean;
   isRecent: boolean;
   isBestSeller: boolean;
@@ -140,6 +141,7 @@ export function toPublicProductCardDto(
     slug: row.slug,
     name: row.name,
     categoryName: row.subcategory?.name ?? null,
+    description: row.description?.trim() ? row.description : null,
     price: decimalToNumber(firstVariant?.price) ?? 0,
     compareAtPrice: decimalToNumber(firstVariant?.compareAtPrice ?? null),
     imageUrl: primaryImage ? preferHttpsUrl(primaryImage.imageUrl) : null,

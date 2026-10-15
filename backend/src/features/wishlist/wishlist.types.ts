@@ -15,6 +15,8 @@ export interface WishlistItemDto {
   price: string | null;
   currency: string | null;
   available: boolean;
+  /** Sellable units left (on hand − reserved). 0 when unknown / out of stock. */
+  quantity: number;
   createdAt: string;
   /** Product-linked default discount coupon when active. */
   coupon: WishlistItemCouponDto | null;

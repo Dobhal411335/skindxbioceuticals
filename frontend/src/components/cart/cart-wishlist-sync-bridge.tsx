@@ -59,6 +59,7 @@ function guestItemsToWishlistItems(items: GuestWishlistItem[]): WishlistItem[] {
     price: item.price ?? null,
     currency: item.currency ?? null,
     available: item.available ?? true,
+    quantity: item.quantity,
     createdAt: new Date(0).toISOString(),
     coupon: item.coupon ?? null,
   }));
@@ -257,6 +258,7 @@ export function CartWishlistSyncBridge() {
               price: item.price,
               currency: item.currency,
               available: item.available,
+              quantity: item.quantity,
               coupon: item.coupon ?? null,
             })),
           );

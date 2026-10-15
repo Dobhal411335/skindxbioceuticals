@@ -17,16 +17,16 @@ export default async function CategoryIndexPage() {
   return (
     <div className="container-page section-space">
       <nav className="mb-4 text-sm text-muted-foreground" aria-label="Breadcrumb">
-        <Link href="/" className="hover:text-foreground">
+        <Link href="/" className="hover:text-foreground hover:underline">
           Home
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-foreground">Category</span>
+        <span className="text-foreground hover:underline">Category</span>
       </nav>
-      <h1 className="font-display text-3xl font-semibold tracking-tight">
+      <h1 className="font-display text-4xl font-semibold tracking-tight">
         Category
       </h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+      <p className="mt-2 max-w-2xl text-base text-muted-foreground">
         Explore SkinDx Bioc products with filters for category, price, and stock.
       </p>
       <div className="mt-8">

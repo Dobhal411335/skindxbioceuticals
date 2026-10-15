@@ -28,7 +28,7 @@ export function ProductRatingStars({
         <Star
           key={index}
           className={cn(
-            "size-3.5",
+            "size-4",
             index < filled
               ? "fill-amber-400 text-amber-400"
               : "fill-transparent text-muted-foreground/50",

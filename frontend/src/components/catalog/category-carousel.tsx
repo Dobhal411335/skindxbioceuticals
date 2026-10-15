@@ -40,7 +40,7 @@ export function CategoryCarousel({
           return (
             <CarouselItem
               key={category.id}
-              className="basis-[44%] pl-3 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
+              className="basis-[44%] pl-3 sm:basis-1/3 md:basis-1/4 lg:basis-1/6"
             >
               <button
                 type="button"
@@ -49,12 +49,12 @@ export function CategoryCarousel({
                 }
                 className={cn(
                   "flex w-full flex-col items-center gap-2 rounded-xl border border-transparent px-2 py-3 text-center transition-colors",
-                  "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "hover:bg-muted hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   selected && "border-primary/40 bg-primary/5",
                 )}
                 aria-pressed={selected}
               >
-                <span className="relative size-20 overflow-hidden rounded-full border border-border bg-surface sm:size-24">
+                <span className="relative size-20 overflow-hidden rounded-md border border-border bg-surface sm:size-24">
                   <Image
                     src={
                       category.imageUrl ||

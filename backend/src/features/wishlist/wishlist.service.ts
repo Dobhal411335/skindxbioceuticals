@@ -210,10 +210,9 @@ export class WishlistService {
   private toItemDto(item: WishlistItemRow): WishlistItemDto {
     const variant = item.variant ?? item.product.variants[0] ?? null;
     const inventory = variant?.inventory;
-    const availableQty =
-      inventory != null
-        ? inventory.quantityOnHand - inventory.quantityReserved
-        : null;
+    // Match public product cards: display `quantityOnHand` (not onHand − reserved).
+    const quantity =
+      inventory != null ? Math.max(0, inventory.quantityOnHand) : 0;
     const productCoupon = item.product.coupon;
     const coupon =
       productCoupon && productCoupon.coupon.isActive
@@ -234,7 +233,11 @@ export class WishlistService {
       imageUrl: item.product.media[0]?.media.url ?? null,
       price: variant ? variant.price.toString() : null,
       currency: variant?.currency ?? null,
-      available: availableQty == null ? item.product.status === 'ACTIVE' : availableQty > 0,
+      available:
+        inventory == null
+          ? item.product.status === 'ACTIVE'
+          : quantity > 0,
+      quantity,
       createdAt: item.createdAt.toISOString(),
       coupon,
     };

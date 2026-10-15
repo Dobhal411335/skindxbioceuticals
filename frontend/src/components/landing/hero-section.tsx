@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -129,9 +129,9 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
             asChild
             variant="outline"
             size="lg"
-            className="border-primary-foreground/40 bg-primary-foreground text-primary hover:bg-transparent hover:text-primary-foreground"
+            className="border-white border-2 bg-primary-foreground text-primary hover:bg-transparent px-10 py-5 hover:text-primary-foreground"
           >
-            <Link href={slide.buttonUrl}>{slide.buttonLabel}</Link>
+            <Link href={slide.buttonUrl}>{slide.buttonLabel} <ArrowUpRight className="size-4 ml-2" /></Link>
           </Button>
         ) : null}
         {slide.button2Label ? (
@@ -139,9 +139,9 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
             asChild
             variant="outline"
             size="lg"
-            className="border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+            className="border-white border-2 bg-transparent text-primary-foreground px-10 py-5 hover:bg-primary-foreground hover:text-primary"
           >
-            <Link href={slide.button2Url}>{slide.button2Label}</Link>
+            <Link href={slide.button2Url}>{slide.button2Label} <ArrowUpRight className="size-4" /></Link>
           </Button>
         ) : null}
       </div>
@@ -227,11 +227,11 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
     >
       <div className="container-page flex h-full w-full flex-col items-center justify-center gap-10 py-8 lg:flex-row lg:justify-between lg:gap-16">
         <div className="max-w-md text-center lg:text-left">
-          <h2 className="text-3xl font-medium tracking-tight lowercase sm:text-4xl">
+          <h2 className="text-4xl font-medium tracking-tight lowercase">
             {slide.mainHeading}
           </h2>
           {slide.description ? (
-            <p className="mt-4 text-sm leading-relaxed text-[#bccbe8] sm:text-base">
+            <p className="mt-4 text-base leading-relaxed text-[#bccbe8]">
               {slide.description}
             </p>
           ) : null}
@@ -239,9 +239,9 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
             <Button
               asChild
               size="lg"
-              className="mt-8 rounded-full border-transparent bg-[#ff6a00] px-8 text-white hover:bg-[#e55f00]"
+              className="mt-8 rounded-full border-transparent bg-[#ff6a00] px-8 py-6 text-white hover:bg-[#e55f00]"
             >
-              <Link href={slide.buttonUrl}>{slide.buttonLabel}</Link>
+              <Link href={slide.buttonUrl}>{slide.buttonLabel} <ArrowUpRight className="size-4 ml-2" /></Link>
             </Button>
           ) : null}
         </div>
