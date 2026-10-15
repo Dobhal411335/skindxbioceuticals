@@ -28,11 +28,15 @@ export type WishlistAddInput = {
   variantId?: string | null;
   productName: string;
   productSlug: string;
+  productCode?: string | null;
+  categoryName?: string | null;
   imageUrl?: string | null;
   price?: string | null;
   currency?: string | null;
   available?: boolean;
   quantity?: number;
+  cgstPercent?: number;
+  sgstPercent?: number;
   coupon?: WishlistItemCoupon | null;
 };
 
@@ -46,11 +50,15 @@ function toGuestBagItem(item: WishlistItem): GuestWishlistItem {
     variantId: item.variantId,
     productName: item.productName,
     productSlug: item.productSlug,
+    productCode: item.productCode ?? null,
+    categoryName: item.categoryName ?? null,
     imageUrl: item.imageUrl,
     price: item.price,
     currency: item.currency,
     available: item.available,
     quantity: item.quantity,
+    cgstPercent: item.cgstPercent,
+    sgstPercent: item.sgstPercent,
     coupon: item.coupon ?? null,
   };
 }
@@ -106,6 +114,10 @@ export function useWishlistActions() {
         currency: input.currency ?? null,
         available: input.available ?? true,
         quantity: input.quantity,
+        productCode: input.productCode ?? null,
+        categoryName: input.categoryName ?? null,
+        cgstPercent: input.cgstPercent ?? 0,
+        sgstPercent: input.sgstPercent ?? 0,
         createdAt: new Date().toISOString(),
         coupon: input.coupon ?? null,
       };

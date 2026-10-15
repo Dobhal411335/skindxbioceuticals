@@ -62,6 +62,9 @@ export const endpoints = {
       productId: string,
     ) =>
       `/admin/sites/${siteCode}/subcategories/${subcategoryId}/products/${productId}`,
+    products: (siteCode: string) => `/admin/sites/${siteCode}/products`,
+    product: (siteCode: string, productId: string) =>
+      `/admin/sites/${siteCode}/products/${productId}`,
     productEdit: (siteCode: string, productId: string) =>
       `/admin/sites/${siteCode}/products/${productId}/edit`,
     productCatalogColors: (siteCode: string) =>
@@ -93,6 +96,10 @@ export const endpoints = {
       `/admin/sites/${siteCode}/doctor-appointments`,
     doctorAppointment: (siteCode: string, appointmentId: string) =>
       `/admin/sites/${siteCode}/doctor-appointments/${appointmentId}`,
+    ordersOnlineLog: (siteCode: string) =>
+      `/admin/sites/${siteCode}/orders/online-log`,
+    ordersCancelled: (siteCode: string) =>
+      `/admin/sites/${siteCode}/orders/cancelled`,
   },
   media: {
     uploadImage: "/media/images",

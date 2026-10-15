@@ -21,7 +21,9 @@ function makeCartItem(overrides: Record<string, unknown> = {}) {
       id: PRODUCT_ID,
       name: 'Barrier Serum',
       slug: 'barrier-serum',
+      productCode: 'BS-01',
       status: 'ACTIVE',
+      subcategory: { name: 'Serums' },
       site: { code: 'IN', isActive: true },
       galleryImages: [
         { imageUrl: 'https://res.cloudinary.com/demo/image/upload/serum.jpg' },
@@ -103,6 +105,8 @@ describe('CartService', () => {
     expect(result.items[0]?.discountCode).toBe('SAVE10');
     expect(result.items[0]?.discountAmount).toBe('100.00');
     expect(result.items[0]?.imageUrl).toContain('serum.jpg');
+    expect(result.items[0]?.productCode).toBe('BS-01');
+    expect(result.items[0]?.categoryName).toBe('Serums');
     expect(result.items[0]?.cgstPercent).toBe(9);
     expect(result.items[0]?.sgstPercent).toBe(9);
   });

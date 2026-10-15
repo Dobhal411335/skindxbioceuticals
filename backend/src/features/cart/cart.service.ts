@@ -350,6 +350,8 @@ export class CartService {
       variantId: item.variantId,
       productName: item.product.name,
       productSlug: item.product.slug,
+      productCode: item.product.productCode ?? '',
+      categoryName: item.product.subcategory?.name ?? null,
       variantName: item.variant.name,
       imageUrl:
         item.product.galleryImages[0]?.imageUrl ??

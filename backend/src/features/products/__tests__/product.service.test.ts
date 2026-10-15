@@ -38,6 +38,9 @@ describe('ProductService', () => {
   const update = jest.fn();
   const patch = jest.fn();
   const deleteFn = jest.fn();
+  const listForAdminSite = jest.fn();
+  const countForAdminSite = jest.fn();
+  const hasOrderItems = jest.fn();
   const requireSubcategory = jest.fn();
 
   const repository = {
@@ -55,6 +58,9 @@ describe('ProductService', () => {
     update,
     patch,
     delete: deleteFn,
+    listForAdminSite,
+    countForAdminSite,
+    hasOrderItems,
   } as unknown as ProductRepository;
 
   const categories = {
@@ -200,6 +206,85 @@ describe('ProductService', () => {
         productId: '55555555-5555-5555-5555-555555555555',
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('lists admin products with pagination meta', async () => {
+    const product = makeProduct();
+    listForAdminSite.mockResolvedValue([
+      {
+        ...product,
+        subcategory: { name: 'Serums' },
+        galleryImages: [
+          { imageUrl: 'http://res.cloudinary.com/demo/image/upload/a.jpg' },
+        ],
+        variants: [
+          {
+            price: 499,
+            vendorPrice: 320,
+            currency: 'INR',
+            inventory: { quantityOnHand: 12 },
+          },
+        ],
+      },
+    ]);
+    countForAdminSite.mockResolvedValue(1);
+
+    const result = await service.listForAdmin({
+      siteId: product.siteId,
+      siteCode: 'IN',
+      query: { period: 'all', status: 'all', page: 1, limit: 10 },
+    });
+
+    expect(result.meta).toEqual({
+      page: 1,
+      limit: 10,
+      total: 1,
+      totalPages: 1,
+    });
+    expect(result.items[0]).toMatchObject({
+      productCode: 'VC-01',
+      subcategoryName: 'Serums',
+      price: 499,
+      vendorPrice: 320,
+      quantity: 12,
+      imageUrl: 'https://res.cloudinary.com/demo/image/upload/a.jpg',
+    });
+    expect(listForAdminSite).toHaveBeenCalledWith(
+      product.siteId,
+      expect.objectContaining({ skip: 0, take: 10 }),
+    );
+  });
+
+  it('blocks site delete when product appears on orders', async () => {
+    const product = makeProduct();
+    findByIdForSite.mockResolvedValue(product);
+    hasOrderItems.mockResolvedValue(true);
+
+    await expect(
+      service.deleteForSite({
+        siteId: product.siteId,
+        siteCode: 'IN',
+        userId: 'user-1',
+        productId: product.id,
+      }),
+    ).rejects.toBeInstanceOf(ConflictError);
+    expect(deleteFn).not.toHaveBeenCalled();
+  });
+
+  it('deletes a product for the site when no order lines exist', async () => {
+    const product = makeProduct();
+    findByIdForSite.mockResolvedValue(product);
+    hasOrderItems.mockResolvedValue(false);
+    deleteFn.mockResolvedValue(true);
+
+    await service.deleteForSite({
+      siteId: product.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      productId: product.id,
+    });
+
+    expect(deleteFn).toHaveBeenCalledWith(product.siteId, product.id);
   });
 
   it('returns a public product detail payload with related products', async () => {

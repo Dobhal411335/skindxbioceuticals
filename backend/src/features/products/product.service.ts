@@ -4,12 +4,15 @@ import { ConflictError, NotFoundError } from '@/utils/AppError';
 import { categoryService, slugifyName } from '@/features/categories/category.service';
 import { productRepository } from './product.repository';
 import type {
+  AdminProductListQuery,
   CatalogProductBody,
   CatalogProductPatchBody,
   PublicProductAvailability,
   PublicProductSort,
 } from './product.validation';
 import type {
+  AdminProductListItemDto,
+  AdminProductListResultDto,
   CatalogProductDto,
   ProductRecord,
   PublicMediaRefDto,
@@ -710,6 +713,12 @@ export class ProductService {
       throw new NotFoundError('Product not found');
     }
 
+    if (await this.repository.hasOrderItems(input.productId)) {
+      throw new ConflictError(
+        'Cannot delete a product that appears on existing orders',
+      );
+    }
+
     const deleted = await this.repository.delete(input.siteId, input.productId);
     if (!deleted) {
       throw new NotFoundError('Product not found');
@@ -725,6 +734,138 @@ export class ProductService {
       'Catalog product deleted',
     );
   }
+
+  /**
+   * Site-scoped admin list for View All Products (filters + offset pagination).
+   */
+  async listForAdmin(input: {
+    siteId: string;
+    siteCode: SiteCode;
+    query: AdminProductListQuery;
+  }): Promise<AdminProductListResultDto> {
+    const limit = input.query.limit ?? 10;
+    const page = input.query.page ?? 1;
+    const skip =
+      input.query.offset != null ? input.query.offset : (page - 1) * limit;
+
+    const statusFilter =
+      input.query.status === 'active'
+        ? ('ACTIVE' as const)
+        : input.query.status === 'draft'
+          ? ('DRAFT' as const)
+          : undefined;
+
+    const createdRange = resolveAdminCreatedRange(input.query);
+
+    const [rows, total] = await Promise.all([
+      this.repository.listForAdminSite(input.siteId, {
+        status: statusFilter,
+        q: input.query.q,
+        createdFrom: createdRange?.from,
+        createdTo: createdRange?.to,
+        skip,
+        take: limit,
+      }),
+      this.repository.countForAdminSite(input.siteId, {
+        status: statusFilter,
+        q: input.query.q,
+        createdFrom: createdRange?.from,
+        createdTo: createdRange?.to,
+      }),
+    ]);
+
+    const items: AdminProductListItemDto[] = rows.map((row) => {
+      const firstVariant = row.variants[0];
+      const imageUrl = row.galleryImages[0]?.imageUrl
+        ? preferHttpsUrl(row.galleryImages[0].imageUrl)
+        : null;
+      return {
+        id: row.id,
+        siteCode: input.siteCode,
+        subcategoryId: row.subcategoryId,
+        subcategoryName: row.subcategory?.name ?? null,
+        productCode: row.productCode,
+        name: row.name,
+        slug: row.slug,
+        active: row.status === 'ACTIVE',
+        isFeatured: row.isFeatured,
+        isRecent: row.isRecent,
+        isBestSeller: row.isBestSeller,
+        imageUrl,
+        price: decimalToNumber(firstVariant?.price ?? null),
+        vendorPrice: decimalToNumber(firstVariant?.vendorPrice ?? null),
+        quantity: firstVariant?.inventory?.quantityOnHand ?? 0,
+        currency: firstVariant?.currency ?? 'INR',
+        createdAt: row.createdAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString(),
+      };
+    });
+
+    return {
+      items,
+      meta: {
+        page: Math.floor(skip / limit) + 1,
+        limit,
+        total,
+        totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async deleteForSite(input: {
+    siteId: string;
+    siteCode: SiteCode;
+    userId: string;
+    productId: string;
+  }): Promise<void> {
+    const existing = await this.repository.findByIdForSite(input.siteId, input.productId);
+    if (!existing) {
+      throw new NotFoundError('Product not found');
+    }
+
+    if (await this.repository.hasOrderItems(input.productId)) {
+      throw new ConflictError(
+        'Cannot delete a product that appears on existing orders',
+      );
+    }
+
+    const deleted = await this.repository.delete(input.siteId, input.productId);
+    if (!deleted) {
+      throw new NotFoundError('Product not found');
+    }
+
+    logger.info(
+      {
+        event: 'catalog_product.deleted',
+        siteCode: input.siteCode,
+        userId: input.userId,
+        productId: input.productId,
+      },
+      'Catalog product deleted',
+    );
+  }
+}
+
+/** Inclusive calendar-day createdAt window for admin list period filters. */
+function resolveAdminCreatedRange(
+  query: AdminProductListQuery,
+): { from: Date; to: Date } | null {
+  const period = query.period ?? 'today';
+  if (period === 'all') {
+    return null;
+  }
+
+  const dateStr =
+    period === 'day' && query.date
+      ? query.date
+      : new Date().toISOString().slice(0, 10);
+
+  const from = new Date(`${dateStr}T00:00:00.000`);
+  const to = new Date(`${dateStr}T23:59:59.999`);
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+    return null;
+  }
+  return { from, to };
 }
 
 export const productService = new ProductService();

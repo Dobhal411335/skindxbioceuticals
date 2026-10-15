@@ -73,6 +73,7 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
       name: item.name,
       image: item.imageUrl ?? "",
       alt: item.name,
+      categoryName: item.categoryName,
       unitPriceInPaise: pricing.unitPriceInPaise,
       originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
       discountCode: pricing.discountCode,
@@ -103,10 +104,14 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
         variantId: item.defaultVariantId,
         productName: item.name,
         productSlug: item.slug,
+        categoryName: item.categoryName,
         imageUrl: item.imageUrl,
         price: String(item.price),
         currency: "INR",
         available: item.quantity > 0,
+        quantity: item.quantity,
+        cgstPercent: item.tax?.cgst ?? 0,
+        sgstPercent: item.tax?.sgst ?? 0,
         coupon: item.coupon ?? null,
       });
     } finally {

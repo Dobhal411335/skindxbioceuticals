@@ -27,6 +27,7 @@ import { blogAdminRoutes } from '@/features/blog/blog.routes';
 import { doctorProfilesRoutes } from '@/features/doctors/doctor-profiles.routes';
 import { doctorPageRoutes } from '@/features/doctors/doctor-page.routes';
 import { doctorAppointmentsRoutes } from '@/features/doctor-appointments/doctor-appointments.routes';
+import { adminOrdersRoutes } from '@/features/admin-orders/admin-orders.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -74,5 +75,6 @@ router.use('/sites/:siteCode/blogs', blogAdminRoutes);
 router.use('/sites/:siteCode/doctors', doctorProfilesRoutes);
 router.use('/sites/:siteCode/doctor-page', doctorPageRoutes);
 router.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsRoutes);
+router.use('/sites/:siteCode/orders', adminOrdersRoutes);
 
 export const adminRoutes = router;

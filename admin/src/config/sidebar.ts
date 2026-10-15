@@ -275,9 +275,13 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           children: [
             leaf(siteCode, "order-enquiry", "Enquiry Order", "orders/enquiry", ClipboardList),
             leaf(siteCode, "order-cod-log", "COD Order Log", "orders/cod-log", ClipboardList),
-            leaf(siteCode, "order-online-log", "Online Order Log", "orders/online-log", ClipboardList),
+            leaf(siteCode, "order-online-log", "Online Order Log", "orders/online-log", ClipboardList, {
+              status: "active",
+            }),
             leaf(siteCode, "order-vendor", "Vendor Order", "orders/vendor", Truck),
-            leaf(siteCode, "order-cancel", "Cancel Order", "orders/cancel", ClipboardList),
+            leaf(siteCode, "order-cancel", "Cancel Order", "orders/cancel", ClipboardList, {
+              status: "active",
+            }),
             leaf(
               siteCode,
               "order-doctor-contact",

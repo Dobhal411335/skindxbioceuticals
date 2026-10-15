@@ -10,6 +10,10 @@ export type CartItem = {
   name: string;
   image: string;
   alt: string;
+  /** Catalog subcategory label when known. */
+  categoryName?: string | null;
+  /** Site-scoped product code when known. */
+  productCode?: string | null;
   variantLabel?: string;
   quantity: number;
   /** Payable unit price after product discount (if any). */

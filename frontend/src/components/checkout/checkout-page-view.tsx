@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cartLineTaxInPaise } from "@/features/cart/cart-tax";
 import { checkoutService } from "@/features/checkout/checkout.service";
 import type { RazorpaySuccessResponse } from "@/features/checkout/checkout.types";
 import {
@@ -47,9 +48,11 @@ import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { useCartActions } from "@/hooks/useCartActions";
+import { useCartTaxEnrichment } from "@/hooks/useCartTaxEnrichment";
 import { useCartTotals } from "@/hooks/useCartTotals";
 import { showError, showInfo, showSuccess } from "@/lib/toast";
 import { formatPaiseToInr } from "@/lib/utils";
+import { setCartNotes } from "@/store/slices/cartSlice";
 import {
   DEFAULT_COUNTRY_CODE,
   INDIA_STATES,
@@ -61,6 +64,7 @@ const GUEST_TOKEN_KEY = "skindx_guest_checkout_token";
 const GUEST_EMAIL_KEY = "skindx_guest_checkout_email";
 const GUEST_VERIFIED_KEY = "skindx_guest_checkout_verified";
 const CONFIRMATION_TOKEN_KEY = "skindx_order_confirmation_token";
+const INDIA_DIAL_CODE = "+91";
 
 type GuestStep = "email" | "otp" | "verified";
 
@@ -70,8 +74,25 @@ function clearGuestCheckoutStorage() {
   sessionStorage.removeItem(GUEST_VERIFIED_KEY);
 }
 
+/** Keep only a 10-digit Indian mobile; strip pasted +91 / leading 0. */
+function normalizeIndianMobileDigits(raw: string): string {
+  let digits = raw.replace(/\D/g, "");
+  if (digits.length >= 12 && digits.startsWith("91")) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith("0")) {
+    digits = digits.slice(1);
+  }
+  return digits.slice(0, 10);
+}
+
+/** Persist / display format: `+91 9857465658`. */
+function formatIndiaPhoneForCheckout(digits: string): string {
+  return `${INDIA_DIAL_CODE} ${digits}`;
+}
+
 export function CheckoutPageView() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { setQuantity, setItemNote, remove, clear: clearCartAction } = useCartActions();
   const cartHydrated = useAppSelector((state) => state.cart.hydrated);
@@ -115,6 +136,10 @@ export function CheckoutPageView() {
       !cartHydrated ||
       cartStatus === "syncing" ||
       cartStatus === "loading");
+
+  useCartTaxEnrichment(items, {
+    enabled: !cartLoading && items.length > 0,
+  });
 
   const [email, setEmail] = useState("");
   const [guestStep, setGuestStep] = useState<GuestStep>("email");
@@ -238,6 +263,7 @@ export function CheckoutPageView() {
     );
   }
 
+  const phoneDigitsForPay = normalizeIndianMobileDigits(phone);
   const canPay =
     !payBusy &&
     !authLoading &&
@@ -248,7 +274,7 @@ export function CheckoutPageView() {
     city.trim().length > 0 &&
     state.trim().length > 0 &&
     postalCode.trim().length > 0 &&
-    phone.trim().length > 0 &&
+    phoneDigitsForPay.length === 10 &&
     (isAuthenticated || guestStep === "verified");
 
   const hasSavedAddresses = isAuthenticated && savedAddresses.length > 0;
@@ -353,15 +379,12 @@ export function CheckoutPageView() {
       showError("Please enter your PIN code.");
       return;
     }
-    if (!phone.trim()) {
-      showError("Please enter your phone number.");
+    const phoneDigits = normalizeIndianMobileDigits(phone);
+    if (phoneDigits.length !== 10) {
+      showError("Please enter a valid 10-digit mobile number.");
       return;
     }
-    const phoneDigits = phone.replace(/\D/g, "");
-    if (phoneDigits.length < 10) {
-      showError("Please enter a valid 10-digit phone number.");
-      return;
-    }
+    const formattedPhone = formatIndiaPhoneForCheckout(phoneDigits);
 
     if (!canPay) return;
 
@@ -382,7 +405,7 @@ export function CheckoutPageView() {
         state: state.trim() || undefined,
         postalCode: postalCode.trim(),
         country: DEFAULT_COUNTRY_CODE,
-        phone: phone.trim(),
+        phone: formattedPhone,
       };
 
       if (
@@ -456,7 +479,7 @@ export function CheckoutPageView() {
         prefill: {
           email: isAuthenticated ? user?.email : email,
           name: [firstName, lastName].filter(Boolean).join(" ") || undefined,
-          contact: phone || undefined,
+          contact: formattedPhone,
         },
         handler: async (response: RazorpaySuccessResponse) => {
           try {
@@ -875,15 +898,34 @@ export function CheckoutPageView() {
                   <Label htmlFor="checkout-phone" className="mb-1.5 block text-xs font-medium">
                     Phone number <span className="text-destructive">*</span>
                   </Label>
-                  <Input
-                    id="checkout-phone"
-                    placeholder="10-digit mobile number"
-                    autoComplete="tel"
-                    inputMode="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
+                  <div className="flex">
+                    <span
+                      className="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-input bg-muted/50 px-3 text-sm font-medium text-muted-foreground"
+                      aria-hidden
+                    >
+                      {INDIA_DIAL_CODE}
+                    </span>
+                    <Input
+                      id="checkout-phone"
+                      className="rounded-l-none"
+                      placeholder="9857465658"
+                      autoComplete="tel-national"
+                      inputMode="numeric"
+                      maxLength={10}
+                      required
+                      value={phone}
+                      onChange={(e) =>
+                        setPhone(normalizeIndianMobileDigits(e.target.value))
+                      }
+                      aria-describedby="checkout-phone-hint"
+                    />
+                  </div>
+                  <p
+                    id="checkout-phone-hint"
+                    className="mt-1 text-[11px] text-muted-foreground"
+                  >
+                    Saved as {INDIA_DIAL_CODE} followed by your 10-digit number
+                  </p>
                 </div>
               </div>
             </div>
@@ -908,46 +950,6 @@ export function CheckoutPageView() {
             ) : null}
           </section>
 
-          {/* Payment Section Card */}
-          <section className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-border/60 pb-3">
-              <ShieldCheck className="size-5 text-green-600" />
-              <div>
-                <h2 className="text-base font-semibold tracking-tight text-foreground">
-                  Payment
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Pay securely with Razorpay. Cards, UPI, Netbanking & Wallets accepted.
-                </p>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              className="w-full h-12 py-3.5 text-base font-semibold shadow-md shadow-primary/10 hover:shadow-lg transition-all"
-              size="lg"
-              disabled={!canPay}
-              onClick={() => void payNow()}
-            >
-              {payBusy ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader2 className="size-4 animate-spin" />
-                  Preparing payment…
-                </span>
-              ) : (
-                `Pay now · ${formatPaiseToInr(totalInPaise)}`
-              )}
-            </Button>
-            <p className="text-center pt-1 text-xs text-muted-foreground">
-              <Link
-                href="/cart"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
-              >
-                <ArrowLeft className="size-3.5" />
-                Return to cart
-              </Link>
-            </p>
-          </section>
         </div>
       </div>
 
@@ -970,6 +972,11 @@ export function CheckoutPageView() {
             <ul className="divide-y divide-border/60">
               {items.map((item) => {
                 const pricing = getCartLinePricing(item);
+                const tax = cartLineTaxInPaise(item);
+                const cgstPercentLine = item.cgstPercent ?? 0;
+                const sgstPercentLine = item.sgstPercent ?? 0;
+                const lineInclTaxInPaise =
+                  pricing.linePayableInPaise + tax.taxInPaise;
                 const isEditing = editingNoteItemId === item.id;
 
                 return (
@@ -985,19 +992,34 @@ export function CheckoutPageView() {
                         />
                       </div>
                       <div className="min-w-0 flex-1">
+                        {item.categoryName ? (
+                          <p className="text-[11px] font-semibold tracking-[0.08em] text-primary uppercase">
+                            {item.categoryName}
+                          </p>
+                        ) : null}
                         <p className="text-sm font-medium leading-snug text-foreground">
                           {item.name}
                         </p>
+                        {item.productCode ? (
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            Code:{" "}
+                            <span className="font-medium text-foreground">
+                              {item.productCode}
+                            </span>
+                          </p>
+                        ) : null}
                         {item.variantLabel ? (
                           <p className="mt-0.5 text-xs text-muted-foreground">
                             {item.variantLabel}
                           </p>
                         ) : null}
 
-                        {/* Product price & discount displayed ONLY ONCE */}
                         <div className="mt-1 flex flex-wrap items-baseline gap-2">
                           <span className="text-sm font-semibold text-foreground">
                             {formatPaiseToInr(pricing.payableUnitInPaise)}
+                            <span className="ml-1 text-xs font-normal text-muted-foreground">
+                              each
+                            </span>
                           </span>
                           {pricing.hasDiscount ? (
                             <>
@@ -1028,22 +1050,53 @@ export function CheckoutPageView() {
                       </Button>
                     </div>
 
-                    {/* Stepper on left and Line total on right */}
-                    <div className="flex items-center justify-between gap-3 pl-[4.75rem]">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between pl-[4.75rem]">
                       <QuantityStepper
                         size="sm"
                         value={item.quantity}
                         onChange={(quantity) => void setQuantity(item.id, quantity)}
                       />
-                      <div className="text-right">
-                        <span className="text-xs text-muted-foreground mr-1.5">Line total:</span>
-                        <span className="text-sm font-semibold text-foreground">
-                          {formatPaiseToInr(pricing.linePayableInPaise)}
-                        </span>
+
+                      <div className="w-full min-w-[11rem] space-y-1 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs sm:w-auto sm:min-w-[12.5rem]">
+                        <div className="flex justify-between gap-4 text-muted-foreground">
+                          <span>
+                            Amount × {item.quantity}
+                          </span>
+                          <span className="tabular-nums text-foreground">
+                            {formatPaiseToInr(pricing.linePayableInPaise)}
+                          </span>
+                        </div>
+                        {tax.cgstInPaise > 0 ? (
+                          <div className="flex justify-between gap-4 text-muted-foreground">
+                            <span>
+                              CGST{cgstPercentLine > 0 ? ` (${cgstPercentLine}%)` : ""}
+                            </span>
+                            <span className="tabular-nums">
+                              {formatPaiseToInr(tax.cgstInPaise)}
+                            </span>
+                          </div>
+                        ) : null}
+                        {tax.sgstInPaise > 0 ? (
+                          <div className="flex justify-between gap-4 text-muted-foreground">
+                            <span>
+                              SGST{sgstPercentLine > 0 ? ` (${sgstPercentLine}%)` : ""}
+                            </span>
+                            <span className="tabular-nums">
+                              {formatPaiseToInr(tax.sgstInPaise)}
+                            </span>
+                          </div>
+                        ) : null}
+                        <div className="flex justify-between gap-4 border-t border-border/60 pt-1.5 text-sm font-semibold text-foreground">
+                          <span>
+                            {tax.taxInPaise > 0 ? "Total (incl. tax)" : "Line total"}
+                          </span>
+                          <span className="tabular-nums">
+                            {formatPaiseToInr(lineInclTaxInPaise)}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Per-product note editor / view */}
                     <div className="pl-[4.75rem]">
                       {isEditing ? (
                         <div className="space-y-2 rounded-md border border-border bg-muted/40 p-2.5">
@@ -1118,6 +1171,33 @@ export function CheckoutPageView() {
                 );
               })}
             </ul>
+
+            <div className="mt-4 border-t border-border/60 pt-4">
+              <Label
+                htmlFor="checkout-order-notes"
+                className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Order notes
+              </Label>
+              <Textarea
+                id="checkout-order-notes"
+                value={extras.notes}
+                onChange={(event) =>
+                  dispatch(setCartNotes(event.target.value.slice(0, 2000)))
+                }
+                placeholder="Special instruction for seller…"
+                rows={3}
+                maxLength={2000}
+                className="text-sm resize-none"
+              />
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                Included with your order when you pay
+                {items.some((item) => item.note?.trim())
+                  ? ", along with any item notes above"
+                  : ""}
+                .
+              </p>
+            </div>
           </div>
 
           {/* Card 2: Price summary breakdown in distinct white card */}
@@ -1139,6 +1219,49 @@ export function CheckoutPageView() {
               showShipping
             />
           </div>
+
+
+          {/* Payment Section Card */}
+          <section className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
+            <div className="flex items-center gap-2.5 border-b border-border/60 pb-3">
+              <ShieldCheck className="size-5 text-green-600" />
+              <div>
+                <h2 className="text-base font-semibold tracking-tight text-foreground">
+                  Payment
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Pay securely with Razorpay. Cards, UPI, Netbanking & Wallets accepted.
+                </p>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              className="w-full h-12 py-3.5 text-base font-semibold shadow-md shadow-primary/10 hover:shadow-lg transition-all"
+              size="lg"
+              disabled={!canPay}
+              onClick={() => void payNow()}
+            >
+              {payBusy ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="size-4 animate-spin" />
+                  Preparing payment…
+                </span>
+              ) : (
+                `Pay now · ${formatPaiseToInr(totalInPaise)}`
+              )}
+            </Button>
+            <p className="text-center pt-1 text-xs text-muted-foreground">
+              <Link
+                href="/cart"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+              >
+                <ArrowLeft className="size-3.5" />
+                Return to cart
+              </Link>
+            </p>
+          </section>
+
         </div>
       </aside>
     </div>

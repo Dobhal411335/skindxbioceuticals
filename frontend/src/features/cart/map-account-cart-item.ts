@@ -20,6 +20,8 @@ export function mapAccountCartItemToCartItem(
     name: item.productName,
     image: item.imageUrl || fallbackImage || "",
     alt: item.productName,
+    categoryName: item.categoryName ?? null,
+    productCode: item.productCode ?? null,
     variantLabel: item.variantName,
     quantity: item.quantity,
     unitPriceInPaise: unitPaise,

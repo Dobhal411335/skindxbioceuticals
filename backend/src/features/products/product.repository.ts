@@ -368,6 +368,112 @@ export class ProductRepository {
     await prisma.product.delete({ where: { id: productId } });
     return true;
   }
+
+  /**
+   * Site-scoped admin list with optional createdAt window, status, and text search.
+   * Newest products first for the View All Products table.
+   */
+  async listForAdminSite(
+    siteId: string,
+    options: {
+      status?: ProductStatus;
+      q?: string;
+      createdFrom?: Date;
+      createdTo?: Date;
+      skip: number;
+      take: number;
+    },
+  ) {
+    const q = options.q?.trim();
+    return prisma.product.findMany({
+      where: {
+        siteId,
+        ...(options.status ? { status: options.status } : {}),
+        ...(options.createdFrom || options.createdTo
+          ? {
+              createdAt: {
+                ...(options.createdFrom ? { gte: options.createdFrom } : {}),
+                ...(options.createdTo ? { lte: options.createdTo } : {}),
+              },
+            }
+          : {}),
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' as const } },
+                { productCode: { contains: q, mode: 'insensitive' as const } },
+                { slug: { contains: q, mode: 'insensitive' as const } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      skip: options.skip,
+      take: options.take,
+      include: {
+        subcategory: { select: { name: true } },
+        galleryImages: {
+          orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
+          take: 1,
+        },
+        variants: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'asc' as const },
+          take: 1,
+          select: {
+            price: true,
+            vendorPrice: true,
+            currency: true,
+            inventory: { select: { quantityOnHand: true } },
+          },
+        },
+      },
+    });
+  }
+
+  async countForAdminSite(
+    siteId: string,
+    options: {
+      status?: ProductStatus;
+      q?: string;
+      createdFrom?: Date;
+      createdTo?: Date;
+    },
+  ): Promise<number> {
+    const q = options.q?.trim();
+    return prisma.product.count({
+      where: {
+        siteId,
+        ...(options.status ? { status: options.status } : {}),
+        ...(options.createdFrom || options.createdTo
+          ? {
+              createdAt: {
+                ...(options.createdFrom ? { gte: options.createdFrom } : {}),
+                ...(options.createdTo ? { lte: options.createdTo } : {}),
+              },
+            }
+          : {}),
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' as const } },
+                { productCode: { contains: q, mode: 'insensitive' as const } },
+                { slug: { contains: q, mode: 'insensitive' as const } },
+              ],
+            }
+          : {}),
+      },
+    });
+  }
+
+  /** True when any variant of the product appears on an order line (blocks hard delete). */
+  async hasOrderItems(productId: string): Promise<boolean> {
+    const row = await prisma.orderItem.findFirst({
+      where: { variant: { productId } },
+      select: { id: true },
+    });
+    return Boolean(row);
+  }
 }
 
 export const productRepository = new ProductRepository();

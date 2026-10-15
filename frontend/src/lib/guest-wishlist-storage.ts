@@ -39,6 +39,10 @@ const guestWishlistItemSchema = z.object({
   currency: z.string().nullable().optional(),
   available: z.boolean().optional(),
   quantity: z.number().int().nonnegative().optional(),
+  categoryName: z.string().nullable().optional(),
+  productCode: z.string().nullable().optional(),
+  cgstPercent: z.number().min(0).max(100).optional(),
+  sgstPercent: z.number().min(0).max(100).optional(),
   coupon: guestWishlistCouponSchema.nullable().optional(),
 });
 
@@ -57,6 +61,10 @@ export type GuestWishlistItem = {
   currency?: string | null;
   available?: boolean;
   quantity?: number;
+  categoryName?: string | null;
+  productCode?: string | null;
+  cgstPercent?: number;
+  sgstPercent?: number;
   coupon?: {
     couponId: string;
     code: string;
@@ -99,6 +107,16 @@ function sanitizeItem(raw: unknown): GuestWishlistItem | null {
       Number.isFinite(record.quantity) &&
       record.quantity >= 0
         ? Math.floor(record.quantity)
+        : undefined,
+    categoryName: asNullableString(record.categoryName) ?? null,
+    productCode: asNullableString(record.productCode) ?? null,
+    cgstPercent:
+      typeof record.cgstPercent === "number"
+        ? Math.min(100, Math.max(0, record.cgstPercent))
+        : undefined,
+    sgstPercent:
+      typeof record.sgstPercent === "number"
+        ? Math.min(100, Math.max(0, record.sgstPercent))
         : undefined,
     coupon:
       record.coupon === null

@@ -69,6 +69,7 @@ export function StorefrontProductCard({
       name: product.name,
       image: product.imageUrl ?? "",
       alt: product.name,
+      categoryName: product.categoryName,
       unitPriceInPaise: pricing.unitPriceInPaise,
       originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
       discountCode: pricing.discountCode,
@@ -89,11 +90,14 @@ export function StorefrontProductCard({
         variantId: product.defaultVariantId,
         productName: product.name,
         productSlug: product.slug,
+        categoryName: product.categoryName,
         imageUrl: product.imageUrl,
         price: String(product.price),
         currency: "INR",
         available: product.quantity > 0,
         quantity: product.quantity,
+        cgstPercent: product.tax?.cgst ?? 0,
+        sgstPercent: product.tax?.sgst ?? 0,
         coupon: product.coupon ?? null,
       });
     } finally {

@@ -13,6 +13,7 @@ const cartItemInclude = {
         take: 1,
         include: { media: true },
       },
+      subcategory: { select: { name: true } },
       site: true,
       tax: true,
       coupon: { include: { coupon: true } },

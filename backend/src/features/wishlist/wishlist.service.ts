@@ -1,5 +1,6 @@
 import { authRepository } from '@/features/auth/auth.repository';
 import { logger } from '@/lib/logger';
+import { decimalToNumber } from '@/lib/money';
 import {
   ConflictError,
   ForbiddenError,
@@ -230,7 +231,12 @@ export class WishlistService {
       variantId: item.variantId,
       productName: item.product.name,
       productSlug: item.product.slug,
-      imageUrl: item.product.media[0]?.media.url ?? null,
+      productCode: item.product.productCode ?? '',
+      categoryName: item.product.subcategory?.name ?? null,
+      imageUrl:
+        item.product.galleryImages[0]?.imageUrl ??
+        item.product.media[0]?.media.url ??
+        null,
       price: variant ? variant.price.toString() : null,
       currency: variant?.currency ?? null,
       available:
@@ -238,6 +244,12 @@ export class WishlistService {
           ? item.product.status === 'ACTIVE'
           : quantity > 0,
       quantity,
+      cgstPercent: item.product.tax
+        ? decimalToNumber(item.product.tax.cgst) ?? 0
+        : 0,
+      sgstPercent: item.product.tax
+        ? decimalToNumber(item.product.tax.sgst) ?? 0
+        : 0,
       createdAt: item.createdAt.toISOString(),
       coupon,
     };

@@ -37,15 +37,13 @@ export function CartOrderSummaryRows({
 
   return (
     <div className={className}>
-      {hasDiscount ? (
-        <div className="flex justify-between text-muted-foreground">
-          <span>Original</span>
-          <span>{formatPaiseToInr(originalSubtotalInPaise)}</span>
-        </div>
-      ) : null}
+      <div className="flex justify-between text-muted-foreground">
+        <span>Original price</span>
+        <span>{formatPaiseToInr(originalSubtotalInPaise)}</span>
+      </div>
 
       {hasDiscount ? (
-        <div className="flex justify-between text-muted-foreground">
+        <div className="flex justify-between text-green-600">
           <span>
             Discount
             {discountPercent > 0 ? ` (${discountPercent}% off)` : ""}
@@ -74,12 +72,10 @@ export function CartOrderSummaryRows({
         </div>
       ) : null}
 
-      <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
+      <div className="flex justify-between border-t border-gray-500 pt-2 text-base font-semibold mt-2">
         <span>Total</span>
         <span>{formatPaiseToInr(totalInPaise)}</span>
       </div>
-
-
     </div>
   );
 }

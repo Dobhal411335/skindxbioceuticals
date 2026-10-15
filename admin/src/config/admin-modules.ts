@@ -246,7 +246,7 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Cash-on-delivery order log for the .in storefront.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "order-online-log",
     "orders/online-log",
     "Online Order Log",
@@ -260,13 +260,14 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Vendor order records for the .in storefront.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "order-cancel",
     "orders/cancel",
     "Cancel Order",
-    "Cancelled order records for the .in storefront.",
+    "Orders with pending payment status for cancel review.",
     ["IN", "COM"],
   ),
+
   live(
     "order-doctor-contact",
     "orders/doctor-contact-request",

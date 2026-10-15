@@ -26,6 +26,8 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "create-doctor-profile": endpoints.admin.doctors,
   "manage-doctor-page": endpoints.admin.doctorPage,
   "order-doctor-contact": endpoints.admin.doctorAppointments,
+  "order-online-log": endpoints.admin.ordersOnlineLog,
+  "order-cancel": endpoints.admin.ordersCancelled,
 };
 
 describe("admin modules", () => {

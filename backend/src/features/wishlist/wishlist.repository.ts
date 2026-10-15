@@ -9,12 +9,18 @@ const wishlistItemInclude = {
         take: 1,
         include: { inventory: true },
       },
+      galleryImages: {
+        orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
+        take: 1,
+      },
       media: {
         orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }],
         take: 1,
         include: { media: true },
       },
+      subcategory: { select: { name: true } },
       site: true,
+      tax: true,
       coupon: { include: { coupon: true } },
     },
   },

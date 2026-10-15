@@ -11,6 +11,8 @@ export type CartItemDto = {
   variantId: string;
   productName: string;
   productSlug: string;
+  productCode: string;
+  categoryName: string | null;
   variantName: string;
   imageUrl: string | null;
   quantity: number;

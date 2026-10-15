@@ -107,6 +107,7 @@ export function ProductStickyBar({
       name: product.name,
       image: imageUrl,
       alt: product.name,
+      productCode: product.productCode,
       variantLabel: [selectedColor?.name, selectedSize?.label]
         .filter(Boolean)
         .join(" / "),

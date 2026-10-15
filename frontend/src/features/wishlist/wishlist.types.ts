@@ -11,12 +11,16 @@ export type WishlistItem = {
   variantId: string | null;
   productName: string;
   productSlug: string;
+  productCode?: string | null;
+  categoryName?: string | null;
   imageUrl: string | null;
   price: string | null;
   currency: string | null;
   available: boolean;
-  /** Sellable units left; optional on older guest cache entries. */
+  /** On-hand units; optional on older guest cache entries. */
   quantity?: number;
+  cgstPercent?: number;
+  sgstPercent?: number;
   createdAt: string;
   coupon?: WishlistItemCoupon | null;
 };

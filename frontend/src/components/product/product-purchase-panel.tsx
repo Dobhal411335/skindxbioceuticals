@@ -172,6 +172,7 @@ export function ProductPurchasePanel({
       name: product.name,
       image: primaryImageUrl(product),
       alt: product.name,
+      productCode: product.productCode,
       variantLabel,
       unitPriceInPaise: rupeesToPaise(unitPrice),
       originalUnitPriceInPaise: priced.hasDiscount
@@ -232,10 +233,14 @@ export function ProductPurchasePanel({
         variantId: selectedVariant?.id ?? null,
         productName: product.name,
         productSlug: product.slug,
+        productCode: product.productCode,
         imageUrl: primaryImageUrl(product) || null,
         price: selectedVariant ? String(selectedVariant.price) : null,
         currency: "INR",
         available: !unavailable,
+        cgstPercent: product.tax?.cgst ?? 0,
+        sgstPercent: product.tax?.sgst ?? 0,
+        coupon: product.coupon ?? null,
       });
     } finally {
       setWishlistPending(false);

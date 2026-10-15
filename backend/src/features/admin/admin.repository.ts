@@ -28,6 +28,13 @@ export class AdminRepository {
       createdAt: { gte: from, lte: to },
     };
 
+    /** Revenue counts only non-cancelled/refunded orders with a completed (CAPTURED) payment. */
+    const completedPaymentOrderWhere: Prisma.OrderWhereInput = {
+      ...orderWhere,
+      status: { notIn: ['CANCELLED', 'REFUNDED'] },
+      payments: { some: { status: 'CAPTURED' } },
+    };
+
     const [
       orders,
       revenueAgg,
@@ -43,10 +50,7 @@ export class AdminRepository {
     ] = await Promise.all([
       this.db.order.count({ where: orderWhere }),
       this.db.order.aggregate({
-        where: {
-          ...orderWhere,
-          status: { not: 'CANCELLED' },
-        },
+        where: completedPaymentOrderWhere,
         _sum: { grandTotal: true },
       }),
       this.db.order.groupBy({
@@ -68,7 +72,7 @@ export class AdminRepository {
       this.db.order.findMany({
         where: { siteId },
         orderBy: { createdAt: 'desc' },
-        take: 8,
+        take: 10,
         include: {
           user: { select: { email: true } },
         },
@@ -94,7 +98,13 @@ export class AdminRepository {
         WHERE o.site_id = ${siteId}::uuid
           AND o.created_at >= ${from}
           AND o.created_at <= ${to}
-          AND o.status <> 'CANCELLED'
+          AND o.status NOT IN ('CANCELLED', 'REFUNDED')
+          AND EXISTS (
+            SELECT 1
+            FROM payments p
+            WHERE p.order_id = o.id
+              AND p.status = 'CAPTURED'
+          )
         GROUP BY 1
         ORDER BY 1 ASC
       `,
@@ -116,7 +126,13 @@ export class AdminRepository {
         WHERE o.site_id = ${siteId}::uuid
           AND o.created_at >= ${from}
           AND o.created_at <= ${to}
-          AND o.status <> 'CANCELLED'
+          AND o.status NOT IN ('CANCELLED', 'REFUNDED')
+          AND EXISTS (
+            SELECT 1
+            FROM payments p
+            WHERE p.order_id = o.id
+              AND p.status = 'CAPTURED'
+          )
         GROUP BY oi.product_name
         ORDER BY count DESC
         LIMIT 8

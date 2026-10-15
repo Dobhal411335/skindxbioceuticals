@@ -72,3 +72,49 @@ export type CatalogProductPayload = {
   isRecent: boolean;
   isBestSeller: boolean;
 };
+
+export type AdminProductListPeriod = "today" | "all" | "day";
+export type AdminProductListStatus = "all" | "active" | "draft";
+
+export type AdminProductListItemDto = {
+  id: string;
+  siteCode: SiteCode;
+  subcategoryId: string | null;
+  subcategoryName: string | null;
+  productCode: string;
+  name: string;
+  slug: string;
+  active: boolean;
+  isFeatured: boolean;
+  isRecent: boolean;
+  isBestSeller: boolean;
+  imageUrl: string | null;
+  price: number | null;
+  vendorPrice: number | null;
+  quantity: number;
+  currency: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminProductListMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type AdminProductListQuery = {
+  period?: AdminProductListPeriod;
+  date?: string;
+  status?: AdminProductListStatus;
+  q?: string;
+  offset?: number;
+  limit?: number;
+  page?: number;
+};
+
+export type AdminProductListResult = {
+  items: AdminProductListItemDto[];
+  meta: AdminProductListMeta;
+};

@@ -26,6 +26,8 @@ const guestCartItemSchema = z.object({
   quantity: z.number().int().min(1).max(99),
   productName: z.string().optional(),
   productSlug: z.string().optional(),
+  categoryName: z.string().nullable().optional(),
+  productCode: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
   variantLabel: z.string().optional(),
   unitPriceInPaise: z.number().int().nonnegative().optional(),
@@ -48,6 +50,8 @@ export type GuestCartItem = {
   quantity: number;
   productName?: string;
   productSlug?: string;
+  categoryName?: string | null;
+  productCode?: string | null;
   imageUrl?: string | null;
   variantLabel?: string;
   unitPriceInPaise?: number;
@@ -91,6 +95,8 @@ function sanitizeItem(raw: unknown): GuestCartItem | null {
       record.productName === undefined ? undefined : String(record.productName),
     productSlug:
       record.productSlug === undefined ? undefined : String(record.productSlug),
+    categoryName: asNullableString(record.categoryName) ?? null,
+    productCode: asNullableString(record.productCode) ?? null,
     imageUrl: asNullableString(record.imageUrl) ?? null,
     variantLabel:
       record.variantLabel === undefined

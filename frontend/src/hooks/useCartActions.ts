@@ -36,6 +36,8 @@ export type CartAddInput = {
   name: string;
   image: string;
   alt: string;
+  categoryName?: string | null;
+  productCode?: string | null;
   variantLabel?: string;
   quantity?: number;
   unitPriceInPaise: number;
@@ -54,6 +56,8 @@ function toGuestBagItem(item: CartItem): GuestCartItem | null {
     quantity: item.quantity,
     productName: item.name,
     productSlug: item.slug,
+    categoryName: item.categoryName ?? null,
+    productCode: item.productCode ?? null,
     imageUrl: item.image || null,
     variantLabel: item.variantLabel,
     unitPriceInPaise: item.unitPriceInPaise,
@@ -106,6 +110,8 @@ function mergeAddIntoItems(
         cgstPercent: input.cgstPercent ?? existing.cgstPercent ?? 0,
         sgstPercent: input.sgstPercent ?? existing.sgstPercent ?? 0,
         variantLabel: input.variantLabel ?? existing.variantLabel,
+        categoryName: input.categoryName ?? existing.categoryName ?? null,
+        productCode: input.productCode ?? existing.productCode ?? null,
         image: input.image || existing.image,
         alt: input.alt || existing.alt,
         name: input.name,
@@ -119,6 +125,8 @@ function mergeAddIntoItems(
         name: input.name,
         image: input.image,
         alt: input.alt,
+        categoryName: input.categoryName ?? null,
+        productCode: input.productCode ?? null,
         variantLabel: input.variantLabel,
         quantity,
         unitPriceInPaise: input.unitPriceInPaise,

@@ -189,6 +189,8 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/media` | signed upload authorization and asset management | Authorized admin/editor |
 | `/admin/sites` | list/manage authorized site workspaces | Admin permission |
 | `/admin/sites/:siteCode/dashboard` | site-scoped dashboard metrics | Admin + site access |
+| `/admin/sites/:siteCode/orders/online-log` | paginated online (non-COD) order log | Admin + site access |
+| `/admin/sites/:siteCode/orders/cancelled` | paginated cancelled order log | Admin + site access |
 | `/admin/sites/:siteCode/company-basic-info` | get/upsert site-scoped company profile | Admin + site access |
 | `/admin/sites/:siteCode/navbar-sections` | list/create site-scoped navbar sections | Admin + site access |
 | `/admin/sites/:siteCode/social-posts` | CRUD site-scoped Instagram/Facebook posts | Admin + site access |
@@ -298,6 +300,13 @@ Uploads use existing media APIs with `feature=doctors`: `POST /api/v1/media/imag
 ### Public doctor profiles (storefront)
 
 - `GET /api/v1/sites/:siteCode/doctors` — public read for an active site (no auth). Returns active profiles only (includes `state` + `city`), ordered for the `.in` storefront `/doctors` cards grid.
+
+### Admin order logs (implemented)
+
+Site-scoped paginated order logs for admin. Dashboard revenue (`GET /admin/sites/:siteCode/dashboard`) sums `grandTotal` only for orders that are not `CANCELLED`/`REFUNDED` and have at least one payment with status `CAPTURED` (completed payment). Recent orders return the latest 10 by `createdAt`.
+
+- `GET /api/v1/admin/sites/:siteCode/orders/online-log` — Bearer admin JWT; `requireSiteAccess`. Lists non-COD payment orders. Query: `page` (default 1), `pageSize` (default 10, max 50), optional `date` (`YYYY-MM-DD`, defaults to today when `all` is false), optional `all=true` to ignore the day filter, optional `q` (max 120; matches order number, contact email, or user email). Ordered by `createdAt` desc. Response includes `orders`, `hasMore`, `total`, `filter.mode` (`day`|`all`).
+- `GET /api/v1/admin/sites/:siteCode/orders/cancelled` — Bearer admin JWT; `requireSiteAccess`. Same query/pagination as online-log. Cancel Order workspace: orders that have at least one payment with `status=PENDING` and are not already `CANCELLED`/`REFUNDED` (candidates for cancel review until a dedicated cancel action exists).
 
 ### Admin doctor appointments (implemented)
 
@@ -481,8 +490,14 @@ Site-scoped categories use the hierarchical `Category` model (`parentId` null = 
 - `POST /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId/products` — body `{ productCode, name, active? }`. `productCode` unique per site; slug server-generated; `active` maps to `ProductStatus` ACTIVE/DRAFT.
 - `PUT|PATCH|DELETE .../products/:productId` — PATCH supports `active` / `name` / `productCode`.
 
+**Admin View All Products (site-scoped list / delete)**  
+- `GET /api/v1/admin/sites/:siteCode/products` — Bearer admin JWT + `requireSiteAccess`. Lists products for the site (newest first). Response `data` is an array of list rows; pagination in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
+  - Query: `period` (`today` default | `all` | `day`), `date` (`YYYY-MM-DD`, required when `period=day`), `status` (`all` default | `active` | `draft`), `q` (max 120), `page` (default 1), optional `offset` (preferred for infinite scroll; overrides `(page-1)*limit`), `limit` (default `10`, max `48`).
+  - Each row: `id`, `productCode`, `name`, `slug`, `active`, flags, `subcategoryId` / `subcategoryName`, `imageUrl`, `price`, `vendorPrice`, `quantity`, `currency`, `createdAt`, `updatedAt`.
+- `DELETE /api/v1/admin/sites/:siteCode/products/:productId` — hard-deletes the product for the site; `404` if missing/other site; `409` when any variant appears on an order line. Cart/wishlist rows cascade.
+
 **Product edit details (section PUT pattern)**  
-Prefer focused section replaces over one giant nested PUT so saving sizes cannot wipe gallery/tax. All require Bearer admin JWT + `requireSiteAccess`. Responses return the full edit payload after mutation.
+Prefer focused section replaces over one giant nested PUT so saving sizes cannot wipe gallery/tax. All require Bearer admin JWT + `requireSiteAccess`. Responses return the full edit payload after mutation. View All Products detail modal reuses this payload.
 
 - `GET /api/v1/admin/sites/:siteCode/products/:productId/edit` — load core product + all section data (sizes, colors, variants/offers, gallery, videos, description, info sections, editorial reviews, tags, highlights, tax, coupon) plus site color/tag masters and active coupon options.
 - `POST /api/v1/admin/sites/:siteCode/products/catalog-colors` — body `{ name, hex }` (`#RRGGBB`); site-scoped master color.

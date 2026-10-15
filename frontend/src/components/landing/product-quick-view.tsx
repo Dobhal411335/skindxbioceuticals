@@ -392,6 +392,8 @@ export function ProductQuickView({
       name: product.name,
       image: images[0] ?? primaryImageUrl(product) ?? "",
       alt: product.name,
+      productCode: product.productCode,
+      categoryName: categoryName ?? null,
       variantLabel: selectedVariant.name,
       unitPriceInPaise: pricing.unitPriceInPaise,
       originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
@@ -439,10 +441,14 @@ export function ProductQuickView({
         variantId: selectedVariant?.id ?? product.variants[0]?.id ?? null,
         productName: product.name,
         productSlug: product.slug,
+        productCode: product.productCode,
+        categoryName: categoryName ?? null,
         imageUrl: images[0] ?? primaryImageUrl(product),
         price: String(listPrice),
         currency: "INR",
         available: inStock,
+        cgstPercent: product.tax?.cgst ?? 0,
+        sgstPercent: product.tax?.sgst ?? 0,
         coupon: product.coupon,
       });
     } finally {

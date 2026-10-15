@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   ClipboardList,
@@ -23,6 +24,7 @@ import { AdminAppShell } from "@/components/layout/admin-app-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { moduleHref } from "@/config/admin-modules";
 import { fetchDashboard } from "@/services/api/dashboard";
 import { ApiError } from "@/services/api/errors";
 import type { SiteCode } from "@/types/auth";
@@ -193,8 +195,13 @@ export function DashboardView({ siteCode }: { siteCode: SiteCode }) {
             />
           </div>
           <Card className="shadow-(--shadow-card)" data-testid="recent-orders">
-            <CardHeader className="pb-3">
+            <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
               <CardTitle className="text-base">Recent orders</CardTitle>
+              <Button asChild variant="outline" size="sm">
+                <Link href={moduleHref(siteCode, "orders/online-log")}>
+                  View all recent orders
+                </Link>
+              </Button>
             </CardHeader>
             <CardContent>
               {data.recentOrders.length === 0 ? (

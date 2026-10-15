@@ -167,12 +167,14 @@ export function WishlistPageView() {
         name: item.productName,
         image: item.imageUrl ?? "",
         alt: item.productName,
+        categoryName: item.categoryName ?? null,
+        productCode: item.productCode ?? null,
         unitPriceInPaise: pricing.unitPriceInPaise,
         originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
         discountCode: pricing.discountCode,
         discountInPaise: pricing.discountInPaise,
-        cgstPercent: 0,
-        sgstPercent: 0,
+        cgstPercent: item.cgstPercent ?? 0,
+        sgstPercent: item.sgstPercent ?? 0,
         quantity: 1,
       });
       if (ok) openCart();
@@ -332,7 +334,7 @@ export function WishlistPageView() {
                         asChild
                         size="sm"
                         variant="outline"
-                        className="flex-1 min-w-0 rounded-full"
+                        className="flex-1 min-w-0 rounded-full p-5"
                       >
                         <Link href={`/products/${item.productSlug}`}>
                           View Details
@@ -343,7 +345,7 @@ export function WishlistPageView() {
                         size="sm"
                         variant="outline"
                         disabled
-                        className="flex-1 min-w-0 rounded-full"
+                        className="flex-1 min-w-0 rounded-full p-5"
                       >
                         Details Unavailable
                       </Button>
@@ -351,7 +353,7 @@ export function WishlistPageView() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-destructive px-2"
+                      className="text-destructive px-2 p-5"
                       disabled={pendingId === item.id}
                       aria-label="Remove"
                       onClick={() => void removeItem(item.id)}

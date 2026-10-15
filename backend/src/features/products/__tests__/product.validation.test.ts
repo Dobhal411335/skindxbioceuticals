@@ -1,4 +1,5 @@
 import {
+  adminProductListQuerySchema,
   catalogProductBodySchema,
   normalizeCatalogProductInput,
   publicProductListQuerySchema,
@@ -87,5 +88,24 @@ describe('catalog product validation', () => {
     expect(() =>
       publicProductListQuerySchema.parse({ sort: 'popularity' }),
     ).toThrow();
+  });
+
+  it('defaults admin product list period to today and limit to 10', () => {
+    const parsed = adminProductListQuerySchema.parse({});
+    expect(parsed).toMatchObject({
+      period: 'today',
+      status: 'all',
+      page: 1,
+      limit: 10,
+    });
+  });
+
+  it('requires date when admin list period is day', () => {
+    expect(() => adminProductListQuerySchema.parse({ period: 'day' })).toThrow();
+    const parsed = adminProductListQuerySchema.parse({
+      period: 'day',
+      date: '2026-10-15',
+    });
+    expect(parsed.date).toBe('2026-10-15');
   });
 });

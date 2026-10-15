@@ -47,6 +47,40 @@ export type CatalogProductDto = {
   updatedAt: string;
 };
 
+/** Compact admin table row for View All Products. */
+export type AdminProductListItemDto = {
+  id: string;
+  siteCode: SiteCodeDto;
+  subcategoryId: string | null;
+  subcategoryName: string | null;
+  productCode: string;
+  name: string;
+  slug: string;
+  active: boolean;
+  isFeatured: boolean;
+  isRecent: boolean;
+  isBestSeller: boolean;
+  imageUrl: string | null;
+  price: number | null;
+  vendorPrice: number | null;
+  quantity: number;
+  currency: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminProductListMetaDto = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type AdminProductListResultDto = {
+  items: AdminProductListItemDto[];
+  meta: AdminProductListMetaDto;
+};
+
 export type PublicProductCouponDto = {
   couponId: string;
   code: string;

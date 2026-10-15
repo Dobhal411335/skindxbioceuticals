@@ -2,6 +2,8 @@ import { apiClient } from "@/services/api/axios";
 import { endpoints } from "@/services/api/endpoints";
 import type { SiteCode } from "@/types/auth";
 import type {
+  AdminProductListQuery,
+  AdminProductListResult,
   CatalogProductDto,
   CatalogProductPayload,
   CategoryDto,
@@ -12,6 +14,7 @@ interface ApiSuccess<T> {
   success: true;
   message: string;
   data: T;
+  meta?: Record<string, unknown>;
 }
 
 type MediaUploadResponse = {
@@ -198,6 +201,44 @@ export async function deleteSubcategoryProduct(
   await apiClient.delete(
     endpoints.admin.subcategoryProduct(siteCode, subcategoryId, productId),
   );
+}
+
+export async function fetchAdminProducts(
+  siteCode: SiteCode,
+  query: AdminProductListQuery = {},
+): Promise<AdminProductListResult> {
+  const { data } = await apiClient.get<
+    ApiSuccess<AdminProductListResult["items"]> & {
+      meta: AdminProductListResult["meta"];
+    }
+  >(endpoints.admin.products(siteCode), {
+    params: {
+      period: query.period,
+      date: query.date,
+      status: query.status,
+      q: query.q,
+      offset: query.offset,
+      limit: query.limit,
+      page: query.page,
+    },
+  });
+
+  return {
+    items: data.data,
+    meta: data.meta ?? {
+      page: 1,
+      limit: query.limit ?? 10,
+      total: data.data.length,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function deleteAdminProduct(
+  siteCode: SiteCode,
+  productId: string,
+): Promise<void> {
+  await apiClient.delete(endpoints.admin.product(siteCode, productId));
 }
 
 export async function uploadCategoryBanner(

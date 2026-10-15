@@ -110,12 +110,45 @@ export const publicProductListQuerySchema = z
     }
   });
 
+const dateOnlySchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
+
+/** Admin View All Products list filters (site-scoped). */
+export const adminProductListQuerySchema = z
+  .object({
+    /** `today` (default) | `all` | `day` (requires `date`) */
+    period: z.enum(['today', 'all', 'day']).optional().default('today'),
+    date: dateOnlySchema.optional(),
+    status: z.enum(['all', 'active', 'draft']).optional().default('all'),
+    q: z.string().trim().max(120).optional(),
+    page: z.coerce.number().int().min(1).optional().default(1),
+    offset: z.coerce.number().int().min(0).max(10_000).optional(),
+    limit: z.coerce.number().int().min(1).max(48).optional().default(10),
+  })
+  .superRefine((value, ctx) => {
+    if (value.period === 'day' && !value.date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'date is required when period is day',
+        path: ['date'],
+      });
+    }
+  });
+
+export const adminProductIdParamSchema = z.object({
+  siteCode: siteCodeSchema,
+  productId: z.string().uuid(),
+});
+
 export type CatalogProductBody = z.infer<typeof catalogProductBodySchema>;
 export type CatalogProductPatchBody = z.infer<typeof catalogProductPatchSchema>;
 export type PublicProductSlugParam = z.infer<typeof publicProductSlugParamSchema>;
 export type PublicProductListQuery = z.infer<typeof publicProductListQuerySchema>;
 export type PublicProductSort = z.infer<typeof publicProductSortSchema>;
 export type PublicProductAvailability = z.infer<typeof publicProductAvailabilitySchema>;
+export type AdminProductListQuery = z.infer<typeof adminProductListQuerySchema>;
 
 export function normalizeCatalogProductInput(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') {

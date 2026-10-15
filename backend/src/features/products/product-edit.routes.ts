@@ -2,7 +2,12 @@ import { Router } from 'express';
 import { asyncHandler } from '@/utils/asyncHandler';
 import { requireSiteAccess } from '@/middlewares/siteAccess.middleware';
 import { validate } from '@/middlewares/validate.middleware';
+import { productController } from './product.controller';
 import { productEditController } from './product-edit.controller';
+import {
+  adminProductIdParamSchema,
+  adminProductListQuerySchema,
+} from './product.validation';
 import {
   catalogColorBodySchema,
   catalogTagBodySchema,
@@ -35,13 +40,26 @@ const siteCodeOnlySchema = z.object({
  */
 export const productEditRoutes = Router({ mergeParams: true });
 
+productEditRoutes.get(
+  '/',
+  validate({ params: siteCodeOnlySchema, query: adminProductListQuerySchema }),
+  requireSiteAccess('siteCode'),
+  asyncHandler(productController.listForAdmin),
+);
+
+productEditRoutes.delete(
+  '/:productId',
+  validate({ params: adminProductIdParamSchema }),
+  requireSiteAccess('siteCode'),
+  asyncHandler(productController.removeForSite),
+);
+
 productEditRoutes.post(
   '/catalog-colors',
   validate({ params: siteCodeOnlySchema, body: catalogColorBodySchema }),
   requireSiteAccess('siteCode'),
   asyncHandler(productEditController.createCatalogColor),
 );
-
 productEditRoutes.post(
   '/catalog-tags',
   validate({ params: siteCodeOnlySchema, body: catalogTagBodySchema }),

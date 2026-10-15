@@ -158,6 +158,7 @@ function FeaturedHighlightCard({
       name: product.name,
       image: product.imageUrl ?? "",
       alt: product.name,
+      categoryName: product.categoryName,
       unitPriceInPaise: pricing.unitPriceInPaise,
       originalUnitPriceInPaise: pricing.originalUnitPriceInPaise,
       discountCode: pricing.discountCode,

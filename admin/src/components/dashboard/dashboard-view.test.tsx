@@ -29,7 +29,7 @@ describe("DashboardView", () => {
     expect(await screen.findByTestId("dashboard-error")).toHaveTextContent("Forbidden");
   });
 
-  it("renders IN totals from API data", async () => {
+  it("renders IN totals from API data and links to the online order log", async () => {
     const { fetchDashboard } = await import("@/services/api/dashboard");
     (fetchDashboard as jest.Mock).mockResolvedValue({
       siteCode: "IN",
@@ -48,7 +48,20 @@ describe("DashboardView", () => {
         bestsellingProducts: [],
         orderActivityOverTime: [],
       },
-      recentOrders: [],
+      recentOrders: [
+        {
+          id: "o1",
+          orderNumber: "IN-1",
+          status: "CONFIRMED",
+          grandTotal: 1000,
+          taxTotal: 0,
+          cgstTotal: 0,
+          sgstTotal: 0,
+          currency: "INR",
+          createdAt: "2026-01-15T10:00:00.000Z",
+          customerEmail: "a@example.com",
+        },
+      ],
     });
 
     render(<DashboardView siteCode="IN" />);
@@ -57,6 +70,9 @@ describe("DashboardView", () => {
       expect(screen.getByTestId("stat-cards")).toHaveTextContent("Total orders");
       expect(screen.getByTestId("stat-cards")).toHaveTextContent("4");
     });
+
+    const viewAll = screen.getByRole("link", { name: /view all recent orders/i });
+    expect(viewAll).toHaveAttribute("href", "/admin/in/orders/online-log");
   });
 
   it("renders COM enquiry totals from API data", async () => {

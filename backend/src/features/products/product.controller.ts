@@ -5,6 +5,7 @@ import { sendSuccess } from '@/utils/apiResponse';
 import { NotFoundError, UnauthorizedError, ValidationError } from '@/utils/AppError';
 import { productService } from './product.service';
 import type {
+  AdminProductListQuery,
   CatalogProductBody,
   CatalogProductPatchBody,
   PublicProductListQuery,
@@ -171,6 +172,34 @@ export class ProductController {
       siteCode: req.site.code,
       userId: req.user.id,
       subcategoryId: String(req.params.subcategoryId),
+      productId: String(req.params.productId),
+    });
+    sendSuccess(res, null, 'Product deleted');
+  };
+
+  listForAdmin = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const query = req.query as unknown as AdminProductListQuery;
+    const result = await this.service.listForAdmin({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      query,
+    });
+    sendSuccess(res, result.items, 'Products', 200, result.meta);
+  };
+
+  removeForSite = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    await this.service.deleteForSite({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
       productId: String(req.params.productId),
     });
     sendSuccess(res, null, 'Product deleted');

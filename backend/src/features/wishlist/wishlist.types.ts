@@ -11,12 +11,18 @@ export interface WishlistItemDto {
   variantId: string | null;
   productName: string;
   productSlug: string;
+  productCode: string;
+  categoryName: string | null;
   imageUrl: string | null;
   price: string | null;
   currency: string | null;
   available: boolean;
-  /** Sellable units left (on hand − reserved). 0 when unknown / out of stock. */
+  /** On-hand units (same display rule as product cards). */
   quantity: number;
+  /** Product CGST % (0 when unset). */
+  cgstPercent: number;
+  /** Product SGST % (0 when unset). */
+  sgstPercent: number;
   createdAt: string;
   /** Product-linked default discount coupon when active. */
   coupon: WishlistItemCouponDto | null;
