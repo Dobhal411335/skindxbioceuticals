@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { fetchCatalogProducts } from "@/features/products/product.service";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { cn } from "@/lib/utils";
 import type {
   CatalogAvailability,
@@ -67,6 +68,7 @@ export function CategoryShop({ facets }: CategoryShopProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isVendor = useIsVendor();
 
   const priceBounds = useMemo(() => {
     const min = Math.max(0, Math.floor(facets.price.min || 0));
@@ -243,6 +245,7 @@ export function CategoryShop({ facets }: CategoryShopProps) {
       debouncedSearch,
       priceFilterActive,
       sort,
+      isVendor,
     ],
   );
 

@@ -125,3 +125,23 @@ describe('MeService avatar', () => {
     expect(result.user.imageUrl).toBeNull();
   });
 });
+describe("MeService storefront roles", () => {
+  const repository = {
+    findCustomerById: jest.fn(),
+    listAddresses: jest.fn(),
+  } as unknown as jest.Mocked<MeRepository>;
+
+  const service = new MeService(repository);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("allows VENDOR to list addresses", async () => {
+    repository.findCustomerById.mockResolvedValue(
+      makeUser({ role: "VENDOR", username: "acmelabs01" }) as never,
+    );
+    repository.listAddresses.mockResolvedValue([] as never);
+    await expect(service.listAddresses("11111111-1111-4111-8111-111111111111")).resolves.toEqual([]);
+  });
+});

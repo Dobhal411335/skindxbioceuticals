@@ -19,6 +19,7 @@ export const EMAIL_TAGS = {
   ORDER_CANCELLED: 'order-cancelled',
   REFUND_STATUS: 'refund-status',
   ENQUIRY_CONFIRMATION: 'enquiry-confirmation',
+  VENDOR_APPROVED: 'vendor-approved',
 } as const;
 
 export type EmailTag = (typeof EMAIL_TAGS)[keyof typeof EMAIL_TAGS];

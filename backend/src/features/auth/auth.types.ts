@@ -11,6 +11,7 @@ export interface AuthUserDto {
   id: string;
   email: string;
   role: UserRole;
+  username?: string | null;
   firstName?: string | null;
   lastName?: string | null;
   imageUrl?: string | null;

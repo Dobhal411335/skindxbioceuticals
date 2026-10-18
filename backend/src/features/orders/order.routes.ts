@@ -7,7 +7,7 @@ import { listOrdersQuerySchema, orderIdParamSchema } from './order.validation';
 
 const router = Router();
 
-router.use(authenticate, authorize('CUSTOMER'));
+router.use(authenticate, authorize('CUSTOMER', 'VENDOR'));
 
 router.get(
   '/',

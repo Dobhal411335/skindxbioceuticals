@@ -1,6 +1,17 @@
 import type { AuthUser } from "@/types/auth";
 
-export function getUserDisplayName(user: Pick<AuthUser, "firstName" | "lastName" | "email">): string {
+export function isVendorUser(
+  user: Pick<AuthUser, "role"> | null | undefined,
+): boolean {
+  return user?.role === "VENDOR";
+}
+
+export function getUserDisplayName(
+  user: Pick<AuthUser, "firstName" | "lastName" | "email" | "username" | "role">,
+): string {
+  if (isVendorUser(user) && user.username?.trim()) {
+    return user.username.trim();
+  }
   const parts = [user.firstName, user.lastName]
     .map((part) => (typeof part === "string" ? part.trim() : ""))
     .filter(Boolean);
@@ -10,7 +21,12 @@ export function getUserDisplayName(user: Pick<AuthUser, "firstName" | "lastName"
   return user.email;
 }
 
-export function getUserInitial(user: Pick<AuthUser, "firstName" | "lastName" | "email">): string {
+export function getUserInitial(
+  user: Pick<AuthUser, "firstName" | "lastName" | "email" | "username" | "role">,
+): string {
+  if (isVendorUser(user) && user.username?.trim()) {
+    return user.username.trim().charAt(0).toUpperCase();
+  }
   const name = [user.firstName, user.lastName]
     .map((part) => (typeof part === "string" ? part.trim() : ""))
     .find(Boolean);

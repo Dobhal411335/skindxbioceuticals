@@ -35,6 +35,7 @@ import { blogPublicRoutes } from '@/features/blog/blog.public.routes';
 import { doctorProfilesPublicRoutes } from '@/features/doctors/doctor-profiles.public.routes';
 import { doctorPagePublicRoutes } from '@/features/doctors/doctor-page.public.routes';
 import { doctorAppointmentsPublicRoutes } from '@/features/doctor-appointments/doctor-appointments.public.routes';
+import { vendorsPublicRoutes } from '@/features/vendors/vendors.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
@@ -80,6 +81,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/doctors', doctorProfilesPublicRoutes);
   v1.use('/sites/:siteCode/doctor-page', doctorPagePublicRoutes);
   v1.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsPublicRoutes);
+  v1.use('/sites/:siteCode/vendors', vendorsPublicRoutes);
   v1.use('/sites/:siteCode/categories', categoryPublicRoutes);
   v1.use('/sites/:siteCode/products', productPublicRoutes);
 

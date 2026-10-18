@@ -90,23 +90,42 @@ Shared session architecture with Google: short-lived access JWT in JSON (`Author
 - `POST /api/v1/auth/google` — body `{ credential }` (Google ID token). Verifies token server-side. If the email already belongs to a customer (including pending password signup), attaches Google for that verified email and activates the account; then links eligible guest orders. New emails create an `ACTIVE` Google customer.
 - `POST /api/v1/auth/verify-email` — body `{ email, otp }`. Atomically consumes OTP, activates account, schedules welcome email once, returns `{ accessToken, user }` + refresh cookie.
 - `POST /api/v1/auth/resend-verification` — body `{ email }`. Generic acknowledgement; enforces resend cooldown.
-- `POST /api/v1/auth/login` — body `{ email, password }`. Verified customers get `{ accessToken, user }` + refresh cookie. Invalid credentials → generic `401`. Unverified → `403` with `errors.code = EMAIL_NOT_VERIFIED`. Suspended/inactive → `403`. Never grants admin.
+- `POST /api/v1/auth/login` — body `{ email, password }`. Verified customers get `{ accessToken, user }` + refresh cookie. Invalid credentials → generic `401`. Unverified → `403` with `errors.code = EMAIL_NOT_VERIFIED`. Suspended/inactive → `403`. Never grants admin. Rejects `VENDOR` (use vendor login).
+- `POST /api/v1/auth/vendor/login` — body `{ username, password }`. Active `VENDOR` users with an approved+active `VendorApplication` get `{ accessToken, user }` + refresh cookie. Compares against bcrypt `passwordHash` only.
 - `PATCH /api/v1/auth/password` — authenticated customer. Body `{ currentPassword?, newPassword, confirmPassword }`. When `hasPassword` is true, `currentPassword` is required and verified. Google-only accounts (no password hash) may set a password without `currentPassword`. On success: hash stored, all refresh tokens revoked, new `{ accessToken, user }` issued with rotated refresh cookie. Never returns password data.
 
-Auth `user` DTO fields include: `id`, `email`, `role`, `firstName`, `lastName`, `imageUrl`, `hasPassword`, `linkedProviders` (`GOOGLE` from `ExternalIdentity` only — never inferred from `imageUrl`), `createdAt`.
+Auth `user` DTO fields include: `id`, `email`, `role`, optional `username`, `firstName`, `lastName`, `imageUrl`, `hasPassword`, `linkedProviders` (`GOOGLE` from `ExternalIdentity` only — never inferred from `imageUrl`), `createdAt`.
 
-### Customer account self-service (implemented)
+### Vendor partner applications (implemented)
 
-All routes require `Authorization: Bearer` and `CUSTOMER` role. Ownership is always derived from `req.user.id`.
+Public (rate-limited), site-scoped under `/sites/:siteCode/vendors`:
+
+- `POST .../applications` — multi-step become-vendor payload; creates `PENDING` application.
+- `POST .../applications/documents` — multipart image/PDF upload → `{ url, publicId }`.
+
+Admin (Bearer admin + site access) under `/admin/sites/:siteCode/vendors`:
+
+- `GET .../applications?status&q` — list/filter applications.
+- `GET .../applications/:applicationId` — full detail + documents.
+- `PATCH .../applications/:applicationId/status` — `{ status: PENDING|APPROVED|REJECTED }`. Approve creates `User` role `VENDOR`, stores **one** bcrypt `passwordHash` (login) plus `passwordPlain` (admin reveal only — not double-hashed), emails plaintext password. Response: `{ application, credentials: { username, password, email } | null, emailSent }`.
+- `GET .../credentials?q&isActive` — approved vendors including `passwordPlain` for admin eye-toggle.
+- `PATCH .../credentials/:applicationId/active` — `{ isActive }`.
+- `POST .../credentials/:applicationId/regenerate-password` — new single hash + plain + email. Response: `{ credential, emailSent }`.
+
+Vendor pricing: public product DTOs include `vendorPrice` when `Authorization` is a `VENDOR` JWT. Cart (`CUSTOMER`|`VENDOR`) and checkout recalculate sell price as `vendorPrice ?? price` for vendors.
+
+### Customer / vendor account self-service (implemented)
+
+All routes require `Authorization: Bearer` and `CUSTOMER` or `VENDOR` role. Ownership is always derived from `req.user.id`. Wishlist routes remain `CUSTOMER`-only.
 
 - `PATCH /api/v1/me` — body `{ firstName, lastName? }`. Updates name only; never accepts role/status/email/password.
-- `POST /api/v1/me/avatar` — multipart `file` image upload (Cloudinary `feature=profile`). Updates `User.imageUrl` for the authenticated customer only. Missing file → `422`.
-- `DELETE /api/v1/me/avatar` — clears `User.imageUrl` for the authenticated customer.
-- `GET /api/v1/me/addresses` — list current customer's addresses.
+- `POST /api/v1/me/avatar` — multipart `file` image upload (Cloudinary `feature=profile`). Updates `User.imageUrl` for the authenticated account only. Missing file → `422`.
+- `DELETE /api/v1/me/avatar` — clears `User.imageUrl` for the authenticated account.
+- `GET /api/v1/me/addresses` — list current user's addresses.
 - `POST /api/v1/me/addresses` — create address; `isDefault: true` clears other defaults in a transaction.
 - `PATCH /api/v1/me/addresses/:addressId` — update owned address only (404 if not owned).
 - `DELETE /api/v1/me/addresses/:addressId` — delete owned address only (404 if not owned).
-- `GET /api/v1/orders?page&pageSize` — paginated orders for the authenticated customer only.
+- `GET /api/v1/orders?page&pageSize` — paginated orders for the authenticated customer or vendor only.
 - `GET /api/v1/orders/:orderId` — order detail with items; 404 if not owned.
 - `GET /api/v1/wishlist` — current wishlist (created if missing) with product summary fields (`available`, `quantity` sellable units, price, coupon, etc.). Response omits non-`ACTIVE` / non-`IN` leftovers.
 - `POST /api/v1/wishlist` — body `{ productId, variantId? }`; active `IN` products only; conflict if duplicate.

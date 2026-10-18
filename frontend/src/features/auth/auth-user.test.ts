@@ -2,6 +2,7 @@ import {
   getUserDisplayName,
   getUserInitial,
   isValidImageUrl,
+  isVendorUser,
 } from "@/features/auth/auth-user";
 
 describe("auth-user helpers", () => {
@@ -18,6 +19,28 @@ describe("auth-user helpers", () => {
     expect(getUserInitial({ firstName: "ada", lastName: null, email: "a@x.com" })).toBe("A");
     expect(getUserInitial({ firstName: null, lastName: null, email: "zeta@x.com" })).toBe("Z");
     expect(getUserInitial({ firstName: null, lastName: null, email: "" })).toBe("?");
+  });
+
+  it("prefers username for vendor display name and initial", () => {
+    expect(isVendorUser({ role: "VENDOR" })).toBe(true);
+    expect(
+      getUserDisplayName({
+        role: "VENDOR",
+        username: "acmelabs01",
+        firstName: "Riya",
+        lastName: null,
+        email: "v@x.com",
+      }),
+    ).toBe("acmelabs01");
+    expect(
+      getUserInitial({
+        role: "VENDOR",
+        username: "acmelabs01",
+        firstName: "riya",
+        lastName: null,
+        email: "v@x.com",
+      }),
+    ).toBe("A");
   });
 
   it("accepts only absolute http(s) image URLs", () => {

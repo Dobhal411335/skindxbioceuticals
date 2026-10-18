@@ -68,12 +68,14 @@ function persistGuestFromItems(items: WishlistItem[]): boolean {
 }
 
 /**
- * Auth-aware wishlist mutations — guests use Redux + localStorage; customers use the API.
+ * Auth-aware wishlist mutations — guests/vendors use Redux + localStorage;
+ * customers use the account wishlist API (CUSTOMER-only).
  */
 export function useWishlistActions() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const items = useAppSelector((state) => state.wishlist.items);
+  const usesAccountWishlist = isAuthenticated && user?.role === "CUSTOMER";
 
   const isInWishlist = (productId: string) =>
     items.some((item) => item.productId === productId);
@@ -95,7 +97,7 @@ export function useWishlistActions() {
       return true;
     }
 
-    if (!isAuthenticated) {
+    if (!usesAccountWishlist) {
       const variantId =
         input.variantId && String(input.variantId).trim()
           ? String(input.variantId)
@@ -175,7 +177,7 @@ export function useWishlistActions() {
     const previous = items;
     dispatch(removeWishlistItem(itemId));
 
-    if (!isAuthenticated) {
+    if (!usesAccountWishlist) {
       const nextItems = previous.filter((item) => item.id !== itemId);
       persistGuestFromItems(nextItems);
       showSuccess("Removed from wishlist.", { id: "wishlist.remove" });

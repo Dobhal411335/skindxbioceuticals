@@ -328,9 +328,17 @@ export function CartWishlistSyncBridge() {
 
       let wishlistOk = false;
       let cartOk = false;
+      // Wishlist API is CUSTOMER-only; vendors keep the guest bag locally.
+      const usesAccountWishlist = user.role === "CUSTOMER";
 
       try {
-        if (wishlistSyncItems.length === 0) {
+        if (!usesAccountWishlist) {
+          dispatch(
+            setWishlistItems(guestItemsToWishlistItems(wishlistBag.items)),
+          );
+          dispatch(setWishlistStatus("ready"));
+          wishlistOk = true;
+        } else if (wishlistSyncItems.length === 0) {
           const wishlist = await wishlistService.get();
           dispatch(setWishlistItems(wishlist.items));
           wishlistOk = true;

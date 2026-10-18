@@ -29,10 +29,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProductBySlugClient } from "@/features/products/product.service";
 import {
-  applyProductCoupon,
   buildCartPricingFields,
   discountPercentForBadge,
+  priceProductForRole,
 } from "@/features/products/product-pricing";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import {
   availableColors,
   availableSizes,
@@ -263,6 +264,7 @@ export function ProductQuickView({
     isInWishlist,
     authLoading: wishlistAuthLoading,
   } = useWishlistActions();
+  const isVendor = useIsVendor();
   const [product, setProduct] = useState<PublicProductDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [sizeLabel, setSizeLabel] = useState<string | null>(null);
@@ -330,7 +332,14 @@ export function ProductQuickView({
   const maxQty = selectedVariant?.quantity ?? 0;
   const listPrice =
     selectedVariant?.price ?? product?.variants[0]?.price ?? 0;
-  const priced = applyProductCoupon(listPrice, product?.coupon ?? null);
+  const vendorPrice =
+    selectedVariant?.vendorPrice ?? product?.variants[0]?.vendorPrice ?? null;
+  const priced = priceProductForRole({
+    price: listPrice,
+    vendorPrice,
+    isVendor,
+    coupon: product?.coupon ?? null,
+  });
   const discountPercent = discountPercentForBadge(priced);
   const inStock = Boolean(selectedVariant && maxQty > 0);
   const inWishlist = product ? isInWishlist(product.id) : false;
@@ -384,6 +393,11 @@ export function ProductQuickView({
     const pricing = buildCartPricingFields(
       selectedVariant.price,
       product.coupon,
+      {
+        isVendor,
+        vendorPrice: selectedVariant.vendorPrice,
+        b2cPrice: selectedVariant.price,
+      },
     );
     return {
       productId: product.id,
@@ -525,13 +539,16 @@ export function ProductQuickView({
                 <div className="flex flex-wrap items-center gap-3">
                   <ProductPriceDisplay
                     price={listPrice}
+                    vendorPrice={vendorPrice}
+                    isVendor={isVendor}
+                    dualLabeled={isVendor}
                     coupon={product.coupon}
                     priced={priced}
                     showBadge={false}
                     size="lg"
                     className="text-2xl [&_span:first-child]:text-2xl"
                   />
-                  {discountPercent != null ? (
+                  {!isVendor && discountPercent != null ? (
                     <ProductDiscountBadge percent={discountPercent} />
                   ) : null}
                   <span

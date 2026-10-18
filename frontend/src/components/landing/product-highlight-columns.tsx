@@ -22,11 +22,12 @@ import {
 } from "@/components/ui/carousel";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import {
-  applyProductCoupon,
   buildCartPricingFields,
   discountPercentForBadge,
+  priceProductForRole,
 } from "@/features/products/product-pricing";
 import { useCartActions } from "@/hooks/useCartActions";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { showError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import type {
@@ -41,7 +42,13 @@ function ProductListItem({
   product: PublicProductCard;
   onQuickView: (product: PublicProductCard) => void;
 }) {
-  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const isVendor = useIsVendor();
+  const priced = priceProductForRole({
+    price: product.price,
+    vendorPrice: product.vendorPrice,
+    isVendor,
+    coupon: product.coupon ?? null,
+  });
   const discountPercent = discountPercentForBadge(priced);
 
   return (
@@ -107,6 +114,8 @@ function ProductListItem({
           </div>
           <ProductPriceDisplay
             price={product.price}
+            vendorPrice={product.vendorPrice}
+            isVendor={isVendor}
             coupon={product.coupon}
             priced={priced}
             showBadge={false}
@@ -129,10 +138,16 @@ function FeaturedHighlightCard({
   const { openCart } = useCartUi();
   const { add: addToCartAction } = useCartActions();
   const [quantity, setQuantity] = useState(1);
+  const isVendor = useIsVendor();
 
   const maxQty = product.quantity;
   const canAdd = Boolean(product.defaultVariantId) && maxQty > 0;
-  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const priced = priceProductForRole({
+    price: product.price,
+    vendorPrice: product.vendorPrice,
+    isVendor,
+    coupon: product.coupon ?? null,
+  });
   const discountPercent = discountPercentForBadge(priced);
 
   function clampQty(next: number) {
@@ -147,10 +162,11 @@ function FeaturedHighlightCard({
       });
       return;
     }
-    const pricing = buildCartPricingFields(
-      product.price,
-      product.coupon ?? null,
-    );
+    const pricing = buildCartPricingFields(product.price, product.coupon ?? null, {
+      isVendor,
+      vendorPrice: product.vendorPrice,
+      b2cPrice: product.price,
+    });
     const ok = await addToCartAction({
       productId: product.id,
       variantId: product.defaultVariantId,
@@ -223,6 +239,8 @@ function FeaturedHighlightCard({
       </div>
       <ProductPriceDisplay
         price={product.price}
+        vendorPrice={product.vendorPrice}
+        isVendor={isVendor}
         coupon={product.coupon}
         priced={priced}
         showBadge={false}

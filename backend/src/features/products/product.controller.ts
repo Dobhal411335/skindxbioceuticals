@@ -49,6 +49,7 @@ export class ProductController {
       priceMax: query.priceMax,
       availability: query.availability,
       sort: query.sort ?? 'default',
+      includeVendorPrice: req.user?.role === 'VENDOR',
     });
     sendSuccess(res, result.items, 'Products', 200, result.meta);
   };
@@ -81,6 +82,7 @@ export class ProductController {
     const data = await this.service.listPublicHighlights({
       siteId: site.id,
       siteCode,
+      includeVendorPrice: req.user?.role === 'VENDOR',
     });
     sendSuccess(res, data, 'Product highlights');
   };
@@ -98,6 +100,7 @@ export class ProductController {
       siteId: site.id,
       siteCode,
       slug: String(req.params.slug),
+      includeVendorPrice: req.user?.role === 'VENDOR',
     });
     sendSuccess(res, data, 'Product');
   };

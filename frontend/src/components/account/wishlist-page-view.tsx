@@ -16,11 +16,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProductBySlugClient } from "@/features/products/product.service";
 import {
-  applyProductCoupon,
   buildCartPricingFields,
   discountPercentForBadge,
+  priceProductForRole,
   stockQtyBadgeClass,
 } from "@/features/products/product-pricing";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import type { WishlistItem } from "@/features/wishlist/wishlist.types";
 import { wishlistService } from "@/features/wishlist/wishlist.service";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,7 +36,9 @@ import { setWishlistItems } from "@/store/slices/wishlistSlice";
 
 export function WishlistPageView() {
   const dispatch = useAppDispatch();
-  const { isLoading: authLoading, isAuthenticated } = useAuth();
+  const { isLoading: authLoading, isAuthenticated, user } = useAuth();
+  const usesAccountWishlist = isAuthenticated && user?.role === "CUSTOMER";
+  const isVendor = useIsVendor();
   const { items, remove, toggle } = useWishlistActions();
   const { add: addToCartAction } = useCartActions();
   const { openCart } = useCartUi();
@@ -55,17 +58,17 @@ export function WishlistPageView() {
 
   useEffect(() => {
     setStockRefreshDone(false);
-  }, [isAuthenticated]);
+  }, [usesAccountWishlist]);
 
-  // Refresh stock qty: wishlist API for signed-in users; live PDP qty for guests
-  // (localStorage snapshots become stale after admin stock updates).
+  // Refresh live catalog fields: wishlist API for customers; PDP for guests/vendors
+  // (localStorage snapshots become stale after admin stock/price updates).
   useEffect(() => {
     if (loading || items.length === 0 || stockRefreshDone) return;
 
     let cancelled = false;
 
     void (async () => {
-      if (isAuthenticated) {
+      if (usesAccountWishlist) {
         try {
           const wishlist = await wishlistService.get();
           if (!cancelled) {
@@ -84,7 +87,15 @@ export function WishlistPageView() {
         return;
       }
 
-      const qtyByProductId = new Map<string, number>();
+      type LiveCatalogFields = {
+        quantity: number;
+        price: string | null;
+        coupon: WishlistItem["coupon"];
+        cgstPercent: number;
+        sgstPercent: number;
+      };
+
+      const liveByProductId = new Map<string, LiveCatalogFields>();
       await Promise.all(
         withSlug.map(async (item) => {
           const detail = await fetchProductBySlugClient(item.productSlug);
@@ -93,20 +104,34 @@ export function WishlistPageView() {
             (item.variantId
               ? detail.variants.find((row) => row.id === item.variantId)
               : null) ?? detail.variants[0];
-          qtyByProductId.set(item.productId, variant?.quantity ?? 0);
+          const quantity = variant?.quantity ?? 0;
+          liveByProductId.set(item.productId, {
+            quantity,
+            price:
+              variant != null && Number.isFinite(variant.price)
+                ? String(variant.price)
+                : null,
+            coupon: detail.coupon ?? null,
+            cgstPercent: detail.tax?.cgst ?? 0,
+            sgstPercent: detail.tax?.sgst ?? 0,
+          });
         }),
       );
 
       if (cancelled) return;
 
-      if (qtyByProductId.size > 0) {
+      if (liveByProductId.size > 0) {
         const nextItems = items.map((item) => {
-          const quantity = qtyByProductId.get(item.productId);
-          if (typeof quantity !== "number") return item;
+          const live = liveByProductId.get(item.productId);
+          if (!live) return item;
           return {
             ...item,
-            quantity,
-            available: quantity > 0,
+            quantity: live.quantity,
+            available: live.quantity > 0,
+            price: live.price,
+            coupon: live.coupon,
+            cgstPercent: live.cgstPercent,
+            sgstPercent: live.sgstPercent,
           };
         });
         dispatch(setWishlistItems(nextItems));
@@ -121,6 +146,10 @@ export function WishlistPageView() {
             currency: item.currency,
             available: item.available,
             quantity: item.quantity,
+            categoryName: item.categoryName ?? null,
+            productCode: item.productCode ?? null,
+            cgstPercent: item.cgstPercent,
+            sgstPercent: item.sgstPercent,
             coupon: item.coupon ?? null,
           })),
         );
@@ -131,7 +160,7 @@ export function WishlistPageView() {
     return () => {
       cancelled = true;
     };
-  }, [dispatch, isAuthenticated, items, loading, stockRefreshDone]);
+  }, [dispatch, usesAccountWishlist, items, loading, stockRefreshDone]);
 
   const removeItem = async (itemId: string) => {
     if (pendingId) return;
@@ -158,7 +187,11 @@ export function WishlistPageView() {
 
     setCartPendingId(item.id);
     try {
-      const pricing = buildCartPricingFields(listPrice, item.coupon ?? null);
+      const pricing = buildCartPricingFields(listPrice, item.coupon ?? null, {
+        isVendor,
+        vendorPrice: isVendor ? listPrice : null,
+        b2cPrice: listPrice,
+      });
       const ok = await addToCartAction({
         productId: item.productId,
         variantId: item.variantId,
@@ -188,7 +221,9 @@ export function WishlistPageView() {
         <h1 className="text-3xl font-semibold">Wishlist</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Products you have saved for later.
-          {!isAuthenticated ? " Sign in anytime to sync across devices." : null}
+          {!usesAccountWishlist
+            ? " Sign in as a customer anytime to sync across devices."
+            : null}
         </p>
       </div>
 
@@ -219,11 +254,15 @@ export function WishlistPageView() {
             const listPrice = item.price != null ? Number(item.price) : NaN;
             const hasPrice = !Number.isNaN(listPrice);
             const priced = hasPrice
-              ? applyProductCoupon(listPrice, item.coupon ?? null)
+              ? priceProductForRole({
+                  price: listPrice,
+                  vendorPrice: isVendor ? listPrice : null,
+                  isVendor,
+                  coupon: item.coupon ?? null,
+                })
               : null;
-            const discountPercent = priced
-              ? discountPercentForBadge(priced)
-              : null;
+            const discountPercent =
+              priced && !isVendor ? discountPercentForBadge(priced) : null;
             // Prefer API/guest `quantity`; never treat a missing guest cache value as 0 stock.
             const qtyLeft =
               typeof item.quantity === "number" ? item.quantity : null;
@@ -295,6 +334,8 @@ export function WishlistPageView() {
                   {hasPrice && priced ? (
                     <ProductPriceDisplay
                       price={listPrice}
+                      vendorPrice={isVendor ? listPrice : null}
+                      isVendor={isVendor}
                       coupon={item.coupon}
                       priced={priced}
                       showBadge={false}

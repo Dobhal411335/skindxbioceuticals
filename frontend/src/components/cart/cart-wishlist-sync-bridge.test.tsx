@@ -321,4 +321,40 @@ describe("CartWishlistSyncBridge", () => {
       expect(window.localStorage.getItem(GUEST_WISHLIST_STORAGE_KEY)).not.toBeNull();
     });
   });
+
+  it("skips wishlist account sync for VENDOR (API is CUSTOMER-only)", async () => {
+    writeGuestWishlist([{ productId: PRODUCT_ID, productSlug: "serum" }]);
+
+    const store = makeStore();
+    store.dispatch(
+      setCredentials({
+        user: {
+          id: "vendor-1",
+          email: "vendor@example.com",
+          role: "VENDOR",
+          firstName: "Vendor",
+          lastName: null,
+          imageUrl: null,
+          hasPassword: true,
+          linkedProviders: [],
+          createdAt: "2026-01-01T00:00:00.000Z",
+        },
+        accessToken: "token",
+      }),
+    );
+
+    render(
+      <Provider store={store}>
+        <CartWishlistSyncBridge />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(getCartMock).toHaveBeenCalled();
+    });
+    expect(getWishlistMock).not.toHaveBeenCalled();
+    expect(syncWishlistMock).not.toHaveBeenCalled();
+    expect(store.getState().wishlist.items[0]?.productId).toBe(PRODUCT_ID);
+    expect(window.localStorage.getItem(GUEST_WISHLIST_STORAGE_KEY)).not.toBeNull();
+  });
 });

@@ -96,6 +96,18 @@ export const endpoints = {
       `/admin/sites/${siteCode}/doctor-appointments`,
     doctorAppointment: (siteCode: string, appointmentId: string) =>
       `/admin/sites/${siteCode}/doctor-appointments/${appointmentId}`,
+    vendorApplications: (siteCode: string) =>
+      `/admin/sites/${siteCode}/vendors/applications`,
+    vendorApplication: (siteCode: string, applicationId: string) =>
+      `/admin/sites/${siteCode}/vendors/applications/${applicationId}`,
+    vendorApplicationStatus: (siteCode: string, applicationId: string) =>
+      `/admin/sites/${siteCode}/vendors/applications/${applicationId}/status`,
+    vendorCredentials: (siteCode: string) =>
+      `/admin/sites/${siteCode}/vendors/credentials`,
+    vendorCredentialActive: (siteCode: string, applicationId: string) =>
+      `/admin/sites/${siteCode}/vendors/credentials/${applicationId}/active`,
+    vendorCredentialRegenerate: (siteCode: string, applicationId: string) =>
+      `/admin/sites/${siteCode}/vendors/credentials/${applicationId}/regenerate-password`,
     ordersOnlineLog: (siteCode: string) =>
       `/admin/sites/${siteCode}/orders/online-log`,
     ordersCancelled: (siteCode: string) =>

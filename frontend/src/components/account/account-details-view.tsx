@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getUserDisplayName, isValidImageUrl } from "@/features/auth/auth-user";
+import { getUserDisplayName, isValidImageUrl, isVendorUser } from "@/features/auth/auth-user";
 import { authService } from "@/features/auth/auth.service";
 import { strongPasswordSchema } from "@/features/auth/auth.validation";
 import { meService } from "@/features/me/me.service";
@@ -51,6 +51,7 @@ export function AccountDetailsView() {
     return null;
   }
 
+  const isVendor = isVendorUser(user);
   const hasPassword = Boolean(user.hasPassword);
   const createdAt = user.createdAt
     ? new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(
@@ -275,6 +276,13 @@ export function AccountDetailsView() {
               />
             </div>
           </div>
+
+          {isVendor && user.username ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" value={user.username} disabled readOnly />
+            </div>
+          ) : null}
 
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>

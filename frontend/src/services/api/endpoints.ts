@@ -5,6 +5,7 @@
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth/login",
+    VENDOR_LOGIN: "/auth/vendor/login",
     REGISTER: "/auth/register",
     VERIFY_EMAIL: "/auth/verify-email",
     RESEND_VERIFICATION: "/auth/resend-verification",
@@ -13,6 +14,11 @@ export const API_ENDPOINTS = {
     LOGOUT: "/auth/logout",
     ME: "/auth/me",
     PASSWORD: "/auth/password",
+  },
+  VENDORS: {
+    APPLICATIONS: (siteCode: string) => `/sites/${siteCode}/vendors/applications`,
+    DOCUMENTS: (siteCode: string) =>
+      `/sites/${siteCode}/vendors/applications/documents`,
   },
   PRODUCTS: {
     LIST: "/products",

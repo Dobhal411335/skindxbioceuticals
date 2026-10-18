@@ -145,7 +145,9 @@ export class PaymentService {
       }
     }
 
-    const lines = priceCheckoutLines(variants, quantities);
+    const lines = priceCheckoutLines(variants, quantities, {
+      isVendor: actor.kind === 'user' && actor.isVendor,
+    });
     const totals = sumCheckoutTotals(lines);
     const amountInPaise = rupeesToPaise(totals.grandTotal);
     if (amountInPaise < 100) {
@@ -564,14 +566,22 @@ export class PaymentService {
   private async resolveCheckoutActor(body: CreatePaymentOrderBody, userId?: string) {
     if (userId) {
       const user = await this.users.findById(userId);
-      if (!user || user.role !== 'CUSTOMER' || user.status !== 'ACTIVE' || !user.emailVerifiedAt) {
-        throw new ForbiddenError('Verified customer account required');
+      const isVendor = user?.role === 'VENDOR';
+      const isCustomer = user?.role === 'CUSTOMER';
+      if (
+        !user ||
+        (!isCustomer && !isVendor) ||
+        user.status !== 'ACTIVE' ||
+        (!isVendor && !user.emailVerifiedAt)
+      ) {
+        throw new ForbiddenError('Verified customer or vendor account required');
       }
       return {
         kind: 'user' as const,
         userId: user.id,
         contactEmail: user.email.toLowerCase(),
         idempotencyScope: `user:${user.id}`,
+        isVendor,
       };
     }
 
@@ -585,6 +595,7 @@ export class PaymentService {
       session,
       contactEmail: session.email,
       idempotencyScope: `guest:${session.id}`,
+      isVendor: false as const,
     };
   }
 

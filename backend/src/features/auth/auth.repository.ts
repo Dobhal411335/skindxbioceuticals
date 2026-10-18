@@ -42,6 +42,13 @@ export class AuthRepository {
     });
   }
 
+  async findByUsername(username: string): Promise<UserWithMemberships | null> {
+    return this.db.user.findUnique({
+      where: { username },
+      include: userWithMemberships,
+    });
+  }
+
   async findById(id: string): Promise<UserWithMemberships | null> {
     return this.db.user.findUnique({
       where: { id },

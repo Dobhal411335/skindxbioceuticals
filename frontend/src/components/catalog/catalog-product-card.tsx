@@ -14,12 +14,13 @@ import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
 import {
-  applyProductCoupon,
   buildCartPricingFields,
   discountPercentForBadge,
+  priceProductForRole,
 } from "@/features/products/product-pricing";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
 import { plainTextForShare } from "@/lib/share-text";
 import { showError } from "@/lib/toast";
@@ -48,6 +49,7 @@ export function CatalogProductCard({
   } = useWishlistActions();
   const [quickOpen, setQuickOpen] = useState(false);
   const [wishlistPending, setWishlistPending] = useState(false);
+  const isVendor = useIsVendor();
 
   const lineId = cartLineId(product.id, product.defaultVariantId);
   const cartItem = useAppSelector((state) =>
@@ -66,7 +68,12 @@ export function CatalogProductCard({
   const inWishlist = isInWishlist(product.id);
   const canAdd =
     Boolean(product.defaultVariantId) && product.quantity > 0;
-  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const priced = priceProductForRole({
+    price: product.price,
+    vendorPrice: product.vendorPrice,
+    isVendor,
+    coupon: product.coupon ?? null,
+  });
   const discount = discountPercentForBadge(priced);
   const isList = viewMode === "list";
   const descriptionExcerpt = isList
@@ -80,10 +87,11 @@ export function CatalogProductCard({
       });
       return;
     }
-    const pricing = buildCartPricingFields(
-      product.price,
-      product.coupon ?? null,
-    );
+    const pricing = buildCartPricingFields(product.price, product.coupon ?? null, {
+      isVendor,
+      vendorPrice: product.vendorPrice,
+      b2cPrice: product.price,
+    });
     const ok = await addToCartAction({
       productId: product.id,
       variantId: product.defaultVariantId,
@@ -140,6 +148,8 @@ export function CatalogProductCard({
   const priceBlock = (
     <ProductPriceDisplay
       price={product.price}
+      vendorPrice={product.vendorPrice}
+      isVendor={isVendor}
       coupon={product.coupon}
       priced={priced}
       showBadge={false}

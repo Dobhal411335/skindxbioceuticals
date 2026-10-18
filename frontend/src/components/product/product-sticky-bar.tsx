@@ -15,8 +15,9 @@ import {
   primaryImageUrl,
   rupeesToPaise,
 } from "@/features/products/product-selection";
-import { applyProductCoupon } from "@/features/products/product-pricing";
+import { priceProductForRole } from "@/features/products/product-pricing";
 import { useCartActions } from "@/hooks/useCartActions";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { showError } from "@/lib/toast";
 import { formatInr } from "@/lib/utils";
 import type { PublicProductDetail } from "@/types/product";
@@ -43,6 +44,7 @@ export function ProductStickyBar({
 }: ProductStickyBarProps) {
   const { add: addToCartAction } = useCartActions();
   const { openCart } = useCartUi();
+  const isVendor = useIsVendor();
 
   const sizes = useMemo(() => availableSizes(product), [product]);
   const colors = useMemo(() => availableColors(product), [product]);
@@ -55,7 +57,12 @@ export function ProductStickyBar({
       : findExactVariant(product, selectedSize?.label, selectedColor?.name);
   const availableQty = selectedVariant?.quantity ?? 0;
   const listPrice = selectedVariant?.price ?? 0;
-  const priced = applyProductCoupon(listPrice, product.coupon);
+  const priced = priceProductForRole({
+    price: listPrice,
+    vendorPrice: selectedVariant?.vendorPrice,
+    isVendor,
+    coupon: product.coupon,
+  });
   const unitPrice = priced.unitPrice;
   const unavailable = !selectedVariant || availableQty <= 0;
   const imageUrl = primaryImageUrl(product);

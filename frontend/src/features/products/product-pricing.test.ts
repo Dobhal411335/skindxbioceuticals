@@ -4,6 +4,8 @@ import {
   discountBannerText,
   discountPercentForBadge,
   formatWeightGrams,
+  priceProductForRole,
+  resolveSellPriceForRole,
   stockQtyBadgeClass,
 } from "@/features/products/product-pricing";
 
@@ -81,6 +83,56 @@ describe("applyProductCoupon", () => {
     expect(cart.originalUnitPriceInPaise).toBe(100000);
     expect(cart.discountInPaise).toBe(10000);
     expect(cart.discountCode).toBe("SAVE10");
+  });
+});
+
+describe("priceProductForRole", () => {
+  it("uses vendorPrice with no coupon for vendors", () => {
+    const priced = priceProductForRole({
+      price: 1000,
+      vendorPrice: 700,
+      isVendor: true,
+      coupon: {
+        couponId: "c1",
+        code: "SAVE10",
+        type: "PERCENTAGE",
+        value: 10,
+      },
+    });
+    expect(priced.unitPrice).toBe(700);
+    expect(priced.hasDiscount).toBe(false);
+    expect(priced.coupon).toBeNull();
+    expect(resolveSellPriceForRole({ price: 1000, vendorPrice: 700, isVendor: true })).toBe(
+      700,
+    );
+  });
+
+  it("falls back to B2C for vendors without vendorPrice", () => {
+    expect(
+      priceProductForRole({
+        price: 1000,
+        vendorPrice: null,
+        isVendor: true,
+        coupon: {
+          couponId: "c1",
+          code: "SAVE10",
+          type: "PERCENTAGE",
+          value: 10,
+        },
+      }).unitPrice,
+    ).toBe(1000);
+  });
+
+  it("builds cart fields without discount for vendors", () => {
+    const cart = buildCartPricingFields(1000, {
+      couponId: "c1",
+      code: "SAVE10",
+      type: "PERCENTAGE",
+      value: 10,
+    }, { isVendor: true, vendorPrice: 800, b2cPrice: 1000 });
+    expect(cart.unitPriceInPaise).toBe(80000);
+    expect(cart.discountInPaise).toBeUndefined();
+    expect(cart.discountCode).toBeNull();
   });
 });
 

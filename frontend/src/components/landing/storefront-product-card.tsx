@@ -14,12 +14,13 @@ import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
 import {
-  applyProductCoupon,
   buildCartPricingFields,
   discountPercentForBadge,
+  priceProductForRole,
   stockQtyBadgeClass,
 } from "@/features/products/product-pricing";
 import { useCartActions } from "@/hooks/useCartActions";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
 import { showError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ export function StorefrontProductCard({
   } = useWishlistActions();
   const [quickOpen, setQuickOpen] = useState(false);
   const [wishlistPending, setWishlistPending] = useState(false);
+  const isVendor = useIsVendor();
 
   const href = `/products/${product.slug}`;
   const imageUrl =
@@ -50,7 +52,12 @@ export function StorefrontProductCard({
   const inWishlist = isInWishlist(product.id);
   const canAdd =
     Boolean(product.defaultVariantId) && product.quantity > 0;
-  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const priced = priceProductForRole({
+    price: product.price,
+    vendorPrice: product.vendorPrice,
+    isVendor,
+    coupon: product.coupon ?? null,
+  });
   const discountPercent = discountPercentForBadge(priced);
 
   async function addToCart() {
@@ -58,10 +65,11 @@ export function StorefrontProductCard({
       showError("This product is out of stock.", { id: "rail.cart.error" });
       return;
     }
-    const pricing = buildCartPricingFields(
-      product.price,
-      product.coupon ?? null,
-    );
+    const pricing = buildCartPricingFields(product.price, product.coupon ?? null, {
+      isVendor,
+      vendorPrice: product.vendorPrice,
+      b2cPrice: product.price,
+    });
     const ok = await addToCartAction({
       productId: product.id,
       variantId: product.defaultVariantId,
@@ -92,7 +100,7 @@ export function StorefrontProductCard({
         productSlug: product.slug,
         categoryName: product.categoryName,
         imageUrl: product.imageUrl,
-        price: String(product.price),
+        price: String(priced.unitPrice),
         currency: "INR",
         available: product.quantity > 0,
         quantity: product.quantity,
@@ -198,6 +206,8 @@ export function StorefrontProductCard({
           />
           <ProductPriceDisplay
             price={product.price}
+            vendorPrice={product.vendorPrice}
+            isVendor={isVendor}
             coupon={product.coupon}
             priced={priced}
             showBadge={false}

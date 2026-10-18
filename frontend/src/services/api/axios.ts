@@ -78,6 +78,7 @@ apiClient.interceptors.response.use(
     const isAuthEndpoint =
       url.includes(API_ENDPOINTS.AUTH.GOOGLE) ||
       url.includes(API_ENDPOINTS.AUTH.LOGIN) ||
+      url.includes(API_ENDPOINTS.AUTH.VENDOR_LOGIN) ||
       url.includes(API_ENDPOINTS.AUTH.REGISTER) ||
       url.includes(API_ENDPOINTS.AUTH.VERIFY_EMAIL) ||
       url.includes(API_ENDPOINTS.AUTH.RESEND_VERIFICATION) ||

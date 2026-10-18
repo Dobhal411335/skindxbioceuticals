@@ -19,12 +19,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { ProductPriceDisplay } from "@/components/catalog/product-price-display";
 import {
-  applyProductCoupon,
   discountBannerText,
   formatWeightGrams,
+  priceProductForRole,
   stockQtyBadgeClass,
 } from "@/features/products/product-pricing";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import {
   availableColors,
   availableSizes,
@@ -77,6 +79,7 @@ export function ProductPurchasePanel({
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [wishlistPending, setWishlistPending] = useState(false);
   const savedToWishlist = isInWishlist(product.id);
+  const isVendor = useIsVendor();
 
   const sizes = useMemo(() => availableSizes(product), [product]);
   const colors = useMemo(() => availableColors(product), [product]);
@@ -100,14 +103,21 @@ export function ProductPurchasePanel({
 
   const availableQty = selectedVariant?.quantity ?? 0;
   const listPrice = selectedVariant?.price ?? 0;
+  const vendorPrice = selectedVariant?.vendorPrice ?? null;
   const priced = useMemo(
-    () => applyProductCoupon(listPrice, product.coupon),
-    [listPrice, product.coupon],
+    () =>
+      priceProductForRole({
+        price: listPrice,
+        vendorPrice,
+        isVendor,
+        coupon: product.coupon,
+      }),
+    [listPrice, vendorPrice, isVendor, product.coupon],
   );
   const unitPrice = priced.unitPrice;
   const subtotal = unitPrice * quantity;
   const unavailable = !selectedVariant || availableQty <= 0;
-  const discountLabel = discountBannerText(priced);
+  const discountLabel = isVendor ? null : discountBannerText(priced);
   const selectedWeightLabel = formatWeightGrams(selectedVariant?.weightGrams);
 
   useEffect(() => {
@@ -284,17 +294,32 @@ export function ProductPurchasePanel({
 
       <div>
         <div className="flex flex-wrap items-center justify-start gap-2">
-          <p className="text-3xl font-semibold">{formatInr(unitPrice)}</p>
-          {priced.hasDiscount ? (
-            <p className="text-base text-muted-foreground line-through">
-              {formatInr(priced.originalPrice)}
-            </p>
-          ) : null}
-        {discountLabel ? (
-          <p className="mt-2 inline-flex rounded bg-primary text-white px-2.5 py-1 text-xs font-semibold">
-            {discountLabel}
-          </p>
-        ) : null}
+          {isVendor ? (
+            <ProductPriceDisplay
+              price={listPrice}
+              vendorPrice={vendorPrice}
+              isVendor
+              dualLabeled
+              coupon={null}
+              size="lg"
+              showBadge={false}
+              className="w-full max-w-xs"
+            />
+          ) : (
+            <>
+              <p className="text-3xl font-semibold">{formatInr(unitPrice)}</p>
+              {priced.hasDiscount ? (
+                <p className="text-base text-muted-foreground line-through">
+                  {formatInr(priced.originalPrice)}
+                </p>
+              ) : null}
+              {discountLabel ? (
+                <p className="mt-2 inline-flex rounded bg-primary px-2.5 py-1 text-xs font-semibold text-white">
+                  {discountLabel}
+                </p>
+              ) : null}
+            </>
+          )}
         </div>
         <p className="text-xs text-muted-foreground flex items-center justify-start gap-2">
           <span className="font-bold text-red-900 text-lg">*</span> Exclusive of CGST/SGST (added at cart &amp; checkout)

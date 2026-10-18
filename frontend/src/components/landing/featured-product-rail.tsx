@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { StorefrontProductCard } from "@/components/landing/storefront-product-card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { productRail } from "@/data/landing";
+import { fetchLandingProductsClient } from "@/features/products/product.service";
+import { useAuth } from "@/hooks/useAuth";
 import type { PublicProductCard } from "@/types/product";
 
 type FeaturedProductRailProps = {
@@ -19,7 +22,29 @@ type FeaturedProductRailProps = {
 };
 
 export function FeaturedProductRail({ products }: FeaturedProductRailProps) {
-  if (products.length === 0) {
+  const { user, isAuthenticated } = useAuth();
+  const [items, setItems] = useState(products);
+  const isVendor = isAuthenticated && user?.role === "VENDOR";
+
+  useEffect(() => {
+    setItems(products);
+  }, [products]);
+
+  useEffect(() => {
+    if (!isVendor) return;
+    let cancelled = false;
+    void (async () => {
+      const next = await fetchLandingProductsClient(15);
+      if (!cancelled && next.length > 0) {
+        setItems(next);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isVendor]);
+
+  if (items.length === 0) {
     return null;
   }
 
@@ -45,9 +70,9 @@ export function FeaturedProductRail({ products }: FeaturedProductRailProps) {
         </div>
 
         <div className="relative min-w-0">
-          <Carousel opts={{ align: "start", loop: products.length > 3 }} className="w-full">
+          <Carousel opts={{ align: "start", loop: items.length > 3 }} className="w-full">
             <CarouselContent className="-ml-3">
-              {products.map((product) => (
+              {items.map((product) => (
                 <CarouselItem
                   key={product.id}
                   className="basis-[70%] pl-3 sm:basis-1/2 lg:basis-1/3"

@@ -47,6 +47,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useCartTaxEnrichment } from "@/hooks/useCartTaxEnrichment";
 import { useCartTotals } from "@/hooks/useCartTotals";
@@ -94,6 +95,7 @@ export function CheckoutPageView() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const isVendor = useIsVendor();
   const { setQuantity, setItemNote, remove, clear: clearCartAction } = useCartActions();
   const cartHydrated = useAppSelector((state) => state.cart.hydrated);
   const cartStatus = useAppSelector((state) => state.cart.status);
@@ -1021,7 +1023,7 @@ export function CheckoutPageView() {
                               each
                             </span>
                           </span>
-                          {pricing.hasDiscount ? (
+                          {!isVendor && pricing.hasDiscount ? (
                             <>
                               <span className="text-xs font-normal text-muted-foreground line-through">
                                 {formatPaiseToInr(pricing.originalUnitInPaise)}
@@ -1031,7 +1033,7 @@ export function CheckoutPageView() {
                                 {item.discountCode ? ` · ${item.discountCode}` : ""}
                               </span>
                             </>
-                          ) : item.discountCode ? (
+                          ) : !isVendor && item.discountCode ? (
                             <span className="rounded bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-950/40 dark:text-green-400">
                               {item.discountCode} applied
                             </span>
@@ -1211,6 +1213,7 @@ export function CheckoutPageView() {
               subtotalInPaise={subtotalInPaise}
               discountInPaise={discountInPaise}
               discountPercent={discountPercent}
+              hideDiscount={isVendor}
               cgstInPaise={cgstInPaise}
               sgstInPaise={sgstInPaise}
               cgstPercent={cgstPercent}

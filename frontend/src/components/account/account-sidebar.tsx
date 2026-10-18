@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { getUserDisplayName } from "@/features/auth/auth-user";
+import { getUserDisplayName, isVendorUser } from "@/features/auth/auth-user";
 import { authService } from "@/features/auth/auth.service";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,6 +46,7 @@ function SidebarNav({
   }
 
   const displayName = getUserDisplayName(user);
+  const isVendor = isVendorUser(user);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -73,6 +74,11 @@ function SidebarNav({
           <div className="min-w-0">
             <p className="truncate font-semibold text-foreground">{displayName}</p>
             <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+            {isVendor ? (
+              <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#c4820f]">
+                Vendor partner
+              </p>
+            ) : null}
           </div>
         </div>
       </div>

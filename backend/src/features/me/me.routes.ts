@@ -18,7 +18,7 @@ const upload = multer({
   limits: { fileSize: CLOUDINARY_CONSTANTS.MAX_IMAGE_SIZE_BYTES },
 });
 
-router.use(authenticate, authorize('CUSTOMER'));
+router.use(authenticate, authorize('CUSTOMER', 'VENDOR'));
 
 router.patch(
   '/',

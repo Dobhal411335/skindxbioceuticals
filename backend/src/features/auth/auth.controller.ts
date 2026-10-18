@@ -18,6 +18,7 @@ import type {
   RefreshTokenInput,
   RegisterInput,
   ResendVerificationInput,
+  VendorLoginInput,
   VerifyEmailInput,
 } from './auth.validation';
 
@@ -91,6 +92,22 @@ export class AuthController {
         user: data.user,
       },
       'Signed in successfully',
+    );
+  };
+
+  vendorLogin = async (req: Request, res: Response): Promise<void> => {
+    const body = req.body as VendorLoginInput;
+    const data = await this.service.vendorLogin(body);
+
+    setRefreshTokenCookie(res, data.refreshToken);
+
+    sendSuccess(
+      res,
+      {
+        accessToken: data.accessToken,
+        user: data.user,
+      },
+      'Signed in as vendor successfully',
     );
   };
 

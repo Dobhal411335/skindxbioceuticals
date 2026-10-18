@@ -112,18 +112,18 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     ["IN", "COM"],
   ),
 
-  shell(
+  live(
     "become-partner",
     "vendor/become-partner",
-    "Become Partner",
-    "Manage partner onboarding content and applications.",
+    "Pending Vendor Request",
+    "Review and approve vendor partner applications for the selected website.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "partner-login-details",
     "vendor/partner-login-details",
-    "Partner Login Details",
-    "Review partner login and access details for vendor operations.",
+    "Vendor Partner Login Details",
+    "View vendor usernames and passwords; activate or deactivate partner accounts.",
     ["IN", "COM"],
   ),
 

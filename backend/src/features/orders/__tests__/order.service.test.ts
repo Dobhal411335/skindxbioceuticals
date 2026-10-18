@@ -74,4 +74,34 @@ describe('OrderService.getOrder tax snapshots', () => {
       sgstAmount: '40.50',
     });
   });
+
+  it('allows VENDOR to load owned order detail', async () => {
+    findById.mockResolvedValue({
+      id: USER_ID,
+      role: 'VENDOR',
+      status: 'ACTIVE',
+    });
+    findForUser.mockResolvedValue({
+      id: ORDER_ID,
+      orderNumber: 'IN-VENDOR1',
+      status: 'CONFIRMED',
+      currency: 'INR',
+      subtotal: { toString: () => '800.00' },
+      discountTotal: { toString: () => '0.00' },
+      shippingTotal: { toString: () => '0.00' },
+      taxTotal: { toString: () => '144.00' },
+      cgstTotal: { toString: () => '72.00' },
+      sgstTotal: { toString: () => '72.00' },
+      grandTotal: { toString: () => '944.00' },
+      placedAt: new Date('2026-10-14T00:00:00.000Z'),
+      createdAt: new Date('2026-10-14T00:00:00.000Z'),
+      payments: [{ status: 'CAPTURED' }],
+      items: [],
+    });
+
+    const result = await service.getOrder(USER_ID, ORDER_ID);
+    expect(result.orderNumber).toBe('IN-VENDOR1');
+    expect(result.grandTotal).toBe('944.00');
+  });
+
 });

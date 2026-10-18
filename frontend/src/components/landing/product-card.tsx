@@ -9,12 +9,13 @@ import { ProductDiscountBadge } from "@/components/catalog/product-price-display
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
 import {
-  applyProductCoupon,
   buildCartPricingFields,
   discountBannerText,
   discountPercentForBadge,
+  priceProductForRole,
 } from "@/features/products/product-pricing";
 import { useCartActions } from "@/hooks/useCartActions";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
 import { showError } from "@/lib/toast";
 import { cn, formatInr } from "@/lib/utils";
@@ -35,15 +36,21 @@ export function ProductCard({ product, className }: ProductCardProps) {
   } = useWishlistActions();
   const [wishlistPending, setWishlistPending] = useState(false);
   const [cartPending, setCartPending] = useState(false);
+  const isVendor = useIsVendor();
 
   const href = `/products/${product.slug}`;
   const imageUrl =
     product.imageUrl || "https://placehold.co/600x600/png?text=SkinDx";
   const inWishlist = isInWishlist(product.id);
   const canAdd = Boolean(product.defaultVariantId) && product.quantity > 0;
-  const priced = applyProductCoupon(product.price, product.coupon ?? null);
+  const priced = priceProductForRole({
+    price: product.price,
+    vendorPrice: product.vendorPrice,
+    isVendor,
+    coupon: product.coupon ?? null,
+  });
   const discountPercent = discountPercentForBadge(priced);
-  const discountLabel = discountBannerText(priced);
+  const discountLabel = isVendor ? null : discountBannerText(priced);
 
   async function addToCart() {
     if (!product.defaultVariantId || product.quantity <= 0) {
@@ -53,10 +60,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
     if (cartPending) return;
     setCartPending(true);
     try {
-      const pricing = buildCartPricingFields(
-        product.price,
-        product.coupon ?? null,
-      );
+      const pricing = buildCartPricingFields(product.price, product.coupon ?? null, {
+        isVendor,
+        vendorPrice: product.vendorPrice,
+        b2cPrice: product.price,
+      });
       const ok = await addToCartAction({
         productId: product.id,
         variantId: product.defaultVariantId,

@@ -31,6 +31,7 @@ export type PublicProductVariant = {
   sku: string | null;
   name: string;
   price: number;
+  vendorPrice?: number | null;
   sizeLabel: string | null;
   colorLabel: string | null;
   weightGrams: number | null;
@@ -88,6 +89,7 @@ export type PublicRelatedProduct = {
   name: string;
   categoryName: string | null;
   price: number;
+  vendorPrice?: number | null;
   imageUrl: string | null;
   averageRating: number;
   reviewCount: number;
@@ -108,6 +110,8 @@ export type PublicProductCard = {
   description?: string | null;
   price: number;
   compareAtPrice?: number | null;
+  /** Present when the session is a VENDOR (partner price). */
+  vendorPrice?: number | null;
   imageUrl: string | null;
   averageRating: number;
   reviewCount: number;

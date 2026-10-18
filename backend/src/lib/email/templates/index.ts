@@ -12,3 +12,4 @@ export { renderOrderDeliveredEmail } from './order-delivered.template';
 export { renderOrderCancelledEmail } from './order-cancelled.template';
 export { renderRefundStatusEmail } from './refund-status.template';
 export { renderEnquiryConfirmationEmail } from './enquiry-confirmation.template';
+export { renderVendorApprovedEmail } from './vendor-approved.template';

@@ -40,6 +40,8 @@ type CartLinePriceProps = {
   mode?: "unit" | "line";
   className?: string;
   compact?: boolean;
+  /** Vendors: hide coupon discount UI (payable only). */
+  hideDiscount?: boolean;
 };
 
 /**
@@ -50,8 +52,10 @@ export function CartLinePrice({
   mode = "unit",
   className,
   compact = false,
+  hideDiscount = false,
 }: CartLinePriceProps) {
   const pricing = getCartLinePricing(item);
+  const showDiscount = !hideDiscount && pricing.hasDiscount;
   const payable =
     mode === "line" ? pricing.linePayableInPaise : pricing.payableUnitInPaise;
   const original =
@@ -66,18 +70,18 @@ export function CartLinePrice({
         )}
       >
         {formatPaiseToInr(payable)}
-        {pricing.hasDiscount ? (
+        {showDiscount ? (
           <span className="ml-2 text-xs font-normal text-muted-foreground line-through">
             {formatPaiseToInr(original)}
           </span>
         ) : null}
       </p>
-      {pricing.hasDiscount ? (
+      {showDiscount ? (
         <p className="text-[11px] font-medium text-green-700">
           {pricing.discountPercent}% off
           {item.discountCode ? ` · ${item.discountCode}` : ""}
         </p>
-      ) : item.discountCode ? (
+      ) : !hideDiscount && item.discountCode ? (
         <p className="text-[11px] font-medium text-green-700">
           {item.discountCode} applied
         </p>

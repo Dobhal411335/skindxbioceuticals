@@ -11,11 +11,11 @@ import {
 } from './cart.validation';
 
 /**
- * Cart routes — authenticated CUSTOMER account cart.
+ * Cart routes — authenticated CUSTOMER or VENDOR account cart.
  */
 const router = Router();
 
-router.use(authenticate, authorize('CUSTOMER'));
+router.use(authenticate, authorize('CUSTOMER', 'VENDOR'));
 
 router.get('/', asyncHandler(cartController.get));
 

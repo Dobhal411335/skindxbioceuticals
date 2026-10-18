@@ -15,11 +15,12 @@ import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  applyProductCoupon,
   buildCartPricingFields,
   discountPercentForBadge,
+  priceProductForRole,
 } from "@/features/products/product-pricing";
 import { useCartActions } from "@/hooks/useCartActions";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn, formatInr } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
 
   const { add: addToCartAction } = useCartActions();
   const { openCart } = useCartUi();
+  const isVendor = useIsVendor();
   const {
     toggle: toggleWishlist,
     isInWishlist,
@@ -56,7 +58,12 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
   );
 
   const total = selectedItems.reduce((sum, item) => {
-    const priced = applyProductCoupon(item.price, item.coupon ?? null);
+    const priced = priceProductForRole({
+      price: item.price,
+      vendorPrice: item.vendorPrice,
+      isVendor,
+      coupon: item.coupon ?? null,
+    });
     return sum + priced.unitPrice;
   }, 0);
 
@@ -65,7 +72,11 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
       showError("This product is out of stock.", { id: "fbt.cart.error" });
       return false;
     }
-    const pricing = buildCartPricingFields(item.price, item.coupon ?? null);
+    const pricing = buildCartPricingFields(item.price, item.coupon ?? null, {
+      isVendor,
+      vendorPrice: item.vendorPrice,
+      b2cPrice: item.price,
+    });
     return addToCartAction({
       productId: item.id,
       variantId: item.defaultVariantId,
@@ -157,7 +168,12 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
         <div className="flex flex-col xl:flex-row gap-8 items-start w-full">
           <div className="flex-1 flex flex-wrap items-stretch gap-4 sm:gap-5">
             {bundle.map((item, index) => {
-              const priced = applyProductCoupon(item.price, item.coupon ?? null);
+              const priced = priceProductForRole({
+                price: item.price,
+                vendorPrice: item.vendorPrice,
+                isVendor,
+                coupon: item.coupon ?? null,
+              });
               const discountPercent = discountPercentForBadge(priced);
               const imageUrl =
                 item.imageUrl ||
@@ -288,6 +304,8 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
                       />
                       <ProductPriceDisplay
                         price={item.price}
+                        vendorPrice={item.vendorPrice}
+                        isVendor={isVendor}
                         coupon={item.coupon}
                         priced={priced}
                         showBadge={false}

@@ -17,6 +17,7 @@ import type {
   PaymentSuccessEmailInput,
   RefundStatusEmailInput,
   RenderedEmail,
+  VendorApprovedEmailInput,
   VerificationEmailInput,
   WelcomeEmailInput,
 } from './email.types';
@@ -34,6 +35,7 @@ import {
   renderPaymentFailedEmail,
   renderPaymentSuccessEmail,
   renderRefundStatusEmail,
+  renderVendorApprovedEmail,
   renderWelcomeEmail,
 } from './templates';
 
@@ -147,6 +149,13 @@ export class EmailService {
     const siteCode = validateSiteCode(input.siteCode);
     const rendered = renderEnquiryConfirmationEmail({ ...input, siteCode });
     return this.submit(to, rendered, EMAIL_TAGS.ENQUIRY_CONFIRMATION);
+  }
+
+  async sendVendorApprovedEmail(input: VendorApprovedEmailInput): Promise<EmailSendResult> {
+    const to = validateRecipient(input.to);
+    const siteCode = validateSiteCode(input.siteCode);
+    const rendered = renderVendorApprovedEmail({ ...input, siteCode });
+    return this.submit(to, rendered, EMAIL_TAGS.VENDOR_APPROVED);
   }
 
   private async submit(

@@ -27,7 +27,7 @@ export class MeService {
   constructor(private readonly repository = meRepository) {}
 
   async updateProfile(userId: string, input: UpdateProfileInput): Promise<MeProfileUpdateDto> {
-    const user = await this.requireActiveCustomer(userId);
+    const user = await this.requireActiveStorefrontUser(userId);
     const updated = await this.repository.updateProfile(user.id, {
       firstName: input.firstName,
       lastName: input.lastName,
@@ -39,7 +39,7 @@ export class MeService {
     userId: string,
     file: Express.Multer.File | undefined,
   ): Promise<MeProfileUpdateDto> {
-    const user = await this.requireActiveCustomer(userId);
+    const user = await this.requireActiveStorefrontUser(userId);
     if (!file) {
       throw new ValidationError('No file uploaded');
     }
@@ -76,19 +76,19 @@ export class MeService {
   }
 
   async clearAvatar(userId: string): Promise<MeProfileUpdateDto> {
-    const user = await this.requireActiveCustomer(userId);
+    const user = await this.requireActiveStorefrontUser(userId);
     const updated = await this.repository.updateImageUrl(user.id, null);
     return { user: authService.toUserDto(updated) };
   }
 
   async listAddresses(userId: string): Promise<AddressDto[]> {
-    await this.requireActiveCustomer(userId);
+    await this.requireActiveStorefrontUser(userId);
     const addresses = await this.repository.listAddresses(userId);
     return addresses.map((address) => this.toAddressDto(address));
   }
 
   async createAddress(userId: string, input: AddressBodyInput): Promise<AddressDto> {
-    await this.requireActiveCustomer(userId);
+    await this.requireActiveStorefrontUser(userId);
     const address = await this.repository.createAddress(userId, {
       label: input.label,
       line1: input.line1,
@@ -107,7 +107,7 @@ export class MeService {
     addressId: string,
     input: UpdateAddressInput,
   ): Promise<AddressDto> {
-    await this.requireActiveCustomer(userId);
+    await this.requireActiveStorefrontUser(userId);
     const updated = await this.repository.updateAddress(userId, addressId, {
       ...(input.label !== undefined ? { label: input.label } : {}),
       ...(input.line1 !== undefined ? { line1: input.line1 } : {}),
@@ -127,19 +127,19 @@ export class MeService {
   }
 
   async deleteAddress(userId: string, addressId: string): Promise<void> {
-    await this.requireActiveCustomer(userId);
+    await this.requireActiveStorefrontUser(userId);
     const deleted = await this.repository.deleteAddress(userId, addressId);
     if (!deleted) {
       throw new NotFoundError('Address not found');
     }
   }
 
-  private async requireActiveCustomer(userId: string) {
+  private async requireActiveStorefrontUser(userId: string) {
     const user = await this.repository.findCustomerById(userId);
     if (!user) {
       throw new UnauthorizedError();
     }
-    if (user.role !== 'CUSTOMER') {
+    if (user.role !== 'CUSTOMER' && user.role !== 'VENDOR') {
       throw new ForbiddenError('Insufficient permissions');
     }
     if (user.status !== 'ACTIVE') {

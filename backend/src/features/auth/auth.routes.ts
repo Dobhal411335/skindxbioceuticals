@@ -21,6 +21,7 @@ import {
   logoutSchema,
   registerSchema,
   resendVerificationSchema,
+  vendorLoginSchema,
   verifyEmailSchema,
 } from './auth.validation';
 
@@ -70,6 +71,13 @@ router.post(
   loginRateLimiter,
   validate({ body: loginSchema }),
   asyncHandler(authController.login),
+);
+
+router.post(
+  '/vendor/login',
+  loginRateLimiter,
+  validate({ body: vendorLoginSchema }),
+  asyncHandler(authController.vendorLogin),
 );
 
 router.post(

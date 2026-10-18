@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useCartTotals } from "@/hooks/useCartTotals";
 import { setTermsAccepted } from "@/store/slices/cartSlice";
@@ -34,6 +35,7 @@ export function CartDrawer() {
   const { isOpen, closeCart } = useCartUi();
   const dispatch = useAppDispatch();
   const { isLoading: authLoading } = useAuth();
+  const isVendor = useIsVendor();
   const { setQuantity, setItemNote, remove } = useCartActions();
   const hydrated = useAppSelector((state) => state.cart.hydrated);
   const cartStatus = useAppSelector((state) => state.cart.status);
@@ -129,7 +131,7 @@ export function CartDrawer() {
                             </p>
                           ) : null}
                           <div className="mt-1">
-                            <CartLinePrice item={item} mode="unit" compact />
+                            <CartLinePrice item={item} mode="unit" compact hideDiscount={isVendor} />
                           </div>
                         </div>
                         <Button
@@ -238,6 +240,7 @@ export function CartDrawer() {
             subtotalInPaise={subtotalInPaise}
             discountInPaise={discountInPaise}
             discountPercent={discountPercent}
+            hideDiscount={isVendor}
             cgstInPaise={cgstInPaise}
             sgstInPaise={sgstInPaise}
             cgstPercent={cgstPercent}

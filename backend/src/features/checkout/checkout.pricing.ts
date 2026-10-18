@@ -1,5 +1,6 @@
 import type { CouponType, Prisma } from '@prisma/client';
 import { decimalToNumber } from '@/lib/money';
+import { resolveSellPrice } from '@/lib/vendor-pricing';
 
 export type PricedLine = {
   variantId: string;
@@ -32,6 +33,7 @@ type VariantForPricing = {
   sku: string | null;
   price: Prisma.Decimal;
   compareAtPrice: Prisma.Decimal | null;
+  vendorPrice?: Prisma.Decimal | null;
   product: {
     id: string;
     name: string;
@@ -93,30 +95,40 @@ export function applyProductCouponRupees(
 export function priceCheckoutLines(
   variants: VariantForPricing[],
   quantities: Map<string, number>,
+  options: { isVendor?: boolean } = {},
 ): PricedLine[] {
+  const isVendor = Boolean(options.isVendor);
   return variants.map((variant) => {
     const quantity = quantities.get(variant.id) ?? 0;
-    const listPrice = decimalToNumber(variant.price);
+    const listPrice = resolveSellPrice({
+      price: variant.price,
+      vendorPrice: variant.vendorPrice,
+      isVendor,
+    });
     const couponRow = variant.product.coupon?.coupon ?? null;
-    const priced = applyProductCouponRupees(
-      listPrice,
-      couponRow
-        ? {
-            type: couponRow.type,
-            value: decimalToNumber(couponRow.value),
-            isActive: couponRow.isActive,
-            startsAt: couponRow.startsAt,
-            endsAt: couponRow.endsAt,
-          }
-        : null,
-    );
+    // Vendors: no product coupons; GST applies on the partner payable unit.
+    const priced = isVendor
+      ? { unitPrice: listPrice, discountAmount: 0 }
+      : applyProductCouponRupees(
+          listPrice,
+          couponRow
+            ? {
+                type: couponRow.type,
+                value: decimalToNumber(couponRow.value),
+                isActive: couponRow.isActive,
+                startsAt: couponRow.startsAt,
+                endsAt: couponRow.endsAt,
+              }
+            : null,
+        );
 
     // Original for display: prefer compare-at when higher than list, else list before coupon.
     const compareAt = variant.compareAtPrice
       ? decimalToNumber(variant.compareAtPrice)
       : null;
-    const originalUnitPrice =
-      compareAt != null && compareAt > priced.unitPrice
+    const originalUnitPrice = isVendor
+      ? listPrice
+      : compareAt != null && compareAt > priced.unitPrice
         ? Math.max(compareAt, listPrice)
         : listPrice;
 
@@ -129,9 +141,10 @@ export function priceCheckoutLines(
     const taxRatePercent = cgstPercent + sgstPercent;
     const linePayableTotal = Math.round(priced.unitPrice * quantity * 100) / 100;
     const lineOriginalTotal = Math.round(originalUnitPrice * quantity * 100) / 100;
-    // Tax is calculated on the original (list) line total, then added to payable.
-    const lineCgst = round2(lineOriginalTotal * (cgstPercent / 100));
-    const lineSgst = round2(lineOriginalTotal * (sgstPercent / 100));
+    // Tax on payable line for vendors; customers keep tax on original list total.
+    const taxBaseTotal = isVendor ? linePayableTotal : lineOriginalTotal;
+    const lineCgst = round2(taxBaseTotal * (cgstPercent / 100));
+    const lineSgst = round2(taxBaseTotal * (sgstPercent / 100));
     const lineTax = round2(lineCgst + lineSgst);
 
     return {

@@ -13,8 +13,15 @@ datasource db {
 
 enum UserRole {
   CUSTOMER
+  VENDOR
   ADMIN
   SUPER_ADMIN
+}
+
+enum VendorApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum SiteRole {
@@ -193,6 +200,7 @@ model Site {
   doctorProfiles           DoctorProfile[]
   doctorPageConfig         DoctorPageConfig?
   doctorAppointments       DoctorAppointment[]
+  vendorApplications       VendorApplication[]
 
   @@map("sites")
 }
@@ -220,6 +228,8 @@ model SiteMembership {
 model User {
   id                 String     @id @default(uuid()) @db.Uuid
   email              String     @unique
+  /// Optional unique login handle for vendor accounts (customers use email).
+  username           String?    @unique
   passwordHash       String?    @map("password_hash")
   firstName          String?    @map("first_name")
   lastName           String?    @map("last_name")
@@ -245,6 +255,7 @@ model User {
   enquiries               Enquiry[]
   siteMemberships         SiteMembership[]
   media                   Media[]
+  vendorApplications      VendorApplication[]
 
   @@map("users")
 }
@@ -1668,4 +1679,89 @@ model DoctorServiceItem {
 
   @@index([configId, order])
   @@map("doctor_service_items")
+}
+
+/// Site-scoped vendor / partner onboarding applications.
+model VendorApplication {
+  id     String @id @default(uuid()) @db.Uuid
+  siteId String @map("site_id") @db.Uuid
+
+  // Business Information
+  businessName         String  @map("business_name")
+  businessType         String  @map("business_type")
+  industryCategory     String  @map("industry_category")
+  yearOfEstablishment  String  @map("year_of_establishment")
+  legalStructure       String  @map("legal_structure")
+  isGstRegistered      Boolean @default(false) @map("is_gst_registered")
+  gstNumber            String? @map("gst_number")
+  panNumber            String  @map("pan_number")
+  msmeNumber           String? @map("msme_number")
+
+  /// Document refs: { url, publicId }
+  gstCertificate         Json? @map("gst_certificate")
+  panCard                Json? @map("pan_card")
+  msmeCertificate        Json? @map("msme_certificate")
+  cancelledCheque        Json? @map("cancelled_cheque")
+  productCatalog         Json? @map("product_catalog")
+  businessCard           Json? @map("business_card")
+  aadhaarUpload          Json? @map("aadhaar_upload")
+  authorizedPersonPhoto  Json? @map("authorized_person_photo")
+
+  // Primary Contact
+  contactPerson    String  @map("contact_person")
+  designation      String
+  mobile           String
+  alternateMobile  String? @map("alternate_mobile")
+  email            String
+  whatsappNumber   String? @map("whatsapp_number")
+
+  // Business Address
+  address  String
+  city     String
+  state    String
+  pincode  String
+  country  String
+
+  // Product & Supply
+  deliveryCapability String @map("delivery_capability")
+
+  // Bank Details
+  bankName           String @map("bank_name")
+  accountHolderName  String @map("account_holder_name")
+  accountNumber      String @map("account_number")
+  ifscCode           String @map("ifsc_code")
+  branch             String
+
+  // Compliance
+  qualityCertifications String? @map("quality_certifications") @db.Text
+  returnPolicy          String? @map("return_policy") @db.Text
+
+  // Verification / other
+  aadhaarNumber    String? @map("aadhaar_number")
+  referredBy       String? @map("referred_by")
+  additionalNotes  String? @map("additional_notes") @db.Text
+  notes            String? @db.Text
+
+  status   VendorApplicationStatus @default(PENDING)
+  isActive Boolean                 @default(false) @map("is_active")
+
+  /// Credentials populated on approve (plain stored for admin eye-toggle per product decision).
+  username      String? @map("username")
+  passwordHash  String? @map("password_hash")
+  passwordPlain String? @map("password_plain")
+
+  userId String? @map("user_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  site Site  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([siteId, email])
+  @@unique([siteId, mobile])
+  @@index([siteId, status])
+  @@index([siteId, isActive])
+  @@index([userId])
+  @@map("vendor_applications")
 }

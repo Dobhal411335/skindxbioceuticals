@@ -41,6 +41,16 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const vendorLoginSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .max(64)
+    .transform((value) => value.toLowerCase()),
+  password: z.string().min(1),
+});
+
 export const verifyEmailSchema = z.object({
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
   otp: z
@@ -92,6 +102,7 @@ export const changePasswordSchema = z
 export type AuthIdParam = z.infer<typeof authIdParamSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type VendorLoginInput = z.infer<typeof vendorLoginSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;

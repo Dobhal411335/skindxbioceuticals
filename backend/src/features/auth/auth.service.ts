@@ -565,7 +565,7 @@ export class AuthService {
   async changePassword(userId: string, input: ChangePasswordInput): Promise<AuthTokensDto> {
     const user = await this.repository.findById(userId);
 
-    if (!user || user.role !== 'CUSTOMER') {
+    if (!user || (user.role !== 'CUSTOMER' && user.role !== 'VENDOR')) {
       throw new UnauthorizedError();
     }
 
@@ -606,6 +606,95 @@ export class AuthService {
     }
 
     return this.issueTokens(user);
+  }
+
+  async issueVendorTokens(user: UserWithMemberships): Promise<AuthTokensDto> {
+    if (user.role !== 'VENDOR') {
+      throw new ForbiddenError('Vendor session cannot be issued for this account');
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new ForbiddenError('Account is not active');
+    }
+
+    return this.issueTokens(user);
+  }
+
+  async vendorLogin(input: {
+    username: string;
+    password: string;
+  }): Promise<AuthTokensDto> {
+    const username = input.username.trim().toLowerCase();
+    const user = await this.repository.findByUsername(username);
+
+    if (!user || user.role !== 'VENDOR' || !user.passwordHash) {
+      logger.warn(
+        { event: 'auth.vendor_login.failure', context: 'AUTH', reason: 'INVALID_CREDENTIALS' },
+        'Vendor login rejected',
+      );
+      throw new UnauthorizedError('Invalid username or password');
+    }
+
+    if (user.status === 'SUSPENDED' || user.status === 'INACTIVE') {
+      logger.warn(
+        {
+          event: 'auth.vendor_login.failure',
+          context: 'AUTH',
+          reason: 'ACCOUNT_INACTIVE',
+          userId: user.id,
+        },
+        'Vendor login rejected',
+      );
+      throw new ForbiddenError('Vendor account is not active');
+    }
+
+    const passwordValid = await comparePassword(input.password, user.passwordHash);
+    if (!passwordValid) {
+      logger.warn(
+        {
+          event: 'auth.vendor_login.failure',
+          context: 'AUTH',
+          reason: 'INVALID_CREDENTIALS',
+          userId: user.id,
+        },
+        'Vendor login rejected',
+      );
+      throw new UnauthorizedError('Invalid username or password');
+    }
+
+    const { prisma } = await import('@/lib/prisma');
+    const activeApp = await prisma.vendorApplication.findFirst({
+      where: {
+        userId: user.id,
+        status: 'APPROVED',
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    if (!activeApp) {
+      logger.warn(
+        {
+          event: 'auth.vendor_login.failure',
+          context: 'AUTH',
+          reason: 'VENDOR_INACTIVE',
+          userId: user.id,
+        },
+        'Vendor login rejected',
+      );
+      throw new ForbiddenError('Vendor account is not active');
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new ForbiddenError('Vendor account is not active');
+    }
+
+    await this.repository.updateLastLogin(user.id);
+    logger.info(
+      { event: 'auth.vendor_login.success', context: 'AUTH', userId: user.id },
+      'Vendor login succeeded',
+    );
+    return this.issueVendorTokens(user);
   }
 
   private async issueAndSendVerificationOtp(user: UserWithMemberships): Promise<void> {
@@ -704,6 +793,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
+      username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
       imageUrl: user.imageUrl,

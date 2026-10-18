@@ -155,7 +155,7 @@ function buildCatalogQueryString(query: CatalogProductQuery): string {
   return qs ? `?${qs}` : "";
 }
 
-/** Client-side shop PLP fetch with filters / pagination. */
+/** Client-side shop PLP fetch with filters / pagination (sends Bearer when logged in). */
 export async function fetchCatalogProducts(
   query: CatalogProductQuery,
 ): Promise<PublicProductListResult> {
@@ -163,20 +163,13 @@ export async function fetchCatalogProducts(
     items: [],
     meta: { page: query.page ?? 1, limit: query.limit ?? 16, total: 0, totalPages: 0 },
   };
-  const base = apiBaseUrl();
-  if (!base) {
-    return empty;
-  }
 
   try {
-    const response = await fetch(
-      `${base}${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(STOREFRONT_SITE_CODE)}${buildCatalogQueryString(query)}`,
-      { headers: { Accept: "application/json" }, cache: "no-store" },
+    const { apiClient } = await import("@/services/api/axios");
+    const response = await apiClient.get<ApiSuccess<PublicProductCard[]>>(
+      `${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(STOREFRONT_SITE_CODE)}${buildCatalogQueryString(query)}`,
     );
-    if (!response.ok) {
-      return empty;
-    }
-    const payload = (await response.json()) as ApiSuccess<PublicProductCard[]>;
+    const payload = response.data;
     if (!payload?.success || !Array.isArray(payload.data)) {
       return empty;
     }
@@ -191,6 +184,25 @@ export async function fetchCatalogProducts(
     };
   } catch {
     return empty;
+  }
+}
+
+/** Client re-fetch of landing rail products with auth (vendor prices). */
+export async function fetchLandingProductsClient(
+  limit = 15,
+): Promise<PublicProductCard[]> {
+  try {
+    const { apiClient } = await import("@/services/api/axios");
+    const response = await apiClient.get<ApiSuccess<PublicProductCard[]>>(
+      `${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(STOREFRONT_SITE_CODE)}?limit=${limit}`,
+    );
+    const payload = response.data;
+    if (!payload?.success || !Array.isArray(payload.data)) {
+      return [];
+    }
+    return payload.data.filter((item) => item?.id && item?.slug);
+  } catch {
+    return [];
   }
 }
 
@@ -245,25 +257,21 @@ export const getLandingProductHighlights = cache(
   },
 );
 
-/** Client-side PDP fetch for quick view (uses same public detail endpoint). */
+/** Client-side PDP fetch (sends Bearer when logged in — vendor prices). */
 export async function fetchProductBySlugClient(
   slug: string,
 ): Promise<PublicProductDetail | null> {
-  const base = apiBaseUrl();
-  if (!base || !slug.trim()) {
+  if (!slug.trim()) {
     return null;
   }
 
   try {
+    const { apiClient } = await import("@/services/api/axios");
     const encoded = encodeURIComponent(slug.trim());
-    const response = await fetch(
-      `${base}/sites/${STOREFRONT_SITE_CODE}/products/${encoded}`,
-      { headers: { Accept: "application/json" }, cache: "no-store" },
+    const response = await apiClient.get<ApiSuccess<PublicProductDetail>>(
+      `/sites/${STOREFRONT_SITE_CODE}/products/${encoded}`,
     );
-    if (!response.ok) {
-      return null;
-    }
-    const payload = (await response.json()) as ApiSuccess<PublicProductDetail>;
+    const payload = response.data;
     if (!payload?.success || !payload.data?.id || !payload.data?.slug) {
       return null;
     }

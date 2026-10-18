@@ -197,6 +197,25 @@
   }
 }
 
+@keyframes vendor-thank-you-heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.08);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.12);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
 /* Rich HTML rendered from TipTap (product sections, reviews, etc.) */
 .rich-html {
   color: var(--foreground);

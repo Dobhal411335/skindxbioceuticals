@@ -244,4 +244,37 @@ describe('CartService', () => {
     ).rejects.toBeInstanceOf(ValidationError);
     expect(deleteItem).toHaveBeenCalledWith(ITEM_ID);
   });
+
+  it('skips product coupons for VENDOR and uses vendorPrice', async () => {
+    findById.mockResolvedValue({
+      id: USER_ID,
+      role: 'VENDOR',
+      status: 'ACTIVE',
+    });
+    findOrCreateCart.mockResolvedValue({
+      id: CART_ID,
+      items: [
+        makeCartItem({
+          variant: {
+            id: VARIANT_ID,
+            name: 'Default',
+            price: { toString: () => '1000.00' },
+            vendorPrice: { toString: () => '800.00' },
+            currency: 'INR',
+            isActive: true,
+            inventory: { quantityOnHand: 5, quantityReserved: 0 },
+          },
+        }),
+      ],
+    });
+
+    const result = await service.getCart(USER_ID);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.listPrice).toBe('800.00');
+    expect(result.items[0]?.unitPrice).toBe('800.00');
+    expect(result.items[0]?.discountAmount).toBe('0.00');
+    expect(result.items[0]?.discountCode).toBeNull();
+    expect(result.items[0]?.coupon).toBeNull();
+  });
+
 });

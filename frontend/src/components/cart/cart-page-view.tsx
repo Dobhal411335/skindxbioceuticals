@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { cartLineTaxInPaise } from "@/features/cart/cart-tax";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsVendor } from "@/hooks/useIsVendor";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { useCartActions } from "@/hooks/useCartActions";
@@ -28,6 +29,7 @@ import {
 export function CartPageView() {
   const dispatch = useAppDispatch();
   const { isLoading: authLoading } = useAuth();
+  const isVendor = useIsVendor();
   const { setQuantity, remove } = useCartActions();
   const hydrated = useAppSelector((state) => state.cart.hydrated);
   const status = useAppSelector((state) => state.cart.status);
@@ -150,7 +152,7 @@ export function CartPageView() {
                         <p className="mb-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase xl:hidden">
                           Price
                         </p>
-                        <CartLinePrice item={item} mode="unit" />
+                        <CartLinePrice item={item} mode="unit" hideDiscount={isVendor} />
                         {/* Mobile: tax under price so CGST/SGST are not only in the summary */}
                         {(tax.cgstInPaise > 0 || tax.sgstInPaise > 0) ? (
                           <div className="mt-1.5 space-y-0.5 text-[11px] text-muted-foreground xl:hidden">
@@ -205,7 +207,7 @@ export function CartPageView() {
                         <p className="mb-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase xl:hidden">
                           Total
                         </p>
-                        <CartLinePrice item={item} mode="line" />
+                        <CartLinePrice item={item} mode="line" hideDiscount={isVendor} />
                         {tax.taxInPaise > 0 ? (
                           <p className="mt-1 text-[11px] text-muted-foreground">
                             + tax {formatPaiseToInr(tax.taxInPaise)}
@@ -276,6 +278,7 @@ export function CartPageView() {
               subtotalInPaise={subtotalInPaise}
               discountInPaise={discountInPaise}
               discountPercent={discountPercent}
+              hideDiscount={isVendor}
               cgstInPaise={cgstInPaise}
               sgstInPaise={sgstInPaise}
               cgstPercent={cgstPercent}

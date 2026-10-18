@@ -18,7 +18,7 @@ export class OrderService {
   ) { }
 
   async listOrders(userId: string, query: ListOrdersQuery): Promise<PaginatedOrdersDto> {
-    await this.requireActiveCustomer(userId);
+    await this.requireActiveStorefrontUser(userId);
     const { page, pageSize } = query;
     const [total, rows] = await Promise.all([
       this.repository.countForUser(userId),
@@ -47,7 +47,7 @@ export class OrderService {
   }
 
   async getOrder(userId: string, orderId: string): Promise<OrderDetailDto> {
-    await this.requireActiveCustomer(userId);
+    await this.requireActiveStorefrontUser(userId);
     const order = await this.repository.findForUser(userId, orderId);
     if (!order) {
       throw new NotFoundError('Order not found');
@@ -93,12 +93,12 @@ export class OrderService {
     };
   }
 
-  private async requireActiveCustomer(userId: string) {
+  private async requireActiveStorefrontUser(userId: string) {
     const user = await this.users.findById(userId);
     if (!user) {
       throw new UnauthorizedError();
     }
-    if (user.role !== 'CUSTOMER') {
+    if (user.role !== 'CUSTOMER' && user.role !== 'VENDOR') {
       throw new ForbiddenError('Insufficient permissions');
     }
     if (user.status !== 'ACTIVE') {

@@ -186,6 +186,14 @@ export interface EnquiryConfirmationEmailInput {
   expectedResponseTime?: string;
 }
 
+export interface VendorApprovedEmailInput {
+  to: EmailRecipient;
+  siteCode: SiteCode;
+  contactPerson: string;
+  username: string;
+  password: string;
+}
+
 export interface BrevoSendPayload {
   to: EmailRecipient[];
   subject: string;

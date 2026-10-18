@@ -13,6 +13,8 @@ type CartOrderSummaryRowsProps = {
   sgstPercent: number;
   totalInPaise: number;
   showShipping?: boolean;
+  /** Vendors: hide product-coupon discount rows (GST still shown). */
+  hideDiscount?: boolean;
   className?: string;
 };
 
@@ -31,15 +33,17 @@ export function CartOrderSummaryRows({
   sgstPercent,
   totalInPaise,
   showShipping = false,
+  hideDiscount = false,
   className,
 }: CartOrderSummaryRowsProps) {
-  const hasDiscount = discountInPaise > 0;
+  const hasDiscount = !hideDiscount && discountInPaise > 0;
+  const displayOriginal = hideDiscount ? subtotalInPaise : originalSubtotalInPaise;
 
   return (
     <div className={className}>
       <div className="flex justify-between text-muted-foreground">
-        <span>Original price</span>
-        <span>{formatPaiseToInr(originalSubtotalInPaise)}</span>
+        <span>{hideDiscount ? "Price" : "Original price"}</span>
+        <span>{formatPaiseToInr(displayOriginal)}</span>
       </div>
 
       {hasDiscount ? (

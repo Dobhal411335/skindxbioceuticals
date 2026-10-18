@@ -77,6 +77,46 @@ export function applyProductCoupon(
   };
 }
 
+/** Sell price for the current role: vendorPrice when vendor + set, else B2C. */
+export function resolveSellPriceForRole(input: {
+  price: number;
+  vendorPrice?: number | null;
+  isVendor: boolean;
+}): number {
+  if (
+    input.isVendor &&
+    input.vendorPrice != null &&
+    Number.isFinite(input.vendorPrice) &&
+    input.vendorPrice >= 0
+  ) {
+    return input.vendorPrice;
+  }
+  return input.price;
+}
+
+/**
+ * Role-aware unit pricing. Vendors never get product coupons — payable is the
+ * partner (or fallback B2C) list price only.
+ */
+export function priceProductForRole(input: {
+  price: number;
+  vendorPrice?: number | null;
+  isVendor: boolean;
+  coupon?: PublicProductDetail["coupon"] | PublicProductCoupon | null;
+}): PricedUnit {
+  const sell = resolveSellPriceForRole(input);
+  if (input.isVendor) {
+    return {
+      originalPrice: sell,
+      unitPrice: sell,
+      discountAmount: 0,
+      coupon: null,
+      hasDiscount: false,
+    };
+  }
+  return applyProductCoupon(sell, input.coupon ?? null);
+}
+
 export function formatWeightGrams(grams: number | null | undefined): string | null {
   if (grams == null || grams <= 0) return null;
   if (grams >= 1000 && grams % 1000 === 0) {
@@ -117,8 +157,15 @@ export function discountPercentForBadge(priced: PricedUnit): number | null {
 export function buildCartPricingFields(
   listPriceRupees: number,
   coupon: PublicProductDetail["coupon"] | PublicProductCoupon | null | undefined,
+  options: { isVendor?: boolean; vendorPrice?: number | null; b2cPrice?: number } = {},
 ): CartPricingFields {
-  const priced = applyProductCoupon(listPriceRupees, coupon ?? null);
+  const isVendor = Boolean(options.isVendor);
+  const priced = priceProductForRole({
+    price: options.b2cPrice ?? listPriceRupees,
+    vendorPrice: options.vendorPrice ?? (isVendor ? listPriceRupees : null),
+    isVendor,
+    coupon,
+  });
   return {
     unitPriceInPaise: rupeesToPaise(priced.unitPrice),
     originalUnitPriceInPaise: priced.hasDiscount

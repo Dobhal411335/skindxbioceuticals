@@ -1,7 +1,9 @@
 import { authRepository } from '@/features/auth/auth.repository';
+import type { UserWithMemberships } from '@/features/auth/auth.repository';
 import { applyProductCouponRupees } from '@/features/checkout/checkout.pricing';
 import { logger } from '@/lib/logger';
 import { decimalToNumber } from '@/lib/money';
+import { resolveSellPrice } from '@/lib/vendor-pricing';
 import {
   ForbiddenError,
   NotFoundError,
@@ -43,13 +45,13 @@ export class CartService {
   ) {}
 
   async getCart(userId: string): Promise<CartDto> {
-    await this.requireActiveCustomer(userId);
+    const user = await this.requireActiveShopper(userId);
     const cart = await this.repository.findOrCreateCart(userId);
-    return this.toCartDto(cart);
+    return this.toCartDto(cart, user.role === 'VENDOR');
   }
 
   async addItem(userId: string, input: AddCartItemInput): Promise<CartItemDto> {
-    await this.requireActiveCustomer(userId);
+    const user = await this.requireActiveShopper(userId);
     const cart = await this.repository.findOrCreateCart(userId);
 
     const product = await this.repository.findActiveInProduct(
@@ -100,7 +102,7 @@ export class CartService {
       'Cart item added',
     );
 
-    return this.toItemDto(item);
+    return this.toItemDto(item, user.role === 'VENDOR');
   }
 
   async updateItem(
@@ -108,7 +110,7 @@ export class CartService {
     itemId: string,
     input: UpdateCartItemInput,
   ): Promise<CartItemDto> {
-    await this.requireActiveCustomer(userId);
+    const user = await this.requireActiveShopper(userId);
     const existing = await this.repository.findItemForUser(userId, itemId);
     if (!existing) {
       throw new NotFoundError('Cart item not found');
@@ -140,11 +142,11 @@ export class CartService {
       },
       'Cart item quantity updated',
     );
-    return this.toItemDto(item);
+    return this.toItemDto(item, user.role === 'VENDOR');
   }
 
   async removeItem(userId: string, itemId: string): Promise<void> {
-    await this.requireActiveCustomer(userId);
+    await this.requireActiveShopper(userId);
     const item = await this.repository.findItemForUser(userId, itemId);
     if (!item) {
       throw new NotFoundError('Cart item not found');
@@ -161,12 +163,12 @@ export class CartService {
   }
 
   async clearCart(userId: string): Promise<CartDto> {
-    await this.requireActiveCustomer(userId);
+    const user = await this.requireActiveShopper(userId);
     const cart = await this.repository.findOrCreateCart(userId);
     await this.repository.clearItems(cart.id);
     const refreshed = await this.repository.findOrCreateCart(userId);
     logger.info({ event: 'cart.cleared', userId }, 'Cart cleared');
-    return this.toCartDto(refreshed);
+    return this.toCartDto(refreshed, user.role === 'VENDOR');
   }
 
   /**
@@ -174,7 +176,7 @@ export class CartService {
    * Same (productId, variantId): sum quantities, then cap at available stock.
    */
   async syncCart(userId: string, input: SyncCartInput): Promise<CartSyncResultDto> {
-    await this.requireActiveCustomer(userId);
+    const user = await this.requireActiveShopper(userId);
     const cart = await this.repository.findOrCreateCart(userId);
 
     const deduped = new Map<
@@ -280,17 +282,17 @@ export class CartService {
     );
 
     return {
-      cart: this.toCartDto(refreshed),
+      cart: this.toCartDto(refreshed, user.role === 'VENDOR'),
       skipped,
     };
   }
 
-  private async requireActiveCustomer(userId: string) {
+  private async requireActiveShopper(userId: string): Promise<UserWithMemberships> {
     const user = await this.users.findById(userId);
     if (!user) {
       throw new UnauthorizedError();
     }
-    if (user.role !== 'CUSTOMER') {
+    if (user.role !== 'CUSTOMER' && user.role !== 'VENDOR') {
       throw new ForbiddenError('Insufficient permissions');
     }
     if (user.status !== 'ACTIVE') {
@@ -299,12 +301,12 @@ export class CartService {
     return user;
   }
 
-  private toCartDto(cart: CartWithItems): CartDto {
+  private toCartDto(cart: CartWithItems, isVendor = false): CartDto {
     return {
       id: cart.id,
       items: cart.items
         .filter((item) => this.isEligibleStorefrontItem(item))
-        .map((item) => this.toItemDto(item)),
+        .map((item) => this.toItemDto(item, isVendor)),
     };
   }
 
@@ -317,25 +319,32 @@ export class CartService {
     );
   }
 
-  private toItemDto(item: CartItemRow): CartItemDto {
-    const listPrice = decimalToNumber(item.variant.price) ?? 0;
+  private toItemDto(item: CartItemRow, isVendor = false): CartItemDto {
+    const listPrice = resolveSellPrice({
+      price: item.variant.price,
+      vendorPrice: item.variant.vendorPrice,
+      isVendor,
+    });
     const couponRow = item.product.coupon?.coupon ?? null;
     const couponActive = Boolean(couponRow?.isActive);
-    const priced = applyProductCouponRupees(
-      listPrice,
-      couponRow && couponActive
-        ? {
-            type: couponRow.type,
-            value: decimalToNumber(couponRow.value) ?? 0,
-            isActive: couponRow.isActive,
-            startsAt: couponRow.startsAt,
-            endsAt: couponRow.endsAt,
-          }
-        : null,
-    );
+    // Vendors never receive product coupons — payable is partner (or B2C) list only.
+    const priced = isVendor
+      ? { unitPrice: listPrice, discountAmount: 0 }
+      : applyProductCouponRupees(
+          listPrice,
+          couponRow && couponActive
+            ? {
+                type: couponRow.type,
+                value: decimalToNumber(couponRow.value) ?? 0,
+                isActive: couponRow.isActive,
+                startsAt: couponRow.startsAt,
+                endsAt: couponRow.endsAt,
+              }
+            : null,
+        );
     const stock = availableStock(item.variant.inventory);
     const coupon =
-      item.product.coupon && couponActive && priced.discountAmount > 0
+      !isVendor && item.product.coupon && couponActive && priced.discountAmount > 0
         ? {
             couponId: item.product.coupon.couponId,
             code: item.product.coupon.coupon.code,

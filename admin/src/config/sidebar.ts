@@ -188,10 +188,19 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           id: "vendor-partner",
           label: "Vendor / Partner Section",
           icon: Handshake,
-          status: "shell",
+          status: "active",
           children: [
-            leaf(siteCode, "become-partner", "Become Partner", "vendor/become-partner", Handshake),
-            leaf(siteCode, "partner-login-details", "Partner Login Details", "vendor/partner-login-details", Users),
+            leaf(siteCode, "become-partner", "Pending Vendor Request", "vendor/become-partner", Handshake, {
+              status: "active",
+            }),
+            leaf(
+              siteCode,
+              "partner-login-details",
+              "Vendor Partner Login Details",
+              "vendor/partner-login-details",
+              Users,
+              { status: "active" },
+            ),
           ],
         },
         leaf(siteCode, "add-direct-product", "Add Direct Product", "products/add-direct", Package),

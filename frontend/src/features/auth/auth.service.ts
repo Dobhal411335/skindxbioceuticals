@@ -53,6 +53,19 @@ export const authService = {
     return data;
   },
 
+  async vendorLogin(credentials: {
+    username: string;
+    password: string;
+  }): Promise<SessionAuthResult> {
+    const response = await apiClient.post<Envelope<SessionAuthResult>>(
+      API_ENDPOINTS.AUTH.VENDOR_LOGIN,
+      credentials,
+    );
+    const data = response.data.data;
+    tokenStore.setAccessToken(data.accessToken);
+    return data;
+  },
+
   async signInWithGoogle(credential: string): Promise<SessionAuthResult> {
     const response = await apiClient.post<Envelope<SessionAuthResult>>(
       API_ENDPOINTS.AUTH.GOOGLE,

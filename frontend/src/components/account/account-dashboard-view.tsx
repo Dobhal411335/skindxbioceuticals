@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUserDisplayName } from "@/features/auth/auth-user";
+import { getUserDisplayName, isVendorUser } from "@/features/auth/auth-user";
 import { meService } from "@/features/me/me.service";
 import type { Address } from "@/features/me/me.types";
 import { orderService } from "@/features/orders/order.service";
@@ -69,6 +69,7 @@ export function AccountDashboardView() {
   }, []);
 
   const displayName = user ? getUserDisplayName(user) : "there";
+  const isVendor = isVendorUser(user);
 
   return (
     <div className="space-y-6">
@@ -77,7 +78,9 @@ export function AccountDashboardView() {
           Welcome, {displayName}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Review recent orders, wishlist items, and saved addresses from your account.
+          {isVendor
+            ? "Review your partner orders and saved addresses from your account."
+            : "Review recent orders, wishlist items, and saved addresses from your account."}
         </p>
       </div>
 

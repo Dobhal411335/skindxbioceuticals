@@ -10,6 +10,7 @@ import { HeaderCartButton } from "@/components/layout/header-cart-button";
 import { HeaderSearchButton } from "@/components/layout/header-search-button";
 import { HeaderWishlistButton } from "@/components/layout/header-wishlist-button";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -190,6 +191,9 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <HeaderSearchButton />
+          <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
+            <Link href="/vendor/login">Vendor Login</Link>
+          </Button>
           <HeaderAccountMenu />
           <HeaderWishlistButton />
           <HeaderCartButton />

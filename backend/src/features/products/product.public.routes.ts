@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { asyncHandler } from '@/utils/asyncHandler';
+import { optionalAuthenticate } from '@/middlewares/auth.middleware';
 import { validate } from '@/middlewares/validate.middleware';
 import { productController } from './product.controller';
 import {
@@ -11,8 +12,11 @@ import {
 /**
  * Mounted at `/sites/:siteCode/products`.
  * Static paths (`/`, `/highlights`) must stay above `/:slug`.
+ * Optional auth enables vendorPrice for VENDOR sessions.
  */
 export const productPublicRoutes = Router({ mergeParams: true });
+
+productPublicRoutes.use(optionalAuthenticate);
 
 productPublicRoutes.get(
   '/',

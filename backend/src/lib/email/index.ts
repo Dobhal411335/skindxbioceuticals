@@ -29,5 +29,6 @@ export type {
   OrderCancelledEmailInput,
   RefundStatusEmailInput,
   EnquiryConfirmationEmailInput,
+  VendorApprovedEmailInput,
 } from './email.types';
 export * from './templates';

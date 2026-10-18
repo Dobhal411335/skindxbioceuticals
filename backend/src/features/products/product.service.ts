@@ -130,6 +130,7 @@ function toPublicCardCouponDto(
 export function toPublicProductCardDto(
   row: CardSource,
   siteCode: SiteCodeDto,
+  options: { includeVendorPrice?: boolean } = {},
 ): PublicProductCardDto {
   const firstVariant = row.variants[0];
   const primaryImage = row.galleryImages[0];
@@ -147,6 +148,9 @@ export function toPublicProductCardDto(
     description: row.description?.trim() ? row.description : null,
     price: decimalToNumber(firstVariant?.price) ?? 0,
     compareAtPrice: decimalToNumber(firstVariant?.compareAtPrice ?? null),
+    ...(options.includeVendorPrice
+      ? { vendorPrice: decimalToNumber(firstVariant?.vendorPrice ?? null) }
+      : {}),
     imageUrl: primaryImage ? preferHttpsUrl(primaryImage.imageUrl) : null,
     averageRating: stats.averageRating,
     reviewCount: stats.reviewCount,
@@ -242,7 +246,9 @@ export class ProductService {
     priceMax?: number;
     availability?: PublicProductAvailability;
     sort?: PublicProductSort;
+    includeVendorPrice?: boolean;
   }): Promise<PublicProductListResultDto> {
+    const cardOpts = { includeVendorPrice: Boolean(input.includeVendorPrice) };
     const page = input.page ?? 1;
     const limit = input.limit;
     const sort = input.sort ?? 'default';
@@ -263,7 +269,9 @@ export class ProductService {
       const rows = await this.repository.listActivePublicCards(input.siteId, {
         limit,
       });
-      const items = rows.map((row) => toPublicProductCardDto(row, input.siteCode));
+      const items = rows.map((row) =>
+        toPublicProductCardDto(row, input.siteCode, cardOpts),
+      );
       return {
         items,
         meta: {
@@ -280,7 +288,9 @@ export class ProductService {
       q: input.q,
     });
 
-    let cards = rows.map((row) => toPublicProductCardDto(row, input.siteCode));
+    let cards = rows.map((row) =>
+      toPublicProductCardDto(row, input.siteCode, cardOpts),
+    );
     cards = cards.filter(
       (card) =>
         matchesPriceRange(card, input.priceMin, input.priceMax) &&
@@ -349,7 +359,9 @@ export class ProductService {
   async listPublicHighlights(input: {
     siteId: string;
     siteCode: SiteCode;
+    includeVendorPrice?: boolean;
   }): Promise<PublicProductHighlightsDto> {
+    const cardOpts = { includeVendorPrice: Boolean(input.includeVendorPrice) };
     const [recent, featured, bestSellers] = await Promise.all([
       this.repository.listActivePublicByFlag(input.siteId, 'isRecent', { limit: 4 }),
       this.repository.listActivePublicByFlag(input.siteId, 'isFeatured', { limit: 8 }),
@@ -359,10 +371,14 @@ export class ProductService {
     ]);
 
     return {
-      recent: recent.map((row) => toPublicProductCardDto(row, input.siteCode)),
-      featured: featured.map((row) => toPublicProductCardDto(row, input.siteCode)),
+      recent: recent.map((row) =>
+        toPublicProductCardDto(row, input.siteCode, cardOpts),
+      ),
+      featured: featured.map((row) =>
+        toPublicProductCardDto(row, input.siteCode, cardOpts),
+      ),
       bestSellers: bestSellers.map((row) =>
-        toPublicProductCardDto(row, input.siteCode),
+        toPublicProductCardDto(row, input.siteCode, cardOpts),
       ),
     };
   }
@@ -371,7 +387,9 @@ export class ProductService {
     siteId: string;
     siteCode: SiteCode;
     slug: string;
+    includeVendorPrice?: boolean;
   }): Promise<PublicProductDetailDto> {
+    const includeVendorPrice = Boolean(input.includeVendorPrice);
     const record = await this.repository.findActivePublicBySlug(input.siteId, input.slug);
     if (!record) {
       throw new NotFoundError('Product not found');
@@ -396,6 +414,9 @@ export class ProductService {
         name: row.name,
         categoryName: row.subcategory?.name ?? null,
         price: decimalToNumber(firstVariant?.price) ?? 0,
+        ...(includeVendorPrice
+          ? { vendorPrice: decimalToNumber(firstVariant?.vendorPrice ?? null) }
+          : {}),
         imageUrl: primaryImage ? preferHttpsUrl(primaryImage.imageUrl) : null,
         averageRating: relatedStats.averageRating,
         reviewCount: relatedStats.reviewCount,
@@ -452,6 +473,9 @@ export class ProductService {
         sku: row.sku,
         name: row.name,
         price: decimalToNumber(row.price) ?? 0,
+        ...(includeVendorPrice
+          ? { vendorPrice: decimalToNumber(row.vendorPrice ?? null) }
+          : {}),
         sizeLabel: row.sizeLabel,
         colorLabel: row.colorLabel,
         weightGrams: row.weightGrams ?? null,
