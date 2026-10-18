@@ -100,6 +100,13 @@ export const endpoints = {
       `/admin/sites/${siteCode}/orders/online-log`,
     ordersCancelled: (siteCode: string) =>
       `/admin/sites/${siteCode}/orders/cancelled`,
+    stock: (siteCode: string) => `/admin/sites/${siteCode}/stock`,
+    stockVariant: (siteCode: string, variantId: string) =>
+      `/admin/sites/${siteCode}/stock/variants/${variantId}`,
+    productPrices: (siteCode: string) =>
+      `/admin/sites/${siteCode}/product-prices`,
+    productPricesApply: (siteCode: string) =>
+      `/admin/sites/${siteCode}/product-prices/apply`,
   },
   media: {
     uploadImage: "/media/images",

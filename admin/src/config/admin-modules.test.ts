@@ -28,6 +28,8 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "order-doctor-contact": endpoints.admin.doctorAppointments,
   "order-online-log": endpoints.admin.ordersOnlineLog,
   "order-cancel": endpoints.admin.ordersCancelled,
+  "stock-management": endpoints.admin.stock,
+  "update-product-prices": endpoints.admin.productPrices,
 };
 
 describe("admin modules", () => {
@@ -39,7 +41,9 @@ describe("admin modules", () => {
 
   it("resolves nested slugs for both sites", () => {
     expect(findModuleBySlug("IN", ["stock-management"])?.id).toBe("stock-management");
+    expect(findModuleBySlug("IN", ["stock-management"])?.status).toBe("live");
     expect(findModuleBySlug("COM", ["stock-management"])?.id).toBe("stock-management");
+    expect(findModuleBySlug("COM", ["stock-management"])?.status).toBe("live");
     expect(findModuleBySlug("IN", ["company-basic-info"])?.id).toBe("company-info");
     expect(findModuleBySlug("COM", ["company-basic-info"])?.id).toBe("company-info");
     expect(findModuleBySlug("IN", ["manage-navbar"])?.id).toBe("manage-navbar");
@@ -63,6 +67,15 @@ describe("admin modules", () => {
     );
     expect(findModuleBySlug("IN", ["products", "manage-category"])?.id).toBe(
       "manage-products-category",
+    );
+    expect(findModuleBySlug("IN", ["products", "update-prices"])?.id).toBe(
+      "update-product-prices",
+    );
+    expect(findModuleBySlug("IN", ["products", "update-prices"])?.status).toBe(
+      "live",
+    );
+    expect(findModuleBySlug("COM", ["products", "update-prices"])?.status).toBe(
+      "live",
     );
     expect(findModuleBySlug("IN", ["marketing", "create-coupon-code"])?.id).toBe(
       "create-coupon-code",

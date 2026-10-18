@@ -28,6 +28,8 @@ import { doctorProfilesRoutes } from '@/features/doctors/doctor-profiles.routes'
 import { doctorPageRoutes } from '@/features/doctors/doctor-page.routes';
 import { doctorAppointmentsRoutes } from '@/features/doctor-appointments/doctor-appointments.routes';
 import { adminOrdersRoutes } from '@/features/admin-orders/admin-orders.routes';
+import { inventoryAdminRoutes } from '@/features/inventory/inventory.admin.routes';
+import { productPricesAdminRoutes } from '@/features/product-prices/product-prices.admin.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -76,5 +78,7 @@ router.use('/sites/:siteCode/doctors', doctorProfilesRoutes);
 router.use('/sites/:siteCode/doctor-page', doctorPageRoutes);
 router.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsRoutes);
 router.use('/sites/:siteCode/orders', adminOrdersRoutes);
+router.use('/sites/:siteCode/stock', inventoryAdminRoutes);
+router.use('/sites/:siteCode/product-prices', productPricesAdminRoutes);
 
 export const adminRoutes = router;

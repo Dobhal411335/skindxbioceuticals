@@ -57,7 +57,8 @@ export function WishlistPageView() {
     setStockRefreshDone(false);
   }, [isAuthenticated]);
 
-  // Refresh stock qty: API for signed-in users; PDP fill for guest bags missing quantity.
+  // Refresh stock qty: wishlist API for signed-in users; live PDP qty for guests
+  // (localStorage snapshots become stale after admin stock updates).
   useEffect(() => {
     if (loading || items.length === 0 || stockRefreshDone) return;
 
@@ -77,17 +78,15 @@ export function WishlistPageView() {
         return;
       }
 
-      const missing = items.filter(
-        (item) => typeof item.quantity !== "number" && Boolean(item.productSlug),
-      );
-      if (missing.length === 0) {
+      const withSlug = items.filter((item) => Boolean(item.productSlug));
+      if (withSlug.length === 0) {
         setStockRefreshDone(true);
         return;
       }
 
       const qtyByProductId = new Map<string, number>();
       await Promise.all(
-        missing.map(async (item) => {
+        withSlug.map(async (item) => {
           const detail = await fetchProductBySlugClient(item.productSlug);
           if (!detail) return;
           const variant =

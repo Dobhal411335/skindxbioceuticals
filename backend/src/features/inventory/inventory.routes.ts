@@ -8,6 +8,7 @@ import { asyncHandler } from '@/utils/asyncHandler';
  */
 const router = Router();
 
+/** Public / scaffold mount — admin stock APIs live under `/admin/sites/:siteCode/stock`. */
 router.get('/status', asyncHandler(inventoryController.status));
 
 export const inventoryRoutes = router;

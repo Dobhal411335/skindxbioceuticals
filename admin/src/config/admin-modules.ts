@@ -83,11 +83,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
   ),
 
   // .in — operations & people
-  shell(
+  live(
     "stock-management",
     "stock-management",
     "Stock Management",
-    "Review and manage inventory stock for the .in ecommerce storefront.",
+    "Review and manage inventory stock for the selected website.",
     ["IN", "COM"],
   ),
   live(
@@ -135,13 +135,6 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Add a product directly to the .in catalog.",
     ["IN", "COM"],
   ),
-  shell(
-    "create-tax-provision",
-    "products/create-tax-provision",
-    "Create Tax Provision",
-    "Configure tax provisions used when creating products.",
-    ["IN", "COM"],
-  ),
   live(
     "create-category",
     "products/create-category",
@@ -170,11 +163,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Browse all products in the .in catalog.",
     ["IN", "COM"],
   ),
-  shell(
-    "create-price-list-increase",
-    "products/price-list-increase",
-    "Create Price List Increase",
-    "Plan and apply price list increases for the .in catalog.",
+  live(
+    "update-product-prices",
+    "products/update-prices",
+    "Update Product Prices",
+    "Preview and apply percent-based price updates by category or product.",
     ["IN", "COM"],
   ),
 

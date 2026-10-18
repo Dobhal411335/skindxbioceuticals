@@ -68,7 +68,7 @@ describe("getSidebarConfig", () => {
         "create-category",
         "manage-products-category",
         "create-coupon-code",
-        "create-reviews",
+        "update-product-prices",
         "customer-review",
         "create-news-promotion",
         "create-doctor-profile",
@@ -90,8 +90,14 @@ describe("getSidebarConfig", () => {
     expect(inItems.find((item) => item.id === "stock-management")?.href).toBe(
       "/admin/in/stock-management",
     );
+    expect(inItems.find((item) => item.id === "stock-management")?.status).toBe(
+      "active",
+    );
     expect(comItems.find((item) => item.id === "stock-management")?.href).toBe(
       "/admin/com/stock-management",
+    );
+    expect(comItems.find((item) => item.id === "stock-management")?.status).toBe(
+      "active",
     );
     expect(inItems.find((item) => item.id === "customer-review")?.href).toBe(
       "/admin/in/reviews/customer",
@@ -116,6 +122,15 @@ describe("getSidebarConfig", () => {
     expect(inItems.find((item) => item.id === "create-category")?.status).toBe("active");
     expect(inItems.find((item) => item.id === "manage-products-category")?.status).toBe(
       "active",
+    );
+    expect(inItems.find((item) => item.id === "update-product-prices")?.href).toBe(
+      "/admin/in/products/update-prices",
+    );
+    expect(inItems.find((item) => item.id === "update-product-prices")?.status).toBe(
+      "active",
+    );
+    expect(comItems.find((item) => item.id === "update-product-prices")?.href).toBe(
+      "/admin/com/products/update-prices",
     );
     expect(inItems.find((item) => item.id === "create-coupon-code")?.href).toBe(
       "/admin/in/marketing/create-coupon-code",

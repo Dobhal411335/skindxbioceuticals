@@ -170,7 +170,9 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           icon: LayoutDashboard,
           status: "shell",
           children: [
-            leaf(siteCode, "stock-management", "Stock Management", "stock-management", Boxes),
+            leaf(siteCode, "stock-management", "Stock Management", "stock-management", Boxes, {
+              status: "active",
+            }),
             leaf(siteCode, "website-faq", "Website FAQ Section", "website-faq", HelpCircle, {
               status: "active",
             }),
@@ -199,7 +201,6 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           icon: Package,
           status: "shell",
           children: [
-            leaf(siteCode, "create-tax-provision", "Create Tax Provision", "products/create-tax-provision", ClipboardList),
             leaf(siteCode, "create-category", "Create Category", "products/create-category", FolderOpen, {
               status: "active",
             }),
@@ -208,7 +209,9 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
             }),
             leaf(siteCode, "create-combo-product", "Create Combo Product", "products/create-combo", Package),
             leaf(siteCode, "view-all-products", "View All Products", "products/view-all", Package),
-            leaf(siteCode, "create-price-list-increase", "Create Price List Increase", "products/price-list-increase", BadgePercent),
+            leaf(siteCode, "update-product-prices", "Update Product Prices", "products/update-prices", BadgePercent, {
+              status: "active",
+            }),
           ],
         },
         {

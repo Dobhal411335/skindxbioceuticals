@@ -516,6 +516,36 @@ Prefer focused section replaces over one giant nested PUT so saving sizes cannot
 
 Product image uploads use `feature=products`: `POST /api/v1/media/images`. Category banners continue to use `feature=categories`.
 
+### Admin Stock Management (implemented)
+
+Site-scoped inventory overview and absolute quantity updates. Reuses existing `Product` / `ProductVariant` / `InventoryItem` (no new Prisma fields). Never trusts client `siteId`; ownership is enforced via `requireSiteAccess` + variant→product→site lookup.
+
+- `GET /api/v1/admin/sites/:siteCode/stock` — Bearer admin JWT + `requireSiteAccess`. Paginated product stock rows (newest `updatedAt` first). Response `data` is an array; pagination in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
+  - Query: `q` (max 120; name / productCode / slug), `status` (`all` default | `active` | `draft` | `archived`, case-insensitive aliases `ACTIVE`/`DRAFT`/`ARCHIVED`), optional `categoryId` (root category UUID — products under that root’s subcategories), optional `subcategoryId`, `page` (default 1), optional `offset` (overrides `(page-1)*limit`), `limit` (default `10`, max `48`).
+  - Each row: `id`, `productCode`, `name`, `status` (`DRAFT`|`ACTIVE`|`ARCHIVED`), `imageUrl` (primary gallery → banner → variant profile), `price` / `vendorPrice` / `currency` (from first variant; null when missing), `subcategoryId` / `subcategoryName`, `categoryId` / `categoryName`, `isSimpleOffer` (true when zero variants or a single base offer with no size/color), `quantity` (simple: that offer’s on-hand; multi: sum), `variants[{ id, name, sizeLabel, colorLabel, quantity, isActive }]`, `updatedAt`.
+- `PATCH /api/v1/admin/sites/:siteCode/stock/variants/:variantId` — body `{ quantity }` (absolute non-negative integer). Sets `InventoryItem.quantityOnHand` (creates row if missing) and writes an `ADJUSTMENT` `InventoryMovement` when the value changes. `404` if variant missing or belongs to another site.
+
+Admin UI badge colors (display only): qty `> 10` green; `5 < qty ≤ 10` yellow; `qty ≤ 5` red.
+
+### Admin Update Product Prices (implemented)
+
+Site-scoped percent price adjustments on `ProductVariant`. No new Prisma models. Server always recomputes amounts from `percent` + current DB values (never trusts client final prices). Auth: Bearer admin JWT + `requireSiteAccess`.
+
+**Percent rules:** `percent` must be non-zero, `> -100` and `≤ 1000`. Positive values increase by that percent; negative values decrease. Money is rounded to 2 decimal places and clamped at `0`.
+
+**Fields updated per variant:**
+- `price` (selling / list) — always
+- `vendorPrice` — when currently set (null stays null)
+- `compareAtPrice` (MRP / compare-at) — when currently set (null stays null)
+
+- `GET /api/v1/admin/sites/:siteCode/product-prices` — paginated preview/list (newest `updatedAt` first). Response `data` array; pagination in `meta`.
+  - Query: `q` (max 120), `status` (`all` default | `active` | `draft` | `archived`), optional `categoryId` (root category; products under that root’s subcategories), optional `subcategoryId`, optional `productId`, optional `percent` (when set, each row includes projected `updatedPrice` / `updatedVendorPrice` / per-variant `updated*`), `page` (default 1), optional `offset`, `limit` (default `10`, max `48`).
+  - Category / product must belong to the site (`404` otherwise). Subcategory must be a child of `categoryId` when both are provided.
+  - Row shape mirrors stock list identity fields plus variant price detail: `variants[{ id, name, sizeLabel, colorLabel, isActive, price, updatedPrice, vendorPrice, updatedVendorPrice, compareAtPrice, updatedCompareAtPrice, currency }]`.
+- `POST /api/v1/admin/sites/:siteCode/product-prices/apply` — body `{ percent, categoryId? | productId?, subcategoryId?, status?, q? }`. Exactly one of `productId` or `categoryId`. Optional `subcategoryId` narrows category scope (omit = all subcategories under the category). Applies to **all** matching products (not just the current page). Returns `{ percent, productsUpdated, variantsUpdated, items[] }` with post-update current prices. Significant changes are logged (`event: product_prices.percent_applied`).
+
+Admin UI: `/admin/{siteCode}/products/update-prices` (module `update-product-prices`).
+
 ### Admin coupons (implemented)
 
 - `GET /api/v1/admin/sites/:siteCode/coupons` — Bearer admin JWT; `requireSiteAccess`. Lists all coupons for the site (including inactive).

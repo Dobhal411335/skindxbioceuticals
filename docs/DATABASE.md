@@ -49,14 +49,14 @@
 - `CatalogColor` / `CatalogTag` (implemented): site-scoped masters for color hex/name and tag names. Unique `(siteId, hex)` / `(siteId, name)` for colors; unique `(siteId, name)` for tags.
 - `ProductSize`: product-linked size labels (`label`, `sortOrder`, `active`); unique `(productId, label)`. Optional for catalog products — empty means the storefront shows no size selector.
 - `ProductColor`: product-linked colors, optional FK to `CatalogColor`, plus `name`/`hex` for custom entries. Optional — empty means no colour swatches on the storefront.
-- `ProductVariant` (extended for Price/Quantity): optional SKU (unique when set; not auto-generated for admin price/quantity offers), name, mandatory `price`, optional `vendorPrice`, optional nullable `sizeLabel` / `colorLabel` (both null = single base/default offer), `weightGrams`, profile image URL/publicId, `subImages` JSON, inventory via `InventoryItem`. No size/color FK columns — labels are denormalized strings. Variants referenced by cart/order are soft-deactivated instead of hard-deleted.
+- `ProductVariant` (extended for Price/Quantity): optional SKU (unique when set; not auto-generated for admin price/quantity offers), name, mandatory `price` (selling / list), optional `compareAtPrice` (MRP / compare-at), optional `vendorPrice`, optional nullable `sizeLabel` / `colorLabel` (both null = single base/default offer), `weightGrams`, profile image URL/publicId, `subImages` JSON, inventory via `InventoryItem`. No size/color FK columns — labels are denormalized strings. Variants referenced by cart/order are soft-deactivated instead of hard-deleted. Admin **Update Product Prices** applies a server-computed percent to `price` and, when set, `vendorPrice` + `compareAtPrice` (no separate price-adjustment table; audit via structured logger).
 - `ProductGalleryImage`: ordered product gallery with `imageUrl`/`imagePublicId`, `isPrimary`, `sortOrder` (admin gallery section; distinct from legacy `ProductMedia` Media FK).
 - `ProductVideo`, `ProductInfoSection`, `ProductHighlight`, `ProductEditorialReview`: product-detail content sections (videos, info tabs, highlights, admin-curated reviews distinct from customer `Review`).
 - `ProductTag`: join `Product` ↔ `CatalogTag`.
 - `ProductTax`: one optional CGST/SGST row per product.
 - `ProductCoupon`: optional one coupon link per product (`Coupon` FK Restrict).
 - `ProductMedia`: legacy Media FK associations retained for later storefront wiring.
-- `Inventory` / `InventoryMovement`: stock quantities, reservations, adjustments, and auditable changes.
+- `InventoryItem` / `InventoryMovement`: stock quantities (`quantityOnHand`, `quantityReserved`, `lowStockThreshold`), reservations, adjustments, and auditable changes. Admin Stock Management lists products with variants and patches absolute `quantityOnHand` per variant (site-scoped); each non-zero delta writes an `ADJUSTMENT` movement with `referenceType=admin_stock`. No extra stock columns on `Product` — qty always lives on the variant’s inventory row.
 
 Phase-1 create/list still uses name + code under a subcategory; full edit details are managed via admin product edit section APIs. Public storefront PDP reads ACTIVE products by `(siteId, slug)` and joins gallery, sizes, colors, variants+inventory, info sections, and related same-subcategory products (max 4).
 
