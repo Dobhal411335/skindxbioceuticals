@@ -83,6 +83,12 @@ export function CategoryShop({ facets }: CategoryShopProps) {
     () => searchParams.get("q") ?? "",
   );
   const debouncedSearch = useDebouncedValue(searchInput, 300);
+
+  // Keep in sync when arriving from header search (`/category?q=…`).
+  useEffect(() => {
+    const next = searchParams.get("q") ?? "";
+    setSearchInput((current) => (current === next ? current : next));
+  }, [searchParams]);
   const [categorySlug, setCategorySlug] = useState<string | null>(
     () => searchParams.get("category") ?? null,
   );

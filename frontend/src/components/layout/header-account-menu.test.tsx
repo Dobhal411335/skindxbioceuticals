@@ -94,11 +94,17 @@ describe("HeaderAccountMenu", () => {
     });
   });
 
-  it("shows login control when logged out", () => {
+  it("shows Sign in menu with customer and vendor login when logged out", async () => {
+    const user = userEvent.setup();
     renderMenu(null, "unauthenticated");
-    expect(screen.getByRole("link", { name: /login or account/i })).toHaveAttribute(
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+    expect(await screen.findByRole("menuitem", { name: /^sign in$/i })).toHaveAttribute(
       "href",
       "/account/login",
+    );
+    expect(screen.getByRole("menuitem", { name: /vendor login/i })).toHaveAttribute(
+      "href",
+      "/vendor/login",
     );
   });
 

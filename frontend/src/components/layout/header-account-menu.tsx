@@ -79,19 +79,72 @@ export function HeaderAccountMenu() {
   }
 
   if (!isAuthenticated || !user) {
-    return (
-      <div className="flex items-center gap-1">
-        <Button variant="ghost" size="sm" className="sm:hidden" asChild>
-          <Link href="/vendor/login" aria-label="Vendor login">
-            <Handshake className="size-4" />
-          </Link>
-        </Button>
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/account/login" aria-label="Login or account">
+    if (isNarrow) {
+      return (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 px-2"
+            aria-label="Sign in"
+            onClick={() => setMobileOpen(true)}
+          >
             <User className="size-5" />
-          </Link>
-        </Button>
-      </div>
+            <span className="text-sm font-medium">Sign in</span>
+          </Button>
+          <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Sign in</DialogTitle>
+              </DialogHeader>
+              <div className="mt-2 flex flex-col gap-1">
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link href="/account/login" onClick={() => setMobileOpen(false)}>
+                    <User className="size-4" />
+                    Sign in
+                  </Link>
+                </Button>
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link href="/vendor/login" onClick={() => setMobileOpen(false)}>
+                    <Handshake className="size-4" />
+                    Vendor login
+                  </Link>
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      );
+    }
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 px-2"
+            aria-label="Sign in"
+          >
+            <User className="size-5" />
+            <span className="text-sm font-medium">Sign in</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem asChild>
+            <Link href="/account/login">
+              <User className="size-4" />
+              Sign in
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/vendor/login">
+              <Handshake className="size-4" />
+              Vendor login
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
