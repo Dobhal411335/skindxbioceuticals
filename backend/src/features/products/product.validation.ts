@@ -142,6 +142,16 @@ export const adminProductIdParamSchema = z.object({
   productId: z.string().uuid(),
 });
 
+/** Site-scoped direct products (no subcategory). */
+export const directProductsParamSchema = z.object({
+  siteCode: siteCodeSchema,
+});
+
+export const directProductIdParamSchema = z.object({
+  siteCode: siteCodeSchema,
+  productId: z.string().uuid(),
+});
+
 export type CatalogProductBody = z.infer<typeof catalogProductBodySchema>;
 export type CatalogProductPatchBody = z.infer<typeof catalogProductPatchSchema>;
 export type PublicProductSlugParam = z.infer<typeof publicProductSlugParamSchema>;

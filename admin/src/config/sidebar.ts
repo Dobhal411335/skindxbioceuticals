@@ -203,7 +203,9 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
             ),
           ],
         },
-        leaf(siteCode, "add-direct-product", "Add Direct Product", "products/add-direct", Package),
+        leaf(siteCode, "add-direct-product", "Add Direct Product", "products/add-direct", Package, {
+          status: "active",
+        }),
         {
           id: "create-product",
           label: "Create Product",

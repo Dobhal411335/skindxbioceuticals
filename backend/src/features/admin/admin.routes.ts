@@ -21,6 +21,7 @@ import { heroBannerRoutes } from '@/features/hero-banner/hero-banner.routes';
 import { categoryRoutes } from '@/features/categories/category.routes';
 import { subcategoryAdminRoutes } from '@/features/categories/subcategory.admin.routes';
 import { catalogProductRoutes } from '@/features/products/product.routes';
+import { directProductRoutes } from '@/features/products/product.direct.routes';
 import { productEditRoutes } from '@/features/products/product-edit.routes';
 import { couponAdminRoutes } from '@/features/coupons/coupon.admin.routes';
 import { blogAdminRoutes } from '@/features/blog/blog.routes';
@@ -71,6 +72,8 @@ router.use(
   '/sites/:siteCode/subcategories/:subcategoryId/products',
   catalogProductRoutes,
 );
+/** Direct products must mount before the general `/products` router. */
+router.use('/sites/:siteCode/products/direct', directProductRoutes);
 router.use('/sites/:siteCode/products', productEditRoutes);
 router.use('/sites/:siteCode/coupons', couponAdminRoutes);
 router.use('/sites/:siteCode/subcategories', subcategoryAdminRoutes);

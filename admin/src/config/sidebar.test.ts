@@ -116,6 +116,15 @@ describe("getSidebarConfig", () => {
     expect(inItems.find((item) => item.id === "manage-insights")?.status).toBe(
       "active",
     );
+    expect(inItems.find((item) => item.id === "add-direct-product")?.href).toBe(
+      "/admin/in/products/add-direct",
+    );
+    expect(inItems.find((item) => item.id === "add-direct-product")?.status).toBe(
+      "active",
+    );
+    expect(comItems.find((item) => item.id === "add-direct-product")?.status).toBe(
+      "active",
+    );
     expect(inItems.find((item) => item.id === "create-category")?.href).toBe(
       "/admin/in/products/create-category",
     );

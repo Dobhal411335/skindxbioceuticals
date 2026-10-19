@@ -62,6 +62,10 @@ export const endpoints = {
       productId: string,
     ) =>
       `/admin/sites/${siteCode}/subcategories/${subcategoryId}/products/${productId}`,
+    directProducts: (siteCode: string) =>
+      `/admin/sites/${siteCode}/products/direct`,
+    directProduct: (siteCode: string, productId: string) =>
+      `/admin/sites/${siteCode}/products/direct/${productId}`,
     products: (siteCode: string) => `/admin/sites/${siteCode}/products`,
     product: (siteCode: string, productId: string) =>
       `/admin/sites/${siteCode}/products/${productId}`,

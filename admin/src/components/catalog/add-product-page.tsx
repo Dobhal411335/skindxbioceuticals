@@ -40,11 +40,16 @@ import {
   type CatalogProductFormErrors,
 } from "@/schemas/catalog-schema";
 import {
+  createDirectProduct,
   createSubcategoryProduct,
+  deleteDirectProduct,
   deleteSubcategoryProduct,
+  fetchDirectProducts,
   fetchSubcategory,
   fetchSubcategoryProducts,
+  patchDirectProduct,
   patchSubcategoryProduct,
+  updateDirectProduct,
   updateSubcategoryProduct,
 } from "@/services/api/catalog";
 import { storefrontBaseUrl } from "@/config/env";
@@ -74,13 +79,25 @@ function storefrontProductUrl(siteCode: SiteCode, slug: string): string {
   return `${base}/products/${encodeURIComponent(slug)}`;
 }
 
-export function AddProductPage({
-  siteCode,
-  subcategoryId,
-}: {
-  siteCode: SiteCode;
-  subcategoryId: string;
-}) {
+export type AddProductListingMode = "category" | "direct";
+
+type AddProductPageProps =
+  | {
+      siteCode: SiteCode;
+      mode?: "category";
+      subcategoryId: string;
+    }
+  | {
+      siteCode: SiteCode;
+      mode: "direct";
+      subcategoryId?: never;
+    };
+
+export function AddProductPage(props: AddProductPageProps) {
+  const { siteCode } = props;
+  const mode: AddProductListingMode = props.mode === "direct" ? "direct" : "category";
+  const subcategoryId = mode === "category" ? props.subcategoryId : undefined;
+
   const [products, setProducts] = useState<CatalogProductDto[]>([]);
   const [subcategory, setSubcategory] = useState<CategoryDto | null>(null);
   const [values, setValues] = useState<CatalogProductFormValues>(createEmptyValues);
@@ -96,6 +113,24 @@ export function AddProductPage({
     setIsLoading(true);
     setLoadError(null);
     try {
+      if (mode === "direct") {
+        const productData = await fetchDirectProducts(siteCode);
+        setSubcategory(null);
+        setProducts(
+          [...productData].sort((a, b) => {
+            const byCreated =
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            if (byCreated !== 0) return byCreated;
+            return a.id.localeCompare(b.id);
+          }),
+        );
+        return;
+      }
+
+      if (!subcategoryId) {
+        throw new Error("Subcategory is required");
+      }
+
       const [subcategoryData, productData] = await Promise.all([
         fetchSubcategory(siteCode, subcategoryId),
         fetchSubcategoryProducts(siteCode, subcategoryId),
@@ -117,7 +152,7 @@ export function AddProductPage({
     } finally {
       setIsLoading(false);
     }
-  }, [siteCode, subcategoryId]);
+  }, [mode, siteCode, subcategoryId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- product list fetch
@@ -141,17 +176,30 @@ export function AddProductPage({
 
     setIsSubmitting(true);
     try {
-      if (editingId) {
-        await updateSubcategoryProduct(
-          siteCode,
-          subcategoryId,
-          editingId,
-          validated.data,
-        );
-        showSuccess("Product updated");
+      if (mode === "direct") {
+        if (editingId) {
+          await updateDirectProduct(siteCode, editingId, validated.data);
+          showSuccess("Product updated");
+        } else {
+          await createDirectProduct(siteCode, validated.data);
+          showSuccess("Product saved");
+        }
       } else {
-        await createSubcategoryProduct(siteCode, subcategoryId, validated.data);
-        showSuccess("Product saved");
+        if (!subcategoryId) {
+          throw new Error("Subcategory is required");
+        }
+        if (editingId) {
+          await updateSubcategoryProduct(
+            siteCode,
+            subcategoryId,
+            editingId,
+            validated.data,
+          );
+          showSuccess("Product updated");
+        } else {
+          await createSubcategoryProduct(siteCode, subcategoryId, validated.data);
+          showSuccess("Product saved");
+        }
       }
       resetForm();
       await load();
@@ -164,9 +212,18 @@ export function AddProductPage({
 
   const handleToggleActive = async (product: CatalogProductDto) => {
     try {
-      await patchSubcategoryProduct(siteCode, subcategoryId, product.id, {
-        active: !product.active,
-      });
+      if (mode === "direct") {
+        await patchDirectProduct(siteCode, product.id, {
+          active: !product.active,
+        });
+      } else {
+        if (!subcategoryId) {
+          throw new Error("Subcategory is required");
+        }
+        await patchSubcategoryProduct(siteCode, subcategoryId, product.id, {
+          active: !product.active,
+        });
+      }
       showSuccess(product.active ? "Product deactivated" : "Product activated");
       await load();
     } catch (error) {
@@ -181,9 +238,18 @@ export function AddProductPage({
     flag: "isFeatured" | "isRecent" | "isBestSeller",
   ) => {
     try {
-      await patchSubcategoryProduct(siteCode, subcategoryId, product.id, {
-        [flag]: !product[flag],
-      });
+      if (mode === "direct") {
+        await patchDirectProduct(siteCode, product.id, {
+          [flag]: !product[flag],
+        });
+      } else {
+        if (!subcategoryId) {
+          throw new Error("Subcategory is required");
+        }
+        await patchSubcategoryProduct(siteCode, subcategoryId, product.id, {
+          [flag]: !product[flag],
+        });
+      }
       showSuccess("Landing flag updated");
       await load();
     } catch (error) {
@@ -221,7 +287,14 @@ export function AddProductPage({
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
-      await deleteSubcategoryProduct(siteCode, subcategoryId, pendingDelete.id);
+      if (mode === "direct") {
+        await deleteDirectProduct(siteCode, pendingDelete.id);
+      } else {
+        if (!subcategoryId) {
+          throw new Error("Subcategory is required");
+        }
+        await deleteSubcategoryProduct(siteCode, subcategoryId, pendingDelete.id);
+      }
       showSuccess("Product deleted");
       if (editingId === pendingDelete.id) {
         resetForm();
@@ -235,27 +308,46 @@ export function AddProductPage({
     }
   };
 
-  const subcategoryLabel = subcategory?.name ?? "this subcategory";
+  const pageTitle =
+    mode === "direct"
+      ? "Add Direct Product"
+      : subcategory
+        ? `Add Product — ${subcategory.name}`
+        : "Add Product";
+  const pageDescription =
+    mode === "direct"
+      ? "Create and manage products without a category or subcategory."
+      : `Create and manage products for ${subcategory?.name ?? "this subcategory"}.`;
+  const formScopeLabel =
+    mode === "direct" ? "direct catalog products" : (subcategory?.name ?? "this subcategory");
 
   return (
     <AdminAppShell
       siteCode={siteCode}
-      title={subcategory ? `Add Product — ${subcategory.name}` : "Add Product"}
-      description={`Create and manage products for ${subcategoryLabel}.`}
+      title={pageTitle}
+      description={pageDescription}
     >
       <div className="space-y-6">
         <div className="space-y-1">
-          <Link
-            href={`/admin/${siteCode.toLowerCase()}/products/manage-category`}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to categories
-          </Link>
-          {subcategory ? (
+          {mode === "category" ? (
+            <Link
+              href={`/admin/${siteCode.toLowerCase()}/products/manage-category`}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to categories
+            </Link>
+          ) : null}
+          {mode === "category" && subcategory ? (
             <p className="text-sm text-muted-foreground">
               Subcategory:{" "}
               <span className="font-medium text-foreground">{subcategory.name}</span>
+            </p>
+          ) : null}
+          {mode === "direct" ? (
+            <p className="text-sm text-muted-foreground">
+              Products created here are type <span className="font-medium text-foreground">DIRECT</span>{" "}
+              and appear on the storefront landing when active.
             </p>
           ) : null}
         </div>
@@ -273,12 +365,11 @@ export function AddProductPage({
               <Package className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg font-semibold">
                 {editingId ? "Edit product" : "New product"}
-                {subcategory ? ` — ${subcategory.name}` : ""}
+                {mode === "category" && subcategory ? ` — ${subcategory.name}` : ""}
               </CardTitle>
             </div>
             <CardDescription>
-              Add the product code, name, and optional landing flags for{" "}
-              {subcategoryLabel}.
+              Add the product code, name, and optional landing flags for {formScopeLabel}.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
@@ -372,7 +463,9 @@ export function AddProductPage({
 
         <Card className="border-border bg-card shadow-sm">
           <CardHeader className="border-b border-border/70">
-            <CardTitle className="text-lg font-semibold">Products</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              {mode === "direct" ? "Direct products" : "Products"}
+            </CardTitle>
             <CardDescription>
               Edit name, toggle landing flags, open full product details, copy
               URL, delete, or toggle active status.
@@ -385,7 +478,9 @@ export function AddProductPage({
               </p>
             ) : products.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                No products in this subcategory yet.
+                {mode === "direct"
+                  ? "No direct products yet."
+                  : "No products in this subcategory yet."}
               </p>
             ) : (
               <Table className="min-w-[960px]">

@@ -128,11 +128,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
   ),
 
   // .in — product management
-  shell(
+  live(
     "add-direct-product",
     "products/add-direct",
     "Add Direct Product",
-    "Add a product directly to the .in catalog.",
+    "Create and manage site-scoped products without a category or subcategory.",
     ["IN", "COM"],
   ),
   live(

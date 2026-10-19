@@ -203,6 +203,64 @@ export async function deleteSubcategoryProduct(
   );
 }
 
+export async function fetchDirectProducts(
+  siteCode: SiteCode,
+): Promise<CatalogProductDto[]> {
+  const { data } = await apiClient.get<ApiSuccess<CatalogProductDto[]>>(
+    endpoints.admin.directProducts(siteCode),
+  );
+  return data.data;
+}
+
+export async function createDirectProduct(
+  siteCode: SiteCode,
+  body: CatalogProductPayload,
+): Promise<CatalogProductDto> {
+  const { data } = await apiClient.post<ApiSuccess<CatalogProductDto>>(
+    endpoints.admin.directProducts(siteCode),
+    body,
+  );
+  return data.data;
+}
+
+export async function updateDirectProduct(
+  siteCode: SiteCode,
+  productId: string,
+  body: CatalogProductPayload,
+): Promise<CatalogProductDto> {
+  const { data } = await apiClient.put<ApiSuccess<CatalogProductDto>>(
+    endpoints.admin.directProduct(siteCode, productId),
+    body,
+  );
+  return data.data;
+}
+
+export async function patchDirectProduct(
+  siteCode: SiteCode,
+  productId: string,
+  body: {
+    active?: boolean;
+    name?: string;
+    productCode?: string;
+    isFeatured?: boolean;
+    isRecent?: boolean;
+    isBestSeller?: boolean;
+  },
+): Promise<CatalogProductDto> {
+  const { data } = await apiClient.patch<ApiSuccess<CatalogProductDto>>(
+    endpoints.admin.directProduct(siteCode, productId),
+    body,
+  );
+  return data.data;
+}
+
+export async function deleteDirectProduct(
+  siteCode: SiteCode,
+  productId: string,
+): Promise<void> {
+  await apiClient.delete(endpoints.admin.directProduct(siteCode, productId));
+}
+
 export async function fetchAdminProducts(
   siteCode: SiteCode,
   query: AdminProductListQuery = {},

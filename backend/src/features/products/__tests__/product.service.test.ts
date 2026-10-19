@@ -9,6 +9,7 @@ function makeProduct(overrides: Partial<ProductRecord> = {}): ProductRecord {
     id: '55555555-5555-5555-5555-555555555555',
     siteId: '22222222-2222-2222-2222-222222222222',
     subcategoryId: '33333333-3333-3333-3333-333333333333',
+    productType: 'CATEGORY',
     productCode: 'VC-01',
     name: 'Vitamin C Serum',
     slug: 'vitamin-c-serum',
@@ -25,6 +26,7 @@ function makeProduct(overrides: Partial<ProductRecord> = {}): ProductRecord {
 
 describe('ProductService', () => {
   const listBySubcategory = jest.fn();
+  const listByProductType = jest.fn();
   const listActivePublicCards = jest.fn();
   const listActiveCatalogCandidates = jest.fn();
   const listPublicFacets = jest.fn();
@@ -45,6 +47,7 @@ describe('ProductService', () => {
 
   const repository = {
     listBySubcategory,
+    listByProductType,
     listActivePublicCards,
     listActiveCatalogCandidates,
     listPublicFacets,
@@ -151,9 +154,64 @@ describe('ProductService', () => {
         productCode: 'VC-01',
         status: 'ACTIVE',
         subcategoryId: product.subcategoryId,
+        productType: 'CATEGORY',
       }),
     );
     expect(result.id).toBe(product.id);
+  });
+
+  it('creates a direct product without subcategory', async () => {
+    const product = makeProduct({
+      subcategoryId: null,
+      productType: 'DIRECT',
+      productCode: 'DIR-01',
+      name: 'Direct Serum',
+      slug: 'direct-serum',
+    });
+    create.mockResolvedValue(product);
+
+    const result = await service.createDirect({
+      siteId: product.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      body: {
+        productCode: 'DIR-01',
+        name: 'Direct Serum',
+        active: true,
+        isFeatured: false,
+        isRecent: false,
+        isBestSeller: false,
+      },
+    });
+
+    expect(create).toHaveBeenCalledWith(
+      product.siteId,
+      expect.objectContaining({
+        productCode: 'DIR-01',
+        status: 'ACTIVE',
+        subcategoryId: null,
+        productType: 'DIRECT',
+      }),
+    );
+    expect(result.productType).toBe('DIRECT');
+    expect(result.subcategoryId).toBeNull();
+  });
+
+  it('lists direct products only', async () => {
+    const product = makeProduct({
+      subcategoryId: null,
+      productType: 'DIRECT',
+    });
+    listByProductType.mockResolvedValue([product]);
+
+    const result = await service.listDirect({
+      siteId: product.siteId,
+      siteCode: 'IN',
+    });
+
+    expect(listByProductType).toHaveBeenCalledWith(product.siteId, 'DIRECT');
+    expect(result).toHaveLength(1);
+    expect(result[0]?.productType).toBe('DIRECT');
   });
 
   it('rejects duplicate product codes', async () => {
@@ -378,7 +436,7 @@ describe('ProductService', () => {
     expect(result.reviewCount).toBe(2);
   });
 
-  it('lists public product cards for the landing rail', async () => {
+  it('lists public product cards for the landing rail including DIRECT products', async () => {
     listActivePublicCards.mockResolvedValue([
       {
         id: '55555555-5555-5555-5555-555555555555',
@@ -412,6 +470,28 @@ describe('ProductService', () => {
           },
         },
       },
+      {
+        id: '66666666-6666-6666-6666-666666666666',
+        slug: 'direct-serum',
+        name: 'Direct Serum',
+        description: null,
+        isFeatured: false,
+        isRecent: true,
+        isBestSeller: false,
+        subcategory: null,
+        galleryImages: [],
+        variants: [
+          {
+            id: 'v2',
+            price: { toString: () => '999' },
+            compareAtPrice: null,
+            inventory: { quantityOnHand: 3 },
+          },
+        ],
+        editorialReviews: [],
+        reviews: [],
+        coupon: null,
+      },
     ]);
 
     const result = await service.listPublic({
@@ -420,7 +500,7 @@ describe('ProductService', () => {
       limit: 15,
     });
 
-    expect(result.items).toHaveLength(1);
+    expect(result.items).toHaveLength(2);
     expect(result.items[0]?.imageUrl).toMatch(/^https:\/\//);
     expect(result.items[0]?.categoryName).toBe('Serums');
     expect(result.items[0]?.description).toBe('<p>Brightening serum</p>');
@@ -433,10 +513,12 @@ describe('ProductService', () => {
       type: 'PERCENTAGE',
       value: 10,
     });
+    expect(result.items[1]?.slug).toBe('direct-serum');
+    expect(result.items[1]?.categoryName).toBeNull();
     expect(result.meta).toEqual({
       page: 1,
       limit: 15,
-      total: 1,
+      total: 2,
       totalPages: 1,
     });
   });

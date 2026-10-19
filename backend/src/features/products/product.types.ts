@@ -1,4 +1,4 @@
-import type { ProductStatus } from '@prisma/client';
+import type { ProductStatus, ProductType } from '@prisma/client';
 import type { SiteCode } from '@/types/common';
 
 export type SiteCodeDto = SiteCode;
@@ -7,6 +7,7 @@ export type ProductRecord = {
   id: string;
   siteId: string;
   subcategoryId: string | null;
+  productType: ProductType;
   productCode: string;
   name: string;
   slug: string;
@@ -20,7 +21,9 @@ export type ProductRecord = {
 };
 
 export type ProductWrite = {
-  subcategoryId: string;
+  /** Required when productType is CATEGORY; null for DIRECT. */
+  subcategoryId: string | null;
+  productType: ProductType;
   productCode: string;
   name: string;
   slug: string;
@@ -35,6 +38,7 @@ export type CatalogProductDto = {
   id: string;
   siteCode: SiteCodeDto;
   subcategoryId: string | null;
+  productType: ProductType;
   productCode: string;
   name: string;
   slug: string;

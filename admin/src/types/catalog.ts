@@ -39,10 +39,13 @@ export type SubcategoryPayload = {
   active: boolean;
 };
 
+export type CatalogProductType = "DIRECT" | "CATEGORY";
+
 export type CatalogProductDto = {
   id: string;
   siteCode: SiteCode;
   subcategoryId: string | null;
+  productType: CatalogProductType;
   productCode: string;
   name: string;
   slug: string;

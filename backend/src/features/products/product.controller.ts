@@ -180,6 +180,76 @@ export class ProductController {
     sendSuccess(res, null, 'Product deleted');
   };
 
+  listDirect = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.listDirect({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+    });
+    sendSuccess(res, data, 'Direct products');
+  };
+
+  createDirect = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.createDirect({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      body: req.body as CatalogProductBody,
+    });
+    sendSuccess(res, data, 'Product created', 201);
+  };
+
+  updateDirect = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.updateDirect({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      productId: String(req.params.productId),
+      body: req.body as CatalogProductBody,
+    });
+    sendSuccess(res, data, 'Product updated');
+  };
+
+  patchDirect = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    const data = await this.service.patchDirect({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      productId: String(req.params.productId),
+      body: req.body as CatalogProductPatchBody,
+    });
+    sendSuccess(res, data, 'Product updated');
+  };
+
+  removeDirect = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) {
+      throw new UnauthorizedError();
+    }
+
+    await this.service.deleteDirect({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      productId: String(req.params.productId),
+    });
+    sendSuccess(res, null, 'Product deleted');
+  };
+
   listForAdmin = async (req: Request, res: Response): Promise<void> => {
     if (!req.user || !req.site) {
       throw new UnauthorizedError();

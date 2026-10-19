@@ -33,6 +33,7 @@ export function toCatalogProductDto(
     id: record.id,
     siteCode,
     subcategoryId: record.subcategoryId,
+    productType: record.productType,
     productCode: record.productCode,
     name: record.name,
     slug: record.slug,
@@ -95,6 +96,7 @@ type CardSource = {
     id: string;
     price: { toString(): string } | number;
     compareAtPrice?: { toString(): string } | number | null;
+    vendorPrice?: { toString(): string } | number | null;
     inventory: { quantityOnHand: number } | null;
   }>;
   editorialReviews: Array<{ rating: number }>;
@@ -575,6 +577,7 @@ export class ProductService {
     const slug = await this.uniqueProductSlug(input.siteId, input.body.name);
     const record = await this.repository.create(input.siteId, {
       subcategoryId: input.subcategoryId,
+      productType: 'CATEGORY',
       productCode: input.body.productCode,
       name: input.body.name,
       slug,
@@ -592,6 +595,7 @@ export class ProductService {
         userId: input.userId,
         productId: record.id,
         subcategoryId: input.subcategoryId,
+        productType: 'CATEGORY',
       },
       'Catalog product created',
     );
@@ -610,7 +614,11 @@ export class ProductService {
     await this.categories.requireSubcategory(input.siteId, input.subcategoryId);
 
     const existing = await this.repository.findByIdForSite(input.siteId, input.productId);
-    if (!existing || existing.subcategoryId !== input.subcategoryId) {
+    if (
+      !existing ||
+      existing.productType !== 'CATEGORY' ||
+      existing.subcategoryId !== input.subcategoryId
+    ) {
       throw new NotFoundError('Product not found');
     }
 
@@ -631,6 +639,7 @@ export class ProductService {
 
     const record = await this.repository.update(input.siteId, input.productId, {
       subcategoryId: input.subcategoryId,
+      productType: 'CATEGORY',
       productCode: input.body.productCode,
       name: input.body.name,
       slug,
@@ -650,6 +659,7 @@ export class ProductService {
         siteCode: input.siteCode,
         userId: input.userId,
         productId: record.id,
+        productType: 'CATEGORY',
       },
       'Catalog product updated',
     );
@@ -668,7 +678,11 @@ export class ProductService {
     await this.categories.requireSubcategory(input.siteId, input.subcategoryId);
 
     const existing = await this.repository.findByIdForSite(input.siteId, input.productId);
-    if (!existing || existing.subcategoryId !== input.subcategoryId) {
+    if (
+      !existing ||
+      existing.productType !== 'CATEGORY' ||
+      existing.subcategoryId !== input.subcategoryId
+    ) {
       throw new NotFoundError('Product not found');
     }
 
@@ -733,7 +747,11 @@ export class ProductService {
     await this.categories.requireSubcategory(input.siteId, input.subcategoryId);
 
     const existing = await this.repository.findByIdForSite(input.siteId, input.productId);
-    if (!existing || existing.subcategoryId !== input.subcategoryId) {
+    if (
+      !existing ||
+      existing.productType !== 'CATEGORY' ||
+      existing.subcategoryId !== input.subcategoryId
+    ) {
       throw new NotFoundError('Product not found');
     }
 
@@ -756,6 +774,205 @@ export class ProductService {
         productId: input.productId,
       },
       'Catalog product deleted',
+    );
+  }
+
+  async listDirect(input: {
+    siteId: string;
+    siteCode: SiteCode;
+  }): Promise<CatalogProductDto[]> {
+    const rows = await this.repository.listByProductType(input.siteId, 'DIRECT');
+    return rows.map((row) => toCatalogProductDto(row, input.siteCode));
+  }
+
+  async createDirect(input: {
+    siteId: string;
+    siteCode: SiteCode;
+    userId: string;
+    body: CatalogProductBody;
+  }): Promise<CatalogProductDto> {
+    if (await this.repository.productCodeExists(input.siteId, input.body.productCode)) {
+      throw new ConflictError('A product with this code already exists for this site');
+    }
+
+    const slug = await this.uniqueProductSlug(input.siteId, input.body.name);
+    const record = await this.repository.create(input.siteId, {
+      subcategoryId: null,
+      productType: 'DIRECT',
+      productCode: input.body.productCode,
+      name: input.body.name,
+      slug,
+      description: input.body.description ?? null,
+      status: input.body.active ? 'ACTIVE' : 'DRAFT',
+      isFeatured: input.body.isFeatured ?? false,
+      isRecent: input.body.isRecent ?? false,
+      isBestSeller: input.body.isBestSeller ?? false,
+    });
+
+    logger.info(
+      {
+        event: 'direct_product.created',
+        siteCode: input.siteCode,
+        userId: input.userId,
+        productId: record.id,
+        productType: 'DIRECT',
+      },
+      'Direct product created',
+    );
+
+    return toCatalogProductDto(record, input.siteCode);
+  }
+
+  async updateDirect(input: {
+    siteId: string;
+    siteCode: SiteCode;
+    userId: string;
+    productId: string;
+    body: CatalogProductBody;
+  }): Promise<CatalogProductDto> {
+    const existing = await this.repository.findByIdForSite(input.siteId, input.productId);
+    if (!existing || existing.productType !== 'DIRECT') {
+      throw new NotFoundError('Product not found');
+    }
+
+    if (
+      await this.repository.productCodeExists(
+        input.siteId,
+        input.body.productCode,
+        existing.id,
+      )
+    ) {
+      throw new ConflictError('A product with this code already exists for this site');
+    }
+
+    const slug =
+      existing.name === input.body.name
+        ? existing.slug
+        : await this.uniqueProductSlug(input.siteId, input.body.name, existing.id);
+
+    const record = await this.repository.update(input.siteId, input.productId, {
+      subcategoryId: null,
+      productType: 'DIRECT',
+      productCode: input.body.productCode,
+      name: input.body.name,
+      slug,
+      description: input.body.description ?? existing.description,
+      status: input.body.active ? 'ACTIVE' : 'DRAFT',
+      isFeatured: input.body.isFeatured ?? existing.isFeatured,
+      isRecent: input.body.isRecent ?? existing.isRecent,
+      isBestSeller: input.body.isBestSeller ?? existing.isBestSeller,
+    });
+    if (!record) {
+      throw new NotFoundError('Product not found');
+    }
+
+    logger.info(
+      {
+        event: 'direct_product.updated',
+        siteCode: input.siteCode,
+        userId: input.userId,
+        productId: record.id,
+        productType: 'DIRECT',
+      },
+      'Direct product updated',
+    );
+
+    return toCatalogProductDto(record, input.siteCode);
+  }
+
+  async patchDirect(input: {
+    siteId: string;
+    siteCode: SiteCode;
+    userId: string;
+    productId: string;
+    body: CatalogProductPatchBody;
+  }): Promise<CatalogProductDto> {
+    const existing = await this.repository.findByIdForSite(input.siteId, input.productId);
+    if (!existing || existing.productType !== 'DIRECT') {
+      throw new NotFoundError('Product not found');
+    }
+
+    if (
+      input.body.productCode &&
+      (await this.repository.productCodeExists(
+        input.siteId,
+        input.body.productCode,
+        existing.id,
+      ))
+    ) {
+      throw new ConflictError('A product with this code already exists for this site');
+    }
+
+    let slug: string | undefined;
+    if (input.body.name && input.body.name !== existing.name) {
+      slug = await this.uniqueProductSlug(input.siteId, input.body.name, existing.id);
+    }
+
+    const record = await this.repository.patch(input.siteId, input.productId, {
+      ...(input.body.productCode !== undefined
+        ? { productCode: input.body.productCode }
+        : {}),
+      ...(input.body.name !== undefined ? { name: input.body.name } : {}),
+      ...(slug ? { slug } : {}),
+      ...(input.body.active !== undefined
+        ? { status: input.body.active ? 'ACTIVE' : 'DRAFT' }
+        : {}),
+      ...(input.body.isFeatured !== undefined
+        ? { isFeatured: input.body.isFeatured }
+        : {}),
+      ...(input.body.isRecent !== undefined ? { isRecent: input.body.isRecent } : {}),
+      ...(input.body.isBestSeller !== undefined
+        ? { isBestSeller: input.body.isBestSeller }
+        : {}),
+    });
+    if (!record) {
+      throw new NotFoundError('Product not found');
+    }
+
+    logger.info(
+      {
+        event: 'direct_product.patched',
+        siteCode: input.siteCode,
+        userId: input.userId,
+        productId: record.id,
+        active: record.status === 'ACTIVE',
+      },
+      'Direct product patched',
+    );
+
+    return toCatalogProductDto(record, input.siteCode);
+  }
+
+  async deleteDirect(input: {
+    siteId: string;
+    siteCode: SiteCode;
+    userId: string;
+    productId: string;
+  }): Promise<void> {
+    const existing = await this.repository.findByIdForSite(input.siteId, input.productId);
+    if (!existing || existing.productType !== 'DIRECT') {
+      throw new NotFoundError('Product not found');
+    }
+
+    if (await this.repository.hasOrderItems(input.productId)) {
+      throw new ConflictError(
+        'Cannot delete a product that appears on existing orders',
+      );
+    }
+
+    const deleted = await this.repository.delete(input.siteId, input.productId);
+    if (!deleted) {
+      throw new NotFoundError('Product not found');
+    }
+
+    logger.info(
+      {
+        event: 'direct_product.deleted',
+        siteCode: input.siteCode,
+        userId: input.userId,
+        productId: input.productId,
+      },
+      'Direct product deleted',
     );
   }
 

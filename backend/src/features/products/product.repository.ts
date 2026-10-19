@@ -1,4 +1,4 @@
-import type { ProductStatus } from '@prisma/client';
+import type { ProductStatus, ProductType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { ProductRecord, ProductWrite } from './product.types';
 
@@ -6,6 +6,7 @@ function toRecord(row: {
   id: string;
   siteId: string;
   subcategoryId: string | null;
+  productType: ProductType;
   productCode: string;
   name: string;
   slug: string;
@@ -21,6 +22,7 @@ function toRecord(row: {
     id: row.id,
     siteId: row.siteId,
     subcategoryId: row.subcategoryId,
+    productType: row.productType,
     productCode: row.productCode,
     name: row.name,
     slug: row.slug,
@@ -37,8 +39,16 @@ function toRecord(row: {
 export class ProductRepository {
   async listBySubcategory(siteId: string, subcategoryId: string): Promise<ProductRecord[]> {
     const rows = await prisma.product.findMany({
-      where: { siteId, subcategoryId },
+      where: { siteId, subcategoryId, productType: 'CATEGORY' },
       // Oldest products first; latest created appear at the bottom.
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    });
+    return rows.map(toRecord);
+  }
+
+  async listByProductType(siteId: string, productType: ProductType): Promise<ProductRecord[]> {
+    const rows = await prisma.product.findMany({
+      where: { siteId, productType },
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     });
     return rows.map(toRecord);
@@ -46,7 +56,7 @@ export class ProductRepository {
 
   async listActiveBySubcategory(siteId: string, subcategoryId: string): Promise<ProductRecord[]> {
     const rows = await prisma.product.findMany({
-      where: { siteId, subcategoryId, status: 'ACTIVE' },
+      where: { siteId, subcategoryId, status: 'ACTIVE', productType: 'CATEGORY' },
       orderBy: [{ name: 'asc' }],
     });
     return rows.map(toRecord);
@@ -283,6 +293,7 @@ export class ProductRepository {
       data: {
         siteId,
         subcategoryId: data.subcategoryId,
+        productType: data.productType,
         productCode: data.productCode,
         name: data.name,
         slug: data.slug,
@@ -291,9 +302,13 @@ export class ProductRepository {
         isFeatured: data.isFeatured,
         isRecent: data.isRecent,
         isBestSeller: data.isBestSeller,
-        categories: {
-          create: [{ categoryId: data.subcategoryId }],
-        },
+        ...(data.subcategoryId
+          ? {
+              categories: {
+                create: [{ categoryId: data.subcategoryId }],
+              },
+            }
+          : {}),
       },
     });
     return toRecord(row);
@@ -309,13 +324,16 @@ export class ProductRepository {
 
     const row = await prisma.$transaction(async (tx) => {
       await tx.productCategory.deleteMany({ where: { productId } });
-      await tx.productCategory.create({
-        data: { productId, categoryId: data.subcategoryId },
-      });
+      if (data.subcategoryId) {
+        await tx.productCategory.create({
+          data: { productId, categoryId: data.subcategoryId },
+        });
+      }
       return tx.product.update({
         where: { id: productId },
         data: {
           subcategoryId: data.subcategoryId,
+          productType: data.productType,
           productCode: data.productCode,
           name: data.name,
           slug: data.slug,

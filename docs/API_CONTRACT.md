@@ -504,10 +504,19 @@ Site-scoped categories use the hierarchical `Category` model (`parentId` null = 
 - `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories/:subcategoryId` — delete blocked if products remain; deletes Cloudinary banner when present.
 - `GET /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId` — fetch one subcategory by id (for admin product pages).
 
-**Products (under subcategory)**
+**Products (under subcategory — `productType = CATEGORY`)**
 - `GET /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId/products`
-- `POST /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId/products` — body `{ productCode, name, active? }`. `productCode` unique per site; slug server-generated; `active` maps to `ProductStatus` ACTIVE/DRAFT.
-- `PUT|PATCH|DELETE .../products/:productId` — PATCH supports `active` / `name` / `productCode`.
+- `POST /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId/products` — body `{ productCode, name, active?, isFeatured?, isRecent?, isBestSeller? }`. Sets `productType = CATEGORY` and requires the subcategory. `productCode` unique per site; slug server-generated; `active` maps to `ProductStatus` ACTIVE/DRAFT.
+- `PUT|PATCH|DELETE .../products/:productId` — PATCH supports `active` / `name` / `productCode` / landing flags. Only CATEGORY products under that subcategory.
+
+**Direct products (`productType = DIRECT`, no subcategory)**  
+Admin UI: `/admin/{siteCode}/products/add-direct` (module `add-direct-product`).
+- `GET /api/v1/admin/sites/:siteCode/products/direct` — lists DIRECT products for the site (oldest first).
+- `POST /api/v1/admin/sites/:siteCode/products/direct` — body same as subcategory create (`productCode`, `name`, `active?`, landing flags). Sets `productType = DIRECT`, `subcategoryId = null`; does not write `ProductCategory`.
+- `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/products/direct/:productId` — only products with `productType = DIRECT` for the site; `404` otherwise. PATCH supports `active` / `name` / `productCode` / landing flags.
+- Mounted before the general `/products` admin router so `direct` is not treated as a product id.
+
+Catalog product DTO includes `productType` (`DIRECT` | `CATEGORY`) and nullable `subcategoryId`.
 
 **Admin View All Products (site-scoped list / delete)**  
 - `GET /api/v1/admin/sites/:siteCode/products` — Bearer admin JWT + `requireSiteAccess`. Lists products for the site (newest first). Response `data` is an array of list rows; pagination in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
@@ -582,15 +591,15 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 
 ### Public products (storefront)
 
-- `GET /api/v1/sites/:siteCode/products` — public list of ACTIVE products for an active site (no auth). Response `data` is an array of product cards; pagination/filter metadata is returned in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
-  - Query (allowlisted): `q` (max 120), `categorySlug` (root category slug; products under that root’s active subcategories), `priceMin` / `priceMax` (first active variant price in INR rupees), `availability` (`in_stock` | `out_of_stock`), `sort` (`default` | `rating` | `price_asc` | `price_desc`), `page` (1-based, default 1), optional `offset` (preferred for infinite scroll with varying page sizes; when set, overrides `(page-1)*limit`), `limit` (default `15`, max `48`).
-  - Card fields: `id`, `slug`, `name`, `categoryName`, optional `description` (HTML overview; null when empty), `price`, optional `compareAtPrice` (null when unset), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount`, `defaultVariantId`, `quantity`, and landing flags.
+- `GET /api/v1/sites/:siteCode/products` — public list of ACTIVE products for an active site (no auth). Includes both **DIRECT** and **CATEGORY** products (no `productType` filter). Response `data` is an array of product cards; pagination/filter metadata is returned in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
+  - Query (allowlisted): `q` (max 120), `categorySlug` (root category slug; products under that root’s active subcategories — **DIRECT** products have no subcategory and are excluded when this filter is set), `priceMin` / `priceMax` (first active variant price in INR rupees), `availability` (`in_stock` | `out_of_stock`), `sort` (`default` | `rating` | `price_asc` | `price_desc`), `page` (1-based, default 1), optional `offset` (preferred for infinite scroll with varying page sizes; when set, overrides `(page-1)*limit`), `limit` (default `15`, max `48`).
+  - Card fields: `id`, `slug`, `name`, `categoryName` (null for DIRECT), optional `description` (HTML overview; null when empty), `price`, optional `compareAtPrice` (null when unset), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount`, `defaultVariantId`, `quantity`, and landing flags.
   - Landing rail may call with only `limit`; shop PLP uses filters + pagination.
-- `GET /api/v1/sites/:siteCode/products/facets` — public read for shop filters: `{ categories: [{ id, name, slug, productCount, imageUrl }], price: { min, max } }`. Category image is the first ACTIVE product primary gallery image under that root (else null). Price min/max use each product’s first active variant by `createdAt` (same rule as cards).
-- `GET /api/v1/sites/:siteCode/products/highlights` — public read returning `{ recent, featured, bestSellers }` ACTIVE products flagged `isRecent` / `isFeatured` / `isBestSeller` (caps 4 / 8 / 4). Same card shape as the list endpoint.
-- `GET /api/v1/sites/:siteCode/products/:slug` — public read for an active site (no auth). Returns one ACTIVE product by site-scoped slug for the storefront PDP (`/products/[slug]`). Draft/archived products return `404`. Prefer HTTPS Cloudinary image URLs. Static paths `/highlights` and `/facets` are registered before `/:slug`.
+- `GET /api/v1/sites/:siteCode/products/facets` — public read for shop filters: `{ categories: [{ id, name, slug, productCount, imageUrl }], price: { min, max } }`. Category image is the first ACTIVE product primary gallery image under that root (else null). Price min/max use each product’s first active variant by `createdAt` (same rule as cards). DIRECT products contribute to price min/max but not category product counts.
+- `GET /api/v1/sites/:siteCode/products/highlights` — public read returning `{ recent, featured, bestSellers }` ACTIVE products flagged `isRecent` / `isFeatured` / `isBestSeller` (caps 4 / 8 / 4), including DIRECT. Same card shape as the list endpoint.
+- `GET /api/v1/sites/:siteCode/products/:slug` — public read for an active site (no auth). Returns one ACTIVE product by site-scoped slug for the storefront PDP (`/products/[slug]`), including DIRECT. Draft/archived products return `404`. Prefer HTTPS Cloudinary image URLs. Static paths `/highlights` and `/facets` are registered before `/:slug`.
 
-Admin catalog create/update/PATCH under subcategory products also accept optional landing flags `isFeatured`, `isRecent`, `isBestSeller` (defaults false on create).
+Admin catalog create/update/PATCH (subcategory and direct) also accept optional landing flags `isFeatured`, `isRecent`, `isBestSeller` (defaults false on create).
 
 Response joins PDP-related data into one payload:
 - Core: `id`, `siteCode`, `productCode`, `name`, `slug`, `description` (HTML), `isFeatured`, `isRecent`, `isBestSeller`, `subcategoryId`, optional `banner` / `sizeChart` media refs, `averageRating`, `reviewCount`

@@ -21,6 +21,7 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "manage-blog": endpoints.admin.blogs,
   "manage-insights": endpoints.admin.insights,
   "banner-hero": endpoints.admin.heroBanners,
+  "add-direct-product": endpoints.admin.directProducts,
   "create-category": endpoints.admin.categories,
   "manage-products-category": endpoints.admin.categories,
   "create-doctor-profile": endpoints.admin.doctors,
@@ -30,6 +31,8 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "order-cancel": endpoints.admin.ordersCancelled,
   "stock-management": endpoints.admin.stock,
   "update-product-prices": endpoints.admin.productPrices,
+  "become-partner": endpoints.admin.vendorApplications,
+  "partner-login-details": endpoints.admin.vendorCredentials,
 };
 
 describe("admin modules", () => {
@@ -59,6 +62,11 @@ describe("admin modules", () => {
     expect(findModuleBySlug("IN", ["blog"])?.status).toBe("live");
     expect(findModuleBySlug("IN", ["insights"])?.id).toBe("manage-insights");
     expect(findModuleBySlug("IN", ["insights"])?.status).toBe("live");
+    expect(findModuleBySlug("IN", ["products", "add-direct"])?.id).toBe(
+      "add-direct-product",
+    );
+    expect(findModuleBySlug("IN", ["products", "add-direct"])?.status).toBe("live");
+    expect(findModuleBySlug("COM", ["products", "add-direct"])?.status).toBe("live");
     expect(findModuleBySlug("IN", ["products", "create-category"])?.id).toBe(
       "create-category",
     );

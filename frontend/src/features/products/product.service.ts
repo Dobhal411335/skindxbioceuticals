@@ -66,6 +66,7 @@ export const getProductBySlug = cache(
 
 /**
  * ACTIVE product cards for the landing featured rail (site-scoped).
+ * Includes both DIRECT and CATEGORY products (public list has no productType/category filter).
  */
 export const getLandingProducts = cache(
   async (limit = 15): Promise<PublicProductCard[]> => {
