@@ -197,7 +197,7 @@ return (
 
                       {isFilledText(card.phone) && (
                         <a
-                          href={`tel:${card.phone.replace(/[^0-9+]/g, "")}`}
+                          href={`tel:${card.phone?.replace(/[^0-9+]/g, "")}`}
                           className="text-md font-medium text-gray-700 hover:text-gray-900"
                         >
                           {card.phone}

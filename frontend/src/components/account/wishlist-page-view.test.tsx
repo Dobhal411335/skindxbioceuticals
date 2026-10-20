@@ -12,7 +12,7 @@ import cartReducer from "@/store/slices/cartSlice";
 import wishlistReducer, { setWishlistItems } from "@/store/slices/wishlistSlice";
 
 const fetchProductBySlugClientMock = jest.fn();
-const writeGuestWishlistMock = jest.fn(() => true);
+const writeGuestWishlistMock = jest.fn((..._args: any[]) => true);
 
 jest.mock("@/lib/toast", () => ({
   showError: jest.fn(),
@@ -118,9 +118,9 @@ describe("WishlistPageView", () => {
     expect(await screen.findByText("20 left")).toBeInTheDocument();
     expect(screen.queryByText("5 left")).not.toBeInTheDocument();
     expect(writeGuestWishlistMock).toHaveBeenCalled();
-    const persisted = writeGuestWishlistMock.mock.calls[0]?.[0] as Array<{
+    const persisted = (writeGuestWishlistMock.mock.calls[0]?.[0] as unknown as Array<{
       quantity?: number;
-    }>;
+    }>) ?? [];
     expect(persisted[0]?.quantity).toBe(20);
   });
 
@@ -150,13 +150,13 @@ describe("WishlistPageView", () => {
     expect(await screen.findByText("8 left")).toBeInTheDocument();
 
     expect(writeGuestWishlistMock).toHaveBeenCalled();
-    const persisted = writeGuestWishlistMock.mock.calls[0]?.[0] as Array<{
+    const persisted = (writeGuestWishlistMock.mock.calls[0]?.[0] as unknown as Array<{
       price?: string | null;
       quantity?: number;
       coupon?: { code: string } | null;
       cgstPercent?: number;
       sgstPercent?: number;
-    }>;
+    }>) ?? [];
     expect(persisted[0]?.price).toBe("163.71");
     expect(persisted[0]?.quantity).toBe(8);
     expect(persisted[0]?.coupon?.code).toBe("SAVE10");

@@ -105,7 +105,7 @@ function Google({ className }) {
     </svg>
   );
 }
-const isFilledText = (value) =>
+const isFilledText = (value: unknown): value is string =>
   typeof value === "string" && value.replace(/<[^>]*>/g, "").trim().length > 0;
 
 const cleanTextArray = (items = []) =>
