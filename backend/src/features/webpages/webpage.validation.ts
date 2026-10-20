@@ -53,12 +53,6 @@ export const webpageMetaPatchBodySchema = z
     { message: 'At least one field is required' },
   );
 
-const optionalText = (max: number) =>
-  z
-    .union([z.string(), z.null(), z.undefined()])
-    .transform((value) => (typeof value === 'string' ? value : ''))
-    .pipe(z.string().max(max));
-
 /** Full content update — permissive Json for nested CMS structures; scalars typed. */
 export const webpageContentPatchBodySchema = z.object({
   title: z.string().optional(),
