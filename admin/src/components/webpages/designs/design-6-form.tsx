@@ -67,24 +67,8 @@ export function Design6Form({
           value={values.imageFirst}
           onChange={(v) => patch("imageFirst", v)}
         />
-        <ImageAssetField
-          siteCode={siteCode}
-          webpageId={webpageId}
-          inputId="d6-banner"
-          label="Banner image (laptop)"
-          value={values.bannerImage}
-          onChange={(v) => patch("bannerImage", v)}
-        />
-        <ImageAssetField
-          siteCode={siteCode}
-          webpageId={webpageId}
-          inputId="d6-banner-mobile"
-          label="Banner image (mobile)"
-          value={values.bannerImageMobile}
-          onChange={(v) => patch("bannerImageMobile", v)}
-        />
       </SectionCard>
-
+      
       <SectionCard
         title="Design 6 team sections"
         icon={<Sparkles className="size-4" />}

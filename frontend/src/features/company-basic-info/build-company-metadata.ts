@@ -39,6 +39,27 @@ export function buildCompanyMetadata(company: CompanyBasicInfo | null): Metadata
     description:
       "SkinDX Bioceuticals — skincare and biomedical ecommerce storefront for India.",
     ...(keywords ? { keywords } : {}),
+    icons: {
+      icon: [
+        { url: "/favicon/favicon.ico" },
+        { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+        { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      ],
+      apple: [
+        { url: "/favicon/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      ],
+      other: [
+        {
+          rel: "android-chrome-192x192",
+          url: "/favicon/android-chrome-192x192.png",
+        },
+        {
+          rel: "android-chrome-512x512",
+          url: "/favicon/android-chrome-512x512.png",
+        },
+      ],
+    },
+    manifest: "/favicon/site.webmanifest",
     openGraph: {
       title,
       description:

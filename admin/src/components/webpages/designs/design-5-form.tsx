@@ -74,22 +74,6 @@ export function Design5Form({
           value={values.imageFirstMobile}
           onChange={(v) => patch("imageFirstMobile", v)}
         />
-        <ImageAssetField
-          siteCode={siteCode}
-          webpageId={webpageId}
-          inputId="d5-banner"
-          label="Banner image (laptop)"
-          value={values.bannerImage}
-          onChange={(v) => patch("bannerImage", v)}
-        />
-        <ImageAssetField
-          siteCode={siteCode}
-          webpageId={webpageId}
-          inputId="d5-banner-mobile"
-          label="Banner image (mobile)"
-          value={values.bannerImageMobile}
-          onChange={(v) => patch("bannerImageMobile", v)}
-        />
       </SectionCard>
 
       <SectionCard

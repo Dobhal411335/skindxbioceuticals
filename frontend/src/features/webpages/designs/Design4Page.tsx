@@ -38,9 +38,22 @@ export function Design4Page({ data }: { data: StorefrontWebpage }) {
     data.bannerImage?.url ||
     data.imageFirst?.url ||
     "";
-  const bannerImageDesktop = data.bannerImage?.url || data.bannerImageMobile?.url;
-  const bannerImageMobile = data.bannerImageMobile?.url || data.bannerImage?.url;
-
+  const blockquoteTags = useMemo(
+    () => cleanTextArray(data.blockquoteTags),
+    [data.blockquoteTags],
+  );
+  const paragraphs = useMemo(
+    () => cleanObjectArray(data.paragraphSections, ["title", "description"]),
+    [data.paragraphSections],
+  );
+  const tableRows = useMemo(
+    () => cleanObjectArray(data.tableRows, ["column1", "column2"]),
+    [data.tableRows],
+  );
+  const highlights = useMemo(
+    () => cleanObjectArray(data.highlights, ["title", "point"]),
+    [data.highlights],
+  );
 return (
       <div className="min-h-screen bg-background font-geist text-gray-900">
         {/* Top Banner */}

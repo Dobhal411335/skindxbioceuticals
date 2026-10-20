@@ -1,6 +1,6 @@
 "use client";
 
-import { Info, Plus, Settings, Share2, Trash2 } from "lucide-react";
+import { Info, Plus, Settings, Share2, Trash2,Sparkles,AlignLeft } from "lucide-react";
 
 import {
   Button,
@@ -15,9 +15,11 @@ import {
   SelectValue,
   SeoKeywordsField,
   Textarea,
+  RichHtmlField,
 } from "@/components/webpages/webpage-form-fields";
 import { ClassicArticleSections } from "@/components/webpages/designs/classic-article-sections";
-import { emptyImage } from "@/components/webpages/webpage-form-state";
+import { createEmptyParagraphSection, emptyImage } from "@/components/webpages/webpage-form-state";
+import { uploadWebpageImage } from "@/services/api/webpages";
 import type { SiteCode } from "@/types/auth";
 import type { WebpageEditFormValues } from "@/types/webpages";
 
@@ -36,6 +38,10 @@ export function Design4Form({
   values: WebpageEditFormValues;
   setValues: React.Dispatch<React.SetStateAction<WebpageEditFormValues>>;
 }) {
+  const uploadInline = async (file: File) => {
+    const uploaded = await uploadWebpageImage(siteCode, file, webpageId);
+    return uploaded.url;
+  };
   const patch = <K extends keyof WebpageEditFormValues>(
     key: K,
     value: WebpageEditFormValues[K],
@@ -83,7 +89,6 @@ export function Design4Form({
           onChange={(v) => patch("imageFirstMobile", v)}
         />
       </SectionCard>
-
       <SectionCard title="Page notices" icon={<Info className="size-4" />}>
         <div className="space-y-4">
           {values.notices.map((row, index) => (
