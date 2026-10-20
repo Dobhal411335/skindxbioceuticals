@@ -30,5 +30,8 @@ export type {
   RefundStatusEmailInput,
   EnquiryConfirmationEmailInput,
   VendorApprovedEmailInput,
+  DoctorAppointmentRequestedEmailInput,
+  DoctorAppointmentConfirmedEmailInput,
+  DoctorAppointmentCancelledEmailInput,
 } from './email.types';
 export * from './templates';

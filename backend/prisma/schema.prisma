@@ -1716,6 +1716,7 @@ model DoctorAppointment {
   doctorId    String                  @map("doctor_id") @db.Uuid
   patientName String                  @map("patient_name")
   email       String
+  phone       String                  @default("")
   scheduledAt DateTime                @map("scheduled_at")
   problem     String                  @db.Text
   status      DoctorAppointmentStatus @default(NEW)

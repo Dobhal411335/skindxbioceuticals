@@ -63,6 +63,10 @@ export function paragraphHtml(text: string): string {
   return `<p style="${emailStyles.paragraph}">${escapeHtml(text)}</p>`;
 }
 
+export function rawParagraphHtml(html: string): string {
+  return `<p style="${emailStyles.paragraph}">${html}</p>`;
+}
+
 export function mutedParagraphHtml(text: string): string {
   return `<p style="${emailStyles.paragraph}${emailStyles.muted}">${escapeHtml(text)}</p>`;
 }

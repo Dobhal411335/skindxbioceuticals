@@ -1,15 +1,23 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import {
-  DOCTOR_SERVICE_ICON_TONES,
-  getDoctorServiceIcon,
-} from "@/features/doctors/doctor-service-icons";
+import { getDoctorServiceIcon } from "@/features/doctors/doctor-service-icons";
 import type { DoctorPageConfig } from "@/types/doctors";
 
 type DoctorsServicesSectionProps = {
   config: DoctorPageConfig;
 };
+
+const DOCTOR_SERVICE_ICON_GRADIENTS = [
+  "bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/25",
+  "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/25",
+  "bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-500/25",
+  "bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg shadow-teal-500/25",
+  "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25",
+  "bg-gradient-to-br from-cyan-500 to-teal-600 text-white shadow-lg shadow-cyan-500/25",
+  "bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/25",
+  "bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/25",
+] as const;
 
 export function DoctorsServicesSection({ config }: DoctorsServicesSectionProps) {
   const services = config.services.filter((service) => service.active);
@@ -53,20 +61,22 @@ export function DoctorsServicesSection({ config }: DoctorsServicesSectionProps) 
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {services.map((service, index) => {
               const Icon = getDoctorServiceIcon(service.iconKey);
-              const tone =
-                DOCTOR_SERVICE_ICON_TONES[index % DOCTOR_SERVICE_ICON_TONES.length]!;
+              const gradientTone =
+                DOCTOR_SERVICE_ICON_GRADIENTS[
+                  index % DOCTOR_SERVICE_ICON_GRADIENTS.length
+                ]!;
               const href = service.readMoreUrl?.trim() || "#";
 
               return (
                 <article
                   key={service.id}
-                  className="rounded-2xl border border-border/60 bg-background p-6 shadow-[var(--shadow-card)] transition-shadow hover:shadow-md"
+                  className="group rounded-2xl border border-border/60 bg-background p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:border-gray-600 hover:shadow-xl"
                 >
-                  <div className="mb-4 flex items-center gap-3">
+                  <div className="mb-4 flex items-center gap-3.5">
                     <span
-                      className={`flex size-12 shrink-0 items-center justify-center rounded-full shadow-[0_0_20px] ${tone}`}
+                      className={`flex size-12 shrink-0 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${gradientTone}`}
                     >
-                      <Icon className="size-5" aria-hidden />
+                      <Icon className="size-6" aria-hidden />
                     </span>
                     <h3 className="text-base font-semibold text-foreground">
                       {service.name}
@@ -79,8 +89,8 @@ export function DoctorsServicesSection({ config }: DoctorsServicesSectionProps) 
                     href={href}
                     className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary-hover"
                   >
-                    Read More
-                    <ArrowRight className="size-4" aria-hidden />
+                    <span>Read More</span>
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden />
                   </Link>
                 </article>
               );

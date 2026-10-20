@@ -16,6 +16,7 @@ export type DoctorAppointmentDto = {
   doctorSpecialization: string;
   patientName: string;
   email: string;
+  phone: string;
   scheduledAt: string;
   problem: string;
   status: DoctorAppointmentStatus;

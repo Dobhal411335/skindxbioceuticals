@@ -8,8 +8,45 @@ export type DoctorProfileFormErrors = Partial<
   Record<keyof DoctorProfileFormValues, string>
 >;
 
-function stripDoctorPrefix(name: string): string {
-  return name.trim().replace(/^(dr\.?)\s+/i, "").trim();
+export const DOCTOR_PREFIX_OPTIONS = [
+  { value: "Dr.", label: "Dr." },
+  { value: "MD", label: "MD" },
+  { value: "Prof.", label: "Prof." },
+  { value: "Prof. Dr.", label: "Prof. Dr." },
+  { value: "Assoc. Prof.", label: "Assoc. Prof." },
+  { value: "Surgeon", label: "Surgeon" },
+] as const;
+
+export type DoctorPrefix = (typeof DOCTOR_PREFIX_OPTIONS)[number]["value"];
+
+export function extractDoctorPrefixAndName(raw: string): {
+  prefix: DoctorPrefix;
+  name: string;
+} {
+  const trimmed = raw.trim().replace(/\s+/g, " ");
+
+  const multiPrefixes: Array<{ prefix: DoctorPrefix; pattern: RegExp }> = [
+    { prefix: "Prof. Dr.", pattern: /^(Prof\.\s*Dr\.?|Prof\s+Dr\.?)\s+/i },
+    { prefix: "Assoc. Prof.", pattern: /^(Assoc\.\s*Prof\.?|Assoc\s+Prof\.?)\s+/i },
+    { prefix: "Prof.", pattern: /^(Prof\.?)\s+/i },
+    { prefix: "Surgeon", pattern: /^(Surgeon)\s+/i },
+    { prefix: "MD", pattern: /^(MD\.?)\s+/i },
+    { prefix: "Dr.", pattern: /^(Dr\.?)\s+/i },
+  ];
+
+  for (const item of multiPrefixes) {
+    if (item.pattern.test(trimmed)) {
+      return {
+        prefix: item.prefix,
+        name: trimmed.replace(item.pattern, "").trim(),
+      };
+    }
+  }
+
+  return {
+    prefix: "Dr.",
+    name: trimmed,
+  };
 }
 
 export function validateDoctorProfileForm(
@@ -18,8 +55,8 @@ export function validateDoctorProfileForm(
   | { success: true; data: DoctorProfileFormValues }
   | { success: false; errors: DoctorProfileFormErrors } {
   const errors: DoctorProfileFormErrors = {};
-  const name = stripDoctorPrefix(values.name);
-  if (!name) errors.name = "Doctor name is required";
+  const { name: cleanName } = extractDoctorPrefixAndName(values.name);
+  if (!cleanName) errors.name = "Doctor name is required";
   if (!values.specialization.trim()) {
     errors.specialization = "Specialization is required";
   }
@@ -64,7 +101,8 @@ export function validateDoctorProfileForm(
     success: true,
     data: {
       ...values,
-      name,
+      prefix: values.prefix || "Dr.",
+      name: cleanName,
       specialization: values.specialization.trim(),
       about: values.about.trim(),
       state: values.state.trim(),
@@ -77,8 +115,12 @@ export function toDoctorProfilePayload(
   values: DoctorProfileFormValues,
   fallbackOrder: number,
 ): DoctorProfilePayload {
+  const { prefix: detectedPrefix, name: cleanName } = extractDoctorPrefixAndName(values.name);
+  const prefix = values.prefix?.trim() || detectedPrefix || "Dr.";
+  const fullName = `${prefix} ${cleanName}`.trim();
+
   return {
-    name: values.name,
+    name: fullName,
     specialization: values.specialization.trim(),
     about: values.about.trim(),
     experienceYears: Number(values.experienceYears),

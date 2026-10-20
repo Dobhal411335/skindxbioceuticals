@@ -20,8 +20,14 @@ import type {
   VendorApprovedEmailInput,
   VerificationEmailInput,
   WelcomeEmailInput,
+  DoctorAppointmentRequestedEmailInput,
+  DoctorAppointmentConfirmedEmailInput,
+  DoctorAppointmentCancelledEmailInput,
 } from './email.types';
 import {
+  renderDoctorAppointmentCancelledEmail,
+  renderDoctorAppointmentConfirmedEmail,
+  renderDoctorAppointmentRequestedEmail,
   renderEmailVerificationEmail,
   renderEnquiryConfirmationEmail,
   renderOrderCancelledEmail,
@@ -156,6 +162,33 @@ export class EmailService {
     const siteCode = validateSiteCode(input.siteCode);
     const rendered = renderVendorApprovedEmail({ ...input, siteCode });
     return this.submit(to, rendered, EMAIL_TAGS.VENDOR_APPROVED);
+  }
+
+  async sendDoctorAppointmentRequestedEmail(
+    input: DoctorAppointmentRequestedEmailInput,
+  ): Promise<EmailSendResult> {
+    const to = validateRecipient(input.to);
+    const siteCode = validateSiteCode(input.siteCode);
+    const rendered = renderDoctorAppointmentRequestedEmail({ ...input, siteCode });
+    return this.submit(to, rendered, EMAIL_TAGS.DOCTOR_APPOINTMENT_REQUESTED);
+  }
+
+  async sendDoctorAppointmentConfirmedEmail(
+    input: DoctorAppointmentConfirmedEmailInput,
+  ): Promise<EmailSendResult> {
+    const to = validateRecipient(input.to);
+    const siteCode = validateSiteCode(input.siteCode);
+    const rendered = renderDoctorAppointmentConfirmedEmail({ ...input, siteCode });
+    return this.submit(to, rendered, EMAIL_TAGS.DOCTOR_APPOINTMENT_CONFIRMED);
+  }
+
+  async sendDoctorAppointmentCancelledEmail(
+    input: DoctorAppointmentCancelledEmailInput,
+  ): Promise<EmailSendResult> {
+    const to = validateRecipient(input.to);
+    const siteCode = validateSiteCode(input.siteCode);
+    const rendered = renderDoctorAppointmentCancelledEmail({ ...input, siteCode });
+    return this.submit(to, rendered, EMAIL_TAGS.DOCTOR_APPOINTMENT_CANCELLED);
   }
 
   private async submit(

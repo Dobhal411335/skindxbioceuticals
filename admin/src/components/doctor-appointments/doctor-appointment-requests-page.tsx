@@ -166,7 +166,17 @@ export function DoctorAppointmentRequestsPage({
       setAppointments((current) =>
         current.map((row) => (row.id === updated.id ? updated : row)),
       );
-      showSuccess("Appointment status updated");
+      if (status === "CONTACTED") {
+        showSuccess(
+          "Appointment confirmed and confirmation email sent to patient",
+        );
+      } else if (status === "CANCELLED") {
+        showSuccess(
+          "Appointment cancelled and cancellation email sent to patient",
+        );
+      } else {
+        showSuccess("Appointment status updated");
+      }
     } catch (error) {
       showError(
         error instanceof ApiError
@@ -281,6 +291,7 @@ export function DoctorAppointmentRequestsPage({
                     <TableHead>Scheduled</TableHead>
                     <TableHead>Doctor</TableHead>
                     <TableHead>Patient</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">View</TableHead>
@@ -304,6 +315,9 @@ export function DoctorAppointmentRequestsPage({
                           </div>
                         </TableCell>
                         <TableCell>{appointment.patientName}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {appointment.phone || "—"}
+                        </TableCell>
                         <TableCell>{appointment.email}</TableCell>
                         <TableCell>
                           <Badge variant={statusVariant(appointment.status)}>
@@ -326,7 +340,7 @@ export function DoctorAppointmentRequestsPage({
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={7}
                         className="py-12 text-center text-muted-foreground"
                       >
                         No appointment requests match the current filters.
@@ -362,6 +376,7 @@ export function DoctorAppointmentRequestsPage({
                 value={selected.doctorSpecialization}
               />
               <DetailRow label="Patient" value={selected.patientName} />
+              <DetailRow label="Phone" value={selected.phone || "—"} />
               <DetailRow label="Email" value={selected.email} />
               <div className="grid grid-cols-[120px_1fr] items-center gap-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

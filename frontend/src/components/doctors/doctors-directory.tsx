@@ -7,7 +7,7 @@ import {
   type DoctorSearchFilters,
 } from "@/components/doctors/doctors-appointment-bar";
 import { DoctorsGridSection } from "@/components/doctors/doctors-grid-section";
-import type { DoctorProfile } from "@/types/doctors";
+import { formatDoctorDisplayName, type DoctorProfile } from "@/types/doctors";
 
 type DoctorsDirectoryProps = {
   doctors: DoctorProfile[];
@@ -38,7 +38,11 @@ function matchesDoctor(
 ): boolean {
   const { name, city, state } = normalizeFilters(filters);
 
-  if (name && !doctor.name.toLowerCase().includes(name.toLowerCase())) {
+  if (
+    name &&
+    !doctor.name.toLowerCase().includes(name.toLowerCase()) &&
+    !formatDoctorDisplayName(doctor.name).toLowerCase().includes(name.toLowerCase())
+  ) {
     return false;
   }
   if (city && !doctor.city.toLowerCase().includes(city.toLowerCase())) {

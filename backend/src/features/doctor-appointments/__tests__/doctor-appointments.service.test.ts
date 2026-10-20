@@ -4,6 +4,7 @@ import {
 } from '../doctor-appointments.service';
 import type { DoctorAppointmentsRepository } from '../doctor-appointments.repository';
 import type { DoctorAppointmentRecord } from '../doctor-appointments.types';
+import type { emailService } from '@/lib/email';
 import { NotFoundError, ValidationError } from '@/utils/AppError';
 
 function makeRecord(
@@ -15,6 +16,7 @@ function makeRecord(
     doctorId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
     patientName: 'Jane Doe',
     email: 'jane@example.com',
+    phone: '+91 9876543210',
     scheduledAt: new Date('2026-10-20T10:00:00.000Z'),
     problem: 'Persistent dryness on cheeks',
     status: 'NEW',
@@ -43,7 +45,17 @@ describe('DoctorAppointmentsService', () => {
     updateStatusForSite,
   } as unknown as DoctorAppointmentsRepository;
 
-  const service = new DoctorAppointmentsService(repository);
+  const sendDoctorAppointmentRequestedEmail = jest.fn().mockResolvedValue({ submitted: true });
+  const sendDoctorAppointmentConfirmedEmail = jest.fn().mockResolvedValue({ submitted: true });
+  const sendDoctorAppointmentCancelledEmail = jest.fn().mockResolvedValue({ submitted: true });
+
+  const mail = {
+    sendDoctorAppointmentRequestedEmail,
+    sendDoctorAppointmentConfirmedEmail,
+    sendDoctorAppointmentCancelledEmail,
+  } as unknown as typeof emailService;
+
+  const service = new DoctorAppointmentsService(repository, mail);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,6 +71,7 @@ describe('DoctorAppointmentsService', () => {
       doctorSpecialization: 'Dermatology',
       patientName: 'Jane Doe',
       email: 'jane@example.com',
+      phone: '+91 9876543210',
       scheduledAt: '2026-10-20T10:00:00.000Z',
       problem: 'Persistent dryness on cheeks',
       status: 'NEW',
@@ -80,6 +93,7 @@ describe('DoctorAppointmentsService', () => {
         doctorId: record.doctorId,
         patientName: 'Jane Doe',
         email: 'jane@example.com',
+        phone: '+91 9876543210',
         scheduledAt: future,
         problem: 'Persistent dryness on cheeks',
         website: '',
@@ -108,6 +122,7 @@ describe('DoctorAppointmentsService', () => {
           doctorId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
           patientName: 'Jane',
           email: 'jane@example.com',
+          phone: '+91 9876543210',
           scheduledAt: new Date(Date.now() + 86_400_000),
           problem: 'Issue',
           website: '',
@@ -126,6 +141,7 @@ describe('DoctorAppointmentsService', () => {
         doctorId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
         patientName: 'Bot',
         email: 'bot@example.com',
+        phone: '+91 9876543210',
         scheduledAt: new Date(Date.now() + 86_400_000),
         problem: 'Spam',
         website: 'http://spam.example',

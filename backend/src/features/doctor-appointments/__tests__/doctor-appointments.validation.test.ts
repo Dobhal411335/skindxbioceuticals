@@ -13,6 +13,7 @@ describe('doctor-appointments validation', () => {
       doctorId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
       patientName: 'Jane Doe',
       email: 'jane@example.com',
+      phone: '+91 9876543210',
       scheduledAt: futureIso,
       problem: 'Skin concern',
     });
@@ -21,6 +22,7 @@ describe('doctor-appointments validation', () => {
     if (result.success) {
       expect(result.data.scheduledAt).toBeInstanceOf(Date);
       expect(result.data.patientName).toBe('Jane Doe');
+      expect(result.data.phone).toBe('+91 9876543210');
     }
   });
 
@@ -29,6 +31,7 @@ describe('doctor-appointments validation', () => {
       doctorId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
       patientName: 'Jane Doe',
       email: 'jane@example.com',
+      phone: '+91 9876543210',
       scheduledAt: '2020-01-01T10:00:00.000Z',
       problem: 'Skin concern',
     });
@@ -41,6 +44,7 @@ describe('doctor-appointments validation', () => {
       doctorId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
       patientName: 'Jane Doe',
       email: 'jane@example.com',
+      phone: '+91 9876543210',
       scheduledAt: futureIso,
       problem: 'Skin concern',
       website: 'http://spam',
@@ -57,12 +61,14 @@ describe('doctor-appointments validation', () => {
       doctorId: ' cccccccc-cccc-cccc-cccc-cccccccccccc ',
       name: ' Jane ',
       email: 'Jane@Example.COM',
+      phoneNumber: ' +91 9876543210 ',
       scheduledAt: futureIso,
       description: ' Dryness ',
     }) as Record<string, unknown>;
 
     expect(normalized.patientName).toBe('Jane');
     expect(normalized.email).toBe('jane@example.com');
+    expect(normalized.phone).toBe('+91 9876543210');
     expect(normalized.problem).toBe('Dryness');
     expect(normalized.doctorId).toBe('cccccccc-cccc-cccc-cccc-cccccccccccc');
   });

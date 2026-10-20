@@ -1,8 +1,9 @@
+"use client"
 import Link from "next/link";
 import { Play } from "lucide-react";
 
 import type { DoctorPageConfig } from "@/types/doctors";
-
+import Image from "next/image"
 type DoctorsAboutSectionProps = {
   config: DoctorPageConfig;
 };
@@ -22,32 +23,32 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
   const buttonHref = config.aboutButtonUrl?.trim() || "#";
 
   return (
-    <section className="container-page py-14 md:py-20" aria-labelledby="doctors-about-heading">
+    <section className="container-page py-14" aria-labelledby="doctors-about-heading">
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
         <div>
-          <p className="mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <span className="inline-block size-2 rounded-full bg-primary" aria-hidden />
+          <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <span className="inline-block size-2 rounded-full bg-[#565CEB]" aria-hidden />
             About Us
           </p>
           {config.aboutHeading ? (
             <h1
               id="doctors-about-heading"
-              className="max-w-xl text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-[2.5rem] lg:leading-tight"
+              className="max-w-xl text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-[2.6rem] lg:leading-[1.2]"
             >
               {config.aboutHeading}
             </h1>
           ) : null}
           {config.aboutDescription ? (
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               {config.aboutDescription}
             </p>
           ) : null}
 
           {highlights.length > 0 ? (
-            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+            <ul className="mt-6 grid gap-x-6 gap-y-3.5 sm:grid-cols-2">
               {highlights.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-foreground">
-                  <span className="mt-1.5 inline-block size-2 shrink-0 rounded-full bg-foreground" aria-hidden />
+                <li key={item} className="flex items-center gap-2.5 text-sm font-semibold text-foreground">
+                  <span className="inline-block size-2 shrink-0 rounded-full bg-foreground" aria-hidden />
                   <span>{item}</span>
                 </li>
               ))}
@@ -58,10 +59,10 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
             <div className="mt-8">
               <Link
                 href={buttonHref}
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+                className="inline-flex items-center gap-2 rounded-full bg-[#565CEB] px-8 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-[#565CEB]/25 transition-all hover:bg-[#484FD9] hover:shadow-xl active:scale-[0.98] sm:text-sm"
               >
-                {config.aboutButtonLabel}
-                <span aria-hidden>+</span>
+                <span>{config.aboutButtonLabel}</span>
+                <span className="text-base font-bold leading-none" aria-hidden>+</span>
               </Link>
             </div>
           ) : null}
@@ -69,48 +70,51 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
 
         {(config.aboutImageUrl || config.aboutSecondaryImageUrl) && (
           <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
-            <div className="relative">
-              {config.aboutImageUrl ? (
-                <div className="relative overflow-hidden rounded-2xl">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- CMS Cloudinary URL */}
-                  <img
-                    src={config.aboutImageUrl}
-                    alt=""
-                    className="aspect-[4/5] w-full object-cover md:aspect-[3/4]"
-                  />
-                  {config.experienceYears != null && config.experienceYears > 0 ? (
-                    <div className="absolute left-4 top-4 rounded-xl bg-primary px-4 py-3 text-primary-foreground shadow-lg">
-                      <p className="text-3xl font-bold leading-none">{config.experienceYears}</p>
-                      <p className="mt-1 text-xs font-medium leading-snug">
-                        Years
-                        <br />
-                        Experience
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {config.aboutSecondaryImageUrl ? (
-                <div className="absolute -bottom-6 left-0 w-[42%] overflow-hidden rounded-2xl border-4 border-background shadow-lg sm:-left-4 md:w-[38%]">
-                  <div className="relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- CMS Cloudinary URL */}
-                    <img
+            <div className="relative flex items-end gap-3 sm:gap-5">
+              {/* Left: Secondary image */}
+              {config.aboutSecondaryImageUrl && (
+                <div className="relative w-[34%] shrink-0 sm:w-[36%]">
+                  <div className="relative overflow-hidden rounded-[22px] sm:rounded-[28px]">
+                    <Image
+                      width={150}
+                      height={200}
+                      fetchPriority="high"
                       src={config.aboutSecondaryImageUrl}
                       alt=""
-                      className="aspect-[3/4] w-full object-cover"
+                      className="aspect-[9/17] w-full object-cover"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                      <span className="flex size-12 items-center justify-center rounded-full bg-white text-primary shadow-md">
-                        <Play className="size-5 fill-current" aria-hidden />
-                        <span className="sr-only">Play</span>
-                      </span>
-                    </div>
                   </div>
                 </div>
-              ) : null}
+              )}
+
+              {/* Right: Main doctor image */}
+              {config.aboutImageUrl && (
+                <div className="relative min-w-0 flex-1 overflow-hidden rounded-[24px] sm:rounded-[30px]">
+                  <Image
+                   width={250}
+                   height={400}
+                   fetchPriority="high"
+                    src={config.aboutImageUrl}
+                    alt=""
+                    className="aspect-[3/4] w-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Experience badge: overlaps both images */}
+              {config.experienceYears != null &&
+                config.experienceYears > 0 && (
+                  <div className="absolute -top-10 left-[4%] z-20 flex items-center gap-3 whitespace-nowrap rounded-xl bg-[#565CEB] px-4 py-3 text-white shadow-lg sm:-top-11 sm:left-[1%] sm:gap-3.5 sm:rounded-2xl sm:px-6 sm:py-4">
+                    <span className="text-3xl font-extrabold leading-none sm:text-4xl">
+                      {config.experienceYears}
+                    </span>
+
+                    <span className="text-xs font-semibold leading-tight text-white/95 sm:text-base">
+                      Years Experience
+                    </span>
+                  </div>
+                )}
             </div>
-            {config.aboutSecondaryImageUrl ? <div className="h-8" aria-hidden /> : null}
           </div>
         )}
       </div>

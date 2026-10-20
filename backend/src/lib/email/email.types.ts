@@ -194,6 +194,35 @@ export interface VendorApprovedEmailInput {
   password: string;
 }
 
+export interface DoctorAppointmentRequestedEmailInput {
+  to: EmailRecipient;
+  siteCode: SiteCode;
+  patientName: string;
+  email: string;
+  phone: string;
+  doctorName: string;
+  doctorSpecialization?: string;
+  scheduledAt: Date;
+  problem: string;
+}
+
+export interface DoctorAppointmentConfirmedEmailInput {
+  to: EmailRecipient;
+  siteCode: SiteCode;
+  patientName: string;
+  doctorName: string;
+  doctorSpecialization?: string;
+  scheduledAt: Date;
+}
+
+export interface DoctorAppointmentCancelledEmailInput {
+  to: EmailRecipient;
+  siteCode: SiteCode;
+  patientName: string;
+  doctorName: string;
+  scheduledAt?: Date;
+}
+
 export interface BrevoSendPayload {
   to: EmailRecipient[];
   subject: string;

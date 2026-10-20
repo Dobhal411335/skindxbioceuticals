@@ -1,5 +1,4 @@
 import {
-  hero,
   heroAssociateFallback,
 } from "@/data/landing";
 import type { StorefrontHeroSlide } from "@/types/hero-banner";
@@ -25,21 +24,5 @@ export const FALLBACK_HERO_SLIDES: StorefrontHeroSlide[] = [
       src: "",
       alt: partner.name,
     })),
-  },
-  {
-    id: "fallback-split",
-    layoutType: "SPLIT_DUAL",
-    miniHeading: hero.eyebrow,
-    mainHeading: hero.title,
-    description: hero.body,
-    buttonLabel: hero.primaryCta.label,
-    buttonUrl: hero.primaryCta.href,
-    button2Label: hero.secondaryCta.label,
-    button2Url: hero.secondaryCta.href,
-    mobileImageUrl: hero.rightImage.src,
-    desktopImageUrl: hero.rightImage.src,
-    leftImageUrl: hero.leftImage.src,
-    rightImageUrl: hero.rightImage.src,
-    gridImages: [],
-  },
+  }
 ];

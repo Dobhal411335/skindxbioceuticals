@@ -1,6 +1,7 @@
 import { AboutSplit } from "@/components/landing/about-split";
 import { BlogCarousel } from "@/components/landing/blog-carousel";
 import { BlogGrid } from "@/components/landing/blog-grid";
+import { CookieConsentBanner } from "@/components/landing/cookie-consent-banner";
 import { FaqSection } from "@/components/landing/faq-section";
 import { FeatureBenefitsBar } from "@/components/landing/feature-benefits-bar";
 import { FeaturedProductRail } from "@/components/landing/featured-product-rail";
@@ -80,6 +81,7 @@ export default async function HomePage() {
       <SocialPostsSection posts={socialPosts} />
       <MarqueeBanner />
       <InsightsQaSection items={landingInsights.qaItems} />
+      <CookieConsentBanner />
     </>
   );
 }

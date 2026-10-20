@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { showError, showSuccess } from "@/lib/toast";
 import {
+  extractDoctorPrefixAndName,
   toDoctorProfilePayload,
   validateDoctorProfileForm,
   type DoctorProfileFormErrors,
@@ -29,6 +30,7 @@ import type {
 
 function createEmptyFormValues(): DoctorProfileFormValues {
   return {
+    prefix: "Dr.",
     name: "",
     specialization: "",
     about: "",
@@ -43,8 +45,10 @@ function createEmptyFormValues(): DoctorProfileFormValues {
 }
 
 function dtoToFormValues(doctor: DoctorProfileDto): DoctorProfileFormValues {
+  const { prefix, name } = extractDoctorPrefixAndName(doctor.name);
   return {
-    name: doctor.name.replace(/^Dr\.\s+/i, ""),
+    prefix,
+    name,
     specialization: doctor.specialization,
     about: doctor.about,
     experienceYears: String(doctor.experienceYears ?? ""),

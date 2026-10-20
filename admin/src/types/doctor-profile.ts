@@ -16,6 +16,7 @@ export type DoctorProfileDto = {
 };
 
 export type DoctorProfileFormValues = {
+  prefix?: string;
   name: string;
   specialization: string;
   about: string;

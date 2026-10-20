@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -24,7 +23,10 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { INDIA_STATES } from "@/lib/india-states";
 import { showError, showSuccess } from "@/lib/toast";
-import type { DoctorProfileFormErrors } from "@/schemas/doctor-profile-schema";
+import {
+  DOCTOR_PREFIX_OPTIONS,
+  type DoctorProfileFormErrors,
+} from "@/schemas/doctor-profile-schema";
 import { uploadDoctorPhoto } from "@/services/api/doctor-profile";
 import { ApiError } from "@/services/api/errors";
 import type { SiteCode } from "@/types/auth";
@@ -88,10 +90,6 @@ export function DoctorProfileForm({
             {isEditing ? "Edit Doctor Profile" : "Create Doctor Profile"}
           </CardTitle>
         </div>
-        <CardDescription>
-          Name is stored as <span className="font-medium">Dr. {"{name}"}</span>. Photo
-          uploads use Cloudinary feature <code>doctors</code>.
-        </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         <form onSubmit={onSubmit} className="space-y-6">
@@ -176,19 +174,45 @@ export function DoctorProfileForm({
                 <Label htmlFor="doctor-name">
                   Doctor name <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="doctor-name"
-                  value={values.name}
-                  placeholder="Daisy Bins"
-                  onChange={(event) =>
-                    onChange({ ...values, name: event.target.value })
-                  }
-                />
+                <div className="flex gap-2">
+                  <div className="w-36 shrink-0">
+                    <Select
+                      value={values.prefix || "Dr."}
+                      onValueChange={(prefix) =>
+                        onChange({ ...values, prefix })
+                      }
+                    >
+                      <SelectTrigger id="doctor-prefix" aria-label="Doctor title prefix" className="w-full">
+                        <SelectValue placeholder="Prefix" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DOCTOR_PREFIX_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      id="doctor-name"
+                      value={values.name}
+                      placeholder="Daisy Bins"
+                      onChange={(event) =>
+                        onChange({ ...values, name: event.target.value })
+                      }
+                    />
+                  </div>
+                </div>
                 {errors.name ? (
                   <p className="text-sm text-destructive">{errors.name}</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    Saved as Dr. … even if you type the prefix yourself.
+                    Saved as{" "}
+                    <span className="font-medium text-foreground">
+                      {values.prefix || "Dr."} {values.name.trim() || "…"}
+                    </span>
                   </p>
                 )}
               </div>

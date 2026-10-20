@@ -35,7 +35,7 @@ export default async function DoctorsPage() {
   return (
     <>
       <div className="container-page pt-6">
-        <nav className="text-sm text-muted-foreground" aria-label="Breadcrumb">
+        <nav className="text-md text-muted-foreground" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-foreground">
             Home
           </Link>

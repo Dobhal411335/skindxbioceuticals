@@ -22,6 +22,7 @@ export const doctorAppointmentCreateBodySchema = z.object({
   doctorId: z.string().uuid('Doctor is required'),
   patientName: z.string().trim().min(1, 'Name is required').max(160),
   email: z.string().trim().email('Valid email is required').max(254),
+  phone: z.string().trim().min(5, 'Phone number is required').max(30),
   scheduledAt: z
     .string()
     .trim()
@@ -30,9 +31,17 @@ export const doctorAppointmentCreateBodySchema = z.object({
       message: 'Invalid date and time',
     })
     .transform((value) => new Date(value))
-    .refine((date) => date.getTime() > Date.now() - 60_000, {
-      message: 'Appointment time must be in the future',
-    }),
+    .refine(
+      (date) => {
+        // Allow same-day appointments (from start of today with timezone buffer) or any future date
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        return date.getTime() >= startOfToday.getTime() - 12 * 60 * 60 * 1000;
+      },
+      {
+        message: 'Appointment date must be today or a future date',
+      },
+    ),
   problem: z.string().trim().min(1, 'Please describe your problem').max(2000),
   /** Optional honeypot — non-empty values are accepted by the schema and dropped in the service. */
   website: z.string().max(200).optional(),
@@ -95,11 +104,19 @@ export function normalizeDoctorAppointmentCreateInput(raw: unknown): unknown {
         ? payload.description.trim()
         : payload.problem;
 
+  const phone =
+    typeof payload.phone === 'string'
+      ? payload.phone.trim()
+      : typeof payload.phoneNumber === 'string'
+        ? payload.phoneNumber.trim()
+        : payload.phone;
+
   return {
     ...payload,
     doctorId: typeof payload.doctorId === 'string' ? payload.doctorId.trim() : payload.doctorId,
     patientName,
     email: typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : payload.email,
+    phone,
     scheduledAt:
       typeof payload.scheduledAt === 'string'
         ? payload.scheduledAt.trim()

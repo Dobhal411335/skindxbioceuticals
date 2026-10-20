@@ -13,3 +13,6 @@ export { renderOrderCancelledEmail } from './order-cancelled.template';
 export { renderRefundStatusEmail } from './refund-status.template';
 export { renderEnquiryConfirmationEmail } from './enquiry-confirmation.template';
 export { renderVendorApprovedEmail } from './vendor-approved.template';
+export { renderDoctorAppointmentRequestedEmail } from './doctor-appointment-requested.template';
+export { renderDoctorAppointmentConfirmedEmail } from './doctor-appointment-confirmed.template';
+export { renderDoctorAppointmentCancelledEmail } from './doctor-appointment-cancelled.template';

@@ -1,4 +1,5 @@
 import { logger } from '@/lib/logger';
+import { emailService } from '@/lib/email';
 import type { SiteCode } from '@/types/common';
 import { NotFoundError, ValidationError } from '@/utils/AppError';
 import { doctorAppointmentsRepository } from './doctor-appointments.repository';
@@ -25,6 +26,7 @@ export function toDoctorAppointmentDto(
     doctorSpecialization: record.doctor.specialization,
     patientName: record.patientName,
     email: record.email,
+    phone: record.phone,
     scheduledAt: record.scheduledAt.toISOString(),
     problem: record.problem,
     status: record.status,
@@ -34,7 +36,10 @@ export function toDoctorAppointmentDto(
 }
 
 export class DoctorAppointmentsService {
-  constructor(private readonly repository = doctorAppointmentsRepository) {}
+  constructor(
+    private readonly repository = doctorAppointmentsRepository,
+    private readonly mail = emailService,
+  ) {}
 
   async createPublic(input: {
     siteId: string;
@@ -65,6 +70,7 @@ export class DoctorAppointmentsService {
       doctorId: input.body.doctorId,
       patientName: input.body.patientName,
       email: input.body.email,
+      phone: input.body.phone,
       scheduledAt: input.body.scheduledAt,
       problem: input.body.problem,
     });
@@ -79,6 +85,26 @@ export class DoctorAppointmentsService {
       },
       'Doctor appointment request created',
     );
+
+    // Send acknowledgement email to patient with booking details
+    void this.mail
+      .sendDoctorAppointmentRequestedEmail({
+        to: { email: record.email, name: record.patientName },
+        siteCode: input.siteCode,
+        patientName: record.patientName,
+        email: record.email,
+        phone: record.phone,
+        doctorName: record.doctor.name,
+        doctorSpecialization: record.doctor.specialization,
+        scheduledAt: record.scheduledAt,
+        problem: record.problem,
+      })
+      .catch((err) => {
+        logger.error(
+          { err, appointmentId: record.id },
+          'Failed to send doctor appointment requested email',
+        );
+      });
 
     return toDoctorAppointmentDto(record, input.siteCode);
   }
@@ -132,6 +158,40 @@ export class DoctorAppointmentsService {
       },
       'Doctor appointment status updated',
     );
+
+    // Send status transition emails
+    if (body.status === 'CONTACTED') {
+      void this.mail
+        .sendDoctorAppointmentConfirmedEmail({
+          to: { email: record.email, name: record.patientName },
+          siteCode,
+          patientName: record.patientName,
+          doctorName: record.doctor.name,
+          doctorSpecialization: record.doctor.specialization,
+          scheduledAt: record.scheduledAt,
+        })
+        .catch((err) => {
+          logger.error(
+            { err, appointmentId: record.id },
+            'Failed to send doctor appointment confirmed email',
+          );
+        });
+    } else if (body.status === 'CANCELLED') {
+      void this.mail
+        .sendDoctorAppointmentCancelledEmail({
+          to: { email: record.email, name: record.patientName },
+          siteCode,
+          patientName: record.patientName,
+          doctorName: record.doctor.name,
+          scheduledAt: record.scheduledAt,
+        })
+        .catch((err) => {
+          logger.error(
+            { err, appointmentId: record.id },
+            'Failed to send doctor appointment cancelled email',
+          );
+        });
+    }
 
     return toDoctorAppointmentDto(record, siteCode);
   }

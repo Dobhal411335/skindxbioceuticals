@@ -55,9 +55,15 @@ export function AppointmentDateTimePicker({
 }: AppointmentDateTimePickerProps) {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => startOfMonth(value ?? new Date()));
-  const selectedTime = value
-    ? `${String(value.getHours()).padStart(2, "0")}:00`
-    : "10:00";
+  const selectedTime = useMemo(() => {
+    if (value) {
+      return `${String(value.getHours()).padStart(2, "0")}:00`;
+    }
+    const currentHour = new Date().getHours();
+    const defaultHour =
+      currentHour >= 10 && currentHour < 21 ? currentHour + 1 : 10;
+    return `${String(defaultHour).padStart(2, "0")}:00`;
+  }, [value]);
 
   const days = useMemo(() => {
     const first = startOfMonth(month);

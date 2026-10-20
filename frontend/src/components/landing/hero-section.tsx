@@ -115,7 +115,7 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
       {slide.miniHeading ? (
         <p className="text-sm tracking-wide">{slide.miniHeading}</p>
       ) : null}
-      <h1 className="font-display mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+      <h1 className="font-bold mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
         {slide.mainHeading}
       </h1>
       {slide.description ? (
@@ -129,9 +129,9 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
             asChild
             variant="outline"
             size="lg"
-            className="border-white border-2 bg-primary-foreground text-primary hover:bg-transparent px-10 py-5 hover:text-primary-foreground"
+            className="border-white border-2 bg-primary-foreground text-primary hover:bg-transparent px-10 py-7 rounded hover:text-primary-foreground"
           >
-            <Link href={slide.buttonUrl}>{slide.buttonLabel} <ArrowUpRight className="size-4 ml-2" /></Link>
+            <Link href={slide.buttonUrl}>{slide.buttonLabel} <ArrowUpRight className="size-6 ml-2" /></Link>
           </Button>
         ) : null}
         {slide.button2Label ? (
@@ -139,9 +139,9 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
             asChild
             variant="outline"
             size="lg"
-            className="border-white border-2 bg-transparent text-primary-foreground px-10 py-5 hover:bg-primary-foreground hover:text-primary"
+            className="border-white rounded border-2 bg-primary-foreground text-primary px-10 py-7 hover:bg-transparent hover:text-primary-foreground"
           >
-            <Link href={slide.button2Url}>{slide.button2Label} <ArrowUpRight className="size-4" /></Link>
+            <Link href={slide.button2Url}>{slide.button2Label} <ArrowUpRight className="size-6" /></Link>
           </Button>
         ) : null}
       </div>
@@ -182,7 +182,7 @@ function SplitDualSlide({
 
   return (
     <div
-      className={`grid ${HERO_FRAME} lg:grid-cols-[minmax(0,350px)_minmax(0,1fr)_minmax(0,350px)]`}
+      className={`grid ${HERO_FRAME} lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)_minmax(0,400px)]`}
     >
       <div className="relative h-full min-h-0 bg-muted">
         {slide.leftImageUrl ? (
@@ -239,7 +239,7 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
             <Button
               asChild
               size="lg"
-              className="mt-8 rounded-full border-transparent bg-[#ff6a00] px-8 py-6 text-white hover:bg-[#e55f00]"
+              className="mt-8 rounded border-transparent bg-[#ff6a00] px-8 py-6 text-white hover:bg-[#e55f00]"
             >
               <Link href={slide.buttonUrl}>{slide.buttonLabel} <ArrowUpRight className="size-4 ml-2" /></Link>
             </Button>

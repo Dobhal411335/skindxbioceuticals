@@ -23,6 +23,7 @@ export class DoctorAppointmentsRepository {
         doctorId: data.doctorId,
         patientName: data.patientName,
         email: data.email,
+        phone: data.phone,
         scheduledAt: data.scheduledAt,
         problem: data.problem,
       },

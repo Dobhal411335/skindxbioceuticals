@@ -5,7 +5,8 @@ import { ArrowUpRight } from "lucide-react";
 
 import { DoctorAppointmentModal } from "@/components/doctors/doctor-appointment-modal";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { DoctorProfile } from "@/types/doctors";
+import { formatDoctorDisplayName, type DoctorProfile } from "@/types/doctors";
+import Image from "next/image";
 
 type DoctorsGridSectionProps = {
   doctors: DoctorProfile[];
@@ -32,7 +33,7 @@ function DoctorCardSkeleton() {
   return (
     <article className="relative rounded-2xl border border-border/60 bg-background px-5 pb-6 pt-14 text-center shadow-[var(--shadow-card)]">
       <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-        <Skeleton className="size-24 rounded-full border-4 border-background" />
+        <Skeleton className="size-30 rounded-full border-4 border-background" />
       </div>
       <Skeleton className="mx-auto h-5 w-36" />
       <Skeleton className="mx-auto mt-3 h-3 w-44" />
@@ -65,7 +66,7 @@ export function DoctorsGridSection({
       aria-busy={isLoading}
     >
       <div className="container-page">
-        <div className="mb-10 text-center md:mb-12">
+        <div className="mb-20 text-center md:mb-24 lg:mb-28">
           <p className="mb-3 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
             <span className="inline-block size-2 rounded-full bg-primary" aria-hidden />
             Our Doctors
@@ -87,7 +88,7 @@ export function DoctorsGridSection({
 
         {isLoading ? (
           <div
-            className="grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            className="grid gap-x-5 gap-y-20 sm:grid-cols-2 sm:gap-y-24 lg:grid-cols-3 xl:grid-cols-4"
             aria-label="Loading doctors"
           >
             {Array.from({ length: 4 }, (_, index) => (
@@ -118,17 +119,21 @@ export function DoctorsGridSection({
             ) : null}
           </div>
         ) : (
-          <div className="grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-x-5 gap-y-20 sm:grid-cols-2 sm:gap-y-24 lg:grid-cols-3 xl:grid-cols-4">
             {doctors.map((doctor) => (
               <article
                 key={doctor.id}
                 className="group relative rounded-2xl border border-border/60 bg-background px-5 pb-6 pt-14 text-center shadow-[var(--shadow-card)] transition-colors duration-500 hover:border-primary hover:bg-primary hover:text-primary-foreground"
               >
                 <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-                  <div className="size-24 overflow-hidden rounded-full border-4 border-background bg-muted shadow-md transition-colors group-hover:border-primary">
+                  <div className="size-30 overflow-hidden rounded-full border-4 border-background bg-muted shadow-md transition-colors group-hover:border-primary">
                     {/* eslint-disable-next-line @next/next/no-img-element -- CMS Cloudinary URL */}
-                    <img
-                      src={doctor.photoUrl}
+                    <Image
+                    width={100}
+                    height={100}
+                    quality={100}
+                    loading="lazy"
+                    src={doctor.photoUrl}
                       alt=""
                       className="size-full object-cover"
                     />
@@ -136,7 +141,7 @@ export function DoctorsGridSection({
                 </div>
 
                 <h3 className="text-lg font-semibold text-foreground transition-colors group-hover:text-primary-foreground">
-                  {doctor.name}
+                  {formatDoctorDisplayName(doctor.name)}
                 </h3>
                 <p className="mt-2 text-xs text-muted-foreground transition-colors group-hover:text-primary-foreground/80">
                   {metaParts(doctor).join(" / ")}

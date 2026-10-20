@@ -14,11 +14,32 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
+import { cn } from "@/lib/utils";
 import type { CustomerReview } from "@/types/customer-reviews";
 
 type TestimonialsGridProps = {
   reviews?: CustomerReview[];
 };
+
+function getReviewHeading(review: CustomerReview): string {
+  const customHeading =
+    (review as unknown as { heading?: string; title?: string }).heading ||
+    (review as unknown as { heading?: string; title?: string }).title;
+  if (customHeading && customHeading.trim()) {
+    return customHeading.trim();
+  }
+  const rating = Math.min(5, Math.max(1, Math.round(review.rating)));
+  switch (rating) {
+    case 5:
+      return "Perfection";
+    case 4:
+      return "Great Experience";
+    case 3:
+      return "Good Service";
+    default:
+      return "Customer Feedback";
+  }
+}
 
 function ReviewCard({ review }: { review: CustomerReview }) {
   const rating = Math.min(5, Math.max(1, Math.round(review.rating)));
@@ -28,32 +49,67 @@ function ReviewCard({ review }: { review: CustomerReview }) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
+  const heading = getReviewHeading(review);
 
   return (
-    <figure className="flex h-full flex-col items-center gap-5 px-2 text-center">
-      <div
-        className="flex justify-center gap-0.5 text-yellow-500"
-        aria-label={`${rating} out of 5 stars`}
-      >
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star
-            key={i}
-            className={`size-5 ${i < rating ? "fill-current" : "text-black"}`}
-            aria-hidden
-          />
-        ))}
+    <figure className="flex h-full w-full flex-col justify-between rounded-2xl border border-border/80 bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md text-left">
+      <div className="space-y-3.5">
+        {/* Stars inside square badges (Trustpilot style) */}
+        <div
+          className="flex items-center gap-1"
+          aria-label={`${rating} out of 5 stars`}
+        >
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "flex size-6 items-center justify-center rounded-[3px]",
+                i < rating
+                  ? "bg-[#00b67a]"
+                  : "bg-muted text-muted-foreground/30 border border-border",
+              )}
+            >
+              <Star
+                className={cn(
+                  "size-3.5",
+                  i < rating
+                    ? "fill-white text-white"
+                    : "fill-transparent text-muted-foreground/40",
+                )}
+                aria-hidden
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Heading */}
+        <h3 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
+          {heading}
+        </h3>
+
+        {/* Description */}
+        <blockquote className="text-sm leading-relaxed text-muted-foreground line-clamp-4">
+          {review.description}
+        </blockquote>
       </div>
-      <blockquote className="flex-1 text-sm leading-relaxed text-foreground/90">
-        {review.description}
-      </blockquote>
-      <figcaption className="flex w-full items-center justify-center gap-3 text-left">
-        <Avatar size="xl">
-          <AvatarImage src={review.imageUrl} alt="" />
-          <AvatarFallback>{initials || "CU"}</AvatarFallback>
+
+      {/* Author row: image, name, and designation */}
+      <figcaption className="mt-6 flex items-center gap-3 border-t border-border/50 pt-4">
+        <Avatar size="lg">
+          <AvatarImage src={review.imageUrl} alt={review.customerName} />
+          <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+            {initials || "CU"}
+          </AvatarFallback>
         </Avatar>
-        <div>
-          <p className="text-[15px] font-semibold">{review.customerName}</p>
-          <p className="text-[12px] text-muted-foreground">{review.designation}</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {review.customerName}
+          </p>
+          {review.designation ? (
+            <p className="truncate text-xs text-muted-foreground">
+              {review.designation}
+            </p>
+          ) : null}
         </div>
       </figcaption>
     </figure>
@@ -124,11 +180,11 @@ export function TestimonialsGrid({ reviews = [] }: TestimonialsGridProps) {
             ) : null}
           </div>
 
-          <CarouselContent className="-ml-4">
+          <CarouselContent className="-ml-4 py-2">
             {reviews.map((review) => (
               <CarouselItem
                 key={review.id}
-                className="basis-full pl-4 sm:basis-1/2 lg:basis-1/4"
+                className="flex basis-full pl-4 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
               >
                 <ReviewCard review={review} />
               </CarouselItem>

@@ -23,6 +23,7 @@ export type DoctorAppointmentDto = {
   doctorSpecialization: string;
   patientName: string;
   email: string;
+  phone: string;
   scheduledAt: string;
   problem: string;
   status: DoctorAppointmentStatusValue;
@@ -36,6 +37,7 @@ export type DoctorAppointmentRecord = {
   doctorId: string;
   patientName: string;
   email: string;
+  phone: string;
   scheduledAt: Date;
   problem: string;
   status: DoctorAppointmentStatusValue;
@@ -51,6 +53,7 @@ export type DoctorAppointmentWrite = {
   doctorId: string;
   patientName: string;
   email: string;
+  phone: string;
   scheduledAt: Date;
   problem: string;
 };

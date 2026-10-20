@@ -67,6 +67,30 @@ function YoutubeIcon({ className }: { className?: string }) {
   );
 }
 
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden
+    >
+      <path d="M21.6 12.23c0-.74-.07-1.45-.19-2.13H12v4.03h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.23c1.89-1.74 2.99-4.3 2.99-7.42Z" />
+      <path d="M12 22c2.7 0 4.96-.9 6.62-2.35l-3.23-2.5c-.9.6-2.04.96-3.39.96-2.61 0-4.82-1.76-5.61-4.13H3.06v2.58A10 10 0 0 0 12 22Z" />
+      <path d="M6.39 13.98A6.01 6.01 0 0 1 6.08 12c0-.69.12-1.35.31-1.98V7.44H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.56l3.33-2.58Z" />
+      <path d="M12 5.89c1.47 0 2.79.5 3.82 1.5l2.87-2.87C16.95 2.89 14.7 2 12 2A10 10 0 0 0 3.06 7.44l3.33 2.58C7.18 7.65 9.39 5.89 12 5.89Z" />
+    </svg>
+  );
+}
+
+const PAYMENT_CARDS = [
+  { name: "UPI", src: "/card/upi.jpg" },
+  { name: "Visa", src: "/card/visa.png" },
+  { name: "Mastercard", src: "/card/mastercard.webp" },
+  { name: "RuPay", src: "/card/rupay.webp" },
+] as const;
+
 export function SiteFooter() {
   const company = useCompanyBasicInfo();
   const managedFooter = useFooter();
@@ -97,14 +121,17 @@ export function SiteFooter() {
           .filter((item) => item.icon === "mail")
           .map((item) => item.label);
 
-  const hours = footer.contact
-    .filter((item) => item.icon === "clock")
-    .map((item) => item.label);
+  const googleHref =
+    company.googleLink?.trim() ||
+    company.googleUrl?.trim() ||
+    company.googleMapLink?.trim() ||
+    "https://www.google.com";
 
   const socialLinks = [
     { href: company.facebookLink, label: "Facebook", Icon: FacebookIcon },
     { href: company.instagramLink, label: "Instagram", Icon: InstagramIcon },
     { href: company.youtubeLink, label: "YouTube", Icon: YoutubeIcon },
+    { href: googleHref, label: "Google", Icon: GoogleIcon },
   ].filter((item) => Boolean(item.href?.trim()));
 
   const columns = managedFooter.columns;
@@ -258,10 +285,27 @@ export function SiteFooter() {
             </div>
           ) : null}
 
-          <div>
+          <div className="space-y-3">
             <p className="text-sm font-medium text-foreground">
               We Accept Payments
             </p>
+            <div className="flex flex-nowrap items-center gap-2.5 lg:justify-end">
+              {PAYMENT_CARDS.map((card) => (
+                <div
+                  key={card.name}
+                  className="flex h-8 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white p-1 shadow-xs transition-transform hover:scale-105"
+                  title={card.name}
+                >
+                  <Image
+                    src={card.src}
+                    alt={card.name}
+                    width={48}
+                    height={32}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

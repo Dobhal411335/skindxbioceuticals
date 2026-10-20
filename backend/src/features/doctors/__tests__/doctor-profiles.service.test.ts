@@ -43,6 +43,14 @@ describe('normalizeDoctorName', () => {
     expect(normalizeDoctorName('Dr. Daisy')).toBe('Dr. Daisy');
     expect(normalizeDoctorName('DR.  Daisy')).toBe('Dr. Daisy');
   });
+
+  it('normalizes other recognized doctor prefixes', () => {
+    expect(normalizeDoctorName('MD Daisy')).toBe('MD Daisy');
+    expect(normalizeDoctorName('md.  Daisy')).toBe('MD Daisy');
+    expect(normalizeDoctorName('Prof. Daisy')).toBe('Prof. Daisy');
+    expect(normalizeDoctorName('Prof. Dr. Daisy')).toBe('Prof. Dr. Daisy');
+    expect(normalizeDoctorName('Surgeon Daisy')).toBe('Surgeon Daisy');
+  });
 });
 
 describe('DoctorProfilesService', () => {
