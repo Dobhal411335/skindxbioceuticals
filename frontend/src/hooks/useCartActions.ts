@@ -384,7 +384,9 @@ export function useCartActions() {
 
     try {
       const cart = await cartService.clear();
-      dispatch(setCartItems(cart.items.map(mapAccountCartItemToCartItem)));
+      dispatch(
+        setCartItems(cart.items.map((item) => mapAccountCartItemToCartItem(item))),
+      );
       return true;
     } catch (error) {
       showError(toApiError(error).message || "Could not clear cart.", {

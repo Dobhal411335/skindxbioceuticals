@@ -19,6 +19,7 @@ export const ALLOWED_FEATURE_FOLDERS = [
   'banners',
   'blog',
   'pages',
+  'webpage',
   'documents',
   'gallery',
   'branding',

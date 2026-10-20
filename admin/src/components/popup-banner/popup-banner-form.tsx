@@ -89,7 +89,7 @@ export function PopupBannerForm({
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3">
             <div className="space-y-0.5">
               <Label htmlFor="popup-active" className="text-sm font-medium">
-                Active on storefront
+                Active
               </Label>
               <p className="text-xs text-muted-foreground">
                 Inactive popups are hidden from public visitors.

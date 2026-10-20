@@ -45,6 +45,9 @@ describe("getSidebarConfig", () => {
       "manage-footer",
     ]);
     expect(switcher?.status).toBe("active");
+    expect(dashboard?.children?.find((child) => child.id === "create-webpages")?.status).toBe(
+      "active",
+    );
     expect(ids).not.toEqual(expect.arrayContaining(["profile", "logout"]));
   });
 

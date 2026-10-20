@@ -298,7 +298,7 @@ export function DoctorProfileForm({
               <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
                 <div className="flex items-center gap-2">
                   <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                  <Label htmlFor="doctor-active">Active on storefront</Label>
+                  <Label htmlFor="doctor-active">Active</Label>
                 </div>
                 <Switch
                   id="doctor-active"

@@ -92,6 +92,9 @@ export const endpoints = {
     blogs: (siteCode: string) => `/admin/sites/${siteCode}/blogs`,
     blog: (siteCode: string, blogId: string) =>
       `/admin/sites/${siteCode}/blogs/${blogId}`,
+    webpages: (siteCode: string) => `/admin/sites/${siteCode}/webpages`,
+    webpage: (siteCode: string, webpageId: string) =>
+      `/admin/sites/${siteCode}/webpages/${webpageId}`,
     doctors: (siteCode: string) => `/admin/sites/${siteCode}/doctors`,
     doctor: (siteCode: string, doctorId: string) =>
       `/admin/sites/${siteCode}/doctors/${doctorId}`,

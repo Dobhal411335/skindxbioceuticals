@@ -134,7 +134,9 @@ export function getSharedNav(siteCode: SiteCode): SidebarSection {
           leaf(siteCode, "social-media-post", "Social Media Post", "social-media-post", Share2, {
             status: "active",
           }),
-          leaf(siteCode, "create-webpages", "Create Webpages", "create-webpages", Link2),
+          leaf(siteCode, "create-webpages", "Create Webpages", "create-webpages", Link2, {
+            status: "active",
+          }),
           leaf(siteCode, "manage-footer", "Manage Footer", "manage-footer", PanelBottom, {
             status: "active",
           }),

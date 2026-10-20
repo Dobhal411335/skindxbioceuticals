@@ -32,6 +32,7 @@ import { faqPublicRoutes } from '@/features/faq/faq.public.routes';
 import { insightsPublicRoutes } from '@/features/insights/insights.public.routes';
 import { heroBannerPublicRoutes } from '@/features/hero-banner/hero-banner.public.routes';
 import { blogPublicRoutes } from '@/features/blog/blog.public.routes';
+import { webpagePublicRoutes } from '@/features/webpages/webpage.public.routes';
 import { doctorProfilesPublicRoutes } from '@/features/doctors/doctor-profiles.public.routes';
 import { doctorPagePublicRoutes } from '@/features/doctors/doctor-page.public.routes';
 import { doctorAppointmentsPublicRoutes } from '@/features/doctor-appointments/doctor-appointments.public.routes';
@@ -78,6 +79,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/insights', insightsPublicRoutes);
   v1.use('/sites/:siteCode/hero-banners', heroBannerPublicRoutes);
   v1.use('/sites/:siteCode/blogs', blogPublicRoutes);
+  v1.use('/sites/:siteCode/webpages', webpagePublicRoutes);
   v1.use('/sites/:siteCode/doctors', doctorProfilesPublicRoutes);
   v1.use('/sites/:siteCode/doctor-page', doctorPagePublicRoutes);
   v1.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsPublicRoutes);

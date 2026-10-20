@@ -269,7 +269,7 @@ export function CustomerReviewForm({
                       }
                       className="size-4 accent-primary"
                     />
-                    Active on storefront
+                    Active
                   </label>
                 </div>
               </div>

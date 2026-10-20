@@ -40,6 +40,7 @@
 - `Page` / `ContentEntry`: site, slug, title, structured content, publication status, SEO metadata.
 - `Banner`, `FAQ`, `SiteSetting`: site-scoped where the content/settings differ.
 - `Blog` (implemented): site-scoped articles (`name`, `slug` unique per site, `category` string, `title`, `publishedAt`, `createdBy`, `imageUrl`/`imagePublicId`, HTML `description`, `blockquote`, `active`). Cascade delete with `Site`. Indexed by `(siteId, active, publishedAt)`, `(siteId, category, active, publishedAt)`, and `(siteId, createdAt)`. Replaces the unused global `blog_posts` scaffold. Migration: `20261013170000_site_scoped_blogs`.
+- `Webpage` (implemented): site-scoped CMS pages (`title`, `slug` unique per site, `active`, `templateType` = `design1`–`design7` | `design9` — **no design8 amenities**). SEO: `titleLine`, `keywords[]`. Shared/design content uses scalar strings plus Json for nested media/arrays (`imageFirst`, `highlights`, `paragraphSections`, `gridCards`, `teamCards`, `design9Cards`, etc.). Cascade delete with `Site`. Indexed by `(siteId, active)` and `(siteId, createdAt)`. Migration: `20261019120000_webpages`.
 - `MediaAsset`: provider, provider asset/public ID, URL, file type, dimensions, alt text, ownership/creation metadata.
 
 ### Catalog

@@ -283,7 +283,7 @@ export function EditBlogPage({
 
                 <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
                   <div>
-                    <Label htmlFor="blog-active">Active on storefront</Label>
+                    <Label htmlFor="blog-active">Active</Label>
                     <p className="text-xs text-muted-foreground">
                       Inactive posts are hidden from public list and detail pages.
                     </p>

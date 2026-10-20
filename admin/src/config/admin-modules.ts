@@ -349,11 +349,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Instagram and Facebook posts managed per website.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "create-webpages",
     "create-webpages",
     "Create Webpages",
-    "Create new content pages for the .com website.",
+    "Create and edit site-scoped CMS content pages (design templates).",
     ["IN", "COM"],
   ),
   live(

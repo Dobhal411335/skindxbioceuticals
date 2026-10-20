@@ -443,6 +443,24 @@ Uploads use existing media APIs with `feature=blog`: `POST /api/v1/media/images`
 - `GET /api/v1/sites/:siteCode/blogs` — public read for an active site (no auth). Returns `{ blogs, categories }` with active blogs only. Optional `?category=`, `?limit=`, `?recent=true` (caps at 4). Used by `.in` `/blog`, landing `BlogGrid`, and sidebar recent articles (falls back to static data when the API is unavailable). Prefer HTTPS Cloudinary image URLs.
 - `GET /api/v1/sites/:siteCode/blogs/:slug` — public detail by site-scoped slug. Returns the active blog plus `related[]` cards (same category, excluding current, max 4: `name`, `imageUrl`, `publishedAt`, `createdBy`). Inactive/missing → `404`.
 
+### Admin webpages (implemented)
+
+Site-scoped CMS pages with template types `design1`–`design7` and `design9` (**not** `design8` / amenities). Create with `title`, optional `slug`, `active`, `templateType`. Edit fills SEO, hero/media Json assets (`{url,key}`), and design-specific content (highlights, paragraphs, grid/team cards, etc.). Reserved storefront slugs (`about`, `blog`, `products`, …) are rejected.
+
+- `GET /api/v1/admin/sites/:siteCode/webpages` — Bearer admin JWT; `requireSiteAccess`. Lists all webpages for the site (including inactive), newest `createdAt` first.
+- `POST /api/v1/admin/sites/:siteCode/webpages` — create. Body: `title`, optional `slug`, optional `active` (default true), optional `templateType` (default `design1`). Slug unique per site (`409` on conflict when explicit).
+- `GET /api/v1/admin/sites/:siteCode/webpages/:webpageId` — full webpage for edit.
+- `PUT /api/v1/admin/sites/:siteCode/webpages/:webpageId` — content update (partial whitelist of CMS fields). Prefer HTTPS image URLs; nested image objects use `{ url, key }`.
+- `PATCH /api/v1/admin/sites/:siteCode/webpages/:webpageId` — list meta: `title?`, `slug?`, `active?`, `templateType?` (at least one required).
+- `DELETE /api/v1/admin/sites/:siteCode/webpages/:webpageId` — deletes the row and best-effort Cloudinary keys collected from Json media fields.
+
+Uploads use existing media APIs with `feature=webpage`: `POST /api/v1/media/images`.
+
+### Public webpages (storefront)
+
+- `GET /api/v1/sites/:siteCode/webpages` — public list of active webpages for an active site (no auth).
+- `GET /api/v1/sites/:siteCode/webpages/by-slug/:slug` — public detail by site-scoped slug (active only). Used by `.in` `/(storefront)/[slug]`. Inactive/missing → `404`.
+
 ### Admin promo banners (implemented)
 
 Site-scoped home promo banner row (image tiles with optional click URLs).

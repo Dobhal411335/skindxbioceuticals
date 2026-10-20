@@ -19,6 +19,7 @@ const LIVE_MODULE_ENDPOINT_BUILDERS: Record<string, (siteCode: string) => string
   "banner-promotional": endpoints.admin.promoBanners,
   "website-faq": endpoints.admin.faq,
   "manage-blog": endpoints.admin.blogs,
+  "create-webpages": endpoints.admin.webpages,
   "manage-insights": endpoints.admin.insights,
   "banner-hero": endpoints.admin.heroBanners,
   "add-direct-product": endpoints.admin.directProducts,

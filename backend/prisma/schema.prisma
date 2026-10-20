@@ -204,6 +204,7 @@ model Site {
   catalogTags              CatalogTag[]
   coupons                  Coupon[]
   blogs                    Blog[]
+  webpages                 Webpage[]
   doctorProfiles           DoctorProfile[]
   doctorPageConfig         DoctorPageConfig?
   doctorAppointments       DoctorAppointment[]
@@ -1033,6 +1034,89 @@ model Blog {
   @@index([siteId, category, active, publishedAt])
   @@index([siteId, createdAt])
   @@map("blogs")
+}
+
+/// Site-scoped CMS webpage (design1–7, design9). Nested media/arrays stored as Json.
+model Webpage {
+  id        String  @id @default(uuid()) @db.Uuid
+  siteId    String  @map("site_id") @db.Uuid
+  title     String
+  slug      String
+  active    Boolean @default(true)
+  /// design1 | design2 | design3 | design4 | design5 | design6 | design7 | design9
+  templateType String @default("design1") @map("template_type")
+
+  titleLine String   @default("") @map("title_line")
+  keywords  String[] @default([])
+
+  firstTitle  String @default("") @map("first_title")
+  secondTitle String @default("") @map("second_title")
+
+  imageFirst         Json? @map("image_first")
+  imageFirstMobile   Json? @map("image_first_mobile")
+  bannerImage        Json? @map("banner_image")
+  bannerImageMobile  Json? @map("banner_image_mobile")
+  paragraphFirstImage  Json? @map("paragraph_first_image")
+  paragraphSecondImage Json? @map("paragraph_second_image")
+  advertisementImage Json? @map("advertisement_image")
+  sideThumbImage     Json? @map("side_thumb_image")
+  mainProfileImage   Json? @map("main_profile_image")
+
+  createTags Json @default("[]") @map("create_tags")
+  postedBy   Json @default("{\"admin\":false,\"user\":false}") @map("posted_by")
+  highlights Json @default("[]")
+  paragraphSections Json @default("[]") @map("paragraph_sections")
+  tableTitle String @default("") @map("table_title")
+  tableRows  Json   @default("[]") @map("table_rows")
+  blockquoteMainTitle   String @default("") @map("blockquote_main_title")
+  blockquoteLeftTitle   String @default("") @map("blockquote_left_title")
+  blockquoteDescription String @default("") @db.Text @map("blockquote_description")
+  blockquoteTags Json @default("[]") @map("blockquote_tags")
+  accordionTags  Json @default("[]") @map("accordion_tags")
+  advertisements Json @default("[]")
+  advertisementUrl String @default("") @map("advertisement_url")
+  sideThumbName        String @default("") @map("side_thumb_name")
+  sideThumbDesignation String @default("") @map("side_thumb_designation")
+  sideThumbDescription String @default("") @db.Text @map("side_thumb_description")
+  facebookUrl String @default("") @map("facebook_url")
+  youtubeUrl  String @default("") @map("youtube_url")
+  instaUrl    String @default("") @map("insta_url")
+  googleUrl   String @default("") @map("google_url")
+  imageGallery Json @default("[]") @map("image_gallery")
+  notices          Json @default("[]")
+  searchLocations  Json @default("[]") @map("search_locations")
+
+  design5Chip        String @default("") @map("design5_chip")
+  design5MainHeading String @default("") @map("design5_main_heading")
+  gridCards          Json   @default("[]") @map("grid_cards")
+
+  design6Chip         String @default("") @map("design6_chip")
+  design6ExploreLink  String @default("") @map("design6_explore_link")
+  design6MainHeading  String @default("") @map("design6_main_heading")
+  design6SubHeading   String @default("") @map("design6_sub_heading")
+  design6Author       String @default("") @map("design6_author")
+  design6MidHeading   String @default("") @map("design6_mid_heading")
+  design6MidLink      String @default("") @map("design6_mid_link")
+  teamCards           Json   @default("[]") @map("team_cards")
+
+  design7Chip        String @default("") @map("design7_chip")
+  design7ExploreLink String @default("") @map("design7_explore_link")
+  design7MainHeading String @default("") @map("design7_main_heading")
+
+  design9MiniHeading String @default("") @map("design9_mini_heading")
+  design9MainHeading String @default("") @map("design9_main_heading")
+  design9Description String @default("") @db.Text @map("design9_description")
+  design9Cards       Json   @default("[]") @map("design9_cards")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, slug])
+  @@index([siteId, active])
+  @@index([siteId, createdAt])
+  @@map("webpages")
 }
 
 model Enquiry {
