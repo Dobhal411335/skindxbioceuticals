@@ -1,3 +1,4 @@
+import { parseOrderNotes } from '@/features/admin-orders/admin-orders.service';
 import { authRepository } from '@/features/auth/auth.repository';
 import { ForbiddenError, NotFoundError, UnauthorizedError } from '@/utils/AppError';
 import { orderRepository } from './order.repository';
@@ -53,6 +54,8 @@ export class OrderService {
       throw new NotFoundError('Order not found');
     }
 
+    const parsedNotes = parseOrderNotes(order.notes);
+
     return {
       id: order.id,
       orderNumber: order.orderNumber,
@@ -68,6 +71,10 @@ export class OrderService {
       paymentStatus: order.payments[0]?.status ?? null,
       placedAt: order.placedAt?.toISOString() ?? null,
       createdAt: order.createdAt.toISOString(),
+      statusMessage: parsedNotes.statusMessage,
+      customerNotes: parsedNotes.customerNotes,
+      prescriptionImageUrl: order.prescriptionImageUrl ?? null,
+      statusHistory: parsedNotes.statusHistory,
       items: order.items.map((item) => ({
         id: item.id,
         productName: item.productName,

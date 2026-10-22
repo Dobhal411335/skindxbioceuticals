@@ -72,6 +72,7 @@ export type OrderConfirmationResult = {
     sgstAmount?: string;
   }>;
   shippingAddress: unknown;
+  prescriptionImageUrl?: string | null;
   isGuest: boolean;
 };
 

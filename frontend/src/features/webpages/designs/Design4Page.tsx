@@ -22,6 +22,7 @@ import {
   isFilledText,
 } from "@/features/webpages/webpage-shared";
 import type { StorefrontWebpage } from "@/features/webpages/webpage.types";
+import Image from "next/image";
 
 
 
@@ -119,10 +120,9 @@ return (
                   )}
 
                   {/* Description */}
-                  <div className="prose prose-gray max-w-none leading-8">
+                  <div className="max-w-5xl text-justify">
                     <HtmlBlock
                       html={para.description}
-                      className="text-base text-gray-700"
                     />
                   </div>
 
@@ -142,7 +142,9 @@ return (
                               : "h-[280px] sm:h-[320px] md:h-[360px]"
                           }`}
                         >
-                          <img
+                          <Image
+                            width={1200}
+                            height={800}
                             src={imgUrl}
                             alt={`${para.title || "Paragraph"} ${idx + 1}`}
                             className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"

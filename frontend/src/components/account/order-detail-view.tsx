@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { orderService } from "@/features/orders/order.service";
 import type { CustomerOrderDetail } from "@/features/orders/order.types";
 import { toApiError } from "@/services/api/errors";
+import { OrderStatusTracker } from "./order-status-tracker";
 
 function formatMoney(amount: string, currency: string) {
   const value = Number(amount);
@@ -103,6 +104,12 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
         </div>
       ) : (
         <div className="space-y-6">
+          {/* Live Order Status Stepper Card matching Image 2 */}
+          <OrderStatusTracker
+            status={order.status}
+            statusMessage={order.statusMessage}
+          />
+
           {/* Card 1: Order Status & Metadata Card (bg-white) */}
           <div className="rounded-2xl border border-border/80 bg-white p-5 shadow-sm sm:p-6 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4">

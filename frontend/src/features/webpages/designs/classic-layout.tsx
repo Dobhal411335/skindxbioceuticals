@@ -22,6 +22,7 @@ import {
   isFilledText,
 } from "@/features/webpages/webpage-shared";
 import type { StorefrontWebpage } from "@/features/webpages/webpage.types";
+import Image from "next/image";
 
 
 
@@ -40,6 +41,7 @@ function ClassicWebpageLayout({
   data: StorefrontWebpage;
   variant: ClassicVariant;
 }) {
+  console.log("data22", data)
   const [openAccordion, setOpenAccordion] = useState(0);
   const isDesignOne = variant === "design1";
   const isDesignTwo = variant === "design2";
@@ -92,12 +94,11 @@ function ClassicWebpageLayout({
     (!!data.bannerImage?.url || !!data.bannerImageMobile?.url) &&
     !hasTopHeaderContent;
   const headerImage =
-    data.imageFirst?.url || paragraphImages[0] || data.sideThumbImage?.url;
+    data.imageFirst?.url || paragraphImages[0];
   const headerImageMobile =
     data.imageFirstMobile?.url ||
     data.imageFirst?.url ||
-    paragraphImages[0] ||
-    data.sideThumbImage?.url;
+    paragraphImages[0];
   const bannerImageDesktop = data.bannerImage?.url || data.bannerImageMobile?.url;
   const bannerImageMobile =
     data.bannerImageMobile?.url || data.bannerImage?.url;
@@ -129,72 +130,104 @@ function ClassicWebpageLayout({
   // Alias for JSX that still references Hotel's isDesignTwo (design1 layout)
   const hotelIsDesignTwo = isDesignOne;
 
-return (
+  return (
     <div className="min-h-screen bg-background font-geist font-semibold text-gray-900">
       <div
         className={`w-full border-b border-gray-900 bg-background`}
       >
         <div
-          className={`w-full ${
-            !isDesignThree && !isBannerOnlyTop ? "md:px-4 sm:px-6" : ""
-          }`}
+          className={`w-full ${!isDesignThree && !isDesignOne && !isBannerOnlyTop ? "md:px-4 sm:px-6" : ""
+            }`}
         >
           <div
-            className={`grid gap-2 ${isDesignThree ? "grid-cols-1" : isBannerOnlyTop ? "grid-cols-1" : "lg:grid-cols-[520px_minmax(0,1fr)] lg:items-center"}`}
+            className={`grid gap-2 ${isDesignThree || isDesignOne || isBannerOnlyTop ? "grid-cols-1" : "lg:grid-cols-[520px_minmax(0,1fr)] lg:items-center"}`}
           >
             {isDesignThree ? (
               <div className="overflow-hidden">
                 {(data.imageFirstMobile?.url ||
                   data.imageFirst?.url ||
                   designThreeHeroImages[0]) && (
-                  <>
-                    <img
-                      src={
-                        data.imageFirstMobile?.url ||
-                        data.imageFirst?.url ||
-                        designThreeHeroImages[0]
-                      }
-                      alt={data.title}
-                      className="h-[240px] w-full object-cover md:hidden"
-                    />
-                    {(data.imageFirst?.url || designThreeHeroImages[0]) && (
-                      <img
-                        src={data.imageFirst?.url || designThreeHeroImages[0]}
+                    <>
+                      <Image
+                        width={800}
+                        height={500}
+                        src={
+                          data.imageFirstMobile?.url ||
+                          data.imageFirst?.url ||
+                          designThreeHeroImages[0]
+                        }
                         alt={data.title}
-                        className="hidden h-[350px] w-full object-cover md:block"
+                        className="h-[240px] w-full object-cover md:hidden"
                       />
-                    )}
-                  </>
-                )}
+                      {(data.imageFirst?.url || designThreeHeroImages[0]) && (
+                        <Image
+                          width={1920}
+                          height={600}
+                          src={data.imageFirst?.url || designThreeHeroImages[0]}
+                          alt={data.title}
+                          className="hidden h-[350px] w-full object-cover md:block"
+                        />
+                      )}
+                    </>
+                  )}
               </div>
             ) : isBannerOnlyTop ? (
               <div className="overflow-hidden">
                 {bannerImageMobile ? (
-                  <img
+                  <Image
+                    width={800}
+                    height={1000}
                     src={bannerImageMobile}
                     alt={data.title}
                     className="h-[500px] w-full object-cover md:hidden"
                   />
                 ) : null}
                 {bannerImageDesktop ? (
-                  <img
+                  <Image
+                    width={1920}
+                    height={800}
                     src={bannerImageDesktop}
                     alt={data.title}
                     className="hidden h-[600px] w-full object-cover md:block"
                   />
                 ) : null}
               </div>
+            ) : isDesignOne ? (
+              <div className="overflow-hidden">
+                {headerImageMobile ? (
+                  <Image
+                    width={800}
+                    height={600}
+                    src={headerImageMobile}
+                    alt={data.title}
+                    className="h-[220px] sm:h-[300px] w-full object-cover md:hidden"
+                  />
+                ) : null}
+                {headerImage ? (
+                  <Image
+                    width={1920}
+                    height={800}
+                    src={headerImage}
+                    alt={data.title}
+                    className="hidden h-[280px] sm:h-[360px] md:h-[450px] w-full object-cover md:block"
+                  />
+                ) : null}
+              </div>
             ) : (
               <div className="overflow-hidden">
                 {headerImageMobile ? (
-                  <img
+                  <Image
+                    width={800}
+                    height={600}
                     src={headerImageMobile}
                     alt={data.title}
                     className="h-[220px] w-full object-contain md:hidden"
                   />
                 ) : null}
                 {headerImage ? (
-                  <img
+                  <Image
+                    width={1200}
+                    height={800}
                     src={headerImage}
                     alt={data.title}
                     className="hidden h-[250px] w-full object-contain md:block"
@@ -362,18 +395,19 @@ return (
                           <HtmlBlock html={section.description} className="text-sm" />
                           {sectionImages.length > 0 && (
                             <div
-                              className={`grid gap-4 ${
-                                sectionImages.length > 1
+                              className={`grid gap-4 ${sectionImages.length > 1
                                   ? "grid-cols-1 sm:grid-cols-[2fr_1fr]"
                                   : "grid-cols-1"
-                              }`}
+                                }`}
                             >
                               {sectionImages.map((image, imgIndex) => (
                                 <div
                                   key={`${image}-${imgIndex}`}
                                   className="h-[280px] mt-2 overflow-hidden rounded-image bg-[#f8f5ef] sm:h-[320px] md:h-[360px]"
                                 >
-                                  <img
+                                  <Image
+                                    width={1200}
+                                    height={800}
                                     src={image}
                                     alt={
                                       section.title ||
@@ -422,9 +456,8 @@ return (
                             {tableRows.map((row, index) => (
                               <tr
                                 key={`${row.column1}-${row.column2}-${index}`}
-                                className={`border transition-colors ${
-                                  index % 2 === 0 ? "bg-background" : "bg-surface"
-                                } hover:bg-background`}
+                                className={`border transition-colors ${index % 2 === 0 ? "bg-background" : "bg-surface"
+                                  } hover:bg-background`}
                               >
                                 <td className="w-1/2 border-r border-border px-4 py-3 font-semibold text-heading">
                                   {row.column1 || "-"}
@@ -449,42 +482,42 @@ return (
 
                   {(isFilledText(data.blockquoteDescription) ||
                     isFilledText(data.blockquoteMainTitle)) && (
-                    <section
-                      className={`rounded px-2 gap-2 flex flex-col py-5 text-black ${hotelIsDesignTwo ? "max-w-3xl" : ""}`}
-                    >
-                      <div className="rounded-[24px] border border-gray-800 bg-[linear-gradient(135deg,#fcfaf6,#f7f4ec,#e8efe0)] px-6 py-7 text-heading shadow-[0_20px_50px_rgba(120,135,79,0.12)]">
-                        <Quote className="h-7 w-7 text-primary" />
-                        {isFilledText(data.blockquoteMainTitle) && (
-                          <h2 className="mt-3 text-2xl font-bold leading-tight mb-2 text-heading">
-                            {data.blockquoteMainTitle}
-                          </h2>
-                        )}
-                        {isFilledText(data.blockquoteLeftTitle) && (
-                          <span className="text-muted">
-                            {data.blockquoteLeftTitle}
-                          </span>
-                        )}
-                      </div>
-                      <div className="px-1">
-                        <div className="my-4 text-black">
-                          <HtmlBlock
-                            html={data.blockquoteDescription}
-                            className="text-black"
-                          />
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {blockquoteTags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-md w-fit border border-gray-500 px-3 py-2 text-[12px] text-black"
-                            >
-                              {tag}
+                      <section
+                        className={`rounded px-2 gap-2 flex flex-col py-5 text-black ${hotelIsDesignTwo ? "max-w-3xl" : ""}`}
+                      >
+                        <div className="rounded-[24px] border border-gray-800 bg-[linear-gradient(135deg,#fcfaf6,#f7f4ec,#e8efe0)] px-6 py-7 text-heading shadow-[0_20px_50px_rgba(120,135,79,0.12)]">
+                          <Quote className="h-7 w-7 text-primary" />
+                          {isFilledText(data.blockquoteMainTitle) && (
+                            <h2 className="mt-3 text-2xl font-bold leading-tight mb-2 text-heading">
+                              {data.blockquoteMainTitle}
+                            </h2>
+                          )}
+                          {isFilledText(data.blockquoteLeftTitle) && (
+                            <span className="text-black">
+                              {data.blockquoteLeftTitle}
                             </span>
-                          ))}
+                          )}
                         </div>
-                      </div>
-                    </section>
-                  )}
+                        <div className="px-1">
+                          <div className="my-4 text-black">
+                            <HtmlBlock
+                              html={data.blockquoteDescription}
+                              className="text-black"
+                            />
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {blockquoteTags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-md w-fit border border-gray-500 px-3 py-2 text-[12px] text-black"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </section>
+                    )}
                   {remainingHighlights.length > 0 && (
                     <section className="space-y-5">
                       {introHighlight && (
@@ -577,7 +610,9 @@ return (
                               key={`${image}-${index}`}
                               className="overflow-hidden rounded-md bg-[#f8f5ef]"
                             >
-                              <img
+                              <Image
+                                width={1200}
+                                height={800}
                                 src={image}
                                 alt={
                                   leadParagraph.title ||
@@ -623,7 +658,9 @@ return (
                                   key={`${image}-${imageIndex}`}
                                   className="overflow-hidden rounded-md bg-[#f8f5ef]"
                                 >
-                                  <img
+                                  <Image
+                                    width={1200}
+                                    height={800}
                                     src={image}
                                     alt={
                                       section.title ||
@@ -673,9 +710,8 @@ return (
                             {tableRows.map((row, index) => (
                               <tr
                                 key={`${row.column1}-${row.column2}-${index}`}
-                                className={`border border-gray-800 ${
-                                  index % 2 === 0 ? "bg-surface" : "bg-background"
-                                }`}
+                                className={`border border-gray-800 ${index % 2 === 0 ? "bg-surface" : "bg-background"
+                                  }`}
                               >
                                 <td className="w-1/2 px-4 py-3 font-medium text-black border-r border-b border-gray-400">
                                   {row.column1 || "-"}
@@ -700,42 +736,42 @@ return (
 
                   {(isFilledText(data.blockquoteDescription) ||
                     isFilledText(data.blockquoteMainTitle)) && (
-                    <section
-                      className={`rounded px-2 gap-2 flex flex-col py-5 text-black ${hotelIsDesignTwo ? "max-w-3xl" : ""}`}
-                    >
-                      <div className="rounded-[24px] border border-gray-700 bg-[linear-gradient(135deg,#fcfaf6,#f7f4ec,#e8efe0)] px-6 py-7 text-heading shadow-[0_20px_50px_rgba(120,135,79,0.12)]">
-                        <Quote className="h-7 w-7 text-primary" />
-                        {isFilledText(data.blockquoteMainTitle) && (
-                          <h2 className="mt-3 text-2xl font-bold leading-tight mb-2 text-heading">
-                            {data.blockquoteMainTitle}
-                          </h2> 
-                        )}
-                        {isFilledText(data.blockquoteLeftTitle) && (
-                          <span className="text-muted">
-                            {data.blockquoteLeftTitle}
-                          </span>
-                        )}
-                      </div>
-                      <div className="px-1">
-                        <div className="my-4 text-black">
-                          <HtmlBlock
-                            html={data.blockquoteDescription}
-                            className="text-black"
-                          />
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {blockquoteTags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-md w-fit border border-gray-500 px-3 py-2 text-[12px] text-black"
-                            >
-                              {tag}
+                      <section
+                        className={`rounded px-2 gap-2 flex flex-col py-5 text-black ${hotelIsDesignTwo ? "max-w-3xl" : ""}`}
+                      >
+                        <div className="rounded-[24px] border border-gray-700 bg-[linear-gradient(135deg,#fcfaf6,#f7f4ec,#e8efe0)] px-6 py-7 text-heading shadow-[0_20px_50px_rgba(120,135,79,0.12)]">
+                          <Quote className="h-7 w-7 text-primary" />
+                          {isFilledText(data.blockquoteMainTitle) && (
+                            <h2 className="mt-3 text-2xl font-bold leading-tight mb-2 text-heading">
+                              {data.blockquoteMainTitle}
+                            </h2>
+                          )}
+                          {isFilledText(data.blockquoteLeftTitle) && (
+                            <span className="text-black">
+                              {data.blockquoteLeftTitle}
                             </span>
-                          ))}
+                          )}
                         </div>
-                      </div>
-                    </section>
-                  )}
+                        <div className="px-1">
+                          <div className="my-4 text-black">
+                            <HtmlBlock
+                              html={data.blockquoteDescription}
+                              className="text-black"
+                            />
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {blockquoteTags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-md w-fit border border-gray-500 px-3 py-2 text-[12px] text-black"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </section>
+                    )}
 
                   {highlights.length > 0 && (
                     <section className="space-y-4">
@@ -775,11 +811,10 @@ return (
                           return (
                             <div
                               key={`${item.left}-${index}`}
-                              className={`overflow-hidden rounded-lg border transition-all duration-300 ${
-                                isOpen
+                              className={`overflow-hidden rounded-lg border transition-all duration-300 ${isOpen
                                   ? "border-[#060606] bg-linear-to-br from-bg-background to-bg-background"
                                   : "border-[#e6dccf] bg-white"
-                              }`}
+                                }`}
                               style={{
                                 transformOrigin: "top",
                                 transition:
@@ -791,11 +826,10 @@ return (
                                 onClick={() =>
                                   setOpenAccordion(isOpen ? -1 : index)
                                 }
-                                className={`flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-all duration-300 ${
-                                  isOpen
+                                className={`flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-all duration-300 ${isOpen
                                     ? "bg-linear-to-r from-bg-background to-bg-background"
                                     : "hover:bg-bg-background"
-                                }`}
+                                  }`}
                               >
                                 <span
                                   className={`font-semibold transition-colors duration-300 ${isOpen ? "text-primary" : "text-gray-900 group-hover:text-gray-950"}`}
@@ -803,19 +837,17 @@ return (
                                   {item.left || `Question ${index + 1}`}
                                 </span>
                                 <ChevronDown
-                                  className={`h-5 w-5 shrink-0 transition-all duration-500 ${
-                                    isOpen
+                                  className={`h-5 w-5 shrink-0 transition-all duration-500 ${isOpen
                                       ? "rotate-180 text-primary"
                                       : "text-gray-500"
-                                  }`}
+                                    }`}
                                 />
                               </button>
                               <div
-                                className={`grid transition-all duration-500 ease-in-out ${
-                                  isOpen
+                                className={`grid transition-all duration-500 ease-in-out ${isOpen
                                     ? "grid-rows-[1fr] opacity-100"
                                     : "grid-rows-[0fr] opacity-0"
-                                }`}
+                                  }`}
                               >
                                 <div className="overflow-hidden">
                                   <div className="border-t border-[#e6dccf] px-6 py-5 text-sm leading-7 text-gray-700">

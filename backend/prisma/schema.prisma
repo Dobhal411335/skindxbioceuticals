@@ -811,6 +811,8 @@ model Order {
   shippingAddress Json        @map("shipping_address")
   billingAddress  Json?       @map("billing_address")
   notes           String?
+  /// Uploaded prescription image URL (Cloudinary), optional at checkout.
+  prescriptionImageUrl String? @map("prescription_image_url")
   /// Set once when confirmation email is sent (verify or webhook) to prevent duplicates.
   confirmationEmailSentAt DateTime? @map("confirmation_email_sent_at")
   placedAt        DateTime?   @map("placed_at")

@@ -220,7 +220,7 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
             leaf(siteCode, "manage-products-category", "Manage Products & Category", "products/manage-category", Boxes, {
               status: "active",
             }),
-            leaf(siteCode, "create-combo-product", "Create Combo Product", "products/create-combo", Package),
+            // leaf(siteCode, "create-combo-product", "Create Combo Product", "products/create-combo", Package),
             leaf(siteCode, "view-all-products", "View All Products", "products/view-all", Package),
             leaf(siteCode, "update-product-prices", "Update Product Prices", "products/update-prices", BadgePercent, {
               status: "active",
@@ -247,18 +247,18 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
             leaf(siteCode, "customer-review", "Create Customer Review", "reviews/customer", MessageSquare, {
               status: "active",
             }),
-            leaf(siteCode, "approve-reject-reviews", "Approve/Reject Section", "reviews/approve-reject", ClipboardList),
+            // leaf(siteCode, "approve-reject-reviews", "Approve/Reject Section", "reviews/approve-reject", ClipboardList),
           ],
         },
-        {
-          id: "news-or-notice",
-          label: "News or Notice",
-          icon: Newspaper,
-          status: "shell",
-          children: [
-            leaf(siteCode, "create-news-promotion", "Create News Or Promotion", "news/create", Newspaper),
-          ],
-        },
+        // {
+        //   id: "news-or-notice",
+        //   label: "News or Notice",
+        //   icon: Newspaper,
+        //   status: "shell",
+        //   children: [
+        //     leaf(siteCode, "create-news-promotion", "Create News Or Promotion", "news/create", Newspaper),
+        //   ],  
+        // },
         {
           id: "doctors-profile",
           label: "Doctor's Profile",
@@ -294,7 +294,9 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
             leaf(siteCode, "order-online-log", "Online Order Log", "orders/online-log", ClipboardList, {
               status: "active",
             }),
-            leaf(siteCode, "order-vendor", "Vendor Order", "orders/vendor", Truck),
+            leaf(siteCode, "order-vendor", "Vendor Order", "orders/vendor", Truck, {
+              status: "active",
+            }),
             leaf(siteCode, "order-cancel", "Cancel Order", "orders/cancel", ClipboardList, {
               status: "active",
             }),

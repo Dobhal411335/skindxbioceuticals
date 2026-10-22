@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
     GUEST_SESSION: "/checkout/guest/session",
     GUEST_SEND_OTP: "/checkout/guest/send-otp",
     GUEST_VERIFY_OTP: "/checkout/guest/verify-otp",
+    UPLOAD_PRESCRIPTION: "/checkout/prescription",
   },
   PAYMENTS: {
     CREATE_ORDER: "/payments/create-order",

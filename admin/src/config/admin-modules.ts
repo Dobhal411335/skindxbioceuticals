@@ -149,13 +149,13 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Manage categories, subcategories, and products for the ecommerce catalog.",
     ["IN", "COM"],
   ),
-  shell(
-    "create-combo-product",
-    "products/create-combo",
-    "Create Combo Product",
-    "Create combo product offerings for the .in storefront.",
-    ["IN", "COM"],
-  ),
+  // shell(
+  //   "create-combo-product",
+  //   "products/create-combo",
+  //   "Create Combo Product",
+  //   "Create combo product offerings for the .in storefront.",
+  //   ["IN", "COM"],
+  // ),
   shell(
     "view-all-products",
     "products/view-all",
@@ -195,20 +195,20 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Manage curated customer testimonials shown on the storefront home page.",
     ["IN", "COM"],
   ),
-  shell(
-    "approve-reject-reviews",
-    "reviews/approve-reject",
-    "Approve/Reject Section",
-    "Approve or reject customer reviews for the .in storefront.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "create-news-promotion",
-    "news/create",
-    "Create News or Promotion",
-    "Publish news notices and promotions for the .in website.",
-    ["IN", "COM"],
-  ),
+  // shell(
+  //   "approve-reject-reviews",
+  //   "reviews/approve-reject",
+  //   "Approve/Reject Section",
+  //   "Approve or reject customer reviews for the .in storefront.",
+  //   ["IN", "COM"],
+  // ),
+  // shell(
+  //   "create-news-promotion",
+  //   "news/create",
+  //   "Create News or Promotion",
+  //   "Publish news notices and promotions for the .in website.",
+  //   ["IN", "COM"],
+  // ),
   live(
     "create-doctor-profile",
     "doctors/create-profile",
@@ -225,7 +225,7 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
   ),
 
   // .in — orders & reports
-  shell(
+  live(
     "order-enquiry",
     "orders/enquiry",
     "Enquiry Order",
@@ -246,11 +246,11 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Online payment order log for the .in storefront.",
     ["IN", "COM"],
   ),
-  shell(
+  live(
     "order-vendor",
     "orders/vendor",
     "Vendor Order",
-    "Vendor order records for the .in storefront.",
+    "Vendor order records with completed payment for the .in storefront.",
     ["IN", "COM"],
   ),
   live(

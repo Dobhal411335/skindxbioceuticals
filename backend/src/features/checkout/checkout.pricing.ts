@@ -152,7 +152,7 @@ export function priceCheckoutLines(
       productId: variant.productId,
       productName: variant.product.name,
       variantName: variant.name,
-      sku: variant.sku ?? `VAR-${variant.id.slice(0, 8)}`,
+      sku: variant.sku ?? `-`,
       quantity,
       originalUnitPrice,
       unitPrice: priced.unitPrice,

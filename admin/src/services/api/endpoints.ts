@@ -119,6 +119,14 @@ export const endpoints = {
       `/admin/sites/${siteCode}/orders/online-log`,
     ordersCancelled: (siteCode: string) =>
       `/admin/sites/${siteCode}/orders/cancelled`,
+    ordersVendor: (siteCode: string) =>
+      `/admin/sites/${siteCode}/orders/vendor`,
+    ordersEnquiry: (siteCode: string) =>
+      `/admin/sites/${siteCode}/orders/enquiry`,
+    orderDetail: (siteCode: string, orderId: string) =>
+      `/admin/sites/${siteCode}/orders/${orderId}`,
+    orderUpdateStatus: (siteCode: string, orderId: string) =>
+      `/admin/sites/${siteCode}/orders/${orderId}/status`,
     stock: (siteCode: string) => `/admin/sites/${siteCode}/stock`,
     stockVariant: (siteCode: string, variantId: string) =>
       `/admin/sites/${siteCode}/stock/variants/${variantId}`,

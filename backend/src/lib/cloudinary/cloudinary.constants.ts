@@ -34,5 +34,6 @@ export const ALLOWED_FEATURE_FOLDERS = [
   'insights',
   'doctors',
   'profile',
+  'prescriptions',
   'general',
 ] as const;

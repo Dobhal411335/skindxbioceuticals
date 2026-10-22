@@ -1,7 +1,7 @@
 import { env } from '@/config/env';
 import type { SiteCode } from '@/types/common';
 import type { EmailBrand } from '../email.types';
-import { buildCopyrightText, DEFAULT_COMPANY_NAME, SITE_DISPLAY_NAMES } from './company.constants';
+import { buildCopyrightText, DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_PHONE, SITE_DISPLAY_NAMES } from './company.constants';
 
 /**
  * Returns site-specific branding for transactional emails.
@@ -20,6 +20,7 @@ export function getEmailBrand(siteCode: SiteCode): EmailBrand {
     logoUrl: env.COMPANY_LOGO_URL,
     privacyPolicyUrl: env.PRIVACY_POLICY_URL,
     copyrightText: buildCopyrightText(companyName),
+    companyPhone: env.COMPANY_PHONE || DEFAULT_COMPANY_PHONE,
   };
 }
 

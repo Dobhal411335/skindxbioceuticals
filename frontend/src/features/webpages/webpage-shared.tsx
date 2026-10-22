@@ -129,7 +129,7 @@ const HtmlBlock = ({ html, className = "" }) => {
   if (!isFilledText(html)) return null;
   return (
     <div
-      className={`prose custom-desc-list max-w-none leading-6 text-justify text-black [&_p]:text-black [&_li]:text-black [&_span]:text-black [&_strong]:text-black [&_h1]:text-black [&_h2]:text-black [&_h3]:text-black ${className}`}
+      className={`rich-html ${className}`.trim()}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

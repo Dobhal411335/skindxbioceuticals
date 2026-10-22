@@ -40,6 +40,14 @@ export interface OrderDetailDto {
   paymentStatus: string | null;
   placedAt: string | null;
   createdAt: string;
+  statusMessage?: string | null;
+  customerNotes?: string | null;
+  prescriptionImageUrl?: string | null;
+  statusHistory?: Array<{
+    status: string;
+    message: string | null;
+    updatedAt: string;
+  }>;
   items: OrderItemDto[];
 }
 

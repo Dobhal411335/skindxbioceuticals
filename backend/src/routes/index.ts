@@ -8,6 +8,7 @@ import { productRoutes } from '@/features/products/product.routes';
 import { productPublicRoutes } from '@/features/products/product.public.routes';
 import { categoryPublicRoutes } from '@/features/categories/category.public.routes';
 import { cartRoutes } from '@/features/cart/cart.routes';
+import { checkoutRoutes } from '@/features/checkout/checkout.routes';
 import { guestCheckoutRoutes } from '@/features/checkout/guest-checkout.routes';
 import { wishlistRoutes } from '@/features/wishlist/wishlist.routes';
 import { orderRoutes } from '@/features/orders/order.routes';
@@ -52,6 +53,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/users', userRoutes);
   v1.use('/products', productRoutes);
   v1.use('/cart', cartRoutes);
+  v1.use('/checkout', checkoutRoutes);
   v1.use('/checkout/guest', guestCheckoutRoutes);
   v1.use('/wishlist', wishlistRoutes);
   v1.use('/orders', orderRoutes);

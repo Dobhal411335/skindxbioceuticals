@@ -42,6 +42,13 @@ export type CustomerOrderDetail = {
   paymentStatus: string | null;
   placedAt: string | null;
   createdAt: string;
+  statusMessage?: string | null;
+  customerNotes?: string | null;
+  statusHistory?: Array<{
+    status: string;
+    message: string | null;
+    updatedAt: string;
+  }>;
   items: CustomerOrderItem[];
 };
 

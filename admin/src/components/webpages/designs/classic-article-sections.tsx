@@ -149,7 +149,7 @@ export function ClassicArticleSections({
           </>
         ) : null}
 
-        {topSectionView === "all" && !isDesign3 ? (
+        {/* {topSectionView === "all" && !isDesign3 ? (
           <>
             <ImageAssetField
               siteCode={siteCode}
@@ -168,7 +168,7 @@ export function ClassicArticleSections({
               onChange={(v) => patch("mainProfileImage", v)}
             />
           </>
-        ) : null}
+        ) : null} */}
 
         {topSectionView === "bannerOnly" ? (
           <>

@@ -47,6 +47,10 @@ const envSchema = z.object({
     z.string().url().optional(),
   ),
   SUPPORT_EMAIL: z.string().email('SUPPORT_EMAIL must be a valid email'),
+  COMPANY_PHONE: z.preprocess(
+    (value) => (value === '' || value === undefined ? undefined : value),
+    z.string().optional(),
+  ),
   SITE_IN_URL: z.string().url('SITE_IN_URL must be a valid URL'),
   SITE_COM_URL: z.string().url('SITE_COM_URL must be a valid URL'),
   PRIVACY_POLICY_URL: z.preprocess(

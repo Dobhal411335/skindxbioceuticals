@@ -1,10 +1,7 @@
 import { createHash, randomBytes } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { authRepository } from '@/features/auth/auth.repository';
-import {
-  priceCheckoutLines,
-  sumCheckoutTotals,
-} from '@/features/checkout/checkout.pricing';
+import {priceCheckoutLines,sumCheckoutTotals} from '@/features/checkout/checkout.pricing';
 import { guestCheckoutService } from '@/features/checkout/guest-checkout.service';
 import { env } from '@/config/env';
 import { sha256 } from '@/lib/crypto';
@@ -52,7 +49,7 @@ function canonicalRequestHash(body: CreatePaymentOrderBody): string {
 function nextOrderNumber(): string {
   const stamp = Date.now().toString(36).toUpperCase();
   const rand = randomBytes(2).toString('hex').toUpperCase();
-  return `IN-${stamp}${rand}`.slice(0, 24);
+  return `SK-${stamp}${rand}`.slice(0, 24);
 }
 
 export class PaymentService {
@@ -175,6 +172,7 @@ export class PaymentService {
           shippingAddress: input.body.shippingAddress,
           billingAddress: input.body.billingAddress ?? input.body.shippingAddress,
           notes: input.body.notes ?? null,
+          prescriptionImageUrl: input.body.prescriptionImageUrl ?? null,
           items: {
             create: lines.map((line) => ({
               variantId: line.variantId,
@@ -466,6 +464,7 @@ export class PaymentService {
         sgstAmount: decimalToString(item.sgstAmount),
       })),
       shippingAddress: order.shippingAddress,
+      prescriptionImageUrl: order.prescriptionImageUrl ?? null,
       isGuest: order.userId == null,
     };
   }

@@ -1,5 +1,6 @@
 import {
   AdminOrdersService,
+  toAdminOrderEnquiryItemDto,
   toAdminOrderLogItemDto,
 } from '../admin-orders.service';
 import type { AdminOrdersRepository, AdminOrderLogRow } from '../admin-orders.repository';
@@ -169,5 +170,116 @@ describe('AdminOrdersService', () => {
       'online',
       expect.objectContaining({ q: 'IN-1001' }),
     );
+  });
+
+  it('lists vendor orders for a site with pagination', async () => {
+    const row = makeRow({
+      status: 'CONFIRMED',
+      payments: [{ status: 'CAPTURED', method: 'UPI' }],
+    });
+    countForSite.mockResolvedValue(3);
+    listForSite.mockResolvedValue([row]);
+
+    const result = await service.listForSite({
+      siteId: row.siteId,
+      siteCode: 'IN',
+      kind: 'vendor',
+      query: {
+        page: 1,
+        pageSize: 10,
+        all: true,
+        date: undefined,
+        q: undefined,
+      },
+    });
+
+    expect(countForSite).toHaveBeenCalledWith(
+      row.siteId,
+      'vendor',
+      expect.objectContaining({ range: undefined }),
+    );
+    expect(result.orders[0]?.paymentStatus).toBe('CAPTURED');
+  });
+
+  it('maps full order detail into enquiry item DTO', () => {
+    const detailRow = {
+      id: 'ord-123',
+      orderNumber: 'SK-123',
+      status: 'PROCESSING',
+      currency: 'INR',
+      subtotal: 1000 as never,
+      discountTotal: 100 as never,
+      shippingTotal: 50 as never,
+      taxTotal: 180 as never,
+      cgstTotal: 90 as never,
+      sgstTotal: 90 as never,
+      grandTotal: 1130 as never,
+      userId: 'usr-1',
+      contactEmail: 'jane@example.com',
+      shippingAddress: { city: 'Mumbai', addressLine1: 'Street 1' },
+      billingAddress: { city: 'Mumbai', addressLine1: 'Street 1' },
+      placedAt: new Date('2026-10-15T08:00:00.000Z'),
+      createdAt: new Date('2026-10-15T08:00:00.000Z'),
+      updatedAt: new Date('2026-10-15T09:00:00.000Z'),
+      notes: JSON.stringify({
+        customerNotes: 'Please ring the bell',
+        statusMessage: 'Packed and ready',
+        timeline: [{ status: 'PROCESSING', message: 'Packed and ready', updatedAt: '2026-10-15T09:00:00.000Z' }],
+      }),
+      user: {
+        id: 'usr-1',
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane@example.com',
+        phone: '+919999999999',
+      },
+      payments: [
+        {
+          id: 'pay-1',
+          status: 'CAPTURED',
+          method: 'RAZORPAY',
+          amount: 1130 as never,
+          currency: 'INR',
+          provider: 'RAZORPAY',
+          providerOrderId: 'order_rzp_1',
+          paidAt: new Date('2026-10-15T08:05:00.000Z'),
+          createdAt: new Date('2026-10-15T08:00:00.000Z'),
+        },
+      ],
+      items: [
+        {
+          id: 'item-1',
+          productName: 'Radiance Serum',
+          variantName: '50ml',
+          sku: 'RAD-50',
+          unitPrice: 500 as never,
+          originalUnitPrice: 600 as never,
+          quantity: 2,
+          lineTotal: 1000 as never,
+          cgstPercent: 9 as never,
+          sgstPercent: 9 as never,
+          cgstAmount: 90 as never,
+          sgstAmount: 90 as never,
+          variant: {
+            product: {
+              media: [{ media: { url: 'https://img.example.com/serum.png' } }],
+            },
+          },
+        },
+      ],
+    } as any;
+
+    const dto = toAdminOrderEnquiryItemDto(detailRow);
+    expect(dto.orderNumber).toBe('SK-123');
+    expect(dto.customerName).toBe('Jane Doe');
+    expect(dto.customerPhone).toBe('+919999999999');
+    expect(dto.itemCount).toBe(2);
+    expect(dto.itemsSummary).toBe('Radiance Serum (x2)');
+    expect(dto.items[0]?.image).toBe('https://img.example.com/serum.png');
+    expect(dto.shippingAddress).toEqual({ city: 'Mumbai', addressLine1: 'Street 1' });
+    expect(dto.paymentDetails[0]?.providerOrderId).toBe('order_rzp_1');
+    expect(dto.statusMessage).toBe('Packed and ready');
+    expect(dto.statusHistory).toHaveLength(1);
+    expect(dto.prescriptionImageUrl).toBeNull();
   });
 });

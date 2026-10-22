@@ -45,10 +45,26 @@ export const checkoutService = {
     return response.data.data;
   },
 
+  async uploadPrescription(
+    file: File,
+    siteCode = "IN",
+  ): Promise<{ url: string; publicId: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post<
+      Envelope<{ url: string; publicId: string }>
+    >(API_ENDPOINTS.CHECKOUT.UPLOAD_PRESCRIPTION, formData, {
+      params: { siteCode },
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data.data;
+  },
+
   async createPaymentOrder(input: {
     items: Array<{ variantId: string; quantity: number }>;
     shippingAddress: CheckoutShippingAddress;
     notes?: string;
+    prescriptionImageUrl?: string | null;
     guestSessionToken?: string;
     idempotencyKey: string;
   }): Promise<CreatePaymentOrderResult> {
@@ -58,6 +74,7 @@ export const checkoutService = {
         items: input.items,
         shippingAddress: input.shippingAddress,
         notes: input.notes,
+        prescriptionImageUrl: input.prescriptionImageUrl,
         guestSessionToken: input.guestSessionToken,
       },
       {

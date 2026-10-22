@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
-import { Filter, Loader2 } from "lucide-react";
+import { Eye, Filter, Loader2 } from "lucide-react";
 
 import { AdminAppShell } from "@/components/layout/admin-app-shell";
+import { OrderDetailModal } from "@/components/orders/order-detail-modal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,12 +35,15 @@ import {
 } from "@/components/ui/table";
 import { showError } from "@/lib/toast";
 import {
+  fetchAdminOrderDetail,
   fetchCancelledOrderLog,
   fetchOnlineOrderLog,
+  fetchVendorOrderLog,
 } from "@/services/api/admin-orders";
 import { ApiError } from "@/services/api/errors";
 import type { SiteCode } from "@/types/auth";
 import type {
+  AdminOrderDetail,
   AdminOrderLogItem,
   AdminOrderLogKind,
   AdminOrderLogPeriod,
@@ -76,12 +80,19 @@ export function OrderLogPage({
   kind: AdminOrderLogKind;
 }) {
   const isOnline = kind === "online";
-  const title = isOnline ? "Online Order Log" : "Cancel Order";
+  const isVendor = kind === "vendor";
+  const title = isOnline
+    ? "Online Order Log"
+    : isVendor
+      ? "Vendor Order"
+      : "Cancel Order";
   const description = isOnline
-    ? "Online payment orders for the selected website."
-    : "Orders with payment still pending — review candidates before cancel actions are available."
+    ? "Online customer orders with completed payment for the selected website."
+    : isVendor
+      ? "Vendor orders with completed payment for the selected website."
+      : "Orders with payment still pending — review candidates before cancel actions are available.";
 
-  const [period, setPeriod] = useState<AdminOrderLogPeriod>("today");
+  const [period, setPeriod] = useState<AdminOrderLogPeriod>("all");
   const [dayDate, setDayDate] = useState(() => toDateInput(new Date()));
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -92,6 +103,24 @@ export function OrderLogPage({
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [detailOrder, setDetailOrder] = useState<AdminOrderDetail | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+
+  const handleViewDetails = async (orderId: string) => {
+    setDetailModalOpen(true);
+    setIsLoadingDetail(true);
+    try {
+      const detail = await fetchAdminOrderDetail(siteCode, orderId);
+      setDetailOrder(detail);
+    } catch (err) {
+      showError(err instanceof ApiError ? err.message : "Failed to load order details");
+      setDetailModalOpen(false);
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreLock = useRef(false);
@@ -127,7 +156,9 @@ export function OrderLogPage({
         };
         const result = isOnline
           ? await fetchOnlineOrderLog(siteCode, query)
-          : await fetchCancelledOrderLog(siteCode, query);
+          : isVendor
+            ? await fetchVendorOrderLog(siteCode, query)
+            : await fetchCancelledOrderLog(siteCode, query);
 
         setOrders((current) =>
           append ? [...current, ...result.orders] : result.orders,
@@ -139,7 +170,7 @@ export function OrderLogPage({
         const message =
           error instanceof ApiError
             ? error.message
-            : `Failed to load ${isOnline ? "online" : "cancelled"} orders`;
+            : `Failed to load ${isOnline ? "online" : isVendor ? "vendor" : "cancelled"} orders`;
         if (!append) {
           setOrders([]);
           setHasMore(false);
@@ -153,7 +184,7 @@ export function OrderLogPage({
         loadingMoreLock.current = false;
       }
     },
-    [dayDate, debouncedSearch, isOnline, period, siteCode],
+    [dayDate, debouncedSearch, isOnline, isVendor, period, siteCode],
   );
 
   useEffect(() => {
@@ -298,7 +329,7 @@ export function OrderLogPage({
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center w-full gap-2 py-10 text-sm text-muted-foreground">
                 <Loader2 className="size-4 animate-spin" />
                 Loading orders…
               </div>
@@ -314,33 +345,39 @@ export function OrderLogPage({
                       <TableHead>Order</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Payment</TableHead>
                       <TableHead>Items</TableHead>
                       <TableHead>Total</TableHead>
                       <TableHead>Placed</TableHead>
+                      <TableHead className="w-16 text-center">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {orders.map((order) => (
                       <TableRow key={order.id}>
-                        <TableCell className="font-medium">
-                          {order.orderNumber}
+                        <TableCell className="font-medium whitespace-nowrap">
+                          #{order.orderNumber}
                         </TableCell>
                         <TableCell>{order.customerEmail ?? "—"}</TableCell>
                         <TableCell>
                           <Badge variant="secondary">{order.status}</Badge>
                         </TableCell>
-                        <TableCell>
-                          {[order.paymentMethod, order.paymentStatus]
-                            .filter(Boolean)
-                            .join(" · ") || "—"}
-                        </TableCell>
                         <TableCell>{order.itemCount}</TableCell>
                         <TableCell>
                           {formatCurrency(order.grandTotal, order.currency)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {formatDateTime(order.placedAt ?? order.createdAt)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewDetails(order.id)}
+                            className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                            title="View Order Details"
+                          >
+                            <Eye className="size-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -366,6 +403,13 @@ export function OrderLogPage({
           </CardContent>
         </Card>
       </div>
+
+      <OrderDetailModal
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        order={detailOrder}
+        isLoading={isLoadingDetail}
+      />
     </AdminAppShell>
   );
 }

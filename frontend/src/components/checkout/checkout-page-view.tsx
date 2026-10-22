@@ -7,11 +7,16 @@ import { useEffect, useRef, useState } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import {
   ArrowLeft,
+  CheckCircle2,
   ClipboardList,
+  ExternalLink,
+  FileImage,
   Loader2,
   MapPin,
   ShieldCheck,
   Trash2,
+  Upload,
+  X,
 } from "lucide-react";
 
 import { getCartLinePricing } from "@/components/cart/cart-line-price";
@@ -168,6 +173,48 @@ export function CheckoutPageView() {
 
   const idempotencyKeyRef = useRef<string | null>(null);
   const addressesLoadedForUserRef = useRef<string | null>(null);
+
+  const [prescriptionImageUrl, setPrescriptionImageUrl] = useState<string | null>(null);
+  const [prescriptionUploading, setPrescriptionUploading] = useState(false);
+  const [prescriptionFileName, setPrescriptionFileName] = useState<string | null>(null);
+  const prescriptionFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  async function handlePrescriptionFileChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showError("Please select a valid image file (PNG, JPG, or WebP).");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showError("Prescription image must be less than 10MB.");
+      return;
+    }
+
+    setPrescriptionUploading(true);
+    setPrescriptionFileName(file.name);
+    try {
+      const result = await checkoutService.uploadPrescription(file);
+      setPrescriptionImageUrl(result.url);
+      showSuccess("Prescription image uploaded successfully.");
+    } catch {
+      showError("Failed to upload prescription image. Please try again.");
+      setPrescriptionFileName(null);
+    } finally {
+      setPrescriptionUploading(false);
+    }
+  }
+
+  function handleRemovePrescription() {
+    setPrescriptionImageUrl(null);
+    setPrescriptionFileName(null);
+    if (prescriptionFileInputRef.current) {
+      prescriptionFileInputRef.current.value = "";
+    }
+  }
 
   function applySavedAddress(address: Address) {
     setSelectedSavedAddressId(address.id);
@@ -458,6 +505,7 @@ export function CheckoutPageView() {
         })),
         shippingAddress,
         notes: combinedNotes || undefined,
+        prescriptionImageUrl: prescriptionImageUrl || undefined,
         guestSessionToken: isAuthenticated ? undefined : guestSessionToken ?? undefined,
         idempotencyKey: ensureIdempotencyKey(),
       });
@@ -682,6 +730,127 @@ export function CheckoutPageView() {
                     </Button>
                   </div>
                 ) : null}
+              </div>
+            )}
+          </section>
+
+          {/* Prescription Upload Section (Optional) */}
+          <section className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <FileImage className="size-5 text-primary" />
+                <h2 className="text-lg font-semibold tracking-tight">Prescription</h2>
+              </div>
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                Optional
+              </span>
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Have a doctor&apos;s prescription for your items? Upload a clear photo or scan (PNG, JPG, or WebP up to 10MB) for our verification team.
+            </p>
+
+            <input
+              ref={prescriptionFileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/jpg"
+              className="hidden"
+              onChange={(e) => void handlePrescriptionFileChange(e)}
+              disabled={prescriptionUploading}
+            />
+
+            {!prescriptionImageUrl ? (
+              <div
+                onClick={() => {
+                  if (!prescriptionUploading) {
+                    prescriptionFileInputRef.current?.click();
+                  }
+                }}
+                className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all ${
+                  prescriptionUploading
+                    ? "border-muted bg-muted/20 cursor-wait"
+                    : "border-border/80 bg-muted/10 hover:border-primary/60 hover:bg-muted/30 cursor-pointer"
+                }`}
+              >
+                {prescriptionUploading ? (
+                  <div className="flex flex-col items-center gap-2 py-2">
+                    <Loader2 className="size-8 animate-spin text-primary" />
+                    <p className="text-sm font-medium text-foreground">
+                      Uploading prescription to secure cloud…
+                    </p>
+                    <p className="text-xs text-muted-foreground">Please wait a moment</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Upload className="size-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        Click to upload prescription image
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Supports PNG, JPG, or WEBP (up to 10MB)
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-background shadow-xs">
+                    <img
+                      src={prescriptionImageUrl}
+                      alt="Prescription preview"
+                      className="size-full object-cover"
+                    />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
+                      <CheckCircle2 className="size-3.5" />
+                      Prescription uploaded
+                    </div>
+                    {prescriptionFileName && (
+                      <p className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-xs">
+                        {prescriptionFileName}
+                      </p>
+                    )}
+                    <a
+                      href={prescriptionImageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                    >
+                      <ExternalLink className="size-3" />
+                      View full image
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => prescriptionFileInputRef.current?.click()}
+                    disabled={prescriptionUploading}
+                    className="text-xs"
+                  >
+                    Change
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemovePrescription}
+                    disabled={prescriptionUploading}
+                    className="text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <X className="size-3.5 mr-1" />
+                    Remove
+                  </Button>
+                </div>
               </div>
             )}
           </section>

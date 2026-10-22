@@ -33,6 +33,7 @@ export interface EmailBrand {
   logoUrl?: string;
   privacyPolicyUrl?: string;
   copyrightText: string;
+  companyPhone?: string;
 }
 
 export interface EmailLayoutOptions {
@@ -141,6 +142,8 @@ export interface OrderStatusEmailInput {
   orderReference: string;
   statusLabel: string;
   orderDetailsUrl: string;
+  trackingUrl?: string;
+  statusMessage?: string | null;
 }
 
 export interface OrderShippedEmailInput {

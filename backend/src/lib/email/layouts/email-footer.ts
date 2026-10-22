@@ -24,12 +24,17 @@ export function renderEmailFooterHtml(
     ? `<br /><span style="${emailStyles.muted}">You can unsubscribe from marketing emails using the link provided in those messages.</span>`
     : '';
 
+  const phoneBlock = brand.companyPhone
+    ? `&nbsp;·&nbsp; Phone / WhatsApp: <a href="tel:${escapeHtml(brand.companyPhone)}" style="${emailStyles.footerLink}">${escapeHtml(brand.companyPhone)}</a>`
+    : '';
+
   return `
     <tr>
       <td style="${emailStyles.footer}">
         <p style="margin:0 0 8px 0;">
           Need help? Contact
           <a href="mailto:${supportEmail}" style="${emailStyles.footerLink}">${supportEmail}</a>
+          ${phoneBlock}
         </p>
         <p style="margin:0 0 8px 0;">
           <a href="${siteUrl}" style="${emailStyles.footerLink}">${escapeHtml(brand.siteName)}</a>
@@ -45,8 +50,12 @@ export function renderEmailFooterText(
   brand: EmailBrand,
   options: EmailFooterOptions = {},
 ): string {
+  const contactHelp = brand.companyPhone
+    ? `Need help? Contact ${brand.supportEmail} | Phone / WhatsApp: ${brand.companyPhone}`
+    : `Need help? Contact ${brand.supportEmail}`;
+
   const lines = [
-    `Need help? Contact ${brand.supportEmail}`,
+    contactHelp,
     `${brand.siteName}: ${brand.siteUrl}`,
     brand.copyrightText,
   ];
