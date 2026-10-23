@@ -26,10 +26,14 @@ export class BrevoEmailClient {
         email: config.senderEmail,
         name: config.senderName,
       },
-      to: payload.to.map((recipient) => ({
-        email: recipient.email,
-        ...(recipient.name ? { name: recipient.name } : {}),
-      })),
+      to: payload.to.map((recipient) =>
+        typeof recipient === 'string'
+          ? { email: recipient }
+          : {
+              email: recipient.email,
+              ...(recipient.name ? { name: recipient.name } : {}),
+            },
+      ),
       subject: payload.subject,
       htmlContent: payload.htmlContent,
       textContent: payload.textContent,

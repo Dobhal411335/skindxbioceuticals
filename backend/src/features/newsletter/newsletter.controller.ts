@@ -2,11 +2,16 @@ import type { Request, Response } from 'express';
 import { newsletterService } from './newsletter.service';
 import type { SendPromotionalEmailBody } from './newsletter.types';
 
+function normalizeSiteCode(value: unknown): 'IN' | 'COM' {
+  const code = String(value || 'IN').trim().toUpperCase();
+  return code === 'COM' ? 'COM' : 'IN';
+}
+
 export class NewsletterController {
   constructor(private readonly service = newsletterService) {}
 
   subscribe = async (req: Request, res: Response): Promise<void> => {
-    const siteCode = (req.params.siteCode || 'IN').toUpperCase() as 'IN' | 'COM';
+    const siteCode = normalizeSiteCode(req.params.siteCode);
     const { email } = req.body;
     const subscriber = await this.service.subscribe(siteCode, email);
 
@@ -105,7 +110,7 @@ export class NewsletterController {
   };
 
   listSubscribers = async (req: Request, res: Response): Promise<void> => {
-    const siteCode = (req.params.siteCode || 'IN').toUpperCase() as 'IN' | 'COM';
+    const siteCode = normalizeSiteCode(req.params.siteCode);
     const subscribers = await this.service.listSubscribers(siteCode);
 
     res.status(200).json({
@@ -116,7 +121,7 @@ export class NewsletterController {
   };
 
   sendPromotionalEmail = async (req: Request, res: Response): Promise<void> => {
-    const siteCode = (req.params.siteCode || 'IN').toUpperCase() as 'IN' | 'COM';
+    const siteCode = normalizeSiteCode(req.params.siteCode);
     const body = req.body as SendPromotionalEmailBody;
     const result = await this.service.sendPromotionalEmail(siteCode, body);
 

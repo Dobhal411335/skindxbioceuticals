@@ -34,7 +34,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.11.0",
     "cookie-parser": "^1.4.7",
@@ -68,7 +68,7 @@
     "jest": "^30.5.2",
     "pino-pretty": "^13.2.0",
     "prettier": "^3.5.3",
-    "prisma": "^6.5.0",
+    "prisma": "^6.19.3",
     "supertest": "^7.3.1",
     "ts-jest": "^29.4.14",
     "tsc-alias": "^1.8.11",
