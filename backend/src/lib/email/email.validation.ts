@@ -3,10 +3,17 @@ import type { SiteCode } from '@/types/common';
 import { EmailValidationError } from './email.errors';
 import { getEmailBrand } from './company/company.config';
 
-const emailRecipientSchema = z.object({
-  email: z.string().email('Recipient email is invalid'),
-  name: z.string().trim().min(1).max(200).optional(),
-});
+const emailRecipientSchema = z.union([
+  z
+    .string()
+    .trim()
+    .email('Recipient email is invalid')
+    .transform((email) => ({ email, name: undefined })),
+  z.object({
+    email: z.string().trim().email('Recipient email is invalid'),
+    name: z.string().trim().min(1).max(200).optional(),
+  }),
+]);
 
 const siteCodeSchema = z.enum(['IN', 'COM']);
 

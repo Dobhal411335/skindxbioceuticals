@@ -49,7 +49,7 @@ describe('Category API routes', () => {
   });
 
   it('rejects unauthenticated admin list', async () => {
-    const response = await request(app).get('/api/v1/admin/sites/IN/categories');
+    const response = await request(app).get('/api/v1/admin/sites/IN/category');
     expect(response.status).toBe(401);
   });
 
@@ -59,7 +59,7 @@ describe('Category API routes', () => {
     ]);
 
     const response = await request(app)
-      .get('/api/v1/admin/sites/IN/categories')
+      .get('/api/v1/admin/sites/IN/category')
       .set('Authorization', 'Bearer token');
 
     expect(response.status).toBe(200);
@@ -75,7 +75,7 @@ describe('Category API routes', () => {
     });
 
     const response = await request(app)
-      .post('/api/v1/admin/sites/IN/categories')
+      .post('/api/v1/admin/sites/IN/category')
       .set('Authorization', 'Bearer token')
       .send({
         name: 'Serums',
@@ -91,7 +91,7 @@ describe('Category API routes', () => {
       { id: 'cat-1', name: 'Serums', slug: 'serums' },
     ]);
 
-    const response = await request(app).get('/api/v1/sites/IN/categories');
+    const response = await request(app).get('/api/v1/sites/IN/category');
     expect(response.status).toBe(200);
     expect(response.body.data[0].slug).toBe('serums');
   });
@@ -104,7 +104,7 @@ describe('Category API routes', () => {
       subcategories: [],
     });
 
-    const response = await request(app).get('/api/v1/sites/IN/categories/serums');
+    const response = await request(app).get('/api/v1/sites/IN/category/serums');
     expect(response.status).toBe(200);
     expect(response.body.data.slug).toBe('serums');
   });

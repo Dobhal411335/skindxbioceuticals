@@ -32,7 +32,7 @@ const splitSlide = {
   buttonLabel: 'Shop products',
   buttonUrl: '/shop',
   button2Label: 'Explore range',
-  button2Url: '/categories',
+  button2Url: '/category',
   leftImageUrl: 'https://cdn.example.com/left.jpg',
   leftImagePublicId: 'hero/left',
   rightImageUrl: 'https://cdn.example.com/right.jpg',

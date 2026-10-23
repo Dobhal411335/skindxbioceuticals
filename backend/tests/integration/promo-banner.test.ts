@@ -16,13 +16,13 @@ const basePayload = {
     {
       imageUrl: 'https://cdn.example.com/promo-1.jpg',
       imagePublicId: 'promo/1',
-      buttonUrl: '/categories/serums',
+      buttonUrl: '/category/serums',
       active: true,
     },
     {
       imageUrl: 'https://cdn.example.com/promo-2.jpg',
       imagePublicId: 'promo/2',
-      buttonUrl: '/categories/cleansers',
+      buttonUrl: '/category/cleansers',
       active: true,
     },
     {

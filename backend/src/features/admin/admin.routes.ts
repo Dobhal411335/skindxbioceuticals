@@ -33,6 +33,7 @@ import { adminOrdersRoutes } from '@/features/admin-orders/admin-orders.routes';
 import { inventoryAdminRoutes } from '@/features/inventory/inventory.admin.routes';
 import { productPricesAdminRoutes } from '@/features/product-prices/product-prices.admin.routes';
 import { vendorsAdminRoutes } from '@/features/vendors/vendors.routes';
+import { newsletterAdminRoutes } from '@/features/newsletter/newsletter.admin.routes';
 import { dashboardQuerySchema, siteCodeParamSchema } from './admin.validation';
 
 /**
@@ -69,6 +70,7 @@ router.use('/sites/:siteCode/faq', faqRoutes);
 router.use('/sites/:siteCode/insights', insightsRoutes);
 router.use('/sites/:siteCode/hero-banners', heroBannerRoutes);
 router.use('/sites/:siteCode/categories', categoryRoutes);
+router.use('/sites/:siteCode/category', categoryRoutes);
 router.use(
   '/sites/:siteCode/subcategories/:subcategoryId/products',
   catalogProductRoutes,
@@ -87,5 +89,6 @@ router.use('/sites/:siteCode/vendors', vendorsAdminRoutes);
 router.use('/sites/:siteCode/orders', adminOrdersRoutes);
 router.use('/sites/:siteCode/stock', inventoryAdminRoutes);
 router.use('/sites/:siteCode/product-prices', productPricesAdminRoutes);
+router.use('/sites/:siteCode/newsletter', newsletterAdminRoutes);
 
 export const adminRoutes = router;

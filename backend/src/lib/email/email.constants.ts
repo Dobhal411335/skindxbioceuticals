@@ -23,6 +23,8 @@ export const EMAIL_TAGS = {
   DOCTOR_APPOINTMENT_REQUESTED: 'doctor-appointment-requested',
   DOCTOR_APPOINTMENT_CONFIRMED: 'doctor-appointment-confirmed',
   DOCTOR_APPOINTMENT_CANCELLED: 'doctor-appointment-cancelled',
+  PROMOTIONAL: 'promotional',
+  NEWSLETTER: 'newsletter',
 } as const;
 
 export type EmailTag = (typeof EMAIL_TAGS)[keyof typeof EMAIL_TAGS];

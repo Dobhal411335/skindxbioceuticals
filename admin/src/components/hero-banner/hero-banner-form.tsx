@@ -224,7 +224,7 @@ function CopyFields({
               onChange={(event) =>
                 updateSlide(index, { button2Url: event.target.value })
               }
-              placeholder="/categories"
+              placeholder="/category"
             />
           </div>
         </div>
@@ -623,12 +623,12 @@ export function HeroBannerForm({
                                       gridImages: slide.gridImages.map((item, i) =>
                                         i === gridIndex
                                           ? {
-                                              ...item,
-                                              image: {
-                                                url: uploaded.url,
-                                                publicId: uploaded.publicId,
-                                              },
-                                            }
+                                            ...item,
+                                            image: {
+                                              url: uploaded.url,
+                                              publicId: uploaded.publicId,
+                                            },
+                                          }
                                           : item,
                                       ),
                                     }),

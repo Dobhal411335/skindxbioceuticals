@@ -23,6 +23,8 @@ import type {
   DoctorAppointmentRequestedEmailInput,
   DoctorAppointmentConfirmedEmailInput,
   DoctorAppointmentCancelledEmailInput,
+  PromotionalEmailInput,
+  NewsletterWelcomeEmailInput,
 } from './email.types';
 import {
   renderDoctorAppointmentCancelledEmail,
@@ -40,9 +42,11 @@ import {
   renderPasswordResetEmail,
   renderPaymentFailedEmail,
   renderPaymentSuccessEmail,
+  renderPromotionalEmail,
   renderRefundStatusEmail,
   renderVendorApprovedEmail,
   renderWelcomeEmail,
+  renderNewsletterWelcomeEmail,
 } from './templates';
 
 /**
@@ -189,6 +193,20 @@ export class EmailService {
     const siteCode = validateSiteCode(input.siteCode);
     const rendered = renderDoctorAppointmentCancelledEmail({ ...input, siteCode });
     return this.submit(to, rendered, EMAIL_TAGS.DOCTOR_APPOINTMENT_CANCELLED);
+  }
+
+  async sendPromotionalEmail(input: PromotionalEmailInput): Promise<EmailSendResult> {
+    const to = validateRecipient(input.to);
+    const siteCode = validateSiteCode(input.siteCode);
+    const rendered = renderPromotionalEmail({ ...input, siteCode });
+    return this.submit(to, rendered, EMAIL_TAGS.PROMOTIONAL);
+  }
+
+  async sendNewsletterWelcomeEmail(input: NewsletterWelcomeEmailInput): Promise<EmailSendResult> {
+    const to = validateRecipient(input.to);
+    const siteCode = validateSiteCode(input.siteCode);
+    const rendered = renderNewsletterWelcomeEmail({ ...input, siteCode });
+    return this.submit(to, rendered, EMAIL_TAGS.NEWSLETTER);
   }
 
   private async submit(

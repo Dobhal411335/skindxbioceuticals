@@ -323,7 +323,7 @@ export function PromoBannerTab({
                             }),
                           )
                         }
-                        placeholder="/categories/serums or https://…"
+                        placeholder="/category/serums or https://…"
                         className="h-11"
                       />
                     </div>

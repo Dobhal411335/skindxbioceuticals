@@ -198,7 +198,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/auth` | signup, login, logout, Google auth, verification, password reset | Public/rate-limited or authenticated depending on operation |
 | `/me` | current customer profile and addresses | Customer |
 | `/products` | catalog, product details, search, filtering | Public read; admin write |
-| `/categories` | catalog category data | Public read; admin write |
+| `/category` | catalog category data | Public read; admin write |
 | `/cart` | retrieve/update current cart | Customer or supported guest-cart mechanism |
 | `/wishlist` | current customer's wishlist | Customer |
 | `/coupons` | validate coupon eligibility | Public/customer with rate limits; admin management |
@@ -226,7 +226,7 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/admin/sites/:siteCode/faq` | get/upsert site-scoped FAQ sections and questions | Admin + site access |
 | `/admin/sites/:siteCode/insights` | get/upsert site-scoped landing insight cards and Q&A | Admin + site access |
 | `/admin/sites/:siteCode/hero-banners` | get/upsert site-scoped home hero carousel slides | Admin + site access |
-| `/admin/sites/:siteCode/categories` | CRUD site-scoped categories and nested subcategories | Admin + site access |
+| `/admin/sites/:siteCode/category` | CRUD site-scoped categories and nested subcategories | Admin + site access |
 | `/admin/sites/:siteCode/subcategories/:subcategoryId/products` | CRUD phase-1 products under a subcategory | Admin + site access |
 | `/admin/sites/:siteCode/coupons` | CRUD site-scoped discount coupon codes (amount or percent) | Admin + site access |
 | `/admin/users` | staff accounts and roles | Highly restricted admin |
@@ -510,16 +510,16 @@ Uploads use existing media APIs with `feature=hero`: `POST /api/v1/media/images`
 Site-scoped categories use the hierarchical `Category` model (`parentId` null = main category; set = subcategory). Products are minimal phase-1 records linked via `Product.subcategoryId` (and `ProductCategory` join).
 
 **Categories**
-- `GET /api/v1/admin/sites/:siteCode/categories` — Bearer admin JWT; `requireSiteAccess`. Lists root categories (including inactive).
-- `POST /api/v1/admin/sites/:siteCode/categories` — create root category. Body: `name`, optional `active`/`order`/`description`. No banner on roots. `siteId` from authenticated site context only. Slug is server-generated and unique per site.
-- `PUT /api/v1/admin/sites/:siteCode/categories/:categoryId` — full update of a root category (name/active/order/description).
-- `PATCH /api/v1/admin/sites/:siteCode/categories/:categoryId` — `{ active }` and/or `{ order }`.
-- `DELETE /api/v1/admin/sites/:siteCode/categories/:categoryId` — delete root category (blocked if subcategories remain).
+- `GET /api/v1/admin/sites/:siteCode/category` — Bearer admin JWT; `requireSiteAccess`. Lists root categories (including inactive).
+- `POST /api/v1/admin/sites/:siteCode/category` — create root category. Body: `name`, optional `active`/`order`/`description`. No banner on roots. `siteId` from authenticated site context only. Slug is server-generated and unique per site.
+- `PUT /api/v1/admin/sites/:siteCode/category/:categoryId` — full update of a root category (name/active/order/description).
+- `PATCH /api/v1/admin/sites/:siteCode/category/:categoryId` — `{ active }` and/or `{ order }`.
+- `DELETE /api/v1/admin/sites/:siteCode/category/:categoryId` — delete root category (blocked if subcategories remain).
 
 **Subcategories**
-- `GET /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories`
-- `POST /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories` — body `{ name, bannerUrl, bannerPublicId, active?, order? }`. Prefer HTTPS banner URLs.
-- `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/categories/:categoryId/subcategories/:subcategoryId` — delete blocked if products remain; deletes Cloudinary banner when present.
+- `GET /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories`
+- `POST /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories` — body `{ name, bannerUrl, bannerPublicId, active?, order? }`. Prefer HTTPS banner URLs.
+- `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories/:subcategoryId` — delete blocked if products remain; deletes Cloudinary banner when present.
 - `GET /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId` — fetch one subcategory by id (for admin product pages).
 
 **Products (under subcategory — `productType = CATEGORY`)**
@@ -604,8 +604,8 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 
 ### Public categories (storefront)
 
-- `GET /api/v1/sites/:siteCode/categories` — public read; active root categories only (name/slug/order) for `/category` grid.
-- `GET /api/v1/sites/:siteCode/categories/:categorySlug` — public read by slug or name; returns category with active subcategories (including subcategory `bannerUrl`) and their active products for `/category/[categoryName]`.
+- `GET /api/v1/sites/:siteCode/category` — public read; active root categories only (name/slug/order) for `/category` grid.
+- `GET /api/v1/sites/:siteCode/category/:categorySlug` — public read by slug or name; returns category with active subcategories (including subcategory `bannerUrl`) and their active products for `/category/[categoryName]`.
 
 ### Public products (storefront)
 

@@ -8,18 +8,18 @@ import { buildCopyrightText, DEFAULT_COMPANY_NAME, DEFAULT_COMPANY_PHONE, SITE_D
  * Both sites share the same email infrastructure; only brand/links differ.
  */
 export function getEmailBrand(siteCode: SiteCode): EmailBrand {
-  const companyName = env.COMPANY_NAME || DEFAULT_COMPANY_NAME;
+  const senderName = env.BREVO_SENDER_NAME || env.COMPANY_NAME || DEFAULT_COMPANY_NAME;
   const siteUrl = siteCode === 'IN' ? env.SITE_IN_URL : env.SITE_COM_URL;
 
   return {
     siteCode,
-    companyName,
-    siteName: SITE_DISPLAY_NAMES[siteCode],
+    companyName: senderName,
+    siteName: senderName,
     siteUrl: stripTrailingSlash(siteUrl),
     supportEmail: env.SUPPORT_EMAIL,
     logoUrl: env.COMPANY_LOGO_URL,
     privacyPolicyUrl: env.PRIVACY_POLICY_URL,
-    copyrightText: buildCopyrightText(companyName),
+    copyrightText: buildCopyrightText(senderName),
     companyPhone: env.COMPANY_PHONE || DEFAULT_COMPANY_PHONE,
   };
 }

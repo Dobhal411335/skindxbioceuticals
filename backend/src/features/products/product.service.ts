@@ -164,9 +164,9 @@ export function toPublicProductCardDto(
     coupon: toPublicCardCouponDto(row.coupon),
     tax: row.tax
       ? {
-          cgst: decimalToNumber(row.tax.cgst) ?? 0,
-          sgst: decimalToNumber(row.tax.sgst) ?? 0,
-        }
+        cgst: decimalToNumber(row.tax.cgst) ?? 0,
+        sgst: decimalToNumber(row.tax.sgst) ?? 0,
+      }
       : null,
   };
 }
@@ -219,7 +219,7 @@ export class ProductService {
   constructor(
     private readonly repository = productRepository,
     private readonly categories = categoryService,
-  ) {}
+  ) { }
 
   private async uniqueProductSlug(
     siteId: string,
@@ -427,9 +427,9 @@ export class ProductService {
         coupon: toPublicCardCouponDto(row.coupon),
         tax: row.tax
           ? {
-              cgst: decimalToNumber(row.tax.cgst) ?? 0,
-              sgst: decimalToNumber(row.tax.sgst) ?? 0,
-            }
+            cgst: decimalToNumber(row.tax.cgst) ?? 0,
+            sgst: decimalToNumber(row.tax.sgst) ?? 0,
+          }
           : null,
       };
     });
@@ -518,17 +518,17 @@ export class ProductService {
       })),
       tax: record.tax
         ? {
-            cgst: decimalToNumber(record.tax.cgst) ?? 0,
-            sgst: decimalToNumber(record.tax.sgst) ?? 0,
-          }
+          cgst: decimalToNumber(record.tax.cgst) ?? 0,
+          sgst: decimalToNumber(record.tax.sgst) ?? 0,
+        }
         : null,
       coupon: record.coupon
         ? {
-            couponId: record.coupon.couponId,
-            code: record.coupon.coupon.code,
-            type: record.coupon.coupon.type,
-            value: decimalToNumber(record.coupon.coupon.value) ?? 0,
-          }
+          couponId: record.coupon.couponId,
+          code: record.coupon.coupon.code,
+          type: record.coupon.coupon.type,
+          value: decimalToNumber(record.coupon.coupon.value) ?? 0,
+        }
         : null,
       relatedProducts,
       averageRating: stats.averageRating,

@@ -111,6 +111,13 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Manage landing Insights banner cards and Q&A for the selected website.",
     ["IN", "COM"],
   ),
+  live(
+    "promotional-email",
+    "promotional-email",
+    "Promotional Email",
+    "Manage newsletter subscribers and send promotional emails to customers.",
+    ["IN", "COM"],
+  ),
 
   live(
     "vendor-hub",
@@ -237,13 +244,6 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "orders/enquiry",
     "Enquiry Order",
     "Review enquiry-related order records for the .in storefront.",
-    ["IN", "COM"],
-  ),
-  shell(
-    "order-cod-log",
-    "orders/cod-log",
-    "COD Order Log",
-    "Cash-on-delivery order log for the .in storefront.",
     ["IN", "COM"],
   ),
   live(

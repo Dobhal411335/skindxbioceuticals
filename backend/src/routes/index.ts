@@ -41,6 +41,7 @@ import { vendorsPublicRoutes } from '@/features/vendors/vendors.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
+import { newsletterPublicRoutes } from '@/features/newsletter/newsletter.public.routes';
 
 /**
  * Mounts all feature routers under `/api/v1` (configurable via API_PREFIX).
@@ -87,7 +88,10 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsPublicRoutes);
   v1.use('/sites/:siteCode/vendors', vendorsPublicRoutes);
   v1.use('/sites/:siteCode/categories', categoryPublicRoutes);
+  v1.use('/sites/:siteCode/category', categoryPublicRoutes);
   v1.use('/sites/:siteCode/products', productPublicRoutes);
+  v1.use('/sites/:siteCode/newsletter', newsletterPublicRoutes);
+  v1.use('/newsletter', newsletterPublicRoutes);
 
   app.use(appConfig.apiPrefix, v1);
 }

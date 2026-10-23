@@ -6,7 +6,7 @@ import { categoryController } from './category.controller';
 import { categorySlugParamSchema } from './category.validation';
 
 /**
- * Mounted at `/sites/:siteCode/categories`.
+ * Mounted at `/sites/:siteCode/category`.
  */
 export const categoryPublicRoutes = Router({ mergeParams: true });
 

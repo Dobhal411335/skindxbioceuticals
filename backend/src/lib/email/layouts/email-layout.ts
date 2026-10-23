@@ -10,7 +10,7 @@ import { emailStyles } from './email-styles';
 export function renderEmailLayout(
   options: EmailLayoutOptions,
 ): Omit<RenderedEmail, 'subject'> {
-  const { brand, title, contentHtml, contentText, preheader, includeUnsubscribe } = options;
+  const { brand, title, contentHtml, contentText, preheader, includeUnsubscribe, unsubscribeUrl } = options;
   const safeTitle = escapeHtml(title);
   const safePreheader = preheader ? escapeHtml(preheader) : '';
 
@@ -38,7 +38,7 @@ export function renderEmailLayout(
                 ${contentHtml}
               </td>
             </tr>
-            ${renderEmailFooterHtml(brand, { includeUnsubscribe })}
+            ${renderEmailFooterHtml(brand, { includeUnsubscribe, unsubscribeUrl })}
           </table>
         </td>
       </tr>
@@ -53,7 +53,7 @@ export function renderEmailLayout(
     '',
     contentText,
     '',
-    renderEmailFooterText(brand, { includeUnsubscribe }),
+    renderEmailFooterText(brand, { includeUnsubscribe, unsubscribeUrl }),
   ].join('\n');
 
   return { html, text };

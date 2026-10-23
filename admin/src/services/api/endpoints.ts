@@ -41,17 +41,17 @@ export const endpoints = {
     heroBanners: (siteCode: string) =>
       `/admin/sites/${siteCode}/hero-banners`,
     categories: (siteCode: string) =>
-      `/admin/sites/${siteCode}/categories`,
+      `/admin/sites/${siteCode}/category`,
     category: (siteCode: string, categoryId: string) =>
-      `/admin/sites/${siteCode}/categories/${categoryId}`,
+      `/admin/sites/${siteCode}/category/${categoryId}`,
     subcategories: (siteCode: string, categoryId: string) =>
-      `/admin/sites/${siteCode}/categories/${categoryId}/subcategories`,
+      `/admin/sites/${siteCode}/category/${categoryId}/subcategories`,
     subcategory: (
       siteCode: string,
       categoryId: string,
       subcategoryId: string,
     ) =>
-      `/admin/sites/${siteCode}/categories/${categoryId}/subcategories/${subcategoryId}`,
+      `/admin/sites/${siteCode}/category/${categoryId}/subcategories/${subcategoryId}`,
     subcategoryById: (siteCode: string, subcategoryId: string) =>
       `/admin/sites/${siteCode}/subcategories/${subcategoryId}`,
     subcategoryProducts: (siteCode: string, subcategoryId: string) =>
@@ -134,6 +134,10 @@ export const endpoints = {
       `/admin/sites/${siteCode}/product-prices`,
     productPricesApply: (siteCode: string) =>
       `/admin/sites/${siteCode}/product-prices/apply`,
+    newsletterSubscribers: (siteCode: string) =>
+      `/admin/sites/${siteCode}/newsletter/subscribers`,
+    newsletterSend: (siteCode: string) =>
+      `/admin/sites/${siteCode}/newsletter/send`,
   },
   media: {
     uploadImage: "/media/images",

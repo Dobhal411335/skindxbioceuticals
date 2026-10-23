@@ -2,10 +2,12 @@ import type { SiteCode } from '@/types/common';
 
 export type { SiteCode };
 
-export interface EmailRecipient {
-  email: string;
-  name?: string;
-}
+export type EmailRecipient =
+  | string
+  | {
+      email: string;
+      name?: string;
+    };
 
 export interface RenderedEmail {
   subject: string;
@@ -43,6 +45,28 @@ export interface EmailLayoutOptions {
   contentText: string;
   preheader?: string;
   includeUnsubscribe?: boolean;
+  unsubscribeUrl?: string;
+}
+
+export interface PromotionalEmailInput {
+  to: string | { email: string; name?: string };
+  siteCode: SiteCode;
+  subject: string;
+  htmlContent: string;
+  unsubscribeUrl?: string;
+}
+
+export interface NewsletterCategoryItem {
+  name: string;
+  url: string;
+  description?: string;
+}
+
+export interface NewsletterWelcomeEmailInput {
+  to: EmailRecipient;
+  siteCode: SiteCode;
+  categories?: NewsletterCategoryItem[];
+  unsubscribeUrl?: string;
 }
 
 export interface OrderLineItemEmailData {

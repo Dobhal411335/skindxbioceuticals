@@ -23,7 +23,7 @@ export const API_ENDPOINTS = {
   PRODUCTS: {
     LIST: "/products",
     DETAIL: (id: string) => `/products/${id}`,
-    CATEGORIES: "/products/categories",
+    CATEGORIES: "/products/category",
     PUBLIC_LIST: (siteCode: string) => `/sites/${siteCode}/products`,
     PUBLIC_FACETS: (siteCode: string) => `/sites/${siteCode}/products/facets`,
     PUBLIC_DETAIL: (siteCode: string, slug: string) =>
@@ -98,9 +98,9 @@ export const API_ENDPOINTS = {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/hero-banners`,
   },
   CATEGORIES: {
-    PUBLIC: (siteCode: string) => `/sites/${siteCode}/categories`,
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/category`,
     PUBLIC_DETAIL: (siteCode: string, categorySlug: string) =>
-      `/sites/${siteCode}/categories/${encodeURIComponent(categorySlug)}`,
+      `/sites/${siteCode}/category/${encodeURIComponent(categorySlug)}`,
   },
   DOCTORS: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/doctors`,

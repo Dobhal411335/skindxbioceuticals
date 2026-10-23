@@ -47,7 +47,7 @@ function isRenderableStorefrontSlide(
   if (slide.layoutType === "SPLIT_DUAL") {
     return Boolean(
       slide.mainHeading.trim() &&
-        (slide.leftImageUrl.trim() || slide.rightImageUrl.trim()),
+      (slide.leftImageUrl.trim() || slide.rightImageUrl.trim()),
     );
   }
 
@@ -74,7 +74,7 @@ export function mapHeroBannerConfigToStorefront(
           ? optionalHref(slide.buttonUrl, "")
           : optionalHref(slide.buttonUrl, "/category"),
       button2Label: slide.button2Label.trim(),
-      button2Url: optionalHref(slide.button2Url, "/categories"),
+      button2Url: optionalHref(slide.button2Url, "/category"),
       mobileImageUrl: preferHttps(slide.mobileImageUrl.trim()),
       desktopImageUrl: preferHttps(slide.desktopImageUrl.trim()),
       leftImageUrl: preferHttps(slide.leftImageUrl.trim()),

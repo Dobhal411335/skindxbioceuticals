@@ -4,6 +4,7 @@ import { emailStyles } from './email-styles';
 
 export interface EmailFooterOptions {
   includeUnsubscribe?: boolean;
+  unsubscribeUrl?: string;
 }
 
 export function renderEmailFooterHtml(
@@ -19,8 +20,10 @@ export function renderEmailFooterHtml(
     ? `<br /><a href="${escapeHtml(brand.privacyPolicyUrl)}" style="${emailStyles.footerLink}">Privacy Policy</a>`
     : '';
 
-  // Transactional emails must not include marketing unsubscribe language by default.
-  const unsubscribe = options.includeUnsubscribe
+  // Promotional/newsletter unsubscribe button and link
+  const unsubscribe = options.unsubscribeUrl
+    ? `<br /><span style="${emailStyles.muted}">No longer wish to receive promotional updates? </span><a href="${escapeHtml(options.unsubscribeUrl)}" target="_blank" rel="noopener noreferrer" style="${emailStyles.footerLink}; color: #6b7280; text-decoration: underline;">Unsubscribe</a>`
+    : options.includeUnsubscribe
     ? `<br /><span style="${emailStyles.muted}">You can unsubscribe from marketing emails using the link provided in those messages.</span>`
     : '';
 
@@ -38,7 +41,7 @@ export function renderEmailFooterHtml(
         </p>
         <p style="margin:0 0 8px 0;">
           <a href="${siteUrl}" style="${emailStyles.footerLink}">${escapeHtml(brand.siteName)}</a>
-          &nbsp;·&nbsp; ${companyName}
+          ${companyName && companyName !== brand.siteName ? `&nbsp;·&nbsp; ${companyName}` : ''}
         </p>
         <p style="margin:0;">${copyright}${privacy}${unsubscribe}</p>
       </td>
@@ -64,7 +67,9 @@ export function renderEmailFooterText(
     lines.push(`Privacy Policy: ${brand.privacyPolicyUrl}`);
   }
 
-  if (options.includeUnsubscribe) {
+  if (options.unsubscribeUrl) {
+    lines.push(`Unsubscribe: ${options.unsubscribeUrl}`);
+  } else if (options.includeUnsubscribe) {
     lines.push(
       'You can unsubscribe from marketing emails using the link provided in those messages.',
     );

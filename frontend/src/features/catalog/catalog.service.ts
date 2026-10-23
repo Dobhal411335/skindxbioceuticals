@@ -28,7 +28,7 @@ export const getCategories = cache(async (): Promise<PublicCategory[]> => {
   }
 
   try {
-    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/categories`, {
+    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/category`, {
       next: { revalidate: 60, tags: ["categories", "IN"] },
       headers: { Accept: "application/json" },
     });
@@ -61,7 +61,7 @@ export const getCategoryBySlugOrName = cache(
     try {
       const encoded = encodeURIComponent(categoryName.trim());
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/categories/${encoded}`,
+        `${base}/sites/${STOREFRONT_SITE_CODE}/category/${encoded}`,
         {
           next: { revalidate: 60, tags: ["categories", "IN", categoryName] },
           headers: { Accept: "application/json" },

@@ -57,7 +57,7 @@ export const announcement =
 
 export const navLinks = [
   { label: "Shop", href: "/category" },
-  { label: "Categories", href: "/categories" },
+  { label: "Categories", href: "/category" },
   { label: "About", href: "/about" },
   { label: "Blog", href: "/blog" },
   { label: "FAQs", href: "/faq" },
@@ -100,7 +100,7 @@ export const hero = {
   title: "SkinDx Bioc",
   body: "Thoughtfully formulated skincare and biomedical essentials for the Indian storefront — clear information, calm design, and products you can evaluate with confidence.",
   primaryCta: { label: "Shop products", href: "/category" },
-  secondaryCta: { label: "Explore range", href: "/categories" },
+  secondaryCta: { label: "Explore range", href: "/category" },
   leftImage: {
     src: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?auto=format&fit=crop&w=900&q=80",
     alt: "Skincare bottle on a clean vanity surface",
@@ -291,7 +291,7 @@ export const promos: LandingPromo[] = [
     id: "pr1",
     title: "Barrier essentials",
     description: "Serums and creams selected for everyday comfort.",
-    href: "/categories/serums",
+    href: "/category/serums",
     tone: "warm",
     image:
       "https://images.unsplash.com/photo-1620916297397-a4a33220b72c?auto=format&fit=crop&w=600&q=80",
@@ -301,7 +301,7 @@ export const promos: LandingPromo[] = [
     id: "pr2",
     title: "Precision cleansers",
     description: "Gentle gels designed for a clear, unfussy start.",
-    href: "/categories/cleansers",
+    href: "/category/cleansers",
     tone: "secondary",
     image:
       "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=600&q=80",
@@ -311,7 +311,7 @@ export const promos: LandingPromo[] = [
     id: "pr3",
     title: "Night recovery picks",
     description: "Balms and emulsions for your evening shelf.",
-    href: "/categories/treatments",
+    href: "/category/treatments",
     tone: "surface",
     image:
       "https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=600&q=80",

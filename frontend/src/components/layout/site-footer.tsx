@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Loader2, Mail, MapPin, Phone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { footer } from "@/data/landing";
+import { subscribeNewsletter } from "@/features/newsletter/newsletter.service";
+import { showError, showSuccess } from "@/lib/toast";
 import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 import { useFooter } from "@/providers/footer-provider";
 
@@ -94,6 +97,38 @@ const PAYMENT_CARDS = [
 export function SiteFooter() {
   const company = useCompanyBasicInfo();
   const managedFooter = useFooter();
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = newsletterEmail.trim();
+    if (!cleanEmail) {
+      showError("Please enter your email address");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      showError("Please enter a valid email address");
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      await subscribeNewsletter(cleanEmail);
+      showSuccess("Thank you for subscribing!");
+      setNewsletterEmail("");
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: string }).message)
+          : "Failed to subscribe. Please try again.";
+      showError(msg);
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
   const brandName = company.companyName?.trim() || footer.brand;
   const footerLogoSrc =
     company.footerLogo?.url?.trim() ||
@@ -104,22 +139,22 @@ export function SiteFooter() {
     company.officeAddresses?.length > 0
       ? company.officeAddresses
       : footer.contact
-          .filter((item) => item.icon === "map")
-          .map((item) => item.label);
+        .filter((item) => item.icon === "map")
+        .map((item) => item.label);
 
   const phones =
     company.contactNumbers?.length > 0
       ? company.contactNumbers
       : footer.contact
-          .filter((item) => item.icon === "phone")
-          .map((item) => item.label);
+        .filter((item) => item.icon === "phone")
+        .map((item) => item.label);
 
   const emails =
     company.emails?.length > 0
       ? company.emails
       : footer.contact
-          .filter((item) => item.icon === "mail")
-          .map((item) => item.label);
+        .filter((item) => item.icon === "mail")
+        .map((item) => item.label);
 
   const googleHref =
     company.googleLink?.trim() ||
@@ -241,9 +276,7 @@ export function SiteFooter() {
           </p>
           <form
             className="mt-5"
-            action="#"
-            method="get"
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={handleSubscribe}
           >
             <div className="flex items-center gap-1 rounded-full border border-border bg-background p-1.5 shadow-sm">
               <Input
@@ -251,14 +284,25 @@ export function SiteFooter() {
                 name="email"
                 placeholder="Enter Your Email"
                 aria-label="Email address"
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                disabled={isSubscribing}
                 className="h-10 flex-1 border-0 bg-transparent px-4 shadow-none focus-visible:border-transparent focus-visible:ring-0"
               />
               <Button
-                type="button"
+                type="submit"
                 size="lg"
-                className="h-10 shrink-0 rounded-full bg-foreground px-5 text-background hover:bg-foreground/90"
+                disabled={isSubscribing}
+                className="h-10 shrink-0 rounded-full bg-foreground px-5 text-background hover:bg-foreground/90 transition-all flex items-center gap-2"
               >
-                Subscribe
+                {isSubscribing ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Subscribing...
+                  </>
+                ) : (
+                  "Subscribe"
+                )}
               </Button>
             </div>
           </form>

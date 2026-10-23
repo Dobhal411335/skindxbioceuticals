@@ -16,3 +16,5 @@ export { renderVendorApprovedEmail } from './vendor-approved.template';
 export { renderDoctorAppointmentRequestedEmail } from './doctor-appointment-requested.template';
 export { renderDoctorAppointmentConfirmedEmail } from './doctor-appointment-confirmed.template';
 export { renderDoctorAppointmentCancelledEmail } from './doctor-appointment-cancelled.template';
+export { renderPromotionalEmail } from './promotional.template';
+export { renderNewsletterWelcomeEmail } from './newsletter-welcome.template';

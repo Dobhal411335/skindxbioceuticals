@@ -13,6 +13,7 @@ import {
   Lightbulb,
   Link2,
   LogOut,
+  Mail,
   MessageSquare,
   Newspaper,
   Package,
@@ -184,6 +185,14 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
             leaf(siteCode, "manage-insights", "Manage Insights", "insights", Lightbulb, {
               status: "active",
             }),
+            leaf(
+              siteCode,
+              "promotional-email",
+              "Promotional Email",
+              "promotional-email",
+              Mail,
+              { status: "active" },
+            ),
           ],
         },
         {
@@ -291,7 +300,6 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
           status: "shell",
           children: [
             leaf(siteCode, "order-enquiry", "Enquiry Order", "orders/enquiry", ClipboardList),
-            leaf(siteCode, "order-cod-log", "COD Order Log", "orders/cod-log", ClipboardList),
             leaf(siteCode, "order-online-log", "Online Order Log", "orders/online-log", ClipboardList, {
               status: "active",
             }),
