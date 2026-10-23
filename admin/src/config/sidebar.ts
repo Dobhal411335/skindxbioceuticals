@@ -189,6 +189,7 @@ export function getUnifiedNav(siteCode: SiteCode): SidebarSection[] {
         {
           id: "vendor-partner",
           label: "Vendor / Partner Section",
+          href: href(siteCode, "vendor"),
           icon: Handshake,
           status: "active",
           children: [

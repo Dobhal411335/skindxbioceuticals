@@ -1,13 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import {
+  CheckCircle2,
+  Clock,
   Eye,
   Filter,
   Loader2,
   RotateCcw,
   Search,
+  ShoppingBag,
+  Wallet,
   X,
 } from "lucide-react";
 
@@ -284,6 +288,43 @@ export function EnquiryOrderPage({ siteCode }: { siteCode: SiteCode }) {
     setSearch("");
   };
 
+  const metrics = useMemo(() => {
+    // Only completed payments: CAPTURED payment status and not CANCELLED/REFUNDED/PENDING
+    const completedRevenue = orders
+      .filter((o) => {
+        const isCaptured =
+          o.paymentStatus === "CAPTURED" ||
+          o.paymentDetails?.some((p) => p.status === "CAPTURED");
+        const isNotPendingOrCancelled =
+          o.status !== "CANCELLED" &&
+          o.status !== "REFUNDED" &&
+          o.status !== "PENDING";
+        return isCaptured && isNotPendingOrCancelled;
+      })
+      .reduce((sum, o) => sum + (Number(o.grandTotal) || 0), 0);
+
+    const completedCount = orders.filter(
+      (o) => o.status === "COMPLETED" || o.status === "DELIVERED",
+    ).length;
+
+    const pendingCount = orders.filter(
+      (o) =>
+        o.status === "PENDING" ||
+        o.status === "PROCESSING" ||
+        o.status === "CONFIRMED",
+    ).length;
+
+    const primaryCurrency = orders[0]?.currency || (siteCode === "IN" ? "INR" : "USD");
+
+    return {
+      revenue: completedRevenue,
+      currency: primaryCurrency,
+      totalOrders: total || orders.length,
+      completedOrders: completedCount,
+      pendingOrders: pendingCount,
+    };
+  }, [orders, total, siteCode]);
+
   return (
     <AdminAppShell
       siteCode={siteCode}
@@ -298,6 +339,89 @@ export function EnquiryOrderPage({ siteCode }: { siteCode: SiteCode }) {
           <p className="text-sm text-muted-foreground">
             Filter customer orders, review detailed records section by section, and update order status with automated email tracking notifications.
           </p>
+        </div>
+
+        {/* KPI Summary Cards: 4 in a row */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" data-testid="enquiry-order-stats">
+          {/* Card 1: Total Revenue */}
+          <Card className="shadow-(--shadow-card) border-border/80">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Revenue
+              </CardTitle>
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Wallet className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight">
+                {formatCurrency(metrics.revenue, metrics.currency)}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Completed payments only (excluding pending)
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Card 2: Total Orders */}
+          <Card className="shadow-(--shadow-card) border-border/80">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Orders
+              </CardTitle>
+              <div className="rounded-lg bg-blue-500/10 p-2 text-blue-600 dark:text-blue-400">
+                <ShoppingBag className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight">
+                {metrics.totalOrders}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {period === "all" ? "All-time enquiry orders" : "For selected period"}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Card 3: Completed Orders */}
+          <Card className="shadow-(--shadow-card) border-border/80">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Fulfilled Orders
+              </CardTitle>
+              <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight">
+                {metrics.completedOrders}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Delivered & completed status
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Card 4: Pending / In-Progress Orders */}
+          <Card className="shadow-(--shadow-card) border-border/80">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Pending Fulfillment
+              </CardTitle>
+              <div className="rounded-lg bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
+                <Clock className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tracking-tight">
+                {metrics.pendingOrders}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pending, confirmed & processing
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Section 1: Filter Section */}

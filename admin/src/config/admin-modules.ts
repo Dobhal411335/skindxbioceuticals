@@ -113,6 +113,13 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
   ),
 
   live(
+    "vendor-hub",
+    "vendor",
+    "Vendor / Partner Section",
+    "Overview of vendor orders, partner onboarding requests, and login credentials.",
+    ["IN", "COM"],
+  ),
+  live(
     "become-partner",
     "vendor/become-partner",
     "Pending Vendor Request",

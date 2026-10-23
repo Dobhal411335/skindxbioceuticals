@@ -28,10 +28,10 @@ export class AdminRepository {
       createdAt: { gte: from, lte: to },
     };
 
-    /** Revenue counts only non-cancelled/refunded orders with a completed (CAPTURED) payment. */
+    /** Revenue counts only non-cancelled/refunded/pending orders with a completed (CAPTURED) payment. */
     const completedPaymentOrderWhere: Prisma.OrderWhereInput = {
       ...orderWhere,
-      status: { notIn: ['CANCELLED', 'REFUNDED'] },
+      status: { notIn: ['CANCELLED', 'REFUNDED', 'PENDING'] },
       payments: { some: { status: 'CAPTURED' } },
     };
 
@@ -98,7 +98,7 @@ export class AdminRepository {
         WHERE o.site_id = ${siteId}::uuid
           AND o.created_at >= ${from}
           AND o.created_at <= ${to}
-          AND o.status NOT IN ('CANCELLED', 'REFUNDED')
+          AND o.status NOT IN ('CANCELLED', 'REFUNDED', 'PENDING')
           AND EXISTS (
             SELECT 1
             FROM payments p
@@ -126,7 +126,7 @@ export class AdminRepository {
         WHERE o.site_id = ${siteId}::uuid
           AND o.created_at >= ${from}
           AND o.created_at <= ${to}
-          AND o.status NOT IN ('CANCELLED', 'REFUNDED')
+          AND o.status NOT IN ('CANCELLED', 'REFUNDED', 'PENDING')
           AND EXISTS (
             SELECT 1
             FROM payments p

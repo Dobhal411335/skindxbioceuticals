@@ -18,6 +18,15 @@ jest.mock("@/services/api/dashboard", () => ({
   fetchDashboard: jest.fn(),
 }));
 
+jest.mock("@/services/api/admin-orders", () => ({
+  fetchVendorOrderLog: jest.fn().mockResolvedValue({ orders: [], total: 0 }),
+}));
+
+jest.mock("@/services/api/vendors", () => ({
+  fetchVendorApplications: jest.fn().mockResolvedValue([]),
+  fetchVendorCredentials: jest.fn().mockResolvedValue([]),
+}));
+
 describe("DashboardView", () => {
   it("shows an error state when the API fails", async () => {
     const { fetchDashboard } = await import("@/services/api/dashboard");
@@ -73,6 +82,11 @@ describe("DashboardView", () => {
 
     const viewAll = screen.getByRole("link", { name: /view all recent orders/i });
     expect(viewAll).toHaveAttribute("href", "/admin/in/orders/online-log");
+
+    const vendorOrdersLink = screen.getByRole("link", { name: /vendor orders/i });
+    expect(vendorOrdersLink).toHaveAttribute("href", "/admin/in/orders/vendor");
+
+    expect(screen.getByTestId("vendor-dashboard-section")).toBeInTheDocument();
   });
 
   it("renders COM enquiry totals from API data", async () => {
