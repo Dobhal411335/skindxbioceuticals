@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SkinDx Bioc Admin",
+  title: "SkinDXBioceuticals Admin",
   description:
-    "Administration panel for SkinDx Bioc India websites (.in ecommerce and .com corporate), including site-scoped product management",
+    "Administration panel for SkinDX Bioceuticals India websites (.in ecommerce and .com corporate), including site-scoped product management",
   icons: {
     icon: [
       { url: "/favicon/favicon.ico" },

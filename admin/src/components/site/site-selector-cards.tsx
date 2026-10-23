@@ -27,22 +27,22 @@ const SITE_COPY: Record<
   }
 > = {
   IN: {
-    title: "SkinDx.in",
+    title: "SkinDXBioceuticals.in",
     label: "India ecommerce",
     description:
       "Manage products, categories, inventory, orders, payments, customers, and ecommerce operations.",
-    cta: "Manage .in Website",
+    cta: "Manage SkinDXBioceuticals.in Website",
     image:
       "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1200&q=80",
     accent: "from-[#287F7B]/90 to-[#183453]/80",
     icon: ShoppingBag,
   },
   COM: {
-    title: "SkinDx.com",
+    title: "SkinDXBioceuticals.com",
     label: "India corporate website",
     description:
       "Manage company information, website pages, banners, product information, content, and enquiries.",
-    cta: "Manage .com Website",
+    cta: "Manage SkinDXBioceuticals.com Website",
     image:
       "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
     accent: "from-[#183453]/90 to-[#102E2A]/85",
