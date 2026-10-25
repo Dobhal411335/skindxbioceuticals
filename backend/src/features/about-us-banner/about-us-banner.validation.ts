@@ -61,15 +61,44 @@ const textSlideSchema = z.object({
   active: z.boolean().default(true),
 });
 
+const serviceSchema = z.object({
+  imageUrl: mediaUrlSchema.default(''),
+  imagePublicId: z.string().trim().max(500).default(''),
+  buttonLabel: z.string().trim().min(1, 'Service button label is required').max(100),
+  heading: z.string().trim().min(1, 'Service heading is required').max(300),
+  description: z.string().trim().min(1, 'Service description is required').max(4000),
+  highlights: z
+    .array(
+      z.object({
+        text: z.string().trim().min(1, 'Highlight is required').max(300),
+        sortOrder: z.number().int().min(0).max(1000).optional(),
+      }),
+    )
+    .max(20)
+    .default([]),
+  doctorImageUrl: mediaUrlSchema.default(''),
+  doctorImagePublicId: z.string().trim().max(500).default(''),
+  doctorName: z.string().trim().max(200).default(''),
+  doctorDesignation: z.string().trim().max(200).default(''),
+  doctorButtonLabel: z.string().trim().max(100).default(''),
+  doctorButtonUrl: optionalUrlSchema.default(''),
+  sortOrder: z.number().int().min(0).max(10000).optional(),
+  active: z.boolean().default(true),
+});
+
 export const aboutUsBannerConfigBodySchema = z.object({
   promoLabel: z.string().trim().max(100).default(''),
   promoHeading: z.string().trim().max(300).default(''),
   promoSubheading: z.string().trim().max(1000).default(''),
   promoButtonLabel: z.string().trim().max(100).default(''),
   promoButtonUrl: optionalUrlSchema.default(''),
+  servicesHeading: z.string().trim().max(300).optional(),
+  servicesViewAllLabel: z.string().trim().max(100).optional(),
+  servicesViewAllUrl: optionalUrlSchema.optional(),
   aboutCards: z.array(aboutCardSchema).max(50).default([]),
   highlightItems: z.array(highlightItemSchema).max(50).default([]),
   textSlides: z.array(textSlideSchema).max(50).default([]),
+  services: z.array(serviceSchema).max(50).optional(),
 });
 
 export type AboutUsBannerConfigBody = z.infer<typeof aboutUsBannerConfigBodySchema>;
@@ -145,6 +174,42 @@ function normalizeTextSlides(raw: unknown): unknown[] {
     .filter(Boolean);
 }
 
+function normalizeServices(raw: unknown): unknown[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item, index) => {
+      const entry = asRecord(item);
+      if (!entry) return null;
+      return {
+        imageUrl: String(entry.imageUrl ?? '').trim(),
+        imagePublicId: String(entry.imagePublicId ?? '').trim(),
+        buttonLabel: String(entry.buttonLabel ?? entry.label ?? '').trim(),
+        heading: String(entry.heading ?? '').trim(),
+        description: String(entry.description ?? entry.subDescription ?? '').trim(),
+        highlights: Array.isArray(entry.highlights)
+          ? entry.highlights
+              .map((highlight, highlightIndex) => {
+                const value = asRecord(highlight);
+                return {
+                  text: String(value?.text ?? highlight ?? '').trim(),
+                  sortOrder: value?.sortOrder ?? highlightIndex,
+                };
+              })
+              .filter((highlight) => highlight.text)
+          : [],
+        doctorImageUrl: String(entry.doctorImageUrl ?? '').trim(),
+        doctorImagePublicId: String(entry.doctorImagePublicId ?? '').trim(),
+        doctorName: String(entry.doctorName ?? '').trim(),
+        doctorDesignation: String(entry.doctorDesignation ?? '').trim(),
+        doctorButtonLabel: String(entry.doctorButtonLabel ?? '').trim(),
+        doctorButtonUrl: String(entry.doctorButtonUrl ?? '').trim(),
+        sortOrder: entry.sortOrder ?? index,
+        active: entry.active ?? true,
+      };
+    })
+    .filter(Boolean);
+}
+
 /** Normalize nested arrays before Zod parse. */
 export function normalizeAboutUsBannerConfigInput(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') {
@@ -160,8 +225,12 @@ export function normalizeAboutUsBannerConfigInput(raw: unknown): unknown {
     promoSubheading: String(payload.promoSubheading ?? '').trim(),
     promoButtonLabel: String(payload.promoButtonLabel ?? '').trim(),
     promoButtonUrl: String(payload.promoButtonUrl ?? '').trim(),
+    servicesHeading: String(payload.servicesHeading ?? '').trim(),
+    servicesViewAllLabel: String(payload.servicesViewAllLabel ?? '').trim(),
+    servicesViewAllUrl: String(payload.servicesViewAllUrl ?? '').trim(),
     aboutCards: normalizeAboutCards(payload.aboutCards),
     highlightItems: normalizeHighlightItems(payload.highlightItems),
     textSlides: normalizeTextSlides(payload.textSlides),
+    services: normalizeServices(payload.services),
   };
 }

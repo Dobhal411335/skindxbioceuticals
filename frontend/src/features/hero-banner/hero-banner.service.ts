@@ -78,7 +78,9 @@ export function mapHeroBannerConfigToStorefront(
       mobileImageUrl: preferHttps(slide.mobileImageUrl.trim()),
       desktopImageUrl: preferHttps(slide.desktopImageUrl.trim()),
       leftImageUrl: preferHttps(slide.leftImageUrl.trim()),
+      leftImageClickUrl: optionalHref(slide.leftImageClickUrl, ""),
       rightImageUrl: preferHttps(slide.rightImageUrl.trim()),
+      rightImageClickUrl: optionalHref(slide.rightImageClickUrl, ""),
       gridImages: (slide.gridImages || []).map((image) => ({
         id: image.id,
         src: preferHttps(image.imageUrl.trim()),

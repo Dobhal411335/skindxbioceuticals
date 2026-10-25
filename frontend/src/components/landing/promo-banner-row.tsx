@@ -46,7 +46,7 @@ function PromoTile({ item }: { item: StorefrontPromoBanner }) {
   const showCta = Boolean(item.buttonLabel && item.href);
 
   return (
-    <article className="group relative flex h-full min-h-[11.5rem] overflow-hidden rounded-2xl bg-muted sm:min-h-[13rem] border border-black">
+    <article className="group relative flex h-full min-h-[15rem] overflow-hidden rounded-2xl bg-muted border border-black">
       <Image
         src={item.imageUrl}
         alt={item.alt}

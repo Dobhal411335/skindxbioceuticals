@@ -13,6 +13,7 @@ import {
   Layers3,
   Megaphone,
   Plus,
+  Stethoscope,
   Trash2,
   Upload,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import {
 import {
   createEmptyAboutCard,
   createEmptyHighlightItem,
+  createEmptyService,
   createEmptyTextSlide,
 } from "@/components/about-us-banner/about-us-banner-form-utils";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,7 @@ import type {
   AboutUsAboutCardFormValues,
   AboutUsBannerFormValues,
   AboutUsHighlightItemFormValues,
+  AboutUsServiceFormValues,
   AboutUsTextSlideFormValues,
 } from "@/types/about-us-banner";
 
@@ -123,7 +126,9 @@ export function AboutUsBannerForm({
 }: AboutUsBannerFormProps) {
   const aboutFileRefs = useRef<Array<HTMLInputElement | null>>([]);
   const highlightFileRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const serviceFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [uploadingKey, setUploadingKey] = useState("");
+  const services = values.services ?? [];
 
   const updateAboutCard = (
     index: number,
@@ -161,8 +166,20 @@ export function AboutUsBannerForm({
     }));
   };
 
+  const updateService = (
+    index: number,
+    patch: Partial<AboutUsServiceFormValues>,
+  ) => {
+    onChange((prev) => ({
+      ...prev,
+      services: (prev.services ?? []).map((service, serviceIndex) =>
+        serviceIndex === index ? { ...service, ...patch } : service,
+      ),
+    }));
+  };
+
   const handleUpload = async (
-    kind: "about" | "highlight",
+    kind: "about" | "highlight" | "service" | "doctor",
     index: number,
     file: File | undefined,
   ) => {
@@ -179,9 +196,18 @@ export function AboutUsBannerForm({
           image: { url: uploaded.url, publicId: uploaded.publicId },
         });
       } else {
-        updateHighlight(index, {
-          image: { url: uploaded.url, publicId: uploaded.publicId },
-        });
+        if (kind === "highlight") {
+          updateHighlight(index, {
+            image: { url: uploaded.url, publicId: uploaded.publicId },
+          });
+        } else {
+          updateService(index, {
+            [kind === "service" ? "image" : "doctorImage"]: {
+              url: uploaded.url,
+              publicId: uploaded.publicId,
+            },
+          });
+        }
       }
       showSuccess("Image uploaded successfully");
     } catch (error) {
@@ -193,6 +219,7 @@ export function AboutUsBannerForm({
 
   return (
     <form id={formId} onSubmit={onSubmit} className="space-y-6">
+  
       <Card className="overflow-hidden border-border bg-card shadow-sm">
         <CardHeader className="border-b border-border/70 pb-5">
           <div className="flex items-center gap-2">
@@ -452,253 +479,113 @@ export function AboutUsBannerForm({
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-border bg-card shadow-sm">
+       <Card className="overflow-hidden border-border bg-card shadow-sm">
         <CardHeader className="border-b border-border/70 pb-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <BookOpenText className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg font-semibold">
-                  Section 3A — Highlight cards carousel
-                </CardTitle>
-              </div>
-              <CardDescription className="mt-1">
-                Image cards with heading and link only (no invented blog
-                metadata).
-              </CardDescription>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-9 gap-2"
-              onClick={() =>
-                onChange({
-                  ...values,
-                  highlightItems: [
-                    ...values.highlightItems,
-                    createEmptyHighlightItem(),
-                  ],
-                })
-              }
-            >
-              <Plus className="h-4 w-4" />
-              Add item
-            </Button>
+          <div className="flex items-center gap-2">
+            <Stethoscope className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg font-semibold">Section 3 — Our Services</CardTitle>
           </div>
+          <CardDescription className="mt-1">
+            Configure the service selector and the detail card shown beside it on the landing page.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          {errors.highlightItems ? (
-            <p className="text-xs text-destructive">{errors.highlightItems}</p>
-          ) : null}
-          {values.highlightItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No highlight items yet.
-            </p>
-          ) : null}
-          {values.highlightItems.map((item, index) => (
-            <div
-              key={`highlight-${index}`}
-              className="space-y-4 rounded-xl border border-border/80 bg-muted/20 p-4"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium">Item {index + 1}</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={item.active}
-                      onCheckedChange={(checked) =>
-                        updateHighlight(index, { active: checked })
-                      }
-                    />
-                    <span className="text-xs text-muted-foreground">Active</span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-muted-foreground hover:text-destructive"
-                    onClick={() =>
-                      onChange({
-                        ...values,
-                        highlightItems: values.highlightItems.filter(
-                          (_, itemIndex) => itemIndex !== index,
-                        ),
-                      })
-                    }
-                    aria-label={`Remove highlight ${index + 1}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
-                <ImageField
-                  label="Image"
-                  url={item.image.url}
-                  uploading={uploadingKey === `highlight-${index}`}
-                  onPick={() => highlightFileRefs.current[index]?.click()}
-                  onClear={() =>
-                    updateHighlight(index, { image: { url: "", publicId: "" } })
-                  }
-                  inputRef={(node) => {
-                    highlightFileRefs.current[index] = node;
-                    if (node) {
-                      node.onchange = (event) => {
-                        const target = event.target as HTMLInputElement;
-                        void handleUpload("highlight", index, target.files?.[0]);
-                        target.value = "";
-                      };
-                    }
-                  }}
-                />
-                <div className="grid gap-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor={`highlight-${index}-heading`}>Heading</Label>
-                    <Input
-                      id={`highlight-${index}-heading`}
-                      value={item.heading}
-                      onChange={(event) =>
-                        updateHighlight(index, { heading: event.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor={`highlight-${index}-button-label`}>
-                        Button label
-                      </Label>
-                      <Input
-                        id={`highlight-${index}-button-label`}
-                        value={item.buttonLabel}
-                        onChange={(event) =>
-                          updateHighlight(index, {
-                            buttonLabel: event.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor={`highlight-${index}-button-url`}>
-                        Button URL
-                      </Label>
-                      <Input
-                        id={`highlight-${index}-button-url`}
-                        value={item.buttonUrl}
-                        onChange={(event) =>
-                          updateHighlight(index, {
-                            buttonUrl: event.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <CardContent className="space-y-5 pt-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2 md:col-span-2">
+              <Label htmlFor="services-heading">Services heading</Label>
+              <Input
+                id="services-heading"
+                value={values.servicesHeading ?? ""}
+                onChange={(event) => onChange({ ...values, servicesHeading: event.target.value })}
+                placeholder="Caring for your child, every step of the way"
+              />
             </div>
-          ))}
-        </CardContent>
-      </Card>
+            <div className="grid gap-2">
+              <Label htmlFor="services-view-all-label">View all button label</Label>
+              <Input
+                id="services-view-all-label"
+                value={values.servicesViewAllLabel ?? ""}
+                onChange={(event) => onChange({ ...values, servicesViewAllLabel: event.target.value })}
+                placeholder="View all services"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="services-view-all-url">View all button URL</Label>
+              <Input
+                id="services-view-all-url"
+                value={values.servicesViewAllUrl ?? ""}
+                onChange={(event) => onChange({ ...values, servicesViewAllUrl: event.target.value })}
+                placeholder="/services"
+              />
+            </div>
+          </div>
 
-      <Card className="overflow-hidden border-border bg-card shadow-sm">
-        <CardHeader className="border-b border-border/70 pb-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2">
-                <BookOpenText className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg font-semibold">
-                  Section 3B — Text carousel
-                </CardTitle>
-              </div>
-              <CardDescription className="mt-1">
-                Heading and subheading pairs shown beside the highlight cards.
-              </CardDescription>
+              <p className="text-sm font-medium">Service tabs</p>
+              <p className="text-xs text-muted-foreground">Each service becomes a selectable button on the left.</p>
             </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="h-9 gap-2"
-              onClick={() =>
-                onChange({
-                  ...values,
-                  textSlides: [...values.textSlides, createEmptyTextSlide()],
-                })
-              }
+              className="gap-2"
+              onClick={() => onChange({ ...values, services: [...services, createEmptyService()] })}
             >
-              <Plus className="h-4 w-4" />
-              Add slide
+              <Plus className="h-4 w-4" /> Add service
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          {errors.textSlides ? (
-            <p className="text-xs text-destructive">{errors.textSlides}</p>
-          ) : null}
-          {values.textSlides.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No text slides yet.</p>
-          ) : null}
-          {values.textSlides.map((slide, index) => (
-            <div
-              key={`text-slide-${index}`}
-              className="space-y-4 rounded-xl border border-border/80 bg-muted/20 p-4"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium">Slide {index + 1}</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={slide.active}
-                      onCheckedChange={(checked) =>
-                        updateTextSlide(index, { active: checked })
-                      }
-                    />
-                    <span className="text-xs text-muted-foreground">Active</span>
+          {errors.services ? <p className="text-xs text-destructive">{errors.services}</p> : null}
+          {services.map((service, index) => {
+            const imageKey = `service-${index}`;
+            const doctorKey = `doctor-${index}`;
+            return (
+              <div key={`service-${index}`} className="space-y-4 rounded-xl border border-border/80 bg-muted/20 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium">Service {index + 1}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2"><Switch checked={service.active} onCheckedChange={(active) => updateService(index, { active })} /><span className="text-xs text-muted-foreground">Active</span></div>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => onChange({ ...values, services: services.filter((_, serviceIndex) => serviceIndex !== index) })} aria-label={`Remove service ${index + 1}`}><Trash2 className="h-4 w-4" /></Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-muted-foreground hover:text-destructive"
-                    onClick={() =>
-                      onChange({
-                        ...values,
-                        textSlides: values.textSlides.filter(
-                          (_, slideIndex) => slideIndex !== index,
-                        ),
-                      })
-                    }
-                    aria-label={`Remove text slide ${index + 1}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                </div>
+                <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+                  <ImageField
+                    label="Service image"
+                    url={service.image.url}
+                    uploading={uploadingKey === imageKey}
+                    onPick={() => serviceFileRefs.current[imageKey]?.click()}
+                    onClear={() => updateService(index, { image: { url: "", publicId: "" } })}
+                    inputRef={(node) => { serviceFileRefs.current[imageKey] = node; if (node) { node.onchange = (event) => { const target = event.target as HTMLInputElement; void handleUpload("service", index, target.files?.[0]); target.value = ""; }; } }}
+                  />
+                  <div className="grid gap-3">
+                    <div className="grid gap-2"><Label htmlFor={`service-${index}-button`}>Service button name</Label><Input id={`service-${index}-button`} value={service.buttonLabel} onChange={(event) => updateService(index, { buttonLabel: event.target.value })} placeholder="Well Child Check-ups" /></div>
+                    <div className="grid gap-2"><Label htmlFor={`service-${index}-heading`}>Service heading</Label><Input id={`service-${index}-heading`} value={service.heading} onChange={(event) => updateService(index, { heading: event.target.value })} /></div>
+                    <div className="grid gap-2"><Label htmlFor={`service-${index}-description`}>Sub description</Label><Textarea id={`service-${index}-description`} value={service.description} onChange={(event) => updateService(index, { description: event.target.value })} rows={4} /></div>
+                  </div>
+                </div>
+                <div className="space-y-3 rounded-lg border border-border/70 bg-background p-3">
+                  <div className="flex items-center justify-between"><p className="text-sm font-medium">Highlights</p><Button type="button" variant="outline" size="sm" className="gap-1" onClick={() => updateService(index, { highlights: [...service.highlights, { text: "" }] })}><Plus className="h-4 w-4" /> Add highlight</Button></div>
+                  {service.highlights.map((highlight, highlightIndex) => <div key={`service-${index}-highlight-${highlightIndex}`} className="flex gap-2"><Input value={highlight.text} onChange={(event) => updateService(index, { highlights: service.highlights.map((item, itemIndex) => itemIndex === highlightIndex ? { text: event.target.value } : item) })} placeholder="Excellent laboratory" /><Button type="button" variant="ghost" size="icon" onClick={() => updateService(index, { highlights: service.highlights.filter((_, itemIndex) => itemIndex !== highlightIndex) })} aria-label="Remove highlight"><Trash2 className="h-4 w-4" /></Button></div>)}
+                </div>
+                <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+                  <ImageField
+                    label="Doctor image"
+                    url={service.doctorImage.url}
+                    uploading={uploadingKey === doctorKey}
+                    onPick={() => serviceFileRefs.current[doctorKey]?.click()}
+                    onClear={() => updateService(index, { doctorImage: { url: "", publicId: "" } })}
+                    inputRef={(node) => { serviceFileRefs.current[doctorKey] = node; if (node) { node.onchange = (event) => { const target = event.target as HTMLInputElement; void handleUpload("doctor", index, target.files?.[0]); target.value = ""; }; } }}
+                  />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-2"><Label>Doctor name</Label><Input value={service.doctorName} onChange={(event) => updateService(index, { doctorName: event.target.value })} /></div>
+                    <div className="grid gap-2"><Label>Doctor designation</Label><Input value={service.doctorDesignation} onChange={(event) => updateService(index, { doctorDesignation: event.target.value })} /></div>
+                    <div className="grid gap-2"><Label>Doctor button label</Label><Input value={service.doctorButtonLabel} onChange={(event) => updateService(index, { doctorButtonLabel: event.target.value })} /></div>
+                    <div className="grid gap-2"><Label>Doctor button URL</Label><Input value={service.doctorButtonUrl} onChange={(event) => updateService(index, { doctorButtonUrl: event.target.value })} placeholder="/appointments" /></div>
+                  </div>
                 </div>
               </div>
-              <div className="grid gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor={`text-${index}-heading`}>Heading</Label>
-                  <Input
-                    id={`text-${index}-heading`}
-                    value={slide.heading}
-                    onChange={(event) =>
-                      updateTextSlide(index, { heading: event.target.value })
-                    }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor={`text-${index}-subheading`}>Subheading</Label>
-                  <Textarea
-                    id={`text-${index}-subheading`}
-                    value={slide.subheading}
-                    onChange={(event) =>
-                      updateTextSlide(index, { subheading: event.target.value })
-                    }
-                    rows={3}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
     </form>

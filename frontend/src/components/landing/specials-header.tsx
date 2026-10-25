@@ -20,7 +20,7 @@ export function SpecialsHeader({
           </p>
           <h2
             id="specials-heading"
-            className="font-display mt-3 text-2xl font-semibold tracking-tight"
+            className="font-bold mt-3 text-2xl tracking-tight"
           >
             {promo.title}
           </h2>

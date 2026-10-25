@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Heart, Minus, Plus } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingCart } from "lucide-react";
 
 import {
   ProductDiscountBadge,
@@ -85,8 +85,8 @@ function DescriptionPreview({ html }: { html: string }) {
       <div
         ref={ref}
         className={cn(
-          "rich-html text-sm text-muted-foreground",
-          !expanded && "line-clamp-4",
+          "rich-html font-sans text-sm text-muted-foreground",
+          !expanded && "line-clamp-7",
         )}
         dangerouslySetInnerHTML={{ __html: html }}
       />
@@ -688,7 +688,7 @@ export function ProductQuickView({
                 ) : null}
 
                 <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
-                  <div className="inline-flex items-center rounded-full border border-border bg-muted/40">
+                  <div className="inline-flex items-center rounded-full border border-black bg-muted/40">
                     <button
                       type="button"
                       className="px-3 py-2"
@@ -700,7 +700,7 @@ export function ProductQuickView({
                     >
                       <Minus className="size-3.5" />
                     </button>
-                    <span className="min-w-8 border-x border-border px-2 py-2 text-center text-sm">
+                    <span className="min-w-8 px-2 py-2 text-center text-sm">
                       {canPurchase ? quantity : 0}
                     </span>
                     <button
@@ -716,11 +716,12 @@ export function ProductQuickView({
                     </button>
                   </div>
                   <Button
-                    className="min-w-[8.5rem] flex-1"
+                    className="min-w-[8.5rem] flex-1 h-12 text-lg"
                     size="lg"
                     onClick={() => void addToCart()}
                     disabled={!canPurchase}
                   >
+                    <ShoppingCart className="size-4" />
                     Add to cart
                   </Button>
                 </div>
@@ -729,7 +730,7 @@ export function ProductQuickView({
                   type="button"
                   variant="outline"
                   size="lg"
-                  className="w-full"
+                  className="w-full flex items-center justify-center gap-2 text-lg border border-black"
                   onClick={() => void buyNow()}
                   disabled={!canPurchase}
                 >

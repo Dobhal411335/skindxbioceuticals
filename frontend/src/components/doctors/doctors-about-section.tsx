@@ -1,9 +1,8 @@
-"use client"
+"use client";
 import Link from "next/link";
-import { Play } from "lucide-react";
 
 import type { DoctorPageConfig } from "@/types/doctors";
-import Image from "next/image"
+import Image from "next/image";
 type DoctorsAboutSectionProps = {
   config: DoctorPageConfig;
 };
@@ -47,8 +46,14 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
           {highlights.length > 0 ? (
             <ul className="mt-6 grid gap-x-6 gap-y-3.5 sm:grid-cols-2">
               {highlights.map((item) => (
-                <li key={item} className="flex items-center gap-2.5 text-sm font-semibold text-foreground">
-                  <span className="inline-block size-2 shrink-0 rounded-full bg-foreground" aria-hidden />
+                <li
+                  key={item}
+                  className="flex items-center gap-2.5 text-sm font-semibold text-foreground"
+                >
+                  <span
+                    className="inline-block size-2 shrink-0 rounded-full bg-foreground"
+                    aria-hidden
+                  />
                   <span>{item}</span>
                 </li>
               ))}
@@ -62,7 +67,9 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
                 className="inline-flex items-center gap-2 rounded-full bg-[#565CEB] px-8 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-[#565CEB]/25 transition-all hover:bg-[#484FD9] hover:shadow-xl active:scale-[0.98] sm:text-sm"
               >
                 <span>{config.aboutButtonLabel}</span>
-                <span className="text-base font-bold leading-none" aria-hidden>+</span>
+                <span className="text-base font-bold leading-none" aria-hidden>
+                  +
+                </span>
               </Link>
             </div>
           ) : null}
@@ -91,9 +98,9 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
               {config.aboutImageUrl && (
                 <div className="relative min-w-0 flex-1 overflow-hidden rounded-[24px] sm:rounded-[30px]">
                   <Image
-                   width={250}
-                   height={400}
-                   fetchPriority="high"
+                    width={250}
+                    height={400}
+                    fetchPriority="high"
                     src={config.aboutImageUrl}
                     alt=""
                     className="aspect-[3/4] w-full object-cover"
@@ -102,18 +109,17 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
               )}
 
               {/* Experience badge: overlaps both images */}
-              {config.experienceYears != null &&
-                config.experienceYears > 0 && (
-                  <div className="absolute -top-10 left-[4%] z-20 flex items-center gap-3 whitespace-nowrap rounded-xl bg-[#565CEB] px-4 py-3 text-white shadow-lg sm:-top-11 sm:left-[1%] sm:gap-3.5 sm:rounded-2xl sm:px-6 sm:py-4">
-                    <span className="text-3xl font-extrabold leading-none sm:text-4xl">
-                      {config.experienceYears}
-                    </span>
+              {config.experienceYears != null && config.experienceYears > 0 && (
+                <div className="absolute top-[2%] left-[4%] z-20 flex items-center gap-3 whitespace-nowrap rounded-xl bg-[#565CEB] px-4 py-3 text-white shadow-lg sm:-top-5 sm:left-[1%] sm:gap-3.5 sm:rounded-2xl sm:px-6 sm:py-4">
+                  <span className="text-3xl font-extrabold leading-none sm:text-4xl">
+                    {config.experienceYears}
+                  </span>
 
-                    <span className="text-xs font-semibold leading-tight text-white/95 sm:text-base">
-                      Years Experience
-                    </span>
-                  </div>
-                )}
+                  <span className="text-xs font-semibold leading-tight text-white/95 sm:text-base">
+                    Years Experience
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

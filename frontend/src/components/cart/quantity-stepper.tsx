@@ -26,12 +26,17 @@ export function QuantityStepper({
   const buttonSize = size === "sm" ? "icon-sm" : "icon";
 
   return (
-    <div className={cn("inline-flex items-center border border-gray-500 rounded-md", className)}>
+    <div
+      className={cn(
+        "inline-flex items-center rounded-full border border-primary bg-white shadow-sm",
+        className,
+      )}
+    >
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
         size={buttonSize}
-        className="rounded-r-none border border-r-black cursor-pointer"
+        className="size-8 rounded-full text-black hover:bg-background hover:text-foreground disabled:bg-transparent disabled:opacity-10 sm:size-9"
         aria-label="Decrease quantity"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
@@ -46,8 +51,8 @@ export function QuantityStepper({
         value={value}
         aria-label="Quantity"
         className={cn(
-          "w-12 rounded-none border-x-0 text-center shadow-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-          size === "sm" ? "h-7" : "h-8",
+          "w-12 border-0 bg-transparent text-center font-semibold text-foreground shadow-none outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus-visible:ring-0",
+          size === "sm" ? "h-7" : "h-8 sm:h-9",
         )}
         onChange={(event) => {
           const next = Number(event.target.value);
@@ -57,9 +62,9 @@ export function QuantityStepper({
       />
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
         size={buttonSize}
-        className="rounded-l-none border border-l-black cursor-pointer"
+        className="size-8 rounded-full text-black hover:bg-background hover:text-foreground disabled:bg-transparent disabled:opacity-10 sm:size-9"
         aria-label="Increase quantity"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}

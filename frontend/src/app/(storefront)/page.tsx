@@ -1,5 +1,5 @@
 import { AboutSplit } from "@/components/landing/about-split";
-import { BlogCarousel } from "@/components/landing/blog-carousel";
+import { OurServices } from "@/components/landing/our-services";
 import { BlogGrid } from "@/components/landing/blog-grid";
 import { CookieConsentBanner } from "@/components/landing/cookie-consent-banner";
 import { FaqSection } from "@/components/landing/faq-section";
@@ -64,9 +64,10 @@ export default async function HomePage() {
       <TrustBenefitsBar />
       <SpecialsHeader promo={aboutUsBanner.promo} />
       <AboutSplit cards={aboutUsBanner.aboutCards} />
-      <BlogCarousel
-        highlightItems={aboutUsBanner.highlightItems}
-        textSlides={aboutUsBanner.textSlides}
+      <OurServices
+        servicesHeading={aboutUsBanner.servicesHeading ?? "Caring for your child, every step of the way"}
+        servicesViewAll={aboutUsBanner.servicesViewAll ?? { label: "View all services", href: "/services" }}
+        services={aboutUsBanner.services ?? []}
       />
       <FeaturedProductRail products={landingProducts} />
       <PromoBannerRow items={promoBanners} />

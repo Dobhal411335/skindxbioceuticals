@@ -32,6 +32,30 @@ export type AboutUsTextSlideDto = {
   active: boolean;
 };
 
+export type AboutUsServiceHighlightDto = {
+  id: string;
+  text: string;
+  sortOrder: number;
+};
+
+export type AboutUsServiceDto = {
+  id: string;
+  imageUrl: string;
+  imagePublicId: string;
+  buttonLabel: string;
+  heading: string;
+  description: string;
+  highlights: AboutUsServiceHighlightDto[];
+  doctorImageUrl: string;
+  doctorImagePublicId: string;
+  doctorName: string;
+  doctorDesignation: string;
+  doctorButtonLabel: string;
+  doctorButtonUrl: string;
+  sortOrder: number;
+  active: boolean;
+};
+
 export type AboutUsBannerConfigDto = {
   id: string | null;
   siteCode: SiteCodeDto;
@@ -40,9 +64,13 @@ export type AboutUsBannerConfigDto = {
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
+  servicesHeading?: string;
+  servicesViewAllLabel?: string;
+  servicesViewAllUrl?: string;
   aboutCards: AboutUsAboutCardDto[];
-  highlightItems: AboutUsHighlightItemDto[];
-  textSlides: AboutUsTextSlideDto[];
+  highlightItems?: AboutUsHighlightItemDto[];
+  textSlides?: AboutUsTextSlideDto[];
+  services?: AboutUsServiceDto[];
   updatedAt: string | null;
 };
 
@@ -78,6 +106,15 @@ export type AboutUsTextSlideRecord = {
   active: boolean;
 };
 
+export type AboutUsServiceHighlightRecord = AboutUsServiceHighlightDto & {
+  serviceId: string;
+};
+
+export type AboutUsServiceRecord = Omit<AboutUsServiceDto, 'highlights'> & {
+  configId: string;
+  highlights: AboutUsServiceHighlightRecord[];
+};
+
 export type AboutUsBannerConfigRecord = {
   id: string;
   siteId: string;
@@ -86,10 +123,14 @@ export type AboutUsBannerConfigRecord = {
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
+  servicesHeading?: string;
+  servicesViewAllLabel?: string;
+  servicesViewAllUrl?: string;
   updatedAt: Date;
   aboutCards: AboutUsAboutCardRecord[];
   highlightItems: AboutUsHighlightItemRecord[];
   textSlides: AboutUsTextSlideRecord[];
+  services?: AboutUsServiceRecord[];
 };
 
 export type AboutUsAboutCardWrite = {
@@ -121,13 +162,39 @@ export type AboutUsTextSlideWrite = {
   active: boolean;
 };
 
+export type AboutUsServiceHighlightWrite = {
+  text: string;
+  sortOrder: number;
+};
+
+export type AboutUsServiceWrite = {
+  imageUrl: string;
+  imagePublicId: string;
+  buttonLabel: string;
+  heading: string;
+  description: string;
+  highlights: AboutUsServiceHighlightWrite[];
+  doctorImageUrl: string;
+  doctorImagePublicId: string;
+  doctorName: string;
+  doctorDesignation: string;
+  doctorButtonLabel: string;
+  doctorButtonUrl: string;
+  sortOrder: number;
+  active: boolean;
+};
+
 export type AboutUsBannerConfigUpsertData = {
   promoLabel: string;
   promoHeading: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
+  servicesHeading?: string;
+  servicesViewAllLabel?: string;
+  servicesViewAllUrl?: string;
   aboutCards: AboutUsAboutCardWrite[];
   highlightItems: AboutUsHighlightItemWrite[];
   textSlides: AboutUsTextSlideWrite[];
+  services?: AboutUsServiceWrite[];
 };

@@ -8,8 +8,7 @@ import type {
   AboutUsBannerConfigDto,
   AboutUsBannerConfigRecord,
   AboutUsBannerConfigUpsertData,
-  AboutUsHighlightItemDto,
-  AboutUsTextSlideDto,
+  AboutUsServiceDto,
   SiteCodeDto,
 } from './about-us-banner.types';
 
@@ -29,9 +28,11 @@ export function emptyAboutUsBannerConfigDto(siteCode: SiteCodeDto): AboutUsBanne
     promoSubheading: '',
     promoButtonLabel: '',
     promoButtonUrl: '',
+    servicesHeading: '',
+    servicesViewAllLabel: '',
+    servicesViewAllUrl: '',
     aboutCards: [],
-    highlightItems: [],
-    textSlides: [],
+    services: [],
     updatedAt: null,
   };
 }
@@ -53,30 +54,29 @@ function toAboutCardDto(
   };
 }
 
-function toHighlightDto(
-  item: AboutUsBannerConfigRecord['highlightItems'][number],
-): AboutUsHighlightItemDto {
+function toServiceDto(
+  service: NonNullable<AboutUsBannerConfigRecord['services']>[number],
+): AboutUsServiceDto {
   return {
-    id: item.id,
-    imageUrl: preferHttpsUrl(item.imageUrl),
-    imagePublicId: item.imagePublicId,
-    heading: item.heading,
-    buttonLabel: item.buttonLabel,
-    buttonUrl: item.buttonUrl,
-    sortOrder: item.sortOrder,
-    active: item.active,
-  };
-}
-
-function toTextSlideDto(
-  slide: AboutUsBannerConfigRecord['textSlides'][number],
-): AboutUsTextSlideDto {
-  return {
-    id: slide.id,
-    heading: slide.heading,
-    subheading: slide.subheading,
-    sortOrder: slide.sortOrder,
-    active: slide.active,
+    id: service.id,
+    imageUrl: preferHttpsUrl(service.imageUrl),
+    imagePublicId: service.imagePublicId,
+    buttonLabel: service.buttonLabel,
+    heading: service.heading,
+    description: service.description,
+    highlights: service.highlights.map((highlight) => ({
+      id: highlight.id,
+      text: highlight.text,
+      sortOrder: highlight.sortOrder,
+    })),
+    doctorImageUrl: preferHttpsUrl(service.doctorImageUrl),
+    doctorImagePublicId: service.doctorImagePublicId,
+    doctorName: service.doctorName,
+    doctorDesignation: service.doctorDesignation,
+    doctorButtonLabel: service.doctorButtonLabel,
+    doctorButtonUrl: service.doctorButtonUrl,
+    sortOrder: service.sortOrder,
+    active: service.active,
   };
 }
 
@@ -95,15 +95,13 @@ export function toAboutUsBannerConfigDto(
     promoSubheading: record.promoSubheading,
     promoButtonLabel: record.promoButtonLabel,
     promoButtonUrl: record.promoButtonUrl,
-    aboutCards: record.aboutCards
-      .filter((card) => !activeOnly || card.active)
-      .map(toAboutCardDto),
-    highlightItems: record.highlightItems
-      .filter((item) => !activeOnly || item.active)
-      .map(toHighlightDto),
-    textSlides: record.textSlides
-      .filter((slide) => !activeOnly || slide.active)
-      .map(toTextSlideDto),
+    servicesHeading: record.servicesHeading,
+    servicesViewAllLabel: record.servicesViewAllLabel,
+    servicesViewAllUrl: record.servicesViewAllUrl,
+    aboutCards: record.aboutCards.filter((card) => !activeOnly || card.active).map(toAboutCardDto),
+    services: (record.services || [])
+      .filter((service) => !activeOnly || service.active)
+      .map(toServiceDto),
     updatedAt: record.updatedAt.toISOString(),
   };
 }
@@ -115,6 +113,9 @@ function bodyToUpsertData(body: AboutUsBannerConfigBody): AboutUsBannerConfigUps
     promoSubheading: body.promoSubheading,
     promoButtonLabel: body.promoButtonLabel,
     promoButtonUrl: body.promoButtonUrl || '',
+    servicesHeading: body.servicesHeading || '',
+    servicesViewAllLabel: body.servicesViewAllLabel || '',
+    servicesViewAllUrl: body.servicesViewAllUrl || '',
     aboutCards: body.aboutCards.map((card, index) => ({
       imageUrl: preferHttpsUrl(card.imageUrl || ''),
       imagePublicId: card.imagePublicId || '',
@@ -141,13 +142,32 @@ function bodyToUpsertData(body: AboutUsBannerConfigBody): AboutUsBannerConfigUps
       sortOrder: slide.sortOrder ?? index,
       active: slide.active,
     })),
+    services: (body.services || []).map((service, index) => ({
+      imageUrl: preferHttpsUrl(service.imageUrl || ''),
+      imagePublicId: service.imagePublicId || '',
+      buttonLabel: service.buttonLabel,
+      heading: service.heading,
+      description: service.description,
+      highlights: service.highlights.map((highlight, highlightIndex) => ({
+        text: highlight.text,
+        sortOrder: highlight.sortOrder ?? highlightIndex,
+      })),
+      doctorImageUrl: preferHttpsUrl(service.doctorImageUrl || ''),
+      doctorImagePublicId: service.doctorImagePublicId || '',
+      doctorName: service.doctorName || '',
+      doctorDesignation: service.doctorDesignation || '',
+      doctorButtonLabel: service.doctorButtonLabel || '',
+      doctorButtonUrl: service.doctorButtonUrl || '',
+      sortOrder: service.sortOrder ?? index,
+      active: service.active,
+    })),
   };
 }
 
 function collectAboutUsPublicIds(
   source:
-    | Pick<AboutUsBannerConfigRecord, 'aboutCards' | 'highlightItems'>
-    | Pick<AboutUsBannerConfigUpsertData, 'aboutCards' | 'highlightItems'>,
+    | Pick<AboutUsBannerConfigRecord, 'aboutCards' | 'highlightItems' | 'services'>
+    | Pick<AboutUsBannerConfigUpsertData, 'aboutCards' | 'highlightItems' | 'services'>,
 ): string[] {
   const ids: string[] = [];
   for (const card of source.aboutCards) {
@@ -157,6 +177,12 @@ function collectAboutUsPublicIds(
   for (const item of source.highlightItems) {
     const trimmed = item.imagePublicId.trim();
     if (trimmed) ids.push(trimmed);
+  }
+  for (const service of source.services || []) {
+    for (const publicId of [service.imagePublicId, service.doctorImagePublicId]) {
+      const trimmed = publicId.trim();
+      if (trimmed) ids.push(trimmed);
+    }
   }
   return ids;
 }
@@ -217,6 +243,7 @@ export class AboutUsBannerService {
         aboutCardCount: record.aboutCards.length,
         highlightItemCount: record.highlightItems.length,
         textSlideCount: record.textSlides.length,
+        serviceCount: (record.services || []).length,
         orphanedImageCount: orphanedPublicIds.length,
       },
       'About Us banner config upserted',

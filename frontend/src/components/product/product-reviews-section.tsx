@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Star } from "lucide-react";
+import { Pause, Play, Star } from "lucide-react";
 
 import {
   Carousel,
@@ -13,6 +13,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PublicProductDetail, PublicProductEditorialReview } from "@/types/product";
 
@@ -20,21 +21,7 @@ type ProductReviewsSectionProps = {
   product: PublicProductDetail;
 };
 
-const CARD_TONES = [
-  "bg-emerald-50/80",
-  "bg-sky-50/80",
-  "bg-amber-50/80",
-  "bg-rose-50/80",
-  "bg-violet-50/80",
-] as const;
-
-function ReviewCard({
-  review,
-  toneClass,
-}: {
-  review: PublicProductEditorialReview;
-  toneClass: string;
-}) {
+function ReviewCard({ review }: { review: PublicProductEditorialReview }) {
   const rating = Math.min(5, Math.max(1, Math.round(review.rating)));
   const initials = review.createdByName
     .split(/\s+/)
@@ -44,55 +31,43 @@ function ReviewCard({
     .join("");
 
   return (
-    <figure
-      className={cn(
-        "flex h-full flex-col gap-4 rounded-lg border border-border/60 p-5",
-        toneClass,
-      )}
-    >
-      <div
-        className="flex gap-0.5 text-foreground"
-        aria-label={`${rating} out of 5 stars`}
-      >
+    <figure className="flex h-full flex-col justify-between rounded-2xl border border-black/[0.06] bg-white p-7 text-left shadow-[0_2px_12px_rgba(20,30,40,0.06)] transition-shadow duration-200 hover:shadow-[0_8px_24px_rgba(20,30,40,0.1)] sm:p-8">
+      <div className="flex items-center gap-1.5" aria-label={`${rating} out of 5 stars`}>
         {Array.from({ length: 5 }).map((_, index) => (
           <Star
             key={index}
             className={cn(
-              "size-4",
+              "size-5",
               index < rating
-                ? "fill-amber-400 text-amber-400"
-                : "text-muted-foreground/30",
+                ? "fill-[#ef6a24] text-[#ef6a24]"
+                : "fill-transparent text-[#ef6a24]/30",
             )}
             aria-hidden
           />
         ))}
       </div>
       {review.title ? (
-        <p className="text-xl font-semibold text-black">{review.title}</p>
+        <p className="text-lg font-semibold tracking-tight text-[#17283d] sm:text-xl">
+          {review.title}
+        </p>
       ) : null}
       <blockquote
-        className="rich-html text-justify flex-1 text-[12px] leading-relaxed text-foreground/90"
+        className="rich-html mt-5 line-clamp-6 flex-1 text-base italic leading-relaxed text-[#34475c]"
         dangerouslySetInnerHTML={{ __html: review.body }}
       />
-      <figcaption className="flex items-center gap-3">
+      <figcaption className="mt-8 flex items-center gap-3 border-t border-[#e8e5df] pt-5">
         {review.imageUrl ? (
-          <div className="relative size-10 overflow-hidden rounded-full bg-surface">
-            <Image
-              src={review.imageUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="40px"
-            />
+          <div className="relative size-15 border bordre-primary overflow-hidden rounded-full bg-surface">
+            <Image src={review.imageUrl} alt="" fill className="object-cover" sizes="40px" />
           </div>
         ) : (
-          <div className="flex size-10 items-center justify-center rounded-full bg-background text-xs font-semibold">
+          <div className="flex size-12 items-center justify-center rounded-full bg-[#ef6a24]/10 text-xs font-semibold text-[#ef6a24]">
             {initials || "CU"}
           </div>
         )}
         <div>
-          <p className="text-sm font-semibold">{review.createdByName}</p>
-          <p className="text-xs text-muted-foreground">Verified customer</p>
+          <p className="text-sm font-semibold text-[#17283d]">{review.createdByName}</p>
+          <p className="text-xs text-[#657487]">Verified customer</p>
         </div>
       </figcaption>
     </figure>
@@ -119,22 +94,22 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
   return (
     <section
       id="product-reviews"
-      className="scroll-mt-24 border-y border-border bg-surface/40"
+      className="scroll-mt-24 overflow-hidden border-y border-[#e8e5df] bg-[#f7f5f1]"
       aria-labelledby="product-reviews-heading"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="container-page section-space">
-        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="container-page section-space sm:py-20 lg:py-24">
+        <div className="mb-10 flex items-end justify-between gap-8">
           <div>
-            <p className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
-              Reviews
+            <p className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
+              Community voices
             </p>
             <h2
               id="product-reviews-heading"
-              className="font-display mt-1 text-3xl font-semibold tracking-tight"
+              className="mt-2 text-4xl font-semibold tracking-tight text-[#101d2d] sm:text-5xl"
             >
-              Customer reviews
+              What customers say
             </h2>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <div
@@ -145,21 +120,20 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
                   <Star
                     key={index}
                     className={cn(
-                      "size-4",
+                      "size-5",
                       index < filled
-                        ? "fill-amber-400 text-amber-400"
-                        : "text-muted-foreground/40",
+                        ? "fill-[#ef6a24] text-[#ef6a24]"
+                        : "fill-transparent text-[#ef6a24]/30",
                     )}
                     aria-hidden
                   />
                 ))}
               </div>
-              <span className="font-medium text-foreground">
+              <span className="font-semibold text-[#17283d]">
                 {product.averageRating.toFixed(1)}
               </span>
               <span>
-                from {product.reviewCount}{" "}
-                {product.reviewCount === 1 ? "customer" : "customers"}
+                from {product.reviewCount} {product.reviewCount === 1 ? "customer" : "customers"}
               </span>
             </div>
           </div>
@@ -171,28 +145,38 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
             opts={{ align: "start", loop: reviews.length > 1 }}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
-              {reviews.map((review, index) => (
+            <CarouselContent className="-ml-5 py-2">
+            {reviews.map((review) => (
                 <CarouselItem
                   key={review.id}
-                  className="basis-full pl-4 sm:basis-1/2 lg:basis-1/3"
+                  className="flex basis-full pl-5 sm:basis-1/2 lg:basis-1/3"
                 >
-                  <ReviewCard
-                    review={review}
-                    toneClass={CARD_TONES[index % CARD_TONES.length]!}
-                  />
+                  <ReviewCard review={review} />
                 </CarouselItem>
               ))}
             </CarouselContent>
             {reviews.length > 1 ? (
               <>
-                <CarouselPrevious className="-left-3 hidden border-border bg-background/90 shadow-sm md:flex" />
-                <CarouselNext className="-right-3 hidden border-border bg-background/90 shadow-sm md:flex" />
+                <CarouselPrevious className="-left-3 hidden border-[#dedbd5] bg-white text-[#17283d] shadow-sm md:flex" />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="absolute top-1/2 right-10 z-10 hidden size-10 -translate-y-1/2 rounded-full border-[#dedbd5] bg-white text-[#17283d] shadow-sm md:flex"
+                  onClick={() => setIsPaused((prev) => !prev)}
+                  aria-label={isPaused ? "Play product reviews" : "Pause product reviews"}
+                >
+                  {isPaused ? (
+                    <Play className="size-3.5 fill-current" />
+                  ) : (
+                    <Pause className="size-3.5 fill-current" />
+                  )}
+                </Button>
+                <CarouselNext className="-right-3 hidden border-[#dedbd5] bg-white text-[#17283d] shadow-sm md:flex" />
               </>
             ) : null}
           </Carousel>
-        ) : (
-          null)}
+        ) : null}
       </div>
     </section>
   );

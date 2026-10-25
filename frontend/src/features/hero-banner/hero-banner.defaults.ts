@@ -18,7 +18,9 @@ export const FALLBACK_HERO_SLIDES: StorefrontHeroSlide[] = [
     mobileImageUrl: "",
     desktopImageUrl: "",
     leftImageUrl: "",
+    leftImageClickUrl: "",
     rightImageUrl: "",
+    rightImageClickUrl: "",
     gridImages: heroAssociateFallback.partners.map((partner) => ({
       id: partner.id,
       src: "",

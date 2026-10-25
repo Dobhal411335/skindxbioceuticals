@@ -55,7 +55,7 @@ function ProductListItem({
     <li>
       <div
         className={cn(
-          "group relative flex gap-4 rounded-xl border border-border p-3",
+          "group relative flex gap-4 rounded-xl hover:border p-3",
           "transition-all duration-300 hover:scale-[1.02] hover:border-primary hover:bg-muted/60",
         )}
       >
@@ -249,29 +249,6 @@ function FeaturedHighlightCard({
       />
 
       <div className="mt-4 flex items-center gap-2">
-        <div className="inline-flex items-center rounded border border-black">
-          <button
-            type="button"
-            className="px-2.5 py-1.5"
-            onClick={() => setQuantity((value) => clampQty(value - 1))}
-            aria-label="Decrease quantity"
-            disabled={!canAdd}
-          >
-            <Minus className="size-3.5" />
-          </button>
-          <span className="min-w-7 border-x border-black px-2 py-1.5 text-center text-sm">
-            {canAdd ? quantity : 0}
-          </span>
-          <button
-            type="button"
-            className="px-2.5 py-1.5"
-            onClick={() => setQuantity((value) => clampQty(value + 1))}
-            aria-label="Increase quantity"
-            disabled={!canAdd}
-          >
-            <Plus className="size-3.5" />
-          </button>
-        </div>
         <Button
           type="button"
           className="flex-1 px-4 py-5 rounded-full"
@@ -282,10 +259,6 @@ function FeaturedHighlightCard({
           Add to cart
         </Button>
       </div>
-
-      <Button asChild variant="outline" className="mt-3 w-full border border-black hover:border-primary hover:bg-primary hover:text-white transition-all duration-300 hover:shadow-md" size="lg">
-        <Link href={`/products/${product.slug}`}>View details <ArrowUpRight className="size-4" /></Link>
-      </Button>
     </div>
   );
 }
@@ -313,7 +286,7 @@ export function ProductHighlightColumns({
   }
 
   if(recent.length === 0) return null;
-
+  if(bestSellers.length === 0) return null;
 
   return (
     <section
@@ -373,11 +346,7 @@ export function ProductHighlightColumns({
 
         <div>
           <h3 className="mb-4 text-xl font-semibold">Our bestsellers</h3>
-          {bestSellers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No bestsellers flagged yet.
-            </p>
-          ) : (
+          
             <ul className="space-y-2">
               {bestSellers.map((product) => (
                 <ProductListItem
@@ -387,7 +356,7 @@ export function ProductHighlightColumns({
                 />
               ))}
             </ul>
-          )}
+          
         </div>
       </div>
 

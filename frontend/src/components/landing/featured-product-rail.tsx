@@ -57,7 +57,7 @@ export function FeaturedProductRail({ products }: FeaturedProductRailProps) {
         <div>
           <h2
             id="product-rail-heading"
-            className="font-display text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="text-3xl font-semibold tracking-tight sm:text-4xl"
           >
             {productRail.title}
           </h2>

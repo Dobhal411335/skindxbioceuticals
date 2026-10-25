@@ -24,6 +24,7 @@ export type AboutUsBannerFormErrors = {
   aboutCards?: string;
   highlightItems?: string;
   textSlides?: string;
+  services?: string;
 };
 
 export function validateAboutUsBannerForm(
@@ -68,28 +69,21 @@ export function validateAboutUsBannerForm(
     }
   }
 
-  for (const [index, item] of values.highlightItems.entries()) {
-    if (!item.heading.trim()) {
-      errors.highlightItems = `Highlight ${index + 1}: heading is required`;
+  for (const [index, service] of (values.services ?? []).entries()) {
+    if (!service.buttonLabel.trim()) {
+      errors.services = `Service ${index + 1}: button label is required`;
       break;
     }
-    if (!item.buttonLabel.trim()) {
-      errors.highlightItems = `Highlight ${index + 1}: button label is required`;
+    if (!service.heading.trim()) {
+      errors.services = `Service ${index + 1}: heading is required`;
       break;
     }
-    if (!isOptionalUrl(item.buttonUrl)) {
-      errors.highlightItems = `Highlight ${index + 1}: invalid button URL`;
+    if (!service.description.trim()) {
+      errors.services = `Service ${index + 1}: description is required`;
       break;
     }
-  }
-
-  for (const [index, slide] of values.textSlides.entries()) {
-    if (!slide.heading.trim()) {
-      errors.textSlides = `Text slide ${index + 1}: heading is required`;
-      break;
-    }
-    if (!slide.subheading.trim()) {
-      errors.textSlides = `Text slide ${index + 1}: subheading is required`;
+    if (!isOptionalUrl(service.doctorButtonUrl)) {
+      errors.services = `Service ${index + 1}: invalid doctor button URL`;
       break;
     }
   }
@@ -121,6 +115,9 @@ export function toAboutUsBannerPayload(
     promoSubheading: trimText(values.promoSubheading),
     promoButtonLabel: trimText(values.promoButtonLabel),
     promoButtonUrl: trimText(values.promoButtonUrl),
+    servicesHeading: trimText(values.servicesHeading),
+    servicesViewAllLabel: trimText(values.servicesViewAllLabel),
+    servicesViewAllUrl: trimText(values.servicesViewAllUrl),
     aboutCards: values.aboutCards.map((card, index) => ({
       imageUrl: preferHttpsUrl(trimText(card.image?.url)),
       imagePublicId: trimText(card.image?.publicId),
@@ -132,19 +129,27 @@ export function toAboutUsBannerPayload(
       active: card.active,
       sortOrder: index,
     })),
-    highlightItems: values.highlightItems.map((item, index) => ({
-      imageUrl: preferHttpsUrl(trimText(item.image?.url)),
-      imagePublicId: trimText(item.image?.publicId),
-      heading: trimText(item.heading),
-      buttonLabel: trimText(item.buttonLabel),
-      buttonUrl: trimText(item.buttonUrl),
-      active: item.active,
-      sortOrder: index,
-    })),
-    textSlides: values.textSlides.map((slide, index) => ({
-      heading: trimText(slide.heading),
-      subheading: trimText(slide.subheading),
-      active: slide.active,
+    highlightItems: [],
+    textSlides: [],
+    services: (values.services ?? []).map((service, index) => ({
+      imageUrl: preferHttpsUrl(trimText(service.image?.url)),
+      imagePublicId: trimText(service.image?.publicId),
+      buttonLabel: trimText(service.buttonLabel),
+      heading: trimText(service.heading),
+      description: trimText(service.description),
+      highlights: service.highlights
+        .filter((highlight) => trimText(highlight.text))
+        .map((highlight, highlightIndex) => ({
+          text: trimText(highlight.text),
+          sortOrder: highlightIndex,
+        })),
+      doctorImageUrl: preferHttpsUrl(trimText(service.doctorImage?.url)),
+      doctorImagePublicId: trimText(service.doctorImage?.publicId),
+      doctorName: trimText(service.doctorName),
+      doctorDesignation: trimText(service.doctorDesignation),
+      doctorButtonLabel: trimText(service.doctorButtonLabel),
+      doctorButtonUrl: trimText(service.doctorButtonUrl),
+      active: service.active,
       sortOrder: index,
     })),
   };

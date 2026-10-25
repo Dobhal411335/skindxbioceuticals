@@ -28,8 +28,10 @@ export type HeroBannerSlideDto = {
   button2Url: string;
   leftImageUrl: string;
   leftImagePublicId: string;
+  leftImageClickUrl?: string;
   rightImageUrl: string;
   rightImagePublicId: string;
+  rightImageClickUrl?: string;
   gridImages: HeroBannerGridImageDto[];
 };
 
@@ -66,8 +68,10 @@ export type HeroBannerSlideRecord = {
   button2Url: string;
   leftImageUrl: string;
   leftImagePublicId: string;
+  leftImageClickUrl?: string;
   rightImageUrl: string;
   rightImagePublicId: string;
+  rightImageClickUrl?: string;
   gridImages: HeroBannerGridImageRecord[];
 };
 
@@ -95,7 +99,9 @@ export type HeroBannerSlideWrite = {
   button2Url: string;
   leftImageUrl: string;
   leftImagePublicId: string;
+  leftImageClickUrl?: string;
   rightImageUrl: string;
   rightImagePublicId: string;
+  rightImageClickUrl?: string;
   gridImages: HeroBannerGridImageWrite[];
 };

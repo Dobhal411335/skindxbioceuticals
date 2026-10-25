@@ -33,4 +33,22 @@ export const FALLBACK_ABOUT_US_BANNER: StorefrontAboutUsBanner = {
       body: blogIntro.body,
     },
   ],
+  servicesHeading: "Caring for your child, every step of the way",
+  servicesViewAll: { label: "View all services", href: "/services" },
+  services: [
+    {
+      id: "fallback-service",
+      buttonLabel: "Our services",
+      heading: "Personalized care for every family",
+      description: "Thoughtful, expert-led care designed around your needs.",
+      image: { ...about.image },
+      highlights: ["Excellent laboratory", "World class infrastructure", "Health checkups"],
+      doctor: {
+        image: { ...about.image },
+        name: "SkinDx Care Team",
+        designation: "Specialist care",
+        cta: { label: "Book an appointment", href: "/appointments" },
+      },
+    },
+  ],
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { useTopAdvertisement } from "@/providers/top-advertisement-provider";
 import type { StorefrontAnnouncementItem } from "@/types/top-advertisement";
@@ -22,38 +23,40 @@ function AnnouncementText({ item }: { item: StorefrontAnnouncementItem }) {
 export function AnnouncementBar() {
   const { announcements } = useTopAdvertisement();
   const active = announcements.filter((item) => item.text.trim());
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (active.length <= 1) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setActiveIndex((index) => (index + 1) % active.length);
+    }, 4500);
+
+    return () => window.clearInterval(interval);
+  }, [active.length]);
 
   if (active.length === 0) {
     return null;
   }
 
-  if (active.length === 1) {
-    const item = active[0]!;
-    return (
-      <div className="bg-secondary text-secondary-foreground">
-        <p className="container-page py-2 text-center text-xs tracking-wide sm:text-sm">
-          <AnnouncementText item={item} />
-        </p>
-      </div>
-    );
-  }
-
-  // Duplicate the sequence so CSS translate can loop seamlessly.
-  const track = [...active, ...active];
+  const item = active[activeIndex % active.length]!;
 
   return (
     <div className="bg-secondary text-secondary-foreground">
       <div
-        className="group relative overflow-hidden py-2 text-xs tracking-wide sm:text-sm"
+        className="flex min-h-9 items-center justify-center overflow-hidden px-4 py-2 text-center text-xs tracking-wide sm:text-sm"
         aria-label="Announcements"
+        aria-live="polite"
+        role="status"
       >
-        <div className="animate-marquee flex w-max items-center gap-10 whitespace-nowrap px-4 group-hover:[animation-play-state:paused] motion-reduce:animate-none motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-6 motion-reduce:whitespace-normal">
-          {track.map((item, index) => (
-            <span key={`${item.text}-${index}`} className="inline-flex shrink-0">
-              <AnnouncementText item={item} />
-            </span>
-          ))}
-        </div>
+        <span
+          key={`${item.text}-${activeIndex}`}
+          className="inline-flex animate-in fade-in duration-700 motion-reduce:animate-none"
+        >
+          <AnnouncementText item={item} />
+        </span>
       </div>
     </div>
   );

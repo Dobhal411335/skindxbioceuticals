@@ -17,7 +17,7 @@ export function TrustBenefitsBar() {
         <div className="container-page grid divide-y divide-border/80 md:grid-cols-2 md:divide-x md:divide-y-0">
           {trustItems.map((item) => (
             <div key={item.title} className="px-4 py-6 text-center md:px-8">
-              <p className="text-sm font-semibold tracking-wide uppercase">
+              <p className="text-md font-semibold tracking-wide uppercase">
                 {item.title}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
@@ -34,11 +34,11 @@ export function TrustBenefitsBar() {
               {index > 0 ? (
                 <Separator
                   orientation="vertical"
-                  className="mr-4 hidden h-8 lg:block"
+                  className="mr-4 hidden h-10 lg:block"
                 />
               ) : null}
-              <Icon className="size-5 text-muted-foreground" aria-hidden />
-              <p className="text-xs font-semibold tracking-wide uppercase">
+              <Icon className="size-6 text-muted-foreground" aria-hidden />
+              <p className="text-md font-semibold tracking-wide uppercase">
                 {item.title}
               </p>
             </div>

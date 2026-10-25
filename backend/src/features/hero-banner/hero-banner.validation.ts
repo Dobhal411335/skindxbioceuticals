@@ -72,8 +72,10 @@ const fullWidthSlideSchema = z.object({
   button2Url: optionalUrlSchema.default(''),
   leftImageUrl: mediaUrlSchema.default(''),
   leftImagePublicId: z.string().trim().max(500).default(''),
+  leftImageClickUrl: optionalUrlSchema.optional(),
   rightImageUrl: mediaUrlSchema.default(''),
   rightImagePublicId: z.string().trim().max(500).default(''),
+  rightImageClickUrl: optionalUrlSchema.optional(),
   gridImages: z.array(gridImageSchema).max(0).default([]),
 });
 
@@ -94,8 +96,10 @@ const splitDualSlideSchema = z.object({
   button2Url: optionalUrlSchema.default(''),
   leftImageUrl: requiredMediaUrlSchema,
   leftImagePublicId: z.string().trim().max(500).default(''),
+  leftImageClickUrl: optionalUrlSchema.optional(),
   rightImageUrl: requiredMediaUrlSchema,
   rightImagePublicId: z.string().trim().max(500).default(''),
+  rightImageClickUrl: optionalUrlSchema.optional(),
   gridImages: z.array(gridImageSchema).max(0).default([]),
 });
 
@@ -116,8 +120,10 @@ const multiImageSlideSchema = z.object({
   button2Url: optionalUrlSchema.default(''),
   leftImageUrl: mediaUrlSchema.default(''),
   leftImagePublicId: z.string().trim().max(500).default(''),
+  leftImageClickUrl: optionalUrlSchema.optional(),
   rightImageUrl: mediaUrlSchema.default(''),
   rightImagePublicId: z.string().trim().max(500).default(''),
+  rightImageClickUrl: optionalUrlSchema.optional(),
   gridImages: z
     .array(gridImageSchema)
     .min(4, 'Associate brand slides need 4–6 images')
@@ -189,9 +195,7 @@ export function normalizeHeroBannerConfigInput(raw: unknown): unknown {
 
       const mainHeading = String(entry.mainHeading ?? entry.heading ?? '').trim();
       const mobileImageUrl = String(entry.mobileImageUrl ?? '').trim();
-      const desktopImageUrl = String(
-        entry.desktopImageUrl ?? entry.laptopImageUrl ?? '',
-      ).trim();
+      const desktopImageUrl = String(entry.desktopImageUrl ?? entry.laptopImageUrl ?? '').trim();
 
       // Full-width is image-only; other layouts still need a heading.
       if (layoutType !== 'FULL_WIDTH' && !mainHeading) return null;
@@ -222,15 +226,19 @@ export function normalizeHeroBannerConfigInput(raw: unknown): unknown {
           layoutType === 'FULL_WIDTH'
             ? ''
             : String(entry.buttonLabel ?? entry.ctaLabel ?? '').trim(),
-        buttonUrl: String(
-          entry.buttonUrl ?? entry.ctaUrl ?? entry.imageClickUrl ?? '',
-        ).trim(),
+        buttonUrl: String(entry.buttonUrl ?? entry.ctaUrl ?? entry.imageClickUrl ?? '').trim(),
         button2Label: String(entry.button2Label ?? entry.secondaryButtonLabel ?? '').trim(),
         button2Url: String(entry.button2Url ?? entry.secondaryButtonUrl ?? '').trim(),
         leftImageUrl: String(entry.leftImageUrl ?? '').trim(),
         leftImagePublicId: String(entry.leftImagePublicId ?? '').trim(),
+        leftImageClickUrl: String(
+          entry.leftImageClickUrl ?? entry.leftImageUrlClickUrl ?? '',
+        ).trim(),
         rightImageUrl: String(entry.rightImageUrl ?? '').trim(),
         rightImagePublicId: String(entry.rightImagePublicId ?? '').trim(),
+        rightImageClickUrl: String(
+          entry.rightImageClickUrl ?? entry.rightImageUrlClickUrl ?? '',
+        ).trim(),
         gridImages: normalizeGridImages(entry.gridImages ?? entry.images),
       };
     })

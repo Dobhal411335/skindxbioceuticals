@@ -40,7 +40,7 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
           sections.map((section) => (
             <TabsContent key={section.id} value={section.id} className="mt-6 w-full">
               <div
-                className="rich-html text-sm leading-relaxed text-muted-foreground"
+                className="rich-html text-md leading-relaxed text-muted-foreground"
                 dangerouslySetInnerHTML={{ __html: section.body }}
               />
             </TabsContent>

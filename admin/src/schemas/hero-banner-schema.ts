@@ -76,6 +76,12 @@ function validateSlide(
     if (!slide.rightImage.url.trim() || !isHttpUrl(slide.rightImage.url)) {
       return `${label}: right side image URL is required`;
     }
+    if (!isOptionalUrl(slide.leftImageClickUrl)) {
+      return `${label}: invalid left image click URL`;
+    }
+    if (!isOptionalUrl(slide.rightImageClickUrl)) {
+      return `${label}: invalid right image click URL`;
+    }
   }
 
   if (slide.layoutType === "MULTI_IMAGE") {
@@ -137,8 +143,10 @@ export function toHeroBannerPayload(
         button2Url: isSplit ? slide.button2Url.trim() : "",
         leftImageUrl: isSplit ? slide.leftImage.url.trim() : "",
         leftImagePublicId: isSplit ? slide.leftImage.publicId.trim() : "",
+        leftImageClickUrl: isSplit ? slide.leftImageClickUrl.trim() : "",
         rightImageUrl: isSplit ? slide.rightImage.url.trim() : "",
         rightImagePublicId: isSplit ? slide.rightImage.publicId.trim() : "",
+        rightImageClickUrl: isSplit ? slide.rightImageClickUrl.trim() : "",
         gridImages: isMulti
           ? slide.gridImages
               .filter((image) => image.image.url.trim())

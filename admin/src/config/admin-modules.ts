@@ -50,7 +50,7 @@ const BANNER_MODULES: AdminModuleDefinition[] = [
     "banner-about-us",
     "banners/about-us",
     "About Us Banner",
-    "Manage the home About Us promo header, about cards carousel, and dual bottom block for this website.",
+    "Manage the home About Us promo header, About Us cards, and Our Services selector for this website.",
     ["IN", "COM"],
   ),
   live(

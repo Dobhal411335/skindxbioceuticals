@@ -98,7 +98,7 @@ export function AboutUsBannerPage({ siteCode }: { siteCode: SiteCode }) {
     <AdminAppShell
       siteCode={siteCode}
       title="About Us Banner"
-      description="Manage the home promo header, about cards carousel, and dual bottom block for this website."
+      description="Manage the home promo header, About Us cards, and Our Services selector for this website."
     >
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">

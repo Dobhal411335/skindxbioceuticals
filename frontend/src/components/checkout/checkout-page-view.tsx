@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import {
-  ArrowLeft,
+
   CheckCircle2,
   ClipboardList,
   ExternalLink,
@@ -14,6 +14,7 @@ import {
   Loader2,
   MapPin,
   ShieldCheck,
+  ShoppingCart,
   Trash2,
   Upload,
   X,
@@ -614,8 +615,8 @@ export function CheckoutPageView() {
   return (
     <div className="grid min-h-[70vh] lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
       <div className="container-page max-w-2xl py-10 lg:ml-auto lg:mr-0 lg:px-10">
-        <Link href="/" className="font-display text-2xl font-semibold">
-          SkinDx
+        <Link href="/" className=" text-sm">
+          Home
         </Link>
 
         <div className="mt-10 space-y-10">
@@ -646,6 +647,7 @@ export function CheckoutPageView() {
                     id="checkout-email"
                     type="email"
                     value={email}
+                    className={"mt-2"}
                     onChange={(e) => {
                       setEmail(e.target.value);
                       if (guestStep !== "email") {
@@ -741,7 +743,7 @@ export function CheckoutPageView() {
                 <FileImage className="size-5 text-primary" />
                 <h2 className="text-lg font-semibold tracking-tight">Prescription</h2>
               </div>
-              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              <span className="rounded-md border bg-muted px-2.5 py-0.5 text-sm font-medium text-black">
                 Optional
               </span>
             </div>
@@ -800,7 +802,9 @@ export function CheckoutPageView() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
                 <div className="flex items-center gap-3">
                   <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-background shadow-xs">
-                    <img
+                    <Image
+                    height={250}
+                    width={200}
                       src={prescriptionImageUrl}
                       alt="Prescription preview"
                       className="size-full object-cover"
@@ -1143,11 +1147,7 @@ export function CheckoutPageView() {
             <ul className="divide-y divide-border/60">
               {items.map((item) => {
                 const pricing = getCartLinePricing(item);
-                const tax = cartLineTaxInPaise(item);
-                const cgstPercentLine = item.cgstPercent ?? 0;
-                const sgstPercentLine = item.sgstPercent ?? 0;
-                const lineInclTaxInPaise =
-                  pricing.linePayableInPaise + tax.taxInPaise;
+
                 const isEditing = editingNoteItemId === item.id;
 
                 return (
@@ -1215,7 +1215,7 @@ export function CheckoutPageView() {
                         size="icon-xs"
                         aria-label={`Remove ${item.name}`}
                         onClick={() => void remove(item.id)}
-                        className="text-muted-foreground hover:text-destructive"
+                        className="text-destructive"
                       >
                         <Trash2 className="size-4" />
                       </Button>
@@ -1228,7 +1228,7 @@ export function CheckoutPageView() {
                         onChange={(quantity) => void setQuantity(item.id, quantity)}
                       />
 
-                      <div className="w-full min-w-[11rem] space-y-1 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs sm:w-auto sm:min-w-[12.5rem]">
+                      {/* <div className="w-full min-w-[11rem] space-y-1 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs sm:w-auto sm:min-w-[12.5rem]">
                         <div className="flex justify-between gap-4 text-muted-foreground">
                           <span>
                             Amount × {item.quantity}
@@ -1265,10 +1265,10 @@ export function CheckoutPageView() {
                             {formatPaiseToInr(lineInclTaxInPaise)}
                           </span>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
 
-                    <div className="pl-[4.75rem]">
+                    <div className="">
                       {isEditing ? (
                         <div className="space-y-2 rounded-md border border-border bg-muted/40 p-2.5">
                           <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
@@ -1426,9 +1426,9 @@ export function CheckoutPageView() {
             <p className="text-center pt-1 text-xs text-muted-foreground">
               <Link
                 href="/cart"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
               >
-                <ArrowLeft className="size-3.5" />
+                <ShoppingCart className="size-5"/>
                 Return to cart
               </Link>
             </p>

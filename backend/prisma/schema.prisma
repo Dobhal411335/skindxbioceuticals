@@ -1408,7 +1408,7 @@ model TopAdvertisementItem {
   @@map("top_advertisement_items")
 }
 
-/// Home About Us banner: promo header + about cards + highlight/text carousels.
+/// Home About Us banner: promo header + about cards + Our Services selector.
 model AboutUsBannerConfig {
   id               String   @id @default(uuid()) @db.Uuid
   siteId           String   @unique @map("site_id") @db.Uuid
@@ -1417,6 +1417,9 @@ model AboutUsBannerConfig {
   promoSubheading  String   @default("") @map("promo_subheading")
   promoButtonLabel String   @default("") @map("promo_button_label")
   promoButtonUrl   String   @default("") @map("promo_button_url")
+  servicesHeading String   @default("") @map("services_heading")
+  servicesViewAllLabel String @default("") @map("services_view_all_label")
+  servicesViewAllUrl String @default("") @map("services_view_all_url")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -1424,8 +1427,49 @@ model AboutUsBannerConfig {
   aboutCards     AboutUsAboutCard[]
   highlightItems AboutUsHighlightItem[]
   textSlides     AboutUsTextSlide[]
+  services       AboutUsService[]
 
   @@map("about_us_banner_configs")
+}
+
+model AboutUsService {
+  id                  String   @id @default(uuid()) @db.Uuid
+  configId            String   @map("config_id") @db.Uuid
+  imageUrl            String   @default("") @map("image_url")
+  imagePublicId       String   @default("") @map("image_public_id")
+  buttonLabel         String   @map("button_label")
+  heading             String
+  description         String   @db.Text
+  doctorImageUrl      String   @default("") @map("doctor_image_url")
+  doctorImagePublicId String   @default("") @map("doctor_image_public_id")
+  doctorName          String   @default("") @map("doctor_name")
+  doctorDesignation   String   @default("") @map("doctor_designation")
+  doctorButtonLabel   String   @default("") @map("doctor_button_label")
+  doctorButtonUrl     String   @default("") @map("doctor_button_url")
+  sortOrder           Int      @default(0) @map("sort_order")
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  config     AboutUsBannerConfig      @relation(fields: [configId], references: [id], onDelete: Cascade)
+  highlights AboutUsServiceHighlight[]
+
+  @@index([configId, sortOrder])
+  @@map("about_us_services")
+}
+
+model AboutUsServiceHighlight {
+  id        String   @id @default(uuid()) @db.Uuid
+  serviceId String   @map("service_id") @db.Uuid
+  text      String
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  service AboutUsService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, sortOrder])
+  @@map("about_us_service_highlights")
 }
 
 model AboutUsAboutCard {
@@ -1581,8 +1625,10 @@ model HeroBannerSlide {
   button2Url           String               @default("") @map("button2_url")
   leftImageUrl         String               @default("") @map("left_image_url")
   leftImagePublicId    String               @default("") @map("left_image_public_id")
+  leftImageClickUrl    String               @default("") @map("left_image_click_url")
   rightImageUrl        String               @default("") @map("right_image_url")
   rightImagePublicId   String               @default("") @map("right_image_public_id")
+  rightImageClickUrl   String               @default("") @map("right_image_click_url")
   createdAt            DateTime             @default(now()) @map("created_at")
   updatedAt            DateTime             @updatedAt @map("updated_at")
 

@@ -53,7 +53,9 @@ export function createEmptySlide(
     button2Label: "",
     button2Url: "",
     leftImage: emptyImage(),
+    leftImageClickUrl: "",
     rightImage: emptyImage(),
+    rightImageClickUrl: "",
     gridImages,
   };
 }
@@ -88,10 +90,12 @@ export function dtoToFormValues(dto: HeroBannerConfigDto): HeroBannerFormValues 
         url: slide.leftImageUrl,
         publicId: slide.leftImagePublicId,
       },
+      leftImageClickUrl: slide.leftImageClickUrl,
       rightImage: {
         url: slide.rightImageUrl,
         publicId: slide.rightImagePublicId,
       },
+      rightImageClickUrl: slide.rightImageClickUrl,
       gridImages: slide.gridImages.map((image) => ({
         image: { url: image.imageUrl, publicId: image.imagePublicId },
         alt: image.alt,

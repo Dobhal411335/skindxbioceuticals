@@ -266,7 +266,7 @@ export function StyleGallery({ items }: { items: GalleryItem[] }) {
       <div className="mx-auto max-w-3xl text-center">
         <h2
           id="gallery-heading"
-          className="font-heading text-4xl font-semibold tracking-tight"
+          className="font-sans text-4xl font-semibold tracking-tight"
         >
           #Lookbook Gallery
         </h2>

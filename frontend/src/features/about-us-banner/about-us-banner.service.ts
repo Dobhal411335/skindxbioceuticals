@@ -1,10 +1,7 @@
 import { cache } from "react";
 
 import { FALLBACK_ABOUT_US_BANNER } from "@/features/about-us-banner/about-us-banner.defaults";
-import type {
-  AboutUsBannerConfig,
-  StorefrontAboutUsBanner,
-} from "@/types/about-us-banner";
+import type { AboutUsBannerConfig, StorefrontAboutUsBanner } from "@/types/about-us-banner";
 
 type ApiSuccess<T> = {
   success: true;
@@ -44,17 +41,10 @@ export function mapAboutUsBannerConfigToStorefront(
       ? {
           label: config.promoLabel.trim() || FALLBACK_ABOUT_US_BANNER.promo.label,
           title: promoHeading,
-          subtitle:
-            config.promoSubheading.trim() ||
-            FALLBACK_ABOUT_US_BANNER.promo.subtitle,
+          subtitle: config.promoSubheading.trim() || FALLBACK_ABOUT_US_BANNER.promo.subtitle,
           cta: {
-            label:
-              config.promoButtonLabel.trim() ||
-              FALLBACK_ABOUT_US_BANNER.promo.cta.label,
-            href: optionalHref(
-              config.promoButtonUrl,
-              FALLBACK_ABOUT_US_BANNER.promo.cta.href,
-            ),
+            label: config.promoButtonLabel.trim() || FALLBACK_ABOUT_US_BANNER.promo.cta.label,
+            href: optionalHref(config.promoButtonUrl, FALLBACK_ABOUT_US_BANNER.promo.cta.href),
           },
         }
       : FALLBACK_ABOUT_US_BANNER.promo;
@@ -71,9 +61,7 @@ export function mapAboutUsBannerConfigToStorefront(
         href: optionalHref(card.buttonUrl, "/about"),
       },
       image: {
-        src:
-          preferHttps(card.imageUrl.trim()) ||
-          FALLBACK_ABOUT_US_BANNER.aboutCards[0]!.image.src,
+        src: preferHttps(card.imageUrl.trim()) || FALLBACK_ABOUT_US_BANNER.aboutCards[0]!.image.src,
         alt: card.heading.trim() || "About us",
       },
     }));
@@ -83,9 +71,7 @@ export function mapAboutUsBannerConfigToStorefront(
     .map((item) => ({
       id: item.id,
       title: item.heading.trim(),
-      image:
-        preferHttps(item.imageUrl.trim()) ||
-        FALLBACK_ABOUT_US_BANNER.highlightItems[0]!.image,
+      image: preferHttps(item.imageUrl.trim()) || FALLBACK_ABOUT_US_BANNER.highlightItems[0]!.image,
       alt: item.heading.trim(),
       href: optionalHref(item.buttonUrl, "#"),
       buttonLabel: item.buttonLabel.trim() || "Read more",
@@ -99,16 +85,44 @@ export function mapAboutUsBannerConfigToStorefront(
       body: slide.subheading.trim(),
     }));
 
+  const services = (config.services || [])
+    .filter((service) => service.active && service.heading.trim())
+    .map((service) => ({
+      id: service.id,
+      buttonLabel: service.buttonLabel.trim(),
+      heading: service.heading.trim(),
+      description: service.description.trim(),
+      image: { src: preferHttps(service.imageUrl.trim()), alt: service.heading.trim() },
+      highlights: (service.highlights || [])
+        .map((highlight) => highlight.text.trim())
+        .filter(Boolean),
+      doctor: {
+        image: {
+          src: preferHttps(service.doctorImageUrl.trim()),
+          alt: service.doctorName.trim() || "Doctor",
+        },
+        name: service.doctorName.trim(),
+        designation: service.doctorDesignation.trim(),
+        cta: {
+          label: service.doctorButtonLabel.trim() || "Book an appointment",
+          href: optionalHref(service.doctorButtonUrl, "/appointments"),
+        },
+      },
+    }));
+
   return {
     promo,
-    aboutCards:
-      aboutCards.length > 0 ? aboutCards : FALLBACK_ABOUT_US_BANNER.aboutCards,
+    aboutCards: aboutCards.length > 0 ? aboutCards : FALLBACK_ABOUT_US_BANNER.aboutCards,
     highlightItems:
-      highlightItems.length > 0
-        ? highlightItems
-        : FALLBACK_ABOUT_US_BANNER.highlightItems,
-    textSlides:
-      textSlides.length > 0 ? textSlides : FALLBACK_ABOUT_US_BANNER.textSlides,
+      highlightItems.length > 0 ? highlightItems : FALLBACK_ABOUT_US_BANNER.highlightItems,
+    textSlides: textSlides.length > 0 ? textSlides : FALLBACK_ABOUT_US_BANNER.textSlides,
+    servicesHeading:
+      config.servicesHeading?.trim() || "Caring for your child, every step of the way",
+    servicesViewAll: {
+      label: config.servicesViewAllLabel?.trim() || "View all services",
+      href: optionalHref(config.servicesViewAllUrl, "/services"),
+    },
+    services: services.length > 0 ? services : FALLBACK_ABOUT_US_BANNER.services,
   };
 }
 
@@ -116,39 +130,33 @@ export function mapAboutUsBannerConfigToStorefront(
  * Server-side fetch of About Us banner for the .in storefront.
  * Cached per request via React `cache`. Falls back to static landing data.
  */
-export const getAboutUsBanner = cache(
-  async (): Promise<StorefrontAboutUsBanner> => {
-    const base = apiBaseUrl();
-    if (!base) {
+export const getAboutUsBanner = cache(async (): Promise<StorefrontAboutUsBanner> => {
+  const base = apiBaseUrl();
+  if (!base) {
+    return FALLBACK_ABOUT_US_BANNER;
+  }
+
+  try {
+    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/about-us-banner`, {
+      next: { revalidate: 60, tags: ["about-us-banner", "IN"] },
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
       return FALLBACK_ABOUT_US_BANNER;
     }
 
-    try {
-      const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/about-us-banner`,
-        {
-          next: { revalidate: 60, tags: ["about-us-banner", "IN"] },
-          headers: { Accept: "application/json" },
-        },
-      );
-
-      if (!response.ok) {
-        return FALLBACK_ABOUT_US_BANNER;
-      }
-
-      const payload =
-        (await response.json()) as ApiSuccess<AboutUsBannerConfig>;
-      if (!payload?.success || !payload.data) {
-        return FALLBACK_ABOUT_US_BANNER;
-      }
-
-      if (!payload.data.id) {
-        return FALLBACK_ABOUT_US_BANNER;
-      }
-
-      return mapAboutUsBannerConfigToStorefront(payload.data);
-    } catch {
+    const payload = (await response.json()) as ApiSuccess<AboutUsBannerConfig>;
+    if (!payload?.success || !payload.data) {
       return FALLBACK_ABOUT_US_BANNER;
     }
-  },
-);
+
+    if (!payload.data.id) {
+      return FALLBACK_ABOUT_US_BANNER;
+    }
+
+    return mapAboutUsBannerConfigToStorefront(payload.data);
+  } catch {
+    return FALLBACK_ABOUT_US_BANNER;
+  }
+});

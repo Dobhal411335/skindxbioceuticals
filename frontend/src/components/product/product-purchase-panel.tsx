@@ -75,7 +75,6 @@ export function ProductPurchasePanel({
     isInWishlist,
     authLoading: wishlistAuthLoading,
   } = useWishlistActions();
-  const [agreed, setAgreed] = useState(false);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [wishlistPending, setWishlistPending] = useState(false);
   const savedToWishlist = isInWishlist(product.id);
@@ -161,11 +160,11 @@ export function ProductPurchasePanel({
     .join(" / ");
 
   function requirePurchaseReady() {
-    if (!agreed || unavailable || !selectedVariant) {
+    if (unavailable || !selectedVariant) {
       showError(
         unavailable
           ? "Product not available right now."
-          : "Please agree to the terms before adding to cart.",
+          : "",
         { id: "cart.add.error" },
       );
       return false;
@@ -260,7 +259,7 @@ export function ProductPurchasePanel({
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+        <h1 className="font-semibold text-2xl tracking-tight sm:text-3xl">
           {product.name}
         </h1>
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -516,7 +515,7 @@ export function ProductPurchasePanel({
           type="button"
           size="lg"
           className="h-12 flex-1 border border-gray-500 rounded-md hover:bg-primary hover:text-white cursor-pointer"
-          disabled={!agreed || unavailable}
+          disabled={unavailable}
           onClick={() => void addToCart()}
         >
           <ShoppingCart className="size-4" /> Add to cart
@@ -555,27 +554,12 @@ export function ProductPurchasePanel({
           <Share2 className="size-5" />
         </Button>
       </div>
-
-      <div className="flex items-start gap-2">
-        <Checkbox
-          id="pdp-terms"
-          checked={agreed}
-          onCheckedChange={(checked) => setAgreed(checked === true)}
-        />
-        <Label htmlFor="pdp-terms" className="text-xs leading-snug font-normal">
-          I agree with{" "}
-          <Link href="/policies/terms" className="underline underline-offset-2">
-            Terms &amp; Conditions
-          </Link>
-        </Label>
-      </div>
-
       <Button
         type="button"
         variant="outline"
         size="lg"
         className="h-12 w-full border border-gray-500 rounded-md hover:bg-primary hover:text-white cursor-pointer"
-        disabled={!agreed || unavailable}
+        disabled={unavailable}
         onClick={() => void buyNow()}
       >
         Buy it now

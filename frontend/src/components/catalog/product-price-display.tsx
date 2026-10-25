@@ -114,17 +114,17 @@ export function ProductPriceDisplay({
   }
 
   return (
-    <div className={cn("flex flex-wrap items-center justify-center gap-2", className)}>
+    <div className={cn("flex flex-wrap items-start justify-start gap-2", className)}>
       <span
         className={cn(
           saleSizeClass[size],
-          priced.hasDiscount ? "text-primary text-lg" : "text-foreground text-base",
+          priced.hasDiscount ? "text-primary text-xl" : "text-foreground text-base",
         )}
       >
         {formatInr(priced.unitPrice)}
       </span>
       {priced.hasDiscount ? (
-        <span className="text-sm text-muted-foreground line-through">
+        <span className="text-sm mt-1 text-muted-foreground line-through">
           {formatInr(priced.originalPrice)}
         </span>
       ) : null}

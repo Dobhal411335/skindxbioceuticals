@@ -6,13 +6,13 @@ export function MarqueeBanner() {
   return (
     <section
       aria-label="Store announcements"
-      className="overflow-hidden bg-primary/15 py-5 text-foreground"
+      className="overflow-hidden bg-primary/15 py-7 text-foreground"
     >
       <div className="animate-marquee flex w-max gap-8 whitespace-nowrap">
         {sequence.map((item, index) => (
           <span
             key={`${item}-${index}`}
-            className="inline-flex items-center gap-8 text-md font-medium tracking-wide"
+            className="inline-flex items-center gap-8 text-xl font-medium tracking-wide"
           >
             {item}
             <span aria-hidden className="text-primary font-bold text-2xl">

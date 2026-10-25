@@ -44,8 +44,10 @@ function toSlideDto(record: HeroBannerSlideRecord): HeroBannerSlideDto {
     button2Url: record.button2Url,
     leftImageUrl: preferHttpsUrl(record.leftImageUrl),
     leftImagePublicId: record.leftImagePublicId,
+    leftImageClickUrl: record.leftImageClickUrl || '',
     rightImageUrl: preferHttpsUrl(record.rightImageUrl),
     rightImagePublicId: record.rightImagePublicId,
+    rightImageClickUrl: record.rightImageClickUrl || '',
     gridImages: record.gridImages.map((image) => ({
       id: image.id,
       imageUrl: preferHttpsUrl(image.imageUrl),
@@ -91,8 +93,10 @@ function bodyToWrites(body: HeroBannerConfigBody): HeroBannerSlideWrite[] {
       button2Url: isSplit ? slide.button2Url || '' : '',
       leftImageUrl: isSplit ? preferHttpsUrl(slide.leftImageUrl || '') : '',
       leftImagePublicId: isSplit ? slide.leftImagePublicId || '' : '',
+      leftImageClickUrl: isSplit ? slide.leftImageClickUrl || '' : '',
       rightImageUrl: isSplit ? preferHttpsUrl(slide.rightImageUrl || '') : '',
       rightImagePublicId: isSplit ? slide.rightImagePublicId || '' : '',
+      rightImageClickUrl: isSplit ? slide.rightImageClickUrl || '' : '',
       gridImages: isMulti
         ? (slide.gridImages || []).map((image, imageIndex) => ({
             imageUrl: preferHttpsUrl(image.imageUrl),

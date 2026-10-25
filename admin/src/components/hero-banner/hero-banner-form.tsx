@@ -507,6 +507,10 @@ export function HeroBannerForm({
                   <ImageField
                     label="Left side image (laptop)"
                     value={slide.leftImage}
+                    clickUrl={slide.leftImageClickUrl}
+                    onClickUrlChange={(url) =>
+                      updateSlide(index, { leftImageClickUrl: url })
+                    }
                     uploading={uploadingKey === `${slide.clientKey}-left`}
                     onPick={() => fileRefs.current[`${slide.clientKey}-left`]?.click()}
                     onClear={() =>
@@ -537,6 +541,10 @@ export function HeroBannerForm({
                   <ImageField
                     label="Right side image (laptop)"
                     value={slide.rightImage}
+                    clickUrl={slide.rightImageClickUrl}
+                    onClickUrlChange={(url) =>
+                      updateSlide(index, { rightImageClickUrl: url })
+                    }
                     uploading={uploadingKey === `${slide.clientKey}-right`}
                     onPick={() => fileRefs.current[`${slide.clientKey}-right`]?.click()}
                     onClear={() =>

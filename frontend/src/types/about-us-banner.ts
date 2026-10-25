@@ -6,9 +6,13 @@ export type AboutUsBannerConfig = {
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
+  servicesHeading?: string;
+  servicesViewAllLabel?: string;
+  servicesViewAllUrl?: string;
   aboutCards: AboutUsAboutCard[];
-  highlightItems: AboutUsHighlightItem[];
-  textSlides: AboutUsTextSlide[];
+  highlightItems?: AboutUsHighlightItem[];
+  textSlides?: AboutUsTextSlide[];
+  services?: AboutUsService[];
   updatedAt: string | null;
 };
 
@@ -44,6 +48,24 @@ export type AboutUsTextSlide = {
   active: boolean;
 };
 
+export type AboutUsService = {
+  id: string;
+  imageUrl: string;
+  imagePublicId: string;
+  buttonLabel: string;
+  heading: string;
+  description: string;
+  highlights: Array<{ id: string; text: string; sortOrder: number }>;
+  doctorImageUrl: string;
+  doctorImagePublicId: string;
+  doctorName: string;
+  doctorDesignation: string;
+  doctorButtonLabel: string;
+  doctorButtonUrl: string;
+  sortOrder: number;
+  active: boolean;
+};
+
 export type StorefrontPromoHeader = {
   label: string;
   title: string;
@@ -75,9 +97,27 @@ export type StorefrontTextSlide = {
   body: string;
 };
 
+export type StorefrontService = {
+  id: string;
+  buttonLabel: string;
+  heading: string;
+  description: string;
+  image: { src: string; alt: string };
+  highlights: string[];
+  doctor: {
+    image: { src: string; alt: string };
+    name: string;
+    designation: string;
+    cta: { label: string; href: string };
+  };
+};
+
 export type StorefrontAboutUsBanner = {
   promo: StorefrontPromoHeader;
   aboutCards: StorefrontAboutCard[];
   highlightItems: StorefrontHighlightItem[];
   textSlides: StorefrontTextSlide[];
+  servicesHeading: string;
+  servicesViewAll: { label: string; href: string };
+  services: StorefrontService[];
 };

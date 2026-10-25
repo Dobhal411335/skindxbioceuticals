@@ -1,8 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import type {
-  HeroBannerSlideRecord,
-  HeroBannerSlideWrite,
-} from './hero-banner.types';
+import type { HeroBannerSlideRecord, HeroBannerSlideWrite } from './hero-banner.types';
 
 function mapRecord(row: {
   id: string;
@@ -23,8 +20,10 @@ function mapRecord(row: {
   button2Url: string;
   leftImageUrl: string;
   leftImagePublicId: string;
+  leftImageClickUrl?: string;
   rightImageUrl: string;
   rightImagePublicId: string;
+  rightImageClickUrl?: string;
   gridImages: Array<{
     id: string;
     slideId: string;
@@ -53,8 +52,10 @@ function mapRecord(row: {
     button2Url: row.button2Url,
     leftImageUrl: row.leftImageUrl,
     leftImagePublicId: row.leftImagePublicId,
+    leftImageClickUrl: row.leftImageClickUrl || '',
     rightImageUrl: row.rightImageUrl,
     rightImagePublicId: row.rightImagePublicId,
+    rightImageClickUrl: row.rightImageClickUrl || '',
     gridImages: row.gridImages.map((image) => ({
       id: image.id,
       slideId: image.slideId,
@@ -107,8 +108,10 @@ export class HeroBannerRepository {
             button2Url: slide.button2Url,
             leftImageUrl: slide.leftImageUrl,
             leftImagePublicId: slide.leftImagePublicId,
+            leftImageClickUrl: slide.leftImageClickUrl || '',
             rightImageUrl: slide.rightImageUrl,
             rightImagePublicId: slide.rightImagePublicId,
+            rightImageClickUrl: slide.rightImageClickUrl || '',
             gridImages: {
               create: slide.gridImages.map((image) => ({
                 imageUrl: image.imageUrl,

@@ -26,8 +26,10 @@ export type HeroBannerSlide = {
   button2Url: string;
   leftImageUrl: string;
   leftImagePublicId: string;
+  leftImageClickUrl?: string;
   rightImageUrl: string;
   rightImagePublicId: string;
+  rightImageClickUrl?: string;
   gridImages: HeroBannerGridImage[];
 };
 
@@ -49,6 +51,8 @@ export type StorefrontHeroSlide = {
   mobileImageUrl: string;
   desktopImageUrl: string;
   leftImageUrl: string;
+  leftImageClickUrl: string;
   rightImageUrl: string;
+  rightImageClickUrl: string;
   gridImages: Array<{ id: string; src: string; alt: string }>;
 };

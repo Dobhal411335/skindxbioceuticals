@@ -12,6 +12,9 @@ function mapRecord(row: {
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
+  servicesHeading?: string;
+  servicesViewAllLabel?: string;
+  servicesViewAllUrl?: string;
   updatedAt: Date;
   aboutCards: Array<{
     id: string;
@@ -42,6 +45,24 @@ function mapRecord(row: {
     sortOrder: number;
     active: boolean;
   }>;
+  services?: Array<{
+    id: string;
+    configId: string;
+    imageUrl: string;
+    imagePublicId: string;
+    buttonLabel: string;
+    heading: string;
+    description: string;
+    doctorImageUrl: string;
+    doctorImagePublicId: string;
+    doctorName: string;
+    doctorDesignation: string;
+    doctorButtonLabel: string;
+    doctorButtonUrl: string;
+    sortOrder: number;
+    active: boolean;
+    highlights: Array<{ id: string; serviceId: string; text: string; sortOrder: number }>;
+  }>;
 }): AboutUsBannerConfigRecord {
   return {
     id: row.id,
@@ -51,6 +72,9 @@ function mapRecord(row: {
     promoSubheading: row.promoSubheading,
     promoButtonLabel: row.promoButtonLabel,
     promoButtonUrl: row.promoButtonUrl,
+    servicesHeading: row.servicesHeading,
+    servicesViewAllLabel: row.servicesViewAllLabel,
+    servicesViewAllUrl: row.servicesViewAllUrl,
     updatedAt: row.updatedAt,
     aboutCards: row.aboutCards.map((card) => ({
       id: card.id,
@@ -81,6 +105,29 @@ function mapRecord(row: {
       sortOrder: slide.sortOrder,
       active: slide.active,
     })),
+    services: (row.services || []).map((service) => ({
+      id: service.id,
+      configId: service.configId,
+      imageUrl: service.imageUrl,
+      imagePublicId: service.imagePublicId,
+      buttonLabel: service.buttonLabel,
+      heading: service.heading,
+      description: service.description,
+      doctorImageUrl: service.doctorImageUrl,
+      doctorImagePublicId: service.doctorImagePublicId,
+      doctorName: service.doctorName,
+      doctorDesignation: service.doctorDesignation,
+      doctorButtonLabel: service.doctorButtonLabel,
+      doctorButtonUrl: service.doctorButtonUrl,
+      sortOrder: service.sortOrder,
+      active: service.active,
+      highlights: service.highlights.map((highlight) => ({
+        id: highlight.id,
+        serviceId: highlight.serviceId,
+        text: highlight.text,
+        sortOrder: highlight.sortOrder,
+      })),
+    })),
   };
 }
 
@@ -88,6 +135,10 @@ const includeNested = {
   aboutCards: { orderBy: { sortOrder: 'asc' as const } },
   highlightItems: { orderBy: { sortOrder: 'asc' as const } },
   textSlides: { orderBy: { sortOrder: 'asc' as const } },
+  services: {
+    orderBy: { sortOrder: 'asc' as const },
+    include: { highlights: { orderBy: { sortOrder: 'asc' as const } } },
+  },
 };
 
 export class AboutUsBannerRepository {
@@ -118,6 +169,9 @@ export class AboutUsBannerRepository {
               promoSubheading: data.promoSubheading,
               promoButtonLabel: data.promoButtonLabel,
               promoButtonUrl: data.promoButtonUrl,
+              servicesHeading: data.servicesHeading,
+              servicesViewAllLabel: data.servicesViewAllLabel,
+              servicesViewAllUrl: data.servicesViewAllUrl,
             },
           })
         : await tx.aboutUsBannerConfig.create({
@@ -128,12 +182,16 @@ export class AboutUsBannerRepository {
               promoSubheading: data.promoSubheading,
               promoButtonLabel: data.promoButtonLabel,
               promoButtonUrl: data.promoButtonUrl,
+              servicesHeading: data.servicesHeading,
+              servicesViewAllLabel: data.servicesViewAllLabel,
+              servicesViewAllUrl: data.servicesViewAllUrl,
             },
           });
 
       await tx.aboutUsAboutCard.deleteMany({ where: { configId: config.id } });
       await tx.aboutUsHighlightItem.deleteMany({ where: { configId: config.id } });
       await tx.aboutUsTextSlide.deleteMany({ where: { configId: config.id } });
+      await tx.aboutUsService.deleteMany({ where: { configId: config.id } });
 
       if (data.aboutCards.length > 0) {
         await tx.aboutUsAboutCard.createMany({
@@ -160,6 +218,31 @@ export class AboutUsBannerRepository {
             ...slide,
           })),
         });
+      }
+
+      const services = data.services ?? [];
+      if (services.length > 0) {
+        for (const service of services) {
+          await tx.aboutUsService.create({
+            data: {
+              configId: config.id,
+              imageUrl: service.imageUrl,
+              imagePublicId: service.imagePublicId,
+              buttonLabel: service.buttonLabel,
+              heading: service.heading,
+              description: service.description,
+              doctorImageUrl: service.doctorImageUrl,
+              doctorImagePublicId: service.doctorImagePublicId,
+              doctorName: service.doctorName,
+              doctorDesignation: service.doctorDesignation,
+              doctorButtonLabel: service.doctorButtonLabel,
+              doctorButtonUrl: service.doctorButtonUrl,
+              sortOrder: service.sortOrder,
+              active: service.active,
+              highlights: { create: service.highlights },
+            },
+          });
+        }
       }
 
       const row = await tx.aboutUsBannerConfig.findUniqueOrThrow({

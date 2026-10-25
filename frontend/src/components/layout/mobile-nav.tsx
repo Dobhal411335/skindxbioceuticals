@@ -2,16 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Menu } from "lucide-react";
-
+import { ArrowUpRight, Hospital, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 import { useNavbarSections } from "@/providers/navbar-sections-provider";
 
@@ -19,22 +12,16 @@ export function MobileNav() {
   const company = useCompanyBasicInfo();
   const navLinks = useNavbarSections();
   const brandName = company.companyName?.trim() || "SkinDx Bioc";
-  const logoUrl =
-    company.mobileUiLogo?.url?.trim() || company.mainLogo?.url?.trim() || "";
+  const logoUrl = company.mobileUiLogo?.url?.trim() || company.mainLogo?.url?.trim() || "";
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          aria-label="Open menu"
-        >
+        <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu">
           <Menu className="size-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[min(100%,20rem)]">
+      <SheetContent side="left" className="w-[min(100%,20rem)] bg-white">
         <SheetHeader>
           <SheetTitle className="font-display text-left text-xl">
             {logoUrl ? (
@@ -60,7 +47,7 @@ export function MobileNav() {
             <div key={link.id} className="flex flex-col">
               <Link
                 href={link.href}
-                className="rounded-md px-2 py-3 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="rounded-md px-2 py-3 text-lg font-medium text-foreground transition-colors duration-200 hover:bg-muted active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {link.label}
               </Link>
@@ -70,7 +57,7 @@ export function MobileNav() {
                     <Link
                       key={child.id}
                       href={child.href}
-                      className="rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="rounded-md px-2 py-2 text-md text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground active:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {child.label}
                     </Link>
@@ -79,6 +66,14 @@ export function MobileNav() {
               ) : null}
             </div>
           ))}
+          <Link
+            href="/doctors"
+            className="mt-5 flex items-center justify-center gap-4 rounded-full border border-primary bg-primary px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-white hover:text-primary focus:bg-white focus:text-primary focus-visible:bg-white focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:bg-white active:text-primary"
+          >
+            <Hospital/>
+            Appointment your doctor
+            <ArrowUpRight/>
+          </Link>
         </nav>
       </SheetContent>
     </Sheet>

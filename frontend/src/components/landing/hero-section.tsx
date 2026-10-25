@@ -115,11 +115,11 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
       {slide.miniHeading ? (
         <p className="text-sm tracking-wide">{slide.miniHeading}</p>
       ) : null}
-      <h1 className="font-bold mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+      <h1 className="font-bold mt-3 text-4xl tracking-tight sm:text-5xl">
         {slide.mainHeading}
       </h1>
       {slide.description ? (
-        <p className="mt-4 max-w-md text-sm leading-relaxed opacity-90 sm:text-base">
+        <p className="mt-4 max-w-md text-sm leading-relaxed opacity-90 ">
           {slide.description}
         </p>
       ) : null}
@@ -160,19 +160,29 @@ function SplitDualSlide({
   const mobileSrc = slide.leftImageUrl || slide.rightImageUrl;
 
   if (isMobile) {
+    const mobileImageClickUrl = slide.leftImageUrl
+      ? slide.leftImageClickUrl
+      : slide.rightImageClickUrl;
+
     return (
       <div className={`relative ${HERO_FRAME}`}>
         {mobileSrc ? (
-          <Image
-            src={mobileSrc}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority={priority}
-          />
+          <HeroClickable
+            href={mobileImageClickUrl}
+            className="absolute inset-0"
+            ariaLabel="Open hero image"
+          >
+            <Image
+              src={mobileSrc}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority={priority}
+            />
+          </HeroClickable>
         ) : null}
-        <div className="absolute inset-0 bg-primary/70" />
+        <div className="pointer-events-none absolute inset-0 bg-primary/70" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 py-16 text-center text-primary-foreground">
           <SplitCopy slide={slide} />
         </div>
@@ -182,18 +192,24 @@ function SplitDualSlide({
 
   return (
     <div
-      className={`grid ${HERO_FRAME} lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)_minmax(0,400px)]`}
+      className={`grid ${HERO_FRAME} lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)_minmax(0,500px)]`}
     >
       <div className="relative h-full min-h-0 bg-muted">
         {slide.leftImageUrl ? (
-          <Image
-            src={slide.leftImageUrl}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="350px"
-            priority={priority}
-          />
+          <HeroClickable
+            href={slide.leftImageClickUrl}
+            className="relative block size-full"
+            ariaLabel="Open left hero image"
+          >
+            <Image
+              src={slide.leftImageUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="350px"
+              priority={priority}
+            />
+          </HeroClickable>
         ) : null}
       </div>
 
@@ -203,14 +219,20 @@ function SplitDualSlide({
 
       <div className="relative h-full min-h-0 bg-muted">
         {slide.rightImageUrl ? (
-          <Image
-            src={slide.rightImageUrl}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="350px"
-            priority={priority}
-          />
+          <HeroClickable
+            href={slide.rightImageClickUrl}
+            className="relative block size-full"
+            ariaLabel="Open right hero image"
+          >
+            <Image
+              src={slide.rightImageUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="350px"
+              priority={priority}
+            />
+          </HeroClickable>
         ) : null}
       </div>
     </div>
@@ -227,11 +249,11 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
     >
       <div className="container-page flex h-full w-full flex-col items-center justify-center gap-10 py-8 lg:flex-row lg:justify-between lg:gap-16">
         <div className="max-w-md text-center lg:text-left">
-          <h2 className="text-4xl font-medium tracking-tight lowercase">
+          <h2 className="text-5xl font-medium tracking-tight lowercase">
             {slide.mainHeading}
           </h2>
           {slide.description ? (
-            <p className="mt-4 text-base leading-relaxed text-[#bccbe8]">
+            <p className="mt-4 text-md leading-relaxed text-[#bccbe8]">
               {slide.description}
             </p>
           ) : null}
@@ -260,7 +282,7 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
                 key={image.id}
                 role="listitem"
                 className={[
-                  "relative h-[200px] w-[220px] overflow-hidden rounded-md",
+                  "relative h-[220px] w-[220px] overflow-hidden rounded-md",
                   isLeftCol ? "border-r border-white/70" : "",
                   isNotLastRow ? "border-b border-white/70" : "",
                 ]
@@ -272,8 +294,8 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
                     src={image.src}
                     alt={image.alt}
                     fill
-                    className="object-contain p-4"
-                    sizes="220px"
+                    className="object-contain p-3"
+                    sizes="250px"
                   />
                 ) : (
                   <span
@@ -371,7 +393,7 @@ function HeroCarousel({ slides }: { slides: StorefrontHeroSlide[] }) {
         type="button"
         size="icon"
         variant="outline"
-        className="absolute top-1/2 left-2 z-20 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white sm:left-4 sm:size-14"
+        className="absolute top-1/2 left-2 z-20 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white active:not-aria-[haspopup]:translate-y-0 sm:left-4 sm:size-14"
         onClick={() => api?.scrollPrev()}
         aria-label="Previous hero slide"
       >
@@ -381,7 +403,7 @@ function HeroCarousel({ slides }: { slides: StorefrontHeroSlide[] }) {
         type="button"
         size="icon"
         variant="outline"
-        className="absolute top-1/2 right-2 z-20 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white sm:right-4 sm:size-14"
+        className="absolute top-1/2 right-2 z-20 size-12 -translate-y-1/2 rounded-full border-white/60 bg-black/35 text-white shadow-lg hover:bg-black/55 hover:text-white active:not-aria-[haspopup]:translate-y-0 sm:right-4 sm:size-14"
         onClick={() => api?.scrollNext()}
         aria-label="Next hero slide"
       >
