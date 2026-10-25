@@ -4,6 +4,7 @@ export type NavbarSubSectionDto = {
   id: string;
   title: string;
   url: string;
+  description: string;
   active: boolean;
   order: number;
 };
@@ -13,6 +14,8 @@ export type NavbarSectionDto = {
   siteCode: SiteCode;
   title: string;
   url: string;
+  menuHeading: string;
+  menuDescription: string;
   active: boolean;
   order: number;
   subSections: NavbarSubSectionDto[];
@@ -23,6 +26,7 @@ export type NavbarSectionDto = {
 export type NavbarSubSectionFormValues = {
   title: string;
   url: string;
+  description: string;
   order: string;
   active: boolean;
 };
@@ -30,6 +34,8 @@ export type NavbarSubSectionFormValues = {
 export type NavbarSectionFormValues = {
   title: string;
   url: string;
+  menuHeading: string;
+  menuDescription: string;
   order: string;
   active: boolean;
   subSections: NavbarSubSectionFormValues[];
@@ -38,11 +44,14 @@ export type NavbarSectionFormValues = {
 export type NavbarSectionPayload = {
   title: string;
   url: string;
+  menuHeading: string;
+  menuDescription: string;
   active: boolean;
   order?: number;
   subSections: Array<{
     title: string;
     url: string;
+    description: string;
     active: boolean;
     order: number;
   }>;

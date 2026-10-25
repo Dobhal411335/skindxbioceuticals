@@ -11,6 +11,7 @@ import { InsightsQaSection } from "@/components/landing/insights-qa-section";
 import { MarqueeBanner } from "@/components/landing/marquee-banner";
 import { ProductHighlightColumns } from "@/components/landing/product-highlight-columns";
 import { CollectionBannerSection } from "@/components/landing/collection-banner-section";
+import { ClinicalConfidenceSection } from "@/components/landing/clinical-confidence-section";
 import { PromoBannerRow } from "@/components/landing/promo-banner-row";
 import { SocialPostsSection } from "@/components/landing/social-posts-section";
 import { SpecialsHeader } from "@/components/landing/specials-header";
@@ -19,6 +20,7 @@ import { TestimonialsGrid } from "@/components/landing/testimonials-grid";
 import { TrustBenefitsBar } from "@/components/landing/trust-benefits-bar";
 import { getAboutUsBanner } from "@/features/about-us-banner/about-us-banner.service";
 import { getCollectionBanner } from "@/features/collection-banner/collection-banner.service";
+import { getClinicalConfidence } from "@/features/clinical-confidence/clinical-confidence.service";
 import { getCustomerReviews } from "@/features/customer-reviews/customer-reviews.service";
 import { getLandingFaqs } from "@/features/faq/faq.service";
 import { getGalleryItems } from "@/features/gallery/gallery.service";
@@ -44,6 +46,7 @@ export default async function HomePage() {
     productHighlights,
     promoBanners,
     collectionBanner,
+    clinicalConfidence,
   ] = await Promise.all([
     getSocialPosts(),
     getGalleryItems(),
@@ -56,17 +59,23 @@ export default async function HomePage() {
     getLandingProductHighlights(),
     getPromoBanners(),
     getCollectionBanner(),
+    getClinicalConfidence(),
   ]);
 
   return (
     <>
       <HeroSection slides={heroSlides} />
       <TrustBenefitsBar />
+      <ClinicalConfidenceSection config={clinicalConfidence} />
       <SpecialsHeader promo={aboutUsBanner.promo} />
       <AboutSplit cards={aboutUsBanner.aboutCards} />
       <OurServices
-        servicesHeading={aboutUsBanner.servicesHeading ?? "Caring for your child, every step of the way"}
-        servicesViewAll={aboutUsBanner.servicesViewAll ?? { label: "View all services", href: "/services" }}
+        servicesHeading={
+          aboutUsBanner.servicesHeading ?? "Caring for your child, every step of the way"
+        }
+        servicesViewAll={
+          aboutUsBanner.servicesViewAll ?? { label: "View all services", href: "/services" }
+        }
         services={aboutUsBanner.services ?? []}
       />
       <FeaturedProductRail products={landingProducts} />

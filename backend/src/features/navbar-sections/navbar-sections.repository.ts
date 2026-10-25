@@ -10,6 +10,7 @@ function mapSubSection(row: {
   sectionId: string;
   title: string;
   url: string;
+  description: string;
   active: boolean;
   order: number;
 }): NavbarSubSectionRecord {
@@ -18,6 +19,7 @@ function mapSubSection(row: {
     sectionId: row.sectionId,
     title: row.title,
     url: row.url,
+    description: row.description,
     active: row.active,
     order: row.order,
   };
@@ -28,6 +30,8 @@ function mapSection(row: {
   siteId: string;
   title: string;
   url: string;
+  menuHeading: string;
+  menuDescription: string;
   active: boolean;
   order: number;
   createdAt: Date;
@@ -46,6 +50,8 @@ function mapSection(row: {
     siteId: row.siteId,
     title: row.title,
     url: row.url,
+    menuHeading: row.menuHeading,
+    menuDescription: row.menuDescription,
     active: row.active,
     order: row.order,
     createdAt: row.createdAt,
@@ -112,12 +118,15 @@ export class NavbarSectionsRepository {
         siteId,
         title: data.title,
         url: data.url,
+        menuHeading: data.menuHeading,
+        menuDescription: data.menuDescription,
         active: data.active,
         order: data.order,
         subSections: {
           create: data.subSections.map((sub) => ({
             title: sub.title,
             url: sub.url,
+            description: sub.description,
             active: sub.active,
             order: sub.order,
           })),
@@ -149,12 +158,15 @@ export class NavbarSectionsRepository {
         data: {
           title: data.title,
           url: data.url,
+          menuHeading: data.menuHeading,
+          menuDescription: data.menuDescription,
           active: data.active,
           order: data.order,
           subSections: {
             create: data.subSections.map((sub) => ({
               title: sub.title,
               url: sub.url,
+              description: sub.description,
               active: sub.active,
               order: sub.order,
             })),

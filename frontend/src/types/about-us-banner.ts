@@ -3,6 +3,7 @@ export type AboutUsBannerConfig = {
   siteCode: "IN" | "COM";
   promoLabel: string;
   promoHeading: string;
+  promoDescription?: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
@@ -69,8 +70,10 @@ export type AboutUsService = {
 export type StorefrontPromoHeader = {
   label: string;
   title: string;
+  description: string;
   subtitle: string;
   cta: { label: string; href: string };
+  cards: Array<{ id: string; title: string; body: string }>;
 };
 
 export type StorefrontAboutCard = {

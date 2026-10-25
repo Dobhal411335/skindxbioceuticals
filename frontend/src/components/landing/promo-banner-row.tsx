@@ -60,12 +60,12 @@ function PromoTile({ item }: { item: StorefrontPromoBanner }) {
       />
       <div className="relative z-10 flex max-w-[70%] flex-col justify-center gap-2.5 p-5 text-white sm:max-w-[60%] sm:gap-3 sm:p-6">
         {item.miniHeading ? (
-          <p className="text-[10px] font-semibold tracking-[0.16em] text-white/85 uppercase sm:text-[11px]">
+          <p className="text-[12px] font-bold tracking-[0.16em] text-white/85 uppercase">
             {item.miniHeading}
           </p>
         ) : null}
         {item.heading ? (
-          <h3 className="font-display text-xl leading-snug font-semibold sm:text-xl lg:text-[1.65rem]">
+          <h3 className="text-xl leading-snug font-semibold sm:text-xl lg:text-[1.65rem]">
             {item.heading}
           </h3>
         ) : null}

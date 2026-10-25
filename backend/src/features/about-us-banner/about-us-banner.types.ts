@@ -61,6 +61,7 @@ export type AboutUsBannerConfigDto = {
   siteCode: SiteCodeDto;
   promoLabel: string;
   promoHeading: string;
+  promoDescription?: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
@@ -120,6 +121,7 @@ export type AboutUsBannerConfigRecord = {
   siteId: string;
   promoLabel: string;
   promoHeading: string;
+  promoDescription?: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
@@ -187,6 +189,7 @@ export type AboutUsServiceWrite = {
 export type AboutUsBannerConfigUpsertData = {
   promoLabel: string;
   promoHeading: string;
+  promoDescription?: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;

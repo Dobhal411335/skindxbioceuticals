@@ -40,6 +40,8 @@ export const endpoints = {
     insights: (siteCode: string) => `/admin/sites/${siteCode}/insights`,
     heroBanners: (siteCode: string) =>
       `/admin/sites/${siteCode}/hero-banners`,
+    clinicalConfidence: (siteCode: string) =>
+      `/admin/sites/${siteCode}/clinical-confidence`,
     categories: (siteCode: string) =>
       `/admin/sites/${siteCode}/category`,
     category: (siteCode: string, categoryId: string) =>

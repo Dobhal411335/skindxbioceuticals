@@ -194,6 +194,7 @@ model Site {
   topAdvertisementConfig TopAdvertisementConfig?
   popupBannerConfig        PopupBannerConfig?
   aboutUsBannerConfig      AboutUsBannerConfig?
+  clinicalConfidenceConfig ClinicalConfidenceConfig?
   promoBannerConfig        PromoBannerConfig?
   collectionBannerConfig   CollectionBannerConfig?
   faqSections              FaqSection[]
@@ -1218,6 +1219,8 @@ model NavbarSection {
   siteId    String   @map("site_id") @db.Uuid
   title     String
   url       String   @default("#")
+  menuHeading String  @default("") @map("menu_heading")
+  menuDescription String @default("") @map("menu_description")
   active    Boolean  @default(true)
   order     Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
@@ -1235,6 +1238,7 @@ model NavbarSubSection {
   sectionId String   @map("section_id") @db.Uuid
   title     String
   url       String   @default("#")
+  description String  @default("") @db.Text
   active    Boolean  @default(true)
   order     Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
@@ -1414,6 +1418,7 @@ model AboutUsBannerConfig {
   siteId           String   @unique @map("site_id") @db.Uuid
   promoLabel       String   @default("") @map("promo_label")
   promoHeading     String   @default("") @map("promo_heading")
+  promoDescription String   @default("") @map("promo_description")
   promoSubheading  String   @default("") @map("promo_subheading")
   promoButtonLabel String   @default("") @map("promo_button_label")
   promoButtonUrl   String   @default("") @map("promo_button_url")
@@ -1603,6 +1608,48 @@ model InsightQa {
   @@index([siteId, order])
   @@index([siteId, active, order])
   @@map("insight_qa_items")
+}
+
+/// Home clinical confidence section: center message with two supporting cards.
+model ClinicalConfidenceConfig {
+  id                  String   @id @default(uuid()) @db.Uuid
+  siteId              String   @unique @map("site_id") @db.Uuid
+  badgeText           String   @default("") @map("badge_text")
+  heading             String   @default("")
+  description         String   @default("") @db.Text
+  button1Label        String   @default("") @map("button1_label")
+  button1Url          String   @default("") @map("button1_url")
+  button2Label        String   @default("") @map("button2_label")
+  button2Url          String   @default("") @map("button2_url")
+  backgroundImageUrl  String   @default("") @map("background_image_url")
+  backgroundImagePublicId String @default("") @map("background_image_public_id")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  site  Site                    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  cards ClinicalConfidenceCard[]
+
+  @@map("clinical_confidence_configs")
+}
+
+model ClinicalConfidenceCard {
+  id            String   @id @default(uuid()) @db.Uuid
+  configId      String   @map("config_id") @db.Uuid
+  imageUrl      String   @default("") @map("image_url")
+  imagePublicId String   @default("") @map("image_public_id")
+  heading       String   @default("")
+  description   String   @default("") @db.Text
+  buttonLabel   String   @default("") @map("button_label")
+  buttonUrl     String   @default("") @map("button_url")
+  sortOrder     Int      @default(0) @map("sort_order")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  config ClinicalConfidenceConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId, sortOrder])
+  @@map("clinical_confidence_cards")
 }
 
 /// Site-scoped home hero carousel slides (full-width, split dual, multi-image).

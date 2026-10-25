@@ -2,6 +2,7 @@ export type NavbarSubSection = {
   id: string;
   title: string;
   url: string;
+  description?: string;
   active: boolean;
   order: number;
 };
@@ -11,6 +12,8 @@ export type NavbarSection = {
   siteCode: "IN" | "COM";
   title: string;
   url: string;
+  menuHeading?: string;
+  menuDescription?: string;
   active: boolean;
   order: number;
   subSections: NavbarSubSection[];
@@ -22,5 +25,7 @@ export type StorefrontNavLink = {
   id: string;
   label: string;
   href: string;
-  children: Array<{ id: string; label: string; href: string }>;
+  menuHeading: string;
+  menuDescription: string;
+  children: Array<{ id: string; label: string; href: string; description: string }>;
 };

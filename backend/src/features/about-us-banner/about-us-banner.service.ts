@@ -25,6 +25,7 @@ export function emptyAboutUsBannerConfigDto(siteCode: SiteCodeDto): AboutUsBanne
     siteCode,
     promoLabel: '',
     promoHeading: '',
+    promoDescription: '',
     promoSubheading: '',
     promoButtonLabel: '',
     promoButtonUrl: '',
@@ -32,6 +33,8 @@ export function emptyAboutUsBannerConfigDto(siteCode: SiteCodeDto): AboutUsBanne
     servicesViewAllLabel: '',
     servicesViewAllUrl: '',
     aboutCards: [],
+    highlightItems: [],
+    textSlides: [],
     services: [],
     updatedAt: null,
   };
@@ -92,6 +95,7 @@ export function toAboutUsBannerConfigDto(
     siteCode,
     promoLabel: record.promoLabel,
     promoHeading: record.promoHeading,
+    promoDescription: record.promoDescription,
     promoSubheading: record.promoSubheading,
     promoButtonLabel: record.promoButtonLabel,
     promoButtonUrl: record.promoButtonUrl,
@@ -99,6 +103,27 @@ export function toAboutUsBannerConfigDto(
     servicesViewAllLabel: record.servicesViewAllLabel,
     servicesViewAllUrl: record.servicesViewAllUrl,
     aboutCards: record.aboutCards.filter((card) => !activeOnly || card.active).map(toAboutCardDto),
+    highlightItems: record.highlightItems
+      .filter((item) => !activeOnly || item.active)
+      .map((item) => ({
+        id: item.id,
+        imageUrl: preferHttpsUrl(item.imageUrl),
+        imagePublicId: item.imagePublicId,
+        heading: item.heading,
+        buttonLabel: item.buttonLabel,
+        buttonUrl: item.buttonUrl,
+        sortOrder: item.sortOrder,
+        active: item.active,
+      })),
+    textSlides: record.textSlides
+      .filter((slide) => !activeOnly || slide.active)
+      .map((slide) => ({
+        id: slide.id,
+        heading: slide.heading,
+        subheading: slide.subheading,
+        sortOrder: slide.sortOrder,
+        active: slide.active,
+      })),
     services: (record.services || [])
       .filter((service) => !activeOnly || service.active)
       .map(toServiceDto),
@@ -110,6 +135,7 @@ function bodyToUpsertData(body: AboutUsBannerConfigBody): AboutUsBannerConfigUps
   return {
     promoLabel: body.promoLabel,
     promoHeading: body.promoHeading,
+    promoDescription: body.promoDescription,
     promoSubheading: body.promoSubheading,
     promoButtonLabel: body.promoButtonLabel,
     promoButtonUrl: body.promoButtonUrl || '',

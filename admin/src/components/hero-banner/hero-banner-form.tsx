@@ -204,7 +204,7 @@ function CopyFields({
         </div>
       </div>
 
-      {activeTab === "SPLIT_DUAL" ? (
+      {activeTab === "SPLIT_DUAL" || activeTab === "MULTI_IMAGE" ? (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor={`btn2-${slide.clientKey}`}>Button 2 label</Label>

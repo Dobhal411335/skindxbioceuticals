@@ -36,4 +36,5 @@ export const ALLOWED_FEATURE_FOLDERS = [
   'profile',
   'prescriptions',
   'general',
+  'clinical-confidence',
 ] as const;

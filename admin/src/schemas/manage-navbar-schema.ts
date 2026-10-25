@@ -21,12 +21,15 @@ const navUrlSchema = z
 export const navbarSectionFormSchema = z.object({
   title: z.string().trim().min(1, "Navbar section title is required").max(200),
   url: navUrlSchema,
+  menuHeading: z.string().trim().max(300),
+  menuDescription: z.string().trim().max(500),
   order: z.string().trim(),
   active: z.boolean(),
   subSections: z.array(
     z.object({
       title: z.string().trim().max(200),
       url: navUrlSchema,
+      description: z.string().trim().max(500),
       order: z.string().trim(),
       active: z.boolean(),
     }),
@@ -68,6 +71,8 @@ export function toNavbarSectionPayload(
   return {
     title: values.title.trim(),
     url: values.url.trim() || "#",
+    menuHeading: values.menuHeading.trim(),
+    menuDescription: values.menuDescription.trim(),
     active: values.active,
     order: Number.isFinite(order) ? order : fallbackOrder,
     subSections: values.subSections
@@ -78,6 +83,7 @@ export function toNavbarSectionPayload(
         return {
           title: item.title.trim(),
           url: item.url.trim() || "#",
+          description: item.description.trim(),
           active: item.active,
           order: Number.isFinite(subOrder) ? subOrder : index + 1,
         };

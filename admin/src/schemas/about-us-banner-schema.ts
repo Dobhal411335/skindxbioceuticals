@@ -18,6 +18,7 @@ function isOptionalUrl(value: string): boolean {
 export type AboutUsBannerFormErrors = {
   promoLabel?: string;
   promoHeading?: string;
+  promoDescription?: string;
   promoSubheading?: string;
   promoButtonLabel?: string;
   promoButtonUrl?: string;
@@ -39,6 +40,9 @@ export function validateAboutUsBannerForm(
   }
   if (values.promoHeading.trim().length > 300) {
     errors.promoHeading = "Heading must be 300 characters or fewer";
+  }
+  if ((values.promoDescription ?? "").trim().length > 2000) {
+    errors.promoDescription = "Description must be 2000 characters or fewer";
   }
   if (values.promoSubheading.trim().length > 1000) {
     errors.promoSubheading = "Subheading must be 1000 characters or fewer";
@@ -65,6 +69,17 @@ export function validateAboutUsBannerForm(
     }
     if (!isOptionalUrl(card.buttonUrl)) {
       errors.aboutCards = `About card ${index + 1}: invalid button URL`;
+      break;
+    }
+  }
+
+  for (const [index, card] of values.textSlides.entries()) {
+    if (!card.heading.trim()) {
+      errors.textSlides = `Insight card ${index + 1}: heading is required`;
+      break;
+    }
+    if (!card.subheading.trim()) {
+      errors.textSlides = `Insight card ${index + 1}: sub description is required`;
       break;
     }
   }
@@ -112,6 +127,7 @@ export function toAboutUsBannerPayload(
   return {
     promoLabel: trimText(values.promoLabel),
     promoHeading: trimText(values.promoHeading),
+    promoDescription: trimText(values.promoDescription),
     promoSubheading: trimText(values.promoSubheading),
     promoButtonLabel: trimText(values.promoButtonLabel),
     promoButtonUrl: trimText(values.promoButtonUrl),
@@ -130,7 +146,12 @@ export function toAboutUsBannerPayload(
       sortOrder: index,
     })),
     highlightItems: [],
-    textSlides: [],
+    textSlides: values.textSlides.map((slide, index) => ({
+      heading: trimText(slide.heading),
+      subheading: trimText(slide.subheading),
+      active: slide.active,
+      sortOrder: index,
+    })),
     services: (values.services ?? []).map((service, index) => ({
       imageUrl: preferHttpsUrl(trimText(service.image?.url)),
       imagePublicId: trimText(service.image?.publicId),

@@ -17,6 +17,7 @@ const navUrlSchema = z
 const subSectionSchema = z.object({
   title: z.string().trim().min(1, 'Sub-section title is required').max(200),
   url: navUrlSchema.default('#'),
+  description: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).default(0),
 });
@@ -24,6 +25,8 @@ const subSectionSchema = z.object({
 export const navbarSectionBodySchema = z.object({
   title: z.string().trim().min(1, 'Section title is required').max(200),
   url: navUrlSchema.default('#'),
+  menuHeading: z.string().trim().max(300).default(''),
+  menuDescription: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).optional(),
   subSections: z.array(subSectionSchema).max(50).default([]),
@@ -57,6 +60,7 @@ export function normalizeNavbarSectionInput(raw: unknown): unknown {
           return {
             title,
             url: String(sub.url ?? '#').trim() || '#',
+            description: String(sub.description ?? '').trim(),
             active: sub.active ?? true,
             order:
               sub.order === '' || sub.order === undefined || sub.order === null
@@ -76,6 +80,8 @@ export function normalizeNavbarSectionInput(raw: unknown): unknown {
         : payload.url === undefined || payload.url === null
           ? '#'
           : payload.url,
+    menuHeading: String(payload.menuHeading ?? payload.dropdownHeading ?? '').trim(),
+    menuDescription: String(payload.menuDescription ?? payload.dropdownDescription ?? '').trim(),
     active: payload.active ?? true,
     order:
       payload.order === '' || payload.order === undefined || payload.order === null

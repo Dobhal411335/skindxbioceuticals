@@ -6,6 +6,7 @@ export type NavbarSubSectionDto = {
   id: string;
   title: string;
   url: string;
+  description: string;
   active: boolean;
   order: number;
 };
@@ -15,6 +16,8 @@ export type NavbarSectionDto = {
   siteCode: SiteCodeDto;
   title: string;
   url: string;
+  menuHeading: string;
+  menuDescription: string;
   active: boolean;
   order: number;
   subSections: NavbarSubSectionDto[];
@@ -22,22 +25,11 @@ export type NavbarSectionDto = {
   updatedAt: string;
 };
 
-export type NavbarSubSectionRecord = {
-  id: string;
-  sectionId: string;
-  title: string;
-  url: string;
-  active: boolean;
-  order: number;
-};
+export type NavbarSubSectionRecord = NavbarSubSectionDto & { sectionId: string };
 
-export type NavbarSectionRecord = {
+export type NavbarSectionRecord = Omit<NavbarSectionDto, 'siteCode' | 'createdAt' | 'updatedAt' | 'subSections'> & {
   id: string;
   siteId: string;
-  title: string;
-  url: string;
-  active: boolean;
-  order: number;
   createdAt: Date;
   updatedAt: Date;
   subSections: NavbarSubSectionRecord[];
@@ -46,6 +38,7 @@ export type NavbarSectionRecord = {
 export type NavbarSubSectionWrite = {
   title: string;
   url: string;
+  description: string;
   active: boolean;
   order: number;
 };
@@ -53,6 +46,8 @@ export type NavbarSubSectionWrite = {
 export type NavbarSectionWrite = {
   title: string;
   url: string;
+  menuHeading: string;
+  menuDescription: string;
   active: boolean;
   order: number;
   subSections: NavbarSubSectionWrite[];

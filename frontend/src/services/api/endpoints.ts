@@ -97,6 +97,9 @@ export const API_ENDPOINTS = {
   HERO_BANNERS: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/hero-banners`,
   },
+  CLINICAL_CONFIDENCE: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/clinical-confidence`,
+  },
   CATEGORIES: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/category`,
     PUBLIC_DETAIL: (siteCode: string, categorySlug: string) =>

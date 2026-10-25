@@ -105,6 +105,9 @@ function bannerChildren(siteCode: SiteCode): SidebarNavItem[] {
     leaf(siteCode, "banner-hero", "Hero Banner", "banners/hero", ImageIcon, {
       status: "active",
     }),
+    leaf(siteCode, "banner-clinical-confidence", "Clinical Confidence Banner", "banners/clinical-confidence", ImageIcon, {
+      status: "active",
+    }),
   ];
 }
 

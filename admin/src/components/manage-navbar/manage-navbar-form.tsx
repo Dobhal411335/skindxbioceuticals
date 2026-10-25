@@ -88,6 +88,29 @@ export function ManageNavbarForm({
             ) : null}
           </div>
 
+          <div className="grid gap-5 rounded-xl border border-border bg-muted/30 p-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="navbar-menu-heading">Dropdown Heading</Label>
+              <Input
+                id="navbar-menu-heading"
+                value={values.menuHeading}
+                onChange={(event) => updateField("menuHeading", event.target.value)}
+                placeholder="Strategy through delivery."
+                className="h-11"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="navbar-menu-description">Dropdown Description</Label>
+              <Input
+                id="navbar-menu-description"
+                value={values.menuDescription}
+                onChange={(event) => updateField("menuDescription", event.target.value)}
+                placeholder="Complete capabilities and services"
+                className="h-11"
+              />
+            </div>
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="navbar-url">Section URL</Label>
@@ -209,6 +232,18 @@ export function ManageNavbarForm({
                           updateSubSection(index, "url", event.target.value)
                         }
                         placeholder="/shop/serums"
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="grid gap-2 sm:col-span-2">
+                      <Label htmlFor={`sub-description-${index}`}>Small Description</Label>
+                      <Input
+                        id={`sub-description-${index}`}
+                        value={subSection.description}
+                        onChange={(event) =>
+                          updateSubSection(index, "description", event.target.value)
+                        }
+                        placeholder="Complete capabilities"
                         className="h-10"
                       />
                     </div>

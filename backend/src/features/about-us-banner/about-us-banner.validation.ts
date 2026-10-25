@@ -89,6 +89,7 @@ const serviceSchema = z.object({
 export const aboutUsBannerConfigBodySchema = z.object({
   promoLabel: z.string().trim().max(100).default(''),
   promoHeading: z.string().trim().max(300).default(''),
+  promoDescription: z.string().trim().max(2000).optional(),
   promoSubheading: z.string().trim().max(1000).default(''),
   promoButtonLabel: z.string().trim().max(100).default(''),
   promoButtonUrl: optionalUrlSchema.default(''),
@@ -222,6 +223,7 @@ export function normalizeAboutUsBannerConfigInput(raw: unknown): unknown {
     ...payload,
     promoLabel: String(payload.promoLabel ?? '').trim(),
     promoHeading: String(payload.promoHeading ?? '').trim(),
+    promoDescription: String(payload.promoDescription ?? '').trim(),
     promoSubheading: String(payload.promoSubheading ?? '').trim(),
     promoButtonLabel: String(payload.promoButtonLabel ?? '').trim(),
     promoButtonUrl: String(payload.promoButtonUrl ?? '').trim(),

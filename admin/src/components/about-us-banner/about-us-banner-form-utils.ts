@@ -57,6 +57,7 @@ export function createEmptyFormValues(): AboutUsBannerFormValues {
   return {
     promoLabel: "",
     promoHeading: "",
+    promoDescription: "",
     promoSubheading: "",
     promoButtonLabel: "",
     promoButtonUrl: "",
@@ -74,6 +75,7 @@ export function dtoToFormValues(dto: AboutUsBannerConfigDto): AboutUsBannerFormV
   return {
     promoLabel: dto.promoLabel ?? "",
     promoHeading: dto.promoHeading ?? "",
+    promoDescription: dto.promoDescription ?? "",
     promoSubheading: dto.promoSubheading ?? "",
     promoButtonLabel: dto.promoButtonLabel ?? "",
     promoButtonUrl: dto.promoButtonUrl ?? "",

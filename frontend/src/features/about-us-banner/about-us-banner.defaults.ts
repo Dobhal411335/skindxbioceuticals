@@ -1,12 +1,37 @@
-import { about, blogIntro, posts, specials } from "@/data/landing";
+import { about, blogIntro, posts } from "@/data/landing";
 import type { StorefrontAboutUsBanner } from "@/types/about-us-banner";
 
 export const FALLBACK_ABOUT_US_BANNER: StorefrontAboutUsBanner = {
   promo: {
-    label: specials.label,
-    title: specials.title,
-    subtitle: specials.subtitle,
-    cta: { ...specials.cta },
+    label: "A different kind of consultancy",
+    title: "Insight that moves your business forward.",
+    description:
+      "Elvaris combines board-level perspective, sector expertise and hands-on execution to help leaders solve what matters most — without adding unnecessary complexity.",
+    subtitle:
+      "Our senior teams work alongside yours from the first question to the final outcome. We challenge assumptions, build alignment and leave your organization stronger than we found it.",
+    cta: { label: "Learn more", href: "/about" },
+    cards: [
+      {
+        id: "fallback-insight-1",
+        title: "Senior expertise, always",
+        body: "Your core team stays involved from diagnosis through delivery.",
+      },
+      {
+        id: "fallback-insight-2",
+        title: "Evidence over opinion",
+        body: "Every recommendation is grounded in commercial reality and data.",
+      },
+      {
+        id: "fallback-insight-3",
+        title: "Built around outcomes",
+        body: "Clear priorities, accountable execution and measurable impact.",
+      },
+      {
+        id: "fallback-insight-4",
+        title: "Capability that remains",
+        body: "We transfer knowledge so progress continues after the project ends.",
+      },
+    ],
   },
   aboutCards: [
     {

@@ -74,6 +74,7 @@ function bodyToWrites(body: HeroBannerConfigBody): HeroBannerSlideWrite[] {
     const isFullWidth = slide.layoutType === 'FULL_WIDTH';
     const isSplit = slide.layoutType === 'SPLIT_DUAL';
     const isMulti = slide.layoutType === 'MULTI_IMAGE';
+    const hasSecondaryButton = isSplit || isMulti;
 
     return {
       layoutType: slide.layoutType,
@@ -89,8 +90,8 @@ function bodyToWrites(body: HeroBannerConfigBody): HeroBannerSlideWrite[] {
       buttonLabel: isFullWidth ? '' : slide.buttonLabel || '',
       // FULL_WIDTH uses buttonUrl as the image click destination.
       buttonUrl: slide.buttonUrl || '',
-      button2Label: isSplit ? slide.button2Label || '' : '',
-      button2Url: isSplit ? slide.button2Url || '' : '',
+      button2Label: hasSecondaryButton ? slide.button2Label || '' : '',
+      button2Url: hasSecondaryButton ? slide.button2Url || '' : '',
       leftImageUrl: isSplit ? preferHttpsUrl(slide.leftImageUrl || '') : '',
       leftImagePublicId: isSplit ? slide.leftImagePublicId || '' : '',
       leftImageClickUrl: isSplit ? slide.leftImageClickUrl || '' : '',

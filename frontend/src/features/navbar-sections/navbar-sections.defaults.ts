@@ -6,5 +6,7 @@ export const FALLBACK_NAV_LINKS: StorefrontNavLink[] = navLinks.map((link, index
   id: `fallback-${index}`,
   label: link.label,
   href: link.href,
+  menuHeading: link.label,
+  menuDescription: "",
   children: [],
 }));

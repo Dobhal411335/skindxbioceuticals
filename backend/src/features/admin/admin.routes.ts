@@ -18,6 +18,7 @@ import { collectionBannerRoutes } from '@/features/collection-banner/collection-
 import { faqRoutes } from '@/features/faq/faq.routes';
 import { insightsRoutes } from '@/features/insights/insights.routes';
 import { heroBannerRoutes } from '@/features/hero-banner/hero-banner.routes';
+import { clinicalConfidenceRoutes } from '@/features/clinical-confidence/clinical-confidence.routes';
 import { categoryRoutes } from '@/features/categories/category.routes';
 import { subcategoryAdminRoutes } from '@/features/categories/subcategory.admin.routes';
 import { catalogProductRoutes } from '@/features/products/product.routes';
@@ -69,12 +70,10 @@ router.use('/sites/:siteCode/collection-banners', collectionBannerRoutes);
 router.use('/sites/:siteCode/faq', faqRoutes);
 router.use('/sites/:siteCode/insights', insightsRoutes);
 router.use('/sites/:siteCode/hero-banners', heroBannerRoutes);
+router.use('/sites/:siteCode/clinical-confidence', clinicalConfidenceRoutes);
 router.use('/sites/:siteCode/categories', categoryRoutes);
 router.use('/sites/:siteCode/category', categoryRoutes);
-router.use(
-  '/sites/:siteCode/subcategories/:subcategoryId/products',
-  catalogProductRoutes,
-);
+router.use('/sites/:siteCode/subcategories/:subcategoryId/products', catalogProductRoutes);
 /** Direct products must mount before the general `/products` router. */
 router.use('/sites/:siteCode/products/direct', directProductRoutes);
 router.use('/sites/:siteCode/products', productEditRoutes);

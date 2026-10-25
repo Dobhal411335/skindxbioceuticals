@@ -41,11 +41,20 @@ export function mapAboutUsBannerConfigToStorefront(
       ? {
           label: config.promoLabel.trim() || FALLBACK_ABOUT_US_BANNER.promo.label,
           title: promoHeading,
+          description:
+            config.promoDescription?.trim() || FALLBACK_ABOUT_US_BANNER.promo.description,
           subtitle: config.promoSubheading.trim() || FALLBACK_ABOUT_US_BANNER.promo.subtitle,
           cta: {
             label: config.promoButtonLabel.trim() || FALLBACK_ABOUT_US_BANNER.promo.cta.label,
             href: optionalHref(config.promoButtonUrl, FALLBACK_ABOUT_US_BANNER.promo.cta.href),
           },
+          cards: (config.textSlides || [])
+            .filter((slide) => slide.active && slide.heading.trim())
+            .map((slide) => ({
+              id: slide.id,
+              title: slide.heading.trim(),
+              body: slide.subheading.trim(),
+            })),
         }
       : FALLBACK_ABOUT_US_BANNER.promo;
 

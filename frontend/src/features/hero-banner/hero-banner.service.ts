@@ -1,10 +1,7 @@
 import { cache } from "react";
 
 import { FALLBACK_HERO_SLIDES } from "@/features/hero-banner/hero-banner.defaults";
-import type {
-  HeroBannerConfig,
-  StorefrontHeroSlide,
-} from "@/types/hero-banner";
+import type { HeroBannerConfig, StorefrontHeroSlide } from "@/types/hero-banner";
 
 type ApiSuccess<T> = {
   success: true;
@@ -35,9 +32,7 @@ function preferHttps(url: string): string {
   return url;
 }
 
-function isRenderableStorefrontSlide(
-  slide: HeroBannerConfig["slides"][number],
-): boolean {
+function isRenderableStorefrontSlide(slide: HeroBannerConfig["slides"][number]): boolean {
   if (!slide.active) return false;
 
   if (slide.layoutType === "FULL_WIDTH") {
@@ -46,8 +41,7 @@ function isRenderableStorefrontSlide(
 
   if (slide.layoutType === "SPLIT_DUAL") {
     return Boolean(
-      slide.mainHeading.trim() &&
-      (slide.leftImageUrl.trim() || slide.rightImageUrl.trim()),
+      slide.mainHeading.trim() && (slide.leftImageUrl.trim() || slide.rightImageUrl.trim()),
     );
   }
 
@@ -57,36 +51,32 @@ function isRenderableStorefrontSlide(
   );
 }
 
-export function mapHeroBannerConfigToStorefront(
-  config: HeroBannerConfig,
-): StorefrontHeroSlide[] {
-  const slides = (config.slides || [])
-    .filter(isRenderableStorefrontSlide)
-    .map((slide) => ({
-      id: slide.id,
-      layoutType: slide.layoutType,
-      miniHeading: slide.miniHeading.trim(),
-      mainHeading: slide.mainHeading.trim(),
-      description: slide.description.trim(),
-      buttonLabel: slide.buttonLabel.trim(),
-      buttonUrl:
-        slide.layoutType === "FULL_WIDTH"
-          ? optionalHref(slide.buttonUrl, "")
-          : optionalHref(slide.buttonUrl, "/category"),
-      button2Label: slide.button2Label.trim(),
-      button2Url: optionalHref(slide.button2Url, "/category"),
-      mobileImageUrl: preferHttps(slide.mobileImageUrl.trim()),
-      desktopImageUrl: preferHttps(slide.desktopImageUrl.trim()),
-      leftImageUrl: preferHttps(slide.leftImageUrl.trim()),
-      leftImageClickUrl: optionalHref(slide.leftImageClickUrl, ""),
-      rightImageUrl: preferHttps(slide.rightImageUrl.trim()),
-      rightImageClickUrl: optionalHref(slide.rightImageClickUrl, ""),
-      gridImages: (slide.gridImages || []).map((image) => ({
-        id: image.id,
-        src: preferHttps(image.imageUrl.trim()),
-        alt: image.alt.trim() || slide.mainHeading.trim() || "Brand",
-      })),
-    }));
+export function mapHeroBannerConfigToStorefront(config: HeroBannerConfig): StorefrontHeroSlide[] {
+  const slides = (config.slides || []).filter(isRenderableStorefrontSlide).map((slide) => ({
+    id: slide.id,
+    layoutType: slide.layoutType,
+    miniHeading: slide.miniHeading.trim(),
+    mainHeading: slide.mainHeading.trim(),
+    description: slide.description.trim(),
+    buttonLabel: slide.buttonLabel.trim(),
+    buttonUrl:
+      slide.layoutType === "FULL_WIDTH"
+        ? optionalHref(slide.buttonUrl, "")
+        : optionalHref(slide.buttonUrl, "/category"),
+    button2Label: slide.button2Label.trim(),
+    button2Url: optionalHref(slide.button2Url, "/category"),
+    mobileImageUrl: preferHttps(slide.mobileImageUrl.trim()),
+    desktopImageUrl: preferHttps(slide.desktopImageUrl.trim()),
+    leftImageUrl: preferHttps(slide.leftImageUrl.trim()),
+    leftImageClickUrl: optionalHref(slide.leftImageClickUrl, ""),
+    rightImageUrl: preferHttps(slide.rightImageUrl.trim()),
+    rightImageClickUrl: optionalHref(slide.rightImageClickUrl, ""),
+    gridImages: (slide.gridImages || []).map((image) => ({
+      id: image.id,
+      src: preferHttps(image.imageUrl.trim()),
+      alt: image.alt.trim() || slide.mainHeading.trim() || "Brand",
+    })),
+  }));
 
   return slides.length > 0 ? slides : FALLBACK_HERO_SLIDES;
 }
@@ -102,13 +92,10 @@ export const getHeroBanners = cache(async (): Promise<StorefrontHeroSlide[]> => 
   }
 
   try {
-    const response = await fetch(
-      `${base}/sites/${STOREFRONT_SITE_CODE}/hero-banners`,
-      {
-        next: { revalidate: 60, tags: ["hero-banners", "IN"] },
-        headers: { Accept: "application/json" },
-      },
-    );
+    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/hero-banners`, {
+      next: { revalidate: 60, tags: ["hero-banners", "IN"] },
+      headers: { Accept: "application/json" },
+    });
 
     if (!response.ok) {
       return FALLBACK_HERO_SLIDES;

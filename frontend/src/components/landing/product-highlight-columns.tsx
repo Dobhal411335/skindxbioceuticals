@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, Minus, Plus, ArrowUpRight, ShoppingCart } from "lucide-react";
+import { ArrowUpRight, Clock3, Eye, ShoppingCart, Star } from "lucide-react";
 
 import {
   ProductDiscountBadge,
@@ -20,7 +20,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import {
   buildCartPricingFields,
   discountPercentForBadge,
@@ -30,10 +29,7 @@ import { useCartActions } from "@/hooks/useCartActions";
 import { useIsVendor } from "@/hooks/useIsVendor";
 import { showError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import type {
-  PublicProductCard,
-  PublicProductHighlights,
-} from "@/types/product";
+import type { PublicProductCard, PublicProductHighlights } from "@/types/product";
 
 function ProductListItem({
   product,
@@ -53,22 +49,14 @@ function ProductListItem({
 
   return (
     <li>
-      <div
-        className={cn(
-          "group relative flex gap-4 rounded-xl hover:border p-3",
-          "transition-all duration-300 hover:scale-[1.02] hover:border-primary hover:bg-muted/60",
-        )}
-      >
-        <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-surface sm:size-24">
+      <div className="group relative flex gap-4 py-2.5">
+        <div className="relative size-25 shrink-0 overflow-hidden rounded-[3px] bg-[#f1f2f0]">
           <Link
             href={`/products/${product.slug}`}
             className="absolute inset-0 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Image
-              src={
-                product.imageUrl ||
-                "https://placehold.co/128x128/png?text=SkinDx"
-              }
+              src={product.imageUrl || "https://placehold.co/128x128/png?text=SkinDx"}
               alt={product.name}
               fill
               className="object-contain transition-transform duration-300 group-hover:scale-105"
@@ -96,22 +84,15 @@ function ProductListItem({
           </button>
         </div>
         <div className="min-w-0 flex-1 self-center">
-          <p className="text-[11px] line-clamp-1 font-semibold tracking-[0.08em] text-primary uppercase">
+          <p className="line-clamp-1 text-[10px] font-semibold tracking-[0.08em] text-primary uppercase">
             {product.categoryName ?? "Product"}
           </p>
           <Link
             href={`/products/${product.slug}`}
-            className="mt-0.5 line-clamp-2 text-sm leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-[14px]"
+            className="mt-1 line-clamp-2 text-sm leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {product.name}
           </Link>
-          <div className="mt-1">
-            <ProductRatingStars
-              averageRating={product.averageRating}
-              reviewCount={product.reviewCount}
-              className="text-foreground"
-            />
-          </div>
           <ProductPriceDisplay
             price={product.price}
             vendorPrice={product.vendorPrice}
@@ -120,7 +101,7 @@ function ProductListItem({
             priced={priced}
             showBadge={false}
             size="sm"
-            className="mt-1"
+            className="mt-1 [&>span:first-child]:!text-sm [&>span:first-child]:!text-foreground"
           />
         </div>
       </div>
@@ -137,7 +118,7 @@ function FeaturedHighlightCard({
 }) {
   const { openCart } = useCartUi();
   const { add: addToCartAction } = useCartActions();
-  const [quantity, setQuantity] = useState(1);
+  const quantity = 1;
   const isVendor = useIsVendor();
 
   const maxQty = product.quantity;
@@ -188,21 +169,16 @@ function FeaturedHighlightCard({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="group relative mb-4 aspect-square overflow-hidden rounded-lg bg-surface">
+      <div className="group relative mb-4 aspect-[1.08] overflow-hidden rounded-[3px] bg-[#f1f2f0]">
         <Image
-          src={
-            product.imageUrl || "https://placehold.co/600x600/png?text=SkinDx"
-          }
+          src={product.imageUrl || "https://placehold.co/600x600/png?text=SkinDx"}
           alt={product.name}
           fill
           className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
           sizes="(max-width: 1024px) 100vw, 33vw"
         />
         {discountPercent != null ? (
-          <ProductDiscountBadge
-            percent={discountPercent}
-            className="absolute top-2 left-2 z-10"
-          />
+          <ProductDiscountBadge percent={discountPercent} className="absolute top-2 left-2 z-10" />
         ) : null}
         <Button
           type="button"
@@ -221,42 +197,58 @@ function FeaturedHighlightCard({
         </Button>
       </div>
 
-      <p className="text-center text-[11px] font-semibold line-clamp-2 ellipsis tracking-[0.08em] text-primary uppercase">
-        {product.categoryName ?? "Product"}
-      </p>
-      <Link
-        href={`/products/${product.slug}`}
-        className="mt-1 line-clamp-2 ellipsis text-center font-display text-xl font-semibold transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        {product.name}
-      </Link>
-      <div className="mt-2 flex justify-center">
-        <ProductRatingStars
-          averageRating={product.averageRating}
-          reviewCount={product.reviewCount}
-          className="text-foreground"
+      <div className="flex items-center justify-between gap-3">
+        <p className="line-clamp-1 text-[10px] font-semibold tracking-[0.08em] text-primary uppercase">
+          {product.categoryName ?? "Product"}
+        </p>
+        <div
+          className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary"
+          aria-label={`Rated ${product.averageRating} out of 5`}
+        >
+          <Star className="size-3 fill-current" aria-hidden />
+          {product.averageRating.toFixed(2)} / 5.0
+        </div>
+      </div>
+      <div className="mt-2 flex items-start justify-between gap-3">
+        <Link
+          href={`/products/${product.slug}`}
+          className="line-clamp-2 text-xl leading-tight font-semibold transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {product.name}
+        </Link>
+        <ProductPriceDisplay
+          price={product.price}
+          vendorPrice={product.vendorPrice}
+          isVendor={isVendor}
+          coupon={product.coupon}
+          priced={priced}
+          showBadge={false}
+          size="lg"
+          className="shrink-0 justify-end [&>span:first-child]:!text-lg [&>span:first-child]:!text-primary"
         />
       </div>
-      <ProductPriceDisplay
-        price={product.price}
-        vendorPrice={product.vendorPrice}
-        isVendor={isVendor}
-        coupon={product.coupon}
-        priced={priced}
-        showBadge={false}
-        size="lg"
-        className="mt-2 justify-center"
-      />
-
+      <p className="mt-2 line-clamp-3 min-h-[4.7rem] text-xs leading-relaxed text-muted-foreground">
+        {product.description
+          ? product.description
+              .replace(/<[^>]*>/g, " ")
+              .replace(/\s+/g, " ")
+              .trim()
+          : "A considered formulation for comfortable, healthy-looking skin."}
+      </p>
       <div className="mt-4 flex items-center gap-2">
         <Button
           type="button"
-          className="flex-1 px-4 py-5 rounded-full"
+          className="flex-1 rounded-[3px] bg-primary px-4 py-5 text-sm font-semibold"
           disabled={!canAdd}
           onClick={() => void addToCart()}
         >
           <ShoppingCart className="size-4" />
-          Add to cart
+          Add to cart <span aria-hidden>·</span>{" "}
+          {priced.unitPrice.toLocaleString("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 0,
+          })}
         </Button>
       </div>
     </div>
@@ -267,15 +259,10 @@ type ProductHighlightColumnsProps = {
   highlights: PublicProductHighlights;
 };
 
-export function ProductHighlightColumns({
-  highlights,
-}: ProductHighlightColumnsProps) {
+export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsProps) {
   const { recent, featured, bestSellers } = highlights;
-  const [quickProduct, setQuickProduct] = useState<PublicProductCard | null>(
-    null,
-  );
-  const hasContent =
-    recent.length > 0 || featured.length > 0 || bestSellers.length > 0;
+  const [quickProduct, setQuickProduct] = useState<PublicProductCard | null>(null);
+  const hasContent = recent.length > 0 || featured.length > 0 || bestSellers.length > 0;
 
   if (!hasContent) {
     return null;
@@ -285,89 +272,94 @@ export function ProductHighlightColumns({
     return null;
   }
 
-  if(recent.length === 0) return null;
-  if(bestSellers.length === 0) return null;
+  if (recent.length === 0) return null;
+  if (bestSellers.length === 0) return null;
 
   return (
     <section
-      className="container-page section-space"
+      className="border-y border-[#ecebe7] bg-[#f6f5f2]"
       aria-labelledby="highlights-heading"
     >
-      <h2 id="highlights-heading" className="sr-only">
-        Product highlights
-      </h2>
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div>
-          <h3 className="mb-4 text-xl font-semibold">Recent products</h3>
-          
-            <ul className="space-y-2">
-              {recent.map((product) => (
-                <ProductListItem
-                  key={product.id}
-                  product={product}
-                  onQuickView={setQuickProduct}
-                />
-              ))}
-            </ul>
-        </div>
-
-        <Card className="border-2 border-primary/40 shadow-none">
-          <CardContent className="flex h-full flex-col p-3">
-            <div className="mb-4 text-center">
-              <h3 className="text-xl font-semibold">Featured products</h3>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Trusted essentials curated for everyday care.
-              </p>
+      <div className="container-page section-space">
+        <h2 id="highlights-heading" className="sr-only">
+          Product highlights
+        </h2>
+        <div className="grid items-stretch gap-5 lg:grid-cols-3">
+          <div className="flex min-h-[37.5rem] flex-col rounded-[8px] border border-[#e8e8e4] bg-card p-5 shadow-[0_1px_2px_rgb(20_35_45_/_.03)]">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-xl font-bold">Recently added</h3>
+              <Clock3 className="size-4 text-primary" aria-hidden />
             </div>
-
-            {featured.length === 1 ? (
-              <FeaturedHighlightCard
-                product={featured[0]!}
-                onQuickView={setQuickProduct}
-              />
-            ) : (
-              <Carousel opts={{ align: "start", loop: true }} className="w-full">
-                <CarouselContent>
-                  {featured.map((product) => (
-                    <CarouselItem key={product.id}>
-                      <FeaturedHighlightCard
-                        product={product}
-                        onQuickView={setQuickProduct}
-                      />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="-left-2" />
-                <CarouselNext className="-right-2" />
-              </Carousel>
-            )}
-          </CardContent>
-        </Card>
-
-        <div>
-          <h3 className="mb-4 text-xl font-semibold">Our bestsellers</h3>
-          
-            <ul className="space-y-2">
-              {bestSellers.map((product) => (
-                <ProductListItem
-                  key={product.id}
-                  product={product}
-                  onQuickView={setQuickProduct}
-                />
+            <ul className="mt-5 space-y-1">
+              {recent.map((product) => (
+                <ProductListItem key={product.id} product={product} onQuickView={setQuickProduct} />
               ))}
             </ul>
-          
-        </div>
-      </div>
+            <Link
+              href="/category"
+              className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-primary hover:underline"
+            >
+              See new arrivals <span aria-hidden>›</span>
+            </Link>
+          </div>
 
-      <ProductQuickView
-        slug={quickProduct?.slug ?? null}
-        categoryName={quickProduct?.categoryName}
-        open={Boolean(quickProduct)}
-        onOpenChange={(open) => {
-          if (!open) setQuickProduct(null);
-        }}
-      />
+          <Card className="min-h-[37.5rem] rounded-[8px] border border-[#e8e8e4] bg-card shadow-[0_1px_2px_rgb(20_35_45_/_.03)]">
+            <CardContent className="flex h-full flex-col p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <span className="rounded-full bg-[#e7f4f1] px-3 py-1 text-[10px] font-semibold tracking-[0.08em] text-primary uppercase">
+                  Product of the month
+                </span>
+                {featured.length > 1 ? (
+                  <span className="text-xs text-muted-foreground">Featured picks</span>
+                ) : null}
+              </div>
+
+              {featured.length === 1 ? (
+                <FeaturedHighlightCard product={featured[0]!} onQuickView={setQuickProduct} />
+              ) : (
+                <Carousel opts={{ align: "start", loop: true }} className="w-full">
+                  <CarouselContent>
+                    {featured.map((product) => (
+                      <CarouselItem key={product.id}>
+                        <FeaturedHighlightCard product={product} onQuickView={setQuickProduct} />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="-left-2" />
+                  <CarouselNext className="-right-2" />
+                </Carousel>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="flex min-h-[37.5rem] flex-col rounded-[8px] border border-[#e8e8e4] bg-card p-5 shadow-[0_1px_2px_rgb(20_35_45_/_.03)]">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-xl font-bold">Popular products</h3>
+              <ArrowUpRight className="size-4 text-primary" aria-hidden />
+            </div>
+            <ul className="mt-5 space-y-1">
+              {bestSellers.map((product) => (
+                <ProductListItem key={product.id} product={product} onQuickView={setQuickProduct} />
+              ))}
+            </ul>
+            <Link
+              href="/category"
+              className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-primary hover:underline"
+            >
+              See all top sellers <span aria-hidden>›</span>
+            </Link>
+          </div>
+        </div>
+
+        <ProductQuickView
+          slug={quickProduct?.slug ?? null}
+          categoryName={quickProduct?.categoryName}
+          open={Boolean(quickProduct)}
+          onOpenChange={(open) => {
+            if (!open) setQuickProduct(null);
+          }}
+        />
+      </div>
     </section>
   );
 }

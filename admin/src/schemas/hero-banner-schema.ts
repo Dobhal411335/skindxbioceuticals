@@ -121,6 +121,7 @@ export function toHeroBannerPayload(
     slides: values.slides.map((slide, index) => {
       const isFullWidth = slide.layoutType === "FULL_WIDTH";
       const isSplit = slide.layoutType === "SPLIT_DUAL";
+      const hasSecondaryButton = isSplit || slide.layoutType === "MULTI_IMAGE";
       const isMulti = slide.layoutType === "MULTI_IMAGE";
 
       return {
@@ -139,8 +140,8 @@ export function toHeroBannerPayload(
         buttonLabel: isFullWidth ? "" : slide.buttonLabel.trim(),
         // FULL_WIDTH stores the banner image click destination in buttonUrl.
         buttonUrl: slide.buttonUrl.trim(),
-        button2Label: isSplit ? slide.button2Label.trim() : "",
-        button2Url: isSplit ? slide.button2Url.trim() : "",
+        button2Label: hasSecondaryButton ? slide.button2Label.trim() : "",
+        button2Url: hasSecondaryButton ? slide.button2Url.trim() : "",
         leftImageUrl: isSplit ? slide.leftImage.url.trim() : "",
         leftImagePublicId: isSplit ? slide.leftImage.publicId.trim() : "",
         leftImageClickUrl: isSplit ? slide.leftImageClickUrl.trim() : "",

@@ -9,6 +9,7 @@ function mapRecord(row: {
   siteId: string;
   promoLabel: string;
   promoHeading: string;
+  promoDescription: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
@@ -69,6 +70,7 @@ function mapRecord(row: {
     siteId: row.siteId,
     promoLabel: row.promoLabel,
     promoHeading: row.promoHeading,
+    promoDescription: row.promoDescription,
     promoSubheading: row.promoSubheading,
     promoButtonLabel: row.promoButtonLabel,
     promoButtonUrl: row.promoButtonUrl,
@@ -166,6 +168,7 @@ export class AboutUsBannerRepository {
             data: {
               promoLabel: data.promoLabel,
               promoHeading: data.promoHeading,
+              promoDescription: data.promoDescription,
               promoSubheading: data.promoSubheading,
               promoButtonLabel: data.promoButtonLabel,
               promoButtonUrl: data.promoButtonUrl,
@@ -179,6 +182,7 @@ export class AboutUsBannerRepository {
               siteId,
               promoLabel: data.promoLabel,
               promoHeading: data.promoHeading,
+              promoDescription: data.promoDescription,
               promoSubheading: data.promoSubheading,
               promoButtonLabel: data.promoButtonLabel,
               promoButtonUrl: data.promoButtonUrl,

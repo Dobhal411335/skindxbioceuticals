@@ -29,6 +29,8 @@ export function mapNavbarSectionsToNavLinks(
       id: section.id,
       label: section.title,
       href: section.url || "#",
+      menuHeading: section.menuHeading || section.title,
+      menuDescription: section.menuDescription || "",
       children: [...(section.subSections || [])]
         .filter((sub) => sub.active)
         .sort((left, right) => (left.order || 0) - (right.order || 0))
@@ -36,6 +38,7 @@ export function mapNavbarSectionsToNavLinks(
           id: sub.id,
           label: sub.title,
           href: sub.url || "#",
+          description: sub.description || "",
         })),
     }));
 }

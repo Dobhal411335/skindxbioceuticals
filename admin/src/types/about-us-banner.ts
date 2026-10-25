@@ -46,6 +46,7 @@ export type AboutUsServiceFormValues = {
 export type AboutUsBannerFormValues = {
   promoLabel: string;
   promoHeading: string;
+  promoDescription?: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
@@ -113,6 +114,7 @@ export type AboutUsBannerConfigDto = {
   siteCode: "IN" | "COM";
   promoLabel: string;
   promoHeading: string;
+  promoDescription?: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;
@@ -129,6 +131,7 @@ export type AboutUsBannerConfigDto = {
 export type AboutUsBannerConfigPayload = {
   promoLabel: string;
   promoHeading: string;
+  promoDescription: string;
   promoSubheading: string;
   promoButtonLabel: string;
   promoButtonUrl: string;

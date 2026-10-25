@@ -32,6 +32,7 @@ import { collectionBannerPublicRoutes } from '@/features/collection-banner/colle
 import { faqPublicRoutes } from '@/features/faq/faq.public.routes';
 import { insightsPublicRoutes } from '@/features/insights/insights.public.routes';
 import { heroBannerPublicRoutes } from '@/features/hero-banner/hero-banner.public.routes';
+import { clinicalConfidencePublicRoutes } from '@/features/clinical-confidence/clinical-confidence.public.routes';
 import { blogPublicRoutes } from '@/features/blog/blog.public.routes';
 import { webpagePublicRoutes } from '@/features/webpages/webpage.public.routes';
 import { doctorProfilesPublicRoutes } from '@/features/doctors/doctor-profiles.public.routes';
@@ -81,6 +82,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/faq', faqPublicRoutes);
   v1.use('/sites/:siteCode/insights', insightsPublicRoutes);
   v1.use('/sites/:siteCode/hero-banners', heroBannerPublicRoutes);
+  v1.use('/sites/:siteCode/clinical-confidence', clinicalConfidencePublicRoutes);
   v1.use('/sites/:siteCode/blogs', blogPublicRoutes);
   v1.use('/sites/:siteCode/webpages', webpagePublicRoutes);
   v1.use('/sites/:siteCode/doctors', doctorProfilesPublicRoutes);

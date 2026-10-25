@@ -8,7 +8,6 @@ import {
   type SetStateAction,
 } from "react";
 import {
-  BookOpenText,
   ImagePlus,
   Layers3,
   Megaphone,
@@ -20,7 +19,6 @@ import {
 
 import {
   createEmptyAboutCard,
-  createEmptyHighlightItem,
   createEmptyService,
   createEmptyTextSlide,
 } from "@/components/about-us-banner/about-us-banner-form-utils";
@@ -125,7 +123,6 @@ export function AboutUsBannerForm({
   formId = "about-us-banner-form",
 }: AboutUsBannerFormProps) {
   const aboutFileRefs = useRef<Array<HTMLInputElement | null>>([]);
-  const highlightFileRefs = useRef<Array<HTMLInputElement | null>>([]);
   const serviceFileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [uploadingKey, setUploadingKey] = useState("");
   const services = values.services ?? [];
@@ -225,59 +222,59 @@ export function AboutUsBannerForm({
           <div className="flex items-center gap-2">
             <Megaphone className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg font-semibold">
-              Section 1 — Top promotional header
+              Section 1 — Insight introduction
             </CardTitle>
           </div>
           <CardDescription className="mt-1">
-            Eyebrow, heading, subheading, and Shop Now link shown above the About
-            split on the home page.
+            Configure the fixed left introduction and the scrollable insight cards on the right.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
           <div className="grid gap-2">
-            <Label htmlFor="promo-label">Eyebrow label</Label>
+            <Label htmlFor="promo-label">Small heading</Label>
             <Input
               id="promo-label"
               value={values.promoLabel}
               onChange={(event) =>
                 onChange({ ...values, promoLabel: event.target.value })
               }
-              placeholder="Featured offers"
+              placeholder="A different kind of consultancy"
             />
             {errors.promoLabel ? (
               <p className="text-xs text-destructive">{errors.promoLabel}</p>
             ) : null}
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="promo-button-label">Button label</Label>
-            <Input
-              id="promo-button-label"
-              value={values.promoButtonLabel}
-              onChange={(event) =>
-                onChange({ ...values, promoButtonLabel: event.target.value })
-              }
-              placeholder="Shop now"
-            />
-            {errors.promoButtonLabel ? (
-              <p className="text-xs text-destructive">{errors.promoButtonLabel}</p>
-            ) : null}
-          </div>
           <div className="grid gap-2 md:col-span-2">
-            <Label htmlFor="promo-heading">Heading</Label>
+            <Label htmlFor="promo-heading">Big heading</Label>
             <Input
               id="promo-heading"
               value={values.promoHeading}
               onChange={(event) =>
                 onChange({ ...values, promoHeading: event.target.value })
               }
-              placeholder="Curated selections worth a closer look"
+              placeholder="Insight that moves your business forward."
             />
             {errors.promoHeading ? (
               <p className="text-xs text-destructive">{errors.promoHeading}</p>
             ) : null}
           </div>
           <div className="grid gap-2 md:col-span-2">
-            <Label htmlFor="promo-subheading">Subheading</Label>
+            <Label htmlFor="promo-description">Description</Label>
+            <Textarea
+              id="promo-description"
+              value={values.promoDescription ?? ""}
+              onChange={(event) =>
+                onChange({ ...values, promoDescription: event.target.value })
+              }
+              placeholder="Elvaris combines board-level perspective, sector expertise and hands-on execution."
+              rows={4}
+            />
+            {errors.promoDescription ? (
+              <p className="text-xs text-destructive">{errors.promoDescription}</p>
+            ) : null}
+          </div>
+          <div className="grid gap-2 md:col-span-2">
+            <Label htmlFor="promo-subheading">Sub description</Label>
             <Textarea
               id="promo-subheading"
               value={values.promoSubheading}
@@ -291,19 +288,102 @@ export function AboutUsBannerForm({
               <p className="text-xs text-destructive">{errors.promoSubheading}</p>
             ) : null}
           </div>
-          <div className="grid gap-2 md:col-span-2">
-            <Label htmlFor="promo-button-url">Button URL</Label>
-            <Input
-              id="promo-button-url"
-              value={values.promoButtonUrl}
-              onChange={(event) =>
-                onChange({ ...values, promoButtonUrl: event.target.value })
-              }
-              placeholder="/shop"
-            />
-            {errors.promoButtonUrl ? (
-              <p className="text-xs text-destructive">{errors.promoButtonUrl}</p>
+          <div className="space-y-4 border-t border-border/70 pt-6 md:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="font-semibold">Insight cards</h3>
+                <p className="text-sm text-muted-foreground">
+                  Each card needs only a heading and a short sub description.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 shrink-0 gap-2"
+                onClick={() =>
+                  onChange({
+                    ...values,
+                    textSlides: [...values.textSlides, createEmptyTextSlide()],
+                  })
+                }
+              >
+                <Plus className="h-4 w-4" />
+                Add card
+              </Button>
+            </div>
+            {errors.textSlides ? (
+              <p className="text-xs text-destructive">{errors.textSlides}</p>
             ) : null}
+            {values.textSlides.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                No insight cards yet. Add one to populate the right column.
+              </p>
+            ) : null}
+            <div className="grid gap-3 md:grid-cols-2">
+              {values.textSlides.map((slide, index) => (
+                <div
+                  key={`promo-card-${index}`}
+                  className="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium">
+                      Card {String(index + 1).padStart(2, "0")}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={slide.active}
+                        onCheckedChange={(checked) =>
+                          updateTextSlide(index, { active: checked })
+                        }
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() =>
+                          onChange({
+                            ...values,
+                            textSlides: values.textSlides.filter(
+                              (_, slideIndex) => slideIndex !== index,
+                            ),
+                          })
+                        }
+                        aria-label={`Remove insight card ${index + 1}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor={`promo-card-${index}-heading`}>Heading</Label>
+                    <Input
+                      id={`promo-card-${index}-heading`}
+                      value={slide.heading}
+                      onChange={(event) =>
+                        updateTextSlide(index, { heading: event.target.value })
+                      }
+                      placeholder="Senior expertise, always"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor={`promo-card-${index}-subheading`}>
+                      Sub description
+                    </Label>
+                    <Textarea
+                      id={`promo-card-${index}-subheading`}
+                      value={slide.subheading}
+                      onChange={(event) =>
+                        updateTextSlide(index, { subheading: event.target.value })
+                      }
+                      placeholder="Your core team stays involved from diagnosis through delivery."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

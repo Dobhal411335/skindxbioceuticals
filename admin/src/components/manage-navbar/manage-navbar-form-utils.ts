@@ -8,6 +8,7 @@ export function createSubSectionFormValues(): NavbarSubSectionFormValues {
   return {
     title: "",
     url: "",
+    description: "",
     order: "",
     active: true,
   };
@@ -17,6 +18,8 @@ export function createEmptyFormValues(): NavbarSectionFormValues {
   return {
     title: "",
     url: "#",
+    menuHeading: "",
+    menuDescription: "",
     order: "",
     active: true,
     subSections: [createSubSectionFormValues()],
@@ -27,6 +30,8 @@ export function dtoToFormValues(section: NavbarSectionDto): NavbarSectionFormVal
   return {
     title: section.title || "",
     url: section.url || "#",
+    menuHeading: section.menuHeading || "",
+    menuDescription: section.menuDescription || "",
     order: section.order != null ? String(section.order) : "",
     active: section.active ?? true,
     subSections:
@@ -34,6 +39,7 @@ export function dtoToFormValues(section: NavbarSectionDto): NavbarSectionFormVal
         ? section.subSections.map((item) => ({
             title: item.title || "",
             url: item.url || "#",
+            description: item.description || "",
             order: item.order != null ? String(item.order) : "",
             active: item.active ?? true,
           }))

@@ -21,8 +21,7 @@ type HeroSectionProps = {
 };
 
 /** Shared frame so every layout matches in the carousel (avoids white gaps). */
-const HERO_FRAME =
-  "h-[32rem] w-full overflow-hidden sm:h-[36rem] lg:h-[40rem]";
+const HERO_FRAME = "h-[32rem] w-full overflow-hidden sm:h-[36rem] lg:h-[40rem]";
 
 function useIsMobileViewport() {
   const [isMobile, setIsMobile] = useState(false);
@@ -76,13 +75,7 @@ function HeroClickable({
   );
 }
 
-function FullWidthSlide({
-  slide,
-  priority,
-}: {
-  slide: StorefrontHeroSlide;
-  priority?: boolean;
-}) {
+function FullWidthSlide({ slide, priority }: { slide: StorefrontHeroSlide; priority?: boolean }) {
   const isMobile = useIsMobileViewport();
   const src =
     (isMobile ? slide.mobileImageUrl : slide.desktopImageUrl) ||
@@ -97,14 +90,7 @@ function FullWidthSlide({
       className={`relative block ${HERO_FRAME}`}
       ariaLabel="Hero banner"
     >
-      <Image
-        src={src}
-        alt=""
-        fill
-        className="object-cover"
-        sizes="100vw"
-        priority={priority}
-      />
+      <Image src={src} alt="" fill className="object-cover" sizes="100vw" priority={priority} />
     </HeroClickable>
   );
 }
@@ -112,16 +98,10 @@ function FullWidthSlide({
 function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
   return (
     <>
-      {slide.miniHeading ? (
-        <p className="text-sm tracking-wide">{slide.miniHeading}</p>
-      ) : null}
-      <h1 className="font-bold mt-3 text-4xl tracking-tight sm:text-5xl">
-        {slide.mainHeading}
-      </h1>
+      {slide.miniHeading ? <p className="text-sm tracking-wide">{slide.miniHeading}</p> : null}
+      <h1 className="font-bold mt-3 text-4xl tracking-tight sm:text-5xl">{slide.mainHeading}</h1>
       {slide.description ? (
-        <p className="mt-4 max-w-md text-sm leading-relaxed opacity-90 ">
-          {slide.description}
-        </p>
+        <p className="mt-4 max-w-md text-sm leading-relaxed opacity-90 ">{slide.description}</p>
       ) : null}
       <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:flex-row sm:justify-center">
         {slide.buttonLabel ? (
@@ -131,7 +111,9 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
             size="lg"
             className="border-white border-2 bg-primary-foreground text-primary hover:bg-transparent px-10 py-7 rounded hover:text-primary-foreground"
           >
-            <Link href={slide.buttonUrl}>{slide.buttonLabel} <ArrowUpRight className="size-6 ml-2" /></Link>
+            <Link href={slide.buttonUrl}>
+              {slide.buttonLabel} <ArrowUpRight className="size-6 ml-2" />
+            </Link>
           </Button>
         ) : null}
         {slide.button2Label ? (
@@ -141,7 +123,9 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
             size="lg"
             className="border-white rounded border-2 bg-primary-foreground text-primary px-10 py-7 hover:bg-transparent hover:text-primary-foreground"
           >
-            <Link href={slide.button2Url}>{slide.button2Label} <ArrowUpRight className="size-6" /></Link>
+            <Link href={slide.button2Url}>
+              {slide.button2Label} <ArrowUpRight className="size-6" />
+            </Link>
           </Button>
         ) : null}
       </div>
@@ -149,13 +133,7 @@ function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
   );
 }
 
-function SplitDualSlide({
-  slide,
-  priority,
-}: {
-  slide: StorefrontHeroSlide;
-  priority?: boolean;
-}) {
+function SplitDualSlide({ slide, priority }: { slide: StorefrontHeroSlide; priority?: boolean }) {
   const isMobile = useIsMobileViewport();
   const mobileSrc = slide.leftImageUrl || slide.rightImageUrl;
 
@@ -245,31 +223,53 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
 
   return (
     <div
-      className={`relative flex ${HERO_FRAME} items-center justify-center border-b border-border bg-[#1a284f] text-white`}
+      className={`relative flex ${HERO_FRAME} items-center justify-center border-b border-[#263b43] bg-[#14272e] text-white`}
     >
-      <div className="container-page flex h-full w-full flex-col items-center justify-center gap-10 py-8 lg:flex-row lg:justify-between lg:gap-16">
-        <div className="max-w-md text-center lg:text-left">
-          <h2 className="text-5xl font-medium tracking-tight lowercase">
+      <div className="container-page flex h-full w-full flex-col items-center justify-center gap-10 py-10 lg:flex-row lg:justify-between lg:gap-20 lg:py-12">
+        <div className="max-w-xl text-center lg:text-left">
+          {slide.miniHeading ? (
+            <div className="flex items-center justify-center gap-3 text-[11px] font-semibold tracking-[0.18em] text-[#e7aa87] uppercase lg:justify-start">
+              <span className="h-px w-8 bg-[#d9794c]" aria-hidden />
+              <span>{slide.miniHeading}</span>
+            </div>
+          ) : null}
+          <h2 className="mt-7 text-5xl leading-[0.94] font-semibold tracking-[-0.05em] sm:text-6xl">
             {slide.mainHeading}
           </h2>
           {slide.description ? (
-            <p className="mt-4 text-md leading-relaxed text-[#bccbe8]">
+            <p className="mt-7 max-w-lg text-base leading-relaxed text-[#b5c2c6] sm:text-lg">
               {slide.description}
             </p>
           ) : null}
-          {slide.buttonLabel ? (
-            <Button
-              asChild
-              size="lg"
-              className="mt-8 rounded border-transparent bg-[#ff6a00] px-8 py-6 text-white hover:bg-[#e55f00]"
-            >
-              <Link href={slide.buttonUrl}>{slide.buttonLabel} <ArrowUpRight className="size-4 ml-2" /></Link>
-            </Button>
-          ) : null}
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+            {slide.buttonLabel ? (
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full border border-[#d9794c] bg-[#d9794c] px-7 py-6 text-white hover:bg-[#bd613c]"
+              >
+                <Link href={slide.buttonUrl}>
+                  {slide.buttonLabel} <ArrowUpRight className="ml-2 size-4" />
+                </Link>
+              </Button>
+            ) : null}
+            {slide.button2Label ? (
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="rounded-full border-white/35 bg-transparent px-7 py-6 text-white hover:bg-white/10 hover:text-white"
+              >
+                <Link href={slide.button2Url}>
+                  {slide.button2Label} <ArrowUpRight className="ml-2 size-4" />
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         <div
-          className="grid grid-cols-2 gap-0"
+          className="grid shrink-0 grid-cols-2 overflow-hidden rounded-[3px] border border-white/40"
           role="list"
           aria-label="Associate brands"
         >
@@ -282,9 +282,9 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
                 key={image.id}
                 role="listitem"
                 className={[
-                  "relative h-[220px] w-[220px] overflow-hidden rounded-md",
-                  isLeftCol ? "border-r border-white/70" : "",
-                  isNotLastRow ? "border-b border-white/70" : "",
+                  "relative h-[150px] w-[150px] overflow-hidden sm:h-[190px] sm:w-[190px] lg:h-[220px] lg:w-[220px]",
+                  isLeftCol ? "border-r border-white/40" : "",
+                  isNotLastRow ? "border-b border-white/40" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -294,7 +294,7 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
                     src={image.src}
                     alt={image.alt}
                     fill
-                    className="object-contain p-3"
+                    className="object-contain p-5"
                     sizes="250px"
                   />
                 ) : (
@@ -319,13 +319,7 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
   );
 }
 
-function HeroSlideView({
-  slide,
-  priority,
-}: {
-  slide: StorefrontHeroSlide;
-  priority?: boolean;
-}) {
+function HeroSlideView({ slide, priority }: { slide: StorefrontHeroSlide; priority?: boolean }) {
   if (slide.layoutType === "FULL_WIDTH") {
     return <FullWidthSlide slide={slide} priority={priority} />;
   }
@@ -372,17 +366,10 @@ function HeroCarousel({ slides }: { slides: StorefrontHeroSlide[] }) {
         }
       }}
     >
-      <Carousel
-        setApi={setApi}
-        opts={{ loop: true, align: "start" }}
-        className="w-full"
-      >
+      <Carousel setApi={setApi} opts={{ loop: true, align: "start" }} className="w-full">
         <CarouselContent className="-ml-0">
           {slides.map((slide, index) => (
-            <CarouselItem
-              key={slide.id}
-              className={`pl-0 basis-full ${HERO_FRAME}`}
-            >
+            <CarouselItem key={slide.id} className={`pl-0 basis-full ${HERO_FRAME}`}>
               <HeroSlideView slide={slide} priority={index === 0} />
             </CarouselItem>
           ))}
