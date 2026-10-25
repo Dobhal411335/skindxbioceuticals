@@ -19,18 +19,38 @@ describe("manage-navbar-schema", () => {
     values.url = "/shop";
     values.order = "2";
     values.subSections = [
-      { title: "Serums", url: "/shop/serums", order: "", active: true },
-      { title: "   ", url: "/ignored", order: "9", active: true },
+      {
+        title: "Serums",
+        url: "/shop/serums",
+        description: "  Daily serums  ",
+        order: "",
+        active: true,
+      },
+      {
+        title: "   ",
+        url: "/ignored",
+        description: "",
+        order: "9",
+        active: true,
+      },
     ];
 
     const payload = toNavbarSectionPayload(values, 5);
     expect(payload).toEqual({
       title: "Shop",
       url: "/shop",
+      menuHeading: "",
+      menuDescription: "",
       active: true,
       order: 2,
       subSections: [
-        { title: "Serums", url: "/shop/serums", active: true, order: 1 },
+        {
+          title: "Serums",
+          url: "/shop/serums",
+          description: "Daily serums",
+          active: true,
+          order: 1,
+        },
       ],
     });
   });

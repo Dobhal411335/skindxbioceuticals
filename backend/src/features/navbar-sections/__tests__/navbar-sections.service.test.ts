@@ -9,6 +9,8 @@ function makeRecord(overrides: Partial<NavbarSectionRecord> = {}): NavbarSection
     siteId: '22222222-2222-2222-2222-222222222222',
     title: 'Shop',
     url: '/shop',
+    menuHeading: '',
+    menuDescription: '',
     active: true,
     order: 1,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -19,6 +21,7 @@ function makeRecord(overrides: Partial<NavbarSectionRecord> = {}): NavbarSection
         sectionId: '11111111-1111-1111-1111-111111111111',
         title: 'Serums',
         url: '/shop/serums',
+        description: '',
         active: true,
         order: 1,
       },
@@ -77,16 +80,36 @@ describe('NavbarSectionsService', () => {
         title: 'Shop',
         url: '/shop',
         active: true,
-        subSections: [{ title: 'Serums', url: '/shop/serums', active: true, order: 1 }],
+        menuHeading: '',
+        menuDescription: '',
+        subSections: [
+          {
+            title: 'Serums',
+            url: '/shop/serums',
+            description: '',
+            active: true,
+            order: 1,
+          },
+        ],
       },
     });
 
     expect(create).toHaveBeenCalledWith(record.siteId, {
       title: 'Shop',
       url: '/shop',
+      menuHeading: '',
+      menuDescription: '',
       active: true,
       order: 3,
-      subSections: [{ title: 'Serums', url: '/shop/serums', active: true, order: 1 }],
+      subSections: [
+        {
+          title: 'Serums',
+          url: '/shop/serums',
+          description: '',
+          active: true,
+          order: 1,
+        },
+      ],
     });
     expect(dto.id).toBe(record.id);
   });
@@ -103,6 +126,8 @@ describe('NavbarSectionsService', () => {
         body: {
           title: 'Shop',
           url: '/shop',
+          menuHeading: '',
+          menuDescription: '',
           active: true,
           order: 1,
           subSections: [],

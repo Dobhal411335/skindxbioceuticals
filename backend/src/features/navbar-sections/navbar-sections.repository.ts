@@ -41,6 +41,7 @@ function mapSection(row: {
     sectionId: string;
     title: string;
     url: string;
+    description: string;
     active: boolean;
     order: number;
   }>;
