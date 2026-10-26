@@ -24,6 +24,7 @@ const subSectionSchema = z.object({
 
 export const navbarSectionBodySchema = z.object({
   title: z.string().trim().min(1, 'Section title is required').max(200),
+  description: z.string().trim().max(500).default(''),
   url: navUrlSchema.default('#'),
   menuHeading: z.string().trim().max(300).default(''),
   menuDescription: z.string().trim().max(500).default(''),
@@ -37,7 +38,9 @@ export const navbarSectionPatchSchema = z.object({
 });
 
 export const navbarSectionIdParamSchema = z.object({
-  siteCode: z.enum(['IN', 'COM', 'in', 'com']).transform((value) => value.toUpperCase() as 'IN' | 'COM'),
+  siteCode: z
+    .enum(['IN', 'COM', 'in', 'com'])
+    .transform((value) => value.toUpperCase() as 'IN' | 'COM'),
   sectionId: z.string().uuid(),
 });
 
@@ -74,6 +77,7 @@ export function normalizeNavbarSectionInput(raw: unknown): unknown {
   return {
     ...payload,
     title: typeof payload.title === 'string' ? payload.title.trim() : payload.title,
+    description: String(payload.description ?? '').trim(),
     url:
       typeof payload.url === 'string'
         ? payload.url.trim() || '#'

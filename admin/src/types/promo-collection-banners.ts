@@ -1,13 +1,8 @@
-export type BannerImageRef = {
-  url: string;
-  publicId: string;
-};
-
 export type PromoBannerItemFormValues = {
   clientKey: string;
-  image: BannerImageRef;
   miniHeading: string;
   heading: string;
+  description: string;
   buttonLabel: string;
   buttonUrl: string;
   active: boolean;
@@ -19,10 +14,9 @@ export type PromoBannerFormValues = {
 
 export type PromoBannerItemDto = {
   id: string;
-  imageUrl: string;
-  imagePublicId: string;
   miniHeading: string;
   heading: string;
+  description: string;
   buttonLabel: string;
   buttonUrl: string;
   sortOrder: number;
@@ -38,10 +32,9 @@ export type PromoBannerConfigDto = {
 
 export type PromoBannerConfigPayload = {
   items: Array<{
-    imageUrl: string;
-    imagePublicId: string;
     miniHeading: string;
     heading: string;
+    description: string;
     buttonLabel: string;
     buttonUrl: string;
     sortOrder: number;
@@ -51,7 +44,7 @@ export type PromoBannerConfigPayload = {
 
 export type CollectionBannerItemFormValues = {
   clientKey: string;
-  image: BannerImageRef;
+  image: { url: string; publicId: string };
   title: string;
   description: string;
   buttonUrl: string;

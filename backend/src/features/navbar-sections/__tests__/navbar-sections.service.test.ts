@@ -8,6 +8,7 @@ function makeRecord(overrides: Partial<NavbarSectionRecord> = {}): NavbarSection
     id: '11111111-1111-1111-1111-111111111111',
     siteId: '22222222-2222-2222-2222-222222222222',
     title: 'Shop',
+    description: '',
     url: '/shop',
     menuHeading: '',
     menuDescription: '',
@@ -78,6 +79,7 @@ describe('NavbarSectionsService', () => {
       userId: 'user-1',
       body: {
         title: 'Shop',
+        description: '',
         url: '/shop',
         active: true,
         menuHeading: '',
@@ -96,6 +98,7 @@ describe('NavbarSectionsService', () => {
 
     expect(create).toHaveBeenCalledWith(record.siteId, {
       title: 'Shop',
+      description: '',
       url: '/shop',
       menuHeading: '',
       menuDescription: '',
@@ -125,6 +128,7 @@ describe('NavbarSectionsService', () => {
         sectionId: '11111111-1111-1111-1111-111111111111',
         body: {
           title: 'Shop',
+          description: '',
           url: '/shop',
           menuHeading: '',
           menuDescription: '',

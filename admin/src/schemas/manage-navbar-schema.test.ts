@@ -38,6 +38,7 @@ describe("manage-navbar-schema", () => {
     const payload = toNavbarSectionPayload(values, 5);
     expect(payload).toEqual({
       title: "Shop",
+      description: "",
       url: "/shop",
       menuHeading: "",
       menuDescription: "",

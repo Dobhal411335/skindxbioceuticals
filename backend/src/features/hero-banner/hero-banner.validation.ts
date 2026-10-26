@@ -44,6 +44,7 @@ const gridImageSchema = z.object({
   }),
   imagePublicId: z.string().trim().max(500).default(''),
   alt: z.string().trim().max(300).default(''),
+  clickUrl: optionalUrlSchema.default(''),
   order: z.number().int().min(0).max(10_000).optional(),
 });
 
@@ -160,6 +161,7 @@ function normalizeGridImages(raw: unknown): unknown[] {
         imageUrl,
         imagePublicId: String(entry.imagePublicId ?? entry.publicId ?? '').trim(),
         alt: String(entry.alt ?? '').trim(),
+        clickUrl: String(entry.clickUrl ?? entry.linkUrl ?? '').trim(),
         order: entry.order ?? index,
       };
     })

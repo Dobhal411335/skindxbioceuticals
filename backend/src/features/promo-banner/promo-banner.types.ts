@@ -2,10 +2,9 @@ export type SiteCodeDto = 'IN' | 'COM';
 
 export type PromoBannerItemDto = {
   id: string;
-  imageUrl: string;
-  imagePublicId: string;
   miniHeading: string;
   heading: string;
+  description: string;
   buttonLabel: string;
   buttonUrl: string;
   sortOrder: number;
@@ -21,10 +20,9 @@ export type PromoBannerConfigDto = {
 
 export type PromoBannerItemRecord = {
   id: string;
-  imageUrl: string;
-  imagePublicId: string;
   miniHeading: string;
   heading: string;
+  description: string;
   buttonLabel: string;
   buttonUrl: string;
   sortOrder: number;
@@ -39,10 +37,9 @@ export type PromoBannerConfigRecord = {
 };
 
 export type PromoBannerItemWrite = {
-  imageUrl: string;
-  imagePublicId: string;
   miniHeading: string;
   heading: string;
+  description: string;
   buttonLabel: string;
   buttonUrl: string;
   sortOrder: number;

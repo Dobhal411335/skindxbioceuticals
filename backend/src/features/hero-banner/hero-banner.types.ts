@@ -7,6 +7,7 @@ export type HeroBannerGridImageDto = {
   imageUrl: string;
   imagePublicId: string;
   alt: string;
+  clickUrl: string;
   order: number;
 };
 
@@ -46,6 +47,7 @@ export type HeroBannerGridImageRecord = {
   imageUrl: string;
   imagePublicId: string;
   alt: string;
+  clickUrl?: string;
   order: number;
 };
 
@@ -79,6 +81,7 @@ export type HeroBannerGridImageWrite = {
   imageUrl: string;
   imagePublicId: string;
   alt: string;
+  clickUrl?: string;
   order: number;
 };
 

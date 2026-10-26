@@ -53,6 +53,7 @@ function toSlideDto(record: HeroBannerSlideRecord): HeroBannerSlideDto {
       imageUrl: preferHttpsUrl(image.imageUrl),
       imagePublicId: image.imagePublicId,
       alt: image.alt,
+      clickUrl: image.clickUrl || '',
       order: image.order,
     })),
   };
@@ -103,6 +104,7 @@ function bodyToWrites(body: HeroBannerConfigBody): HeroBannerSlideWrite[] {
             imageUrl: preferHttpsUrl(image.imageUrl),
             imagePublicId: image.imagePublicId || '',
             alt: image.alt || '',
+            clickUrl: image.clickUrl || '',
             order: image.order ?? imageIndex,
           }))
         : [],

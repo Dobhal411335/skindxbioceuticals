@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowUpRight, Clock3, Eye, ShoppingCart, Star } from "lucide-react";
+import { ArrowUpRight, Clock3, Droplets, Eye, ShoppingCart, Star } from "lucide-react";
 
 import {
   ProductDiscountBadge,
@@ -49,8 +49,8 @@ function ProductListItem({
 
   return (
     <li>
-      <div className="group relative flex gap-4 py-2.5">
-        <div className="relative size-25 shrink-0 overflow-hidden rounded-[3px] bg-[#f1f2f0]">
+      <div className="group relative flex cursor-pointer items-center gap-4">
+        <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-[#f1f2f0]">
           <Link
             href={`/products/${product.slug}`}
             className="absolute inset-0 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -59,14 +59,14 @@ function ProductListItem({
               src={product.imageUrl || "https://placehold.co/128x128/png?text=SkinDx"}
               alt={product.name}
               fill
-              className="object-contain transition-transform duration-300 group-hover:scale-105"
-              sizes="96px"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="64px"
             />
           </Link>
           {discountPercent != null ? (
             <ProductDiscountBadge
               percent={discountPercent}
-              className="absolute top-1 left-1 z-20"
+              className="absolute top-0 -left-1 z-20"
             />
           ) : null}
           <button
@@ -83,13 +83,13 @@ function ProductListItem({
             </span>
           </button>
         </div>
-        <div className="min-w-0 flex-1 self-center">
-          <p className="line-clamp-1 text-[10px] font-semibold tracking-[0.08em] text-primary uppercase">
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-1 text-[12px] font-semibold tracking-[0.08em] text-primary uppercase">
             {product.categoryName ?? "Product"}
           </p>
           <Link
             href={`/products/${product.slug}`}
-            className="mt-1 line-clamp-2 text-sm leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="mt-1 truncate text-md line-clamp-2 font-semibold transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {product.name}
           </Link>
@@ -100,8 +100,8 @@ function ProductListItem({
             coupon={product.coupon}
             priced={priced}
             showBadge={false}
-            size="sm"
-            className="mt-1 [&>span:first-child]:!text-sm [&>span:first-child]:!text-foreground"
+            size="lg"
+            className="mt-2 gap-1 [&>span:first-child]:!text-sm [&>span:first-child]:!text-foreground"
           />
         </div>
       </div>
@@ -169,12 +169,12 @@ function FeaturedHighlightCard({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="group relative mb-4 aspect-[1.08] overflow-hidden rounded-[3px] bg-[#f1f2f0]">
+      <div className="group relative mb-4 aspect-[4/3] overflow-hidden rounded-lg bg-[#f2f5f6]">
         <Image
           src={product.imageUrl || "https://placehold.co/600x600/png?text=SkinDx"}
           alt={product.name}
           fill
-          className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 1024px) 100vw, 33vw"
         />
         {discountPercent != null ? (
@@ -201,21 +201,6 @@ function FeaturedHighlightCard({
         <p className="line-clamp-1 text-[10px] font-semibold tracking-[0.08em] text-primary uppercase">
           {product.categoryName ?? "Product"}
         </p>
-        <div
-          className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary"
-          aria-label={`Rated ${product.averageRating} out of 5`}
-        >
-          <Star className="size-3 fill-current" aria-hidden />
-          {product.averageRating.toFixed(2)} / 5.0
-        </div>
-      </div>
-      <div className="mt-2 flex items-start justify-between gap-3">
-        <Link
-          href={`/products/${product.slug}`}
-          className="line-clamp-2 text-xl leading-tight font-semibold transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          {product.name}
-        </Link>
         <ProductPriceDisplay
           price={product.price}
           vendorPrice={product.vendorPrice}
@@ -224,21 +209,29 @@ function FeaturedHighlightCard({
           priced={priced}
           showBadge={false}
           size="lg"
-          className="shrink-0 justify-end [&>span:first-child]:!text-lg [&>span:first-child]:!text-primary"
+          className="shrink-0 justify-end gap-1 [&>span:first-child]:!text-lg [&>span:first-child]:!text-primary"
         />
       </div>
-      <p className="mt-2 line-clamp-3 min-h-[4.7rem] text-xs leading-relaxed text-muted-foreground">
+      <div className="mt-1">
+        <Link
+          href={`/products/${product.slug}`}
+          className="line-clamp-2 text-lg leading-tight font-semibold transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {product.name}
+        </Link>
+      </div>
+      <p className="mt-2 line-clamp-3 min-h-[3.75rem] text-xs leading-relaxed text-muted-foreground">
         {product.description
           ? product.description
               .replace(/<[^>]*>/g, " ")
               .replace(/\s+/g, " ")
               .trim()
-          : "A considered formulation for comfortable, healthy-looking skin."}
+          : ""}
       </p>
-      <div className="mt-4 flex items-center gap-2">
-        <Button
+      <div className="mt-3 flex items-center gap-2">
+        <Button 
           type="button"
-          className="flex-1 rounded-[3px] bg-primary px-4 py-5 text-sm font-semibold"
+          className="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-[#1f6663]"
           disabled={!canAdd}
           onClick={() => void addToCart()}
         >
@@ -284,34 +277,38 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
         <h2 id="highlights-heading" className="sr-only">
           Product highlights
         </h2>
-        <div className="grid items-stretch gap-5 lg:grid-cols-3">
-          <div className="flex min-h-[37.5rem] flex-col rounded-[8px] border border-[#e8e8e4] bg-card p-5 shadow-[0_1px_2px_rgb(20_35_45_/_.03)]">
+        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12">
+          <div className="flex min-h-[33.25rem] flex-col rounded-xl bg-card p-5 shadow-sm lg:col-span-4">
             <div className="flex items-center justify-between gap-4">
-              <h3 className="text-xl font-bold">Recently added</h3>
-              <Clock3 className="size-4 text-primary" aria-hidden />
+              <h3 className="text-xl font-semibold">Recently added</h3>
+              <Clock3 className="size-5 text-primary" aria-hidden />
             </div>
-            <ul className="mt-5 space-y-1">
+            <ul className="mt-4 space-y-4">
               {recent.map((product) => (
                 <ProductListItem key={product.id} product={product} onQuickView={setQuickProduct} />
               ))}
             </ul>
             <Link
               href="/category"
-              className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-primary hover:underline"
+              className="mt-auto inline-flex items-center gap-1 pt-6 text-md font-semibold text-primary hover:underline"
             >
               See new arrivals <span aria-hidden>›</span>
             </Link>
           </div>
 
-          <Card className="min-h-[37.5rem] rounded-[8px] border border-[#e8e8e4] bg-card shadow-[0_1px_2px_rgb(20_35_45_/_.03)]">
-            <CardContent className="flex h-full flex-col p-5">
+          <Card className="group relative min-h-[33.25rem] rounded-xl border-0 bg-card shadow-sm lg:col-span-4">
+            <CardContent className="flex h-full flex-col p-4">
               <div className="mb-4 flex items-center justify-between gap-3">
-                <span className="rounded-full bg-[#e7f4f1] px-3 py-1 text-[10px] font-semibold tracking-[0.08em] text-primary uppercase">
+                <span className="rounded-full bg-[#b7ebdf] px-3 py-1 text-[10px] font-semibold tracking-[0.08em] text-black uppercase">
                   Product of the month
                 </span>
-                {featured.length > 1 ? (
-                  <span className="text-xs text-muted-foreground">Featured picks</span>
-                ) : null}
+                <div
+                  className="flex items-center gap-1 text-xs font-semibold text-primary"
+                  aria-label={`Rated ${featured[0]?.averageRating ?? 0} out of 5`}
+                >
+                  <Star className="size-3.5 fill-current" aria-hidden />
+                  {featured[0]?.averageRating.toFixed(2) ?? "0.00"} / 5.0
+                </div>
               </div>
 
               {featured.length === 1 ? (
@@ -332,19 +329,19 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
             </CardContent>
           </Card>
 
-          <div className="flex min-h-[37.5rem] flex-col rounded-[8px] border border-[#e8e8e4] bg-card p-5 shadow-[0_1px_2px_rgb(20_35_45_/_.03)]">
+          <div className="flex min-h-[33.25rem] flex-col rounded-xl bg-card p-5 shadow-sm lg:col-span-4">
             <div className="flex items-center justify-between gap-4">
-              <h3 className="text-xl font-bold">Popular products</h3>
+              <h3 className="text-xl font-semibold">Popular products</h3>
               <ArrowUpRight className="size-4 text-primary" aria-hidden />
             </div>
-            <ul className="mt-5 space-y-1">
+            <ul className="mt-4 space-y-4">
               {bestSellers.map((product) => (
                 <ProductListItem key={product.id} product={product} onQuickView={setQuickProduct} />
               ))}
             </ul>
             <Link
               href="/category"
-              className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-primary hover:underline"
+              className="mt-auto inline-flex items-center gap-1 pt-6 text-md font-semibold text-primary hover:underline"
             >
               See all top sellers <span aria-hidden>›</span>
             </Link>

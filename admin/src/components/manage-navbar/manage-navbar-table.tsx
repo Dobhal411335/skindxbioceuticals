@@ -64,6 +64,11 @@ export function ManageNavbarTable({
                       <div className="font-semibold text-foreground">
                         {section.title}
                       </div>
+                      {section.description ? (
+                        <div className="mt-1 max-w-sm text-xs text-muted-foreground">
+                          {section.description}
+                        </div>
+                      ) : null}
                       <div className="mt-1 w-fit rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
                         {section.url}
                       </div>

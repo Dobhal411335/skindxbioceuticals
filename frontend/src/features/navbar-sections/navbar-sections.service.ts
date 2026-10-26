@@ -19,9 +19,7 @@ function apiBaseUrl(): string {
   return value.replace(/\/$/, "");
 }
 
-export function mapNavbarSectionsToNavLinks(
-  sections: NavbarSection[],
-): StorefrontNavLink[] {
+export function mapNavbarSectionsToNavLinks(sections: NavbarSection[]): StorefrontNavLink[] {
   return [...sections]
     .filter((section) => section.active)
     .sort((left, right) => (left.order || 0) - (right.order || 0))
@@ -29,6 +27,7 @@ export function mapNavbarSectionsToNavLinks(
       id: section.id,
       label: section.title,
       href: section.url || "#",
+      description: section.description || "",
       menuHeading: section.menuHeading || section.title,
       menuDescription: section.menuDescription || "",
       children: [...(section.subSections || [])]
@@ -54,13 +53,10 @@ export const getNavbarSections = cache(async (): Promise<StorefrontNavLink[]> =>
   }
 
   try {
-    const response = await fetch(
-      `${base}/sites/${STOREFRONT_SITE_CODE}/navbar-sections`,
-      {
-        next: { revalidate: 60, tags: ["navbar-sections", "IN"] },
-        headers: { Accept: "application/json" },
-      },
-    );
+    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/navbar-sections`, {
+      next: { revalidate: 60, tags: ["navbar-sections", "IN"] },
+      headers: { Accept: "application/json" },
+    });
 
     if (!response.ok) {
       return FALLBACK_NAV_LINKS;

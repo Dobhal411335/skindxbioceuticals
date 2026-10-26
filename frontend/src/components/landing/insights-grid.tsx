@@ -4,10 +4,14 @@ import Image from "next/image";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 
-import type {
-  StorefrontInsightCard,
-  StorefrontInsights,
-} from "@/types/insights";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import type { StorefrontInsightCard, StorefrontInsights } from "@/types/insights";
 
 function formatInsightDate(iso: string): string {
   const date = new Date(iso);
@@ -21,93 +25,64 @@ function formatInsightDate(iso: string): string {
 
 function InsightCardItem({ card }: { card: StorefrontInsightCard }) {
   const [open, setOpen] = useState(false);
-  const hasImage = Boolean(card.imageUrl.trim());
-  const fullHtml =
-    card.descriptionHtml?.trim() ||
-    (card.excerpt ? `<p>${card.excerpt}</p>` : "");
+  const fullDescription = card.descriptionHtml?.trim() || card.excerpt?.trim() || "";
+  const hasDescription = Boolean(fullDescription);
 
   return (
-    <article className="flex h-full flex-col rounded-lg border border-border overflow-hidden">
-      <div className="group relative aspect-4/3 overflow-hidden bg-surface">
-        {hasImage ? (
+    <article className="group flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#ece7de]">
+        {card.imageUrl.trim() ? (
           <Image
             src={card.imageUrl}
             alt={card.name}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-muted text-sm text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             No image
           </div>
         )}
         {card.category ? (
-          <span className="absolute top-3 left-3 bg-foreground px-2.5 py-1 text-[11px] font-medium tracking-wide text-background uppercase">
+          <span className="absolute top-4 left-4 rounded-full bg-white/85 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-[#755c43] uppercase backdrop-blur-sm">
             {card.category}
           </span>
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4 pt-4">
-        <h3 className="font-display text-lg leading-snug font-semibold text-foreground">
+      <div className="flex flex-1 flex-col gap-2 p-4 sm:p-5">
+        <p className="text-xs text-muted-foreground">{formatInsightDate(card.publishedAt)}</p>
+        <h3 className="line-clamp-2 font-display text-lg leading-snug font-semibold text-[#18252b]">
           {card.name}
         </h3>
-        <p className="text-sm text-muted-foreground">
-          {formatInsightDate(card.publishedAt)}
-        </p>
-
-        <div className="relative">
-          {/* Collapsed/truncated view: show fullHtml in 3 lines */}
+        {hasDescription ? (
           <div
-            className={`transition-[max-height,opacity] duration-400 ease-in-out overflow-hidden ${
-              open ? "max-h-0 opacity-0 pointer-events-none" : "max-h-40 opacity-100"
+            className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
+              open ? "max-h-60 opacity-100" : "max-h-[4.75rem] opacity-90"
             }`}
-            style={{ willChange: "max-height, opacity" }}
-            aria-hidden={open}
           >
             <div
-              dangerouslySetInnerHTML={{ __html: fullHtml }}
-              className="rich-html text-justify mt-1 line-clamp-3 text-justify text-sm text-muted-foreground"
+              className={`rich-html text-sm leading-relaxed text-muted-foreground ${
+                open ? "" : "line-clamp-3"
+              }`}
+              dangerouslySetInnerHTML={{ __html: fullDescription }}
             />
-            {fullHtml && (
-              <button
-                type="button"
-                onClick={() => setOpen(true)}
-                className="mt-auto pt-3 text-left text-xs font-bold tracking-[0.12em] text-foreground uppercase underline decoration-primary decoration-1 underline-offset-4 transition-colors hover:text-primary"
-              >
-                Read more{" "}
-                <ArrowRight className="inline-block size-4" aria-hidden />
-              </button>
-            )}
           </div>
-
-          {/* Expanded/full content view */}
-          <div
-            className={`transition-[max-height,opacity] duration-400 ease-in-out overflow-hidden ${
-              open ? "max-h-[28rem] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
-            }`}
-            style={{ willChange: "max-height, opacity" }}
-            aria-hidden={!open}
+        ) : null}
+        {hasDescription ? (
+          <button
+            type="button"
+            onClick={() => setOpen((current) => !current)}
+            className="mt-auto inline-flex w-fit items-center gap-1 pt-2 text-xs font-bold tracking-[0.12em] text-[#18252b] uppercase transition-colors hover:text-primary"
           >
-            <div className="mt-1 space-y-3">
-              <div
-                className="rich-html text-justify text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]"
-                dangerouslySetInnerHTML={{ __html: fullHtml }}
-              />
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="text-left text-xs font-bold tracking-[0.12em] text-foreground uppercase underline decoration-primary decoration-1 underline-offset-4 transition-colors hover:text-primary"
-              >
-                Show less
-              </button>
-            </div>
-          </div>
-        </div>
- 
-
-  
+            {open ? "Show less" : "Read more"}
+            <ArrowRight
+              className={`size-3.5 transition-transform duration-300 ${open ? "rotate-90" : ""}`}
+              aria-hidden
+            />
+          </button>
+        ) : null}
       </div>
     </article>
   );
@@ -119,14 +94,45 @@ type InsightsGridProps = {
 
 export function InsightsGrid({ insights }: InsightsGridProps) {
   const cards = insights?.cards ?? [];
-  if (cards.length === 0)  return null;
+  if (cards.length === 0) return null;
+
+  const showControls = cards.length > 3;
 
   return (
-    <section className="container-page section-space " aria-labelledby="insights-heading">
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((card) => (
-          <InsightCardItem key={card.id} card={card} />
-        ))}
+    <section className="w-full bg-[#f3e7d5] py-14 sm:py-16" aria-labelledby="insights-heading">
+      <div className="container-page">
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold tracking-[0.16em] text-[#9a7653] uppercase">
+              Related insights
+            </p>
+            <h2
+              id="insights-heading"
+              className="mt-2 font-display text-3xl font-semibold tracking-tight text-[#18252b] sm:text-4xl"
+            >
+              Continue exploring.
+            </h2>
+          </div>
+          <span className="hidden rounded-full border border-[#d8c9b5] px-4 py-2 text-xs font-semibold text-[#6e5a45] sm:inline-flex">
+            All insights
+          </span>
+        </div>
+
+        <Carousel opts={{ align: "start", loop: showControls }} className="w-full">
+          <CarouselContent className="-ml-4">
+            {cards.map((card) => (
+              <CarouselItem key={card.id} className="basis-full pl-4 sm:basis-1/2 lg:basis-1/3">
+                <InsightCardItem card={card} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          {showControls ? (
+            <>
+              <CarouselPrevious className="-left-3 hidden border-[#d8c9b5] bg-white text-[#18252b] shadow-sm sm:flex" />
+              <CarouselNext className="-right-3 hidden border-[#d8c9b5] bg-white text-[#18252b] shadow-sm sm:flex" />
+            </>
+          ) : null}
+        </Carousel>
       </div>
     </section>
   );

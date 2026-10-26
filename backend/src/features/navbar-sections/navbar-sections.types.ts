@@ -15,6 +15,7 @@ export type NavbarSectionDto = {
   id: string;
   siteCode: SiteCodeDto;
   title: string;
+  description: string;
   url: string;
   menuHeading: string;
   menuDescription: string;
@@ -27,7 +28,10 @@ export type NavbarSectionDto = {
 
 export type NavbarSubSectionRecord = NavbarSubSectionDto & { sectionId: string };
 
-export type NavbarSectionRecord = Omit<NavbarSectionDto, 'siteCode' | 'createdAt' | 'updatedAt' | 'subSections'> & {
+export type NavbarSectionRecord = Omit<
+  NavbarSectionDto,
+  'siteCode' | 'createdAt' | 'updatedAt' | 'subSections'
+> & {
   id: string;
   siteId: string;
   createdAt: Date;
@@ -45,6 +49,7 @@ export type NavbarSubSectionWrite = {
 
 export type NavbarSectionWrite = {
   title: string;
+  description: string;
   url: string;
   menuHeading: string;
   menuDescription: string;

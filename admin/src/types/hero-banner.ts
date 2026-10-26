@@ -10,6 +10,7 @@ export type HeroBannerImageValue = {
 export type HeroBannerGridImageFormValues = {
   image: HeroBannerImageValue;
   alt: string;
+  clickUrl: string;
 };
 
 export type HeroBannerSlideFormValues = {
@@ -42,6 +43,7 @@ export type HeroBannerGridImageDto = {
   imageUrl: string;
   imagePublicId: string;
   alt: string;
+  clickUrl: string;
   order: number;
 };
 
@@ -100,6 +102,7 @@ export type HeroBannerSlidePayload = {
     imageUrl: string;
     imagePublicId: string;
     alt: string;
+    clickUrl: string;
     order: number;
   }>;
 };

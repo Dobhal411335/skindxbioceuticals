@@ -35,10 +35,6 @@ export function validatePromoBannerForm(
   const errors: PromoBannerFormErrors = {};
 
   for (const [index, item] of values.items.entries()) {
-    if (!item.image.url.trim()) {
-      errors.items = `Banner ${index + 1}: image is required`;
-      break;
-    }
     if (item.miniHeading.trim().length > 120) {
       errors.items = `Banner ${index + 1}: mini heading must be 120 characters or fewer`;
       break;
@@ -49,6 +45,10 @@ export function validatePromoBannerForm(
     }
     if (item.heading.trim().length > 200) {
       errors.items = `Banner ${index + 1}: heading must be 200 characters or fewer`;
+      break;
+    }
+    if (item.description.trim().length > 500) {
+      errors.items = `Banner ${index + 1}: description must be 500 characters or fewer`;
       break;
     }
     if (item.buttonLabel.trim().length > 80) {
@@ -76,10 +76,9 @@ export function toPromoBannerPayload(
 ): PromoBannerConfigPayload {
   return {
     items: values.items.map((item, index) => ({
-      imageUrl: item.image.url.trim(),
-      imagePublicId: item.image.publicId.trim(),
       miniHeading: item.miniHeading.trim(),
       heading: item.heading.trim(),
+      description: item.description.trim(),
       buttonLabel: item.buttonLabel.trim(),
       buttonUrl: item.buttonUrl.trim(),
       sortOrder: index,

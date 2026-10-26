@@ -17,6 +17,7 @@ export function createSubSectionFormValues(): NavbarSubSectionFormValues {
 export function createEmptyFormValues(): NavbarSectionFormValues {
   return {
     title: "",
+    description: "",
     url: "#",
     menuHeading: "",
     menuDescription: "",
@@ -29,6 +30,7 @@ export function createEmptyFormValues(): NavbarSectionFormValues {
 export function dtoToFormValues(section: NavbarSectionDto): NavbarSectionFormValues {
   return {
     title: section.title || "",
+    description: section.description || "",
     url: section.url || "#",
     menuHeading: section.menuHeading || "",
     menuDescription: section.menuDescription || "",

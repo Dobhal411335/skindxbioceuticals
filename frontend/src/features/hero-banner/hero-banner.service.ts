@@ -75,6 +75,7 @@ export function mapHeroBannerConfigToStorefront(config: HeroBannerConfig): Store
       id: image.id,
       src: preferHttps(image.imageUrl.trim()),
       alt: image.alt.trim() || slide.mainHeading.trim() || "Brand",
+      clickUrl: optionalHref(image.clickUrl, ""),
     })),
   }));
 

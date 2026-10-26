@@ -29,6 +29,7 @@ function mapSection(row: {
   id: string;
   siteId: string;
   title: string;
+  description: string;
   url: string;
   menuHeading: string;
   menuDescription: string;
@@ -50,6 +51,7 @@ function mapSection(row: {
     id: row.id,
     siteId: row.siteId,
     title: row.title,
+    description: row.description,
     url: row.url,
     menuHeading: row.menuHeading,
     menuDescription: row.menuDescription,
@@ -57,9 +59,7 @@ function mapSection(row: {
     order: row.order,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
-    subSections: row.subSections
-      .map(mapSubSection)
-      .sort((a, b) => a.order - b.order),
+    subSections: row.subSections.map(mapSubSection).sort((a, b) => a.order - b.order),
   };
 }
 
@@ -93,10 +93,7 @@ export class NavbarSectionsRepository {
     return rows.map(mapSection);
   }
 
-  async findByIdForSite(
-    siteId: string,
-    sectionId: string,
-  ): Promise<NavbarSectionRecord | null> {
+  async findByIdForSite(siteId: string, sectionId: string): Promise<NavbarSectionRecord | null> {
     const row = await prisma.navbarSection.findFirst({
       where: { id: sectionId, siteId },
       include: includeSubSections,
@@ -118,6 +115,7 @@ export class NavbarSectionsRepository {
       data: {
         siteId,
         title: data.title,
+        description: data.description,
         url: data.url,
         menuHeading: data.menuHeading,
         menuDescription: data.menuDescription,
@@ -158,6 +156,7 @@ export class NavbarSectionsRepository {
         where: { id: sectionId },
         data: {
           title: data.title,
+          description: data.description,
           url: data.url,
           menuHeading: data.menuHeading,
           menuDescription: data.menuDescription,

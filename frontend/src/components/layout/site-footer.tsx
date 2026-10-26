@@ -337,7 +337,7 @@ export function SiteFooter() {
               {PAYMENT_CARDS.map((card) => (
                 <div
                   key={card.name}
-                  className="flex h-8 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white p-1 shadow-xs transition-transform hover:scale-105"
+                  className="flex h-8 w-12 shrink-0 items-center justify-center overflow-hidden rounded border border-border bg-white p-1 shadow-xs transition-transform hover:scale-105"
                   title={card.name}
                 >
                   <Image
@@ -355,8 +355,8 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-gray-500">
-        <p className="container-page py-5 text-center text-sm text-black">
-          © {new Date().getFullYear()} {brandName}
+        <p className="py-5 text-center text-md text-white bg-[#14272E]">
+          &copy; {new Date().getFullYear()} {brandName} All Rights Reserved.
         </p>
       </div>
     </footer>

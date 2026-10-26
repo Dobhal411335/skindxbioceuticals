@@ -2,10 +2,7 @@ import { logger } from '@/lib/logger';
 import type { SiteCode } from '@/types/common';
 import { NotFoundError } from '@/utils/AppError';
 import { navbarSectionsRepository } from './navbar-sections.repository';
-import type {
-  NavbarSectionBody,
-  NavbarSectionPatchBody,
-} from './navbar-sections.validation';
+import type { NavbarSectionBody, NavbarSectionPatchBody } from './navbar-sections.validation';
 import type {
   NavbarSectionDto,
   NavbarSectionRecord,
@@ -21,6 +18,7 @@ export function toNavbarSectionDto(
     id: record.id,
     siteCode,
     title: record.title,
+    description: record.description,
     url: record.url,
     menuHeading: record.menuHeading,
     menuDescription: record.menuDescription,
@@ -39,12 +37,10 @@ export function toNavbarSectionDto(
   };
 }
 
-function bodyToWrite(
-  body: NavbarSectionBody,
-  fallbackOrder: number,
-): NavbarSectionWrite {
+function bodyToWrite(body: NavbarSectionBody, fallbackOrder: number): NavbarSectionWrite {
   return {
     title: body.title,
+    description: body.description || '',
     url: body.url || '#',
     menuHeading: body.menuHeading || '',
     menuDescription: body.menuDescription || '',
@@ -68,10 +64,7 @@ export class NavbarSectionsService {
     return rows.map((row) => toNavbarSectionDto(row, siteCode));
   }
 
-  async listActiveForSite(
-    siteId: string,
-    siteCode: SiteCode,
-  ): Promise<NavbarSectionDto[]> {
+  async listActiveForSite(siteId: string, siteCode: SiteCode): Promise<NavbarSectionDto[]> {
     const rows = await this.repository.listActiveBySiteId(siteId);
     return rows.map((row) => toNavbarSectionDto(row, siteCode));
   }
@@ -106,20 +99,13 @@ export class NavbarSectionsService {
     sectionId: string;
     body: NavbarSectionBody;
   }): Promise<NavbarSectionDto> {
-    const existing = await this.repository.findByIdForSite(
-      input.siteId,
-      input.sectionId,
-    );
+    const existing = await this.repository.findByIdForSite(input.siteId, input.sectionId);
     if (!existing) {
       throw new NotFoundError('Navbar section not found');
     }
 
     const data = bodyToWrite(input.body, existing.order);
-    const record = await this.repository.update(
-      input.siteId,
-      input.sectionId,
-      data,
-    );
+    const record = await this.repository.update(input.siteId, input.sectionId, data);
     if (!record) {
       throw new NotFoundError('Navbar section not found');
     }

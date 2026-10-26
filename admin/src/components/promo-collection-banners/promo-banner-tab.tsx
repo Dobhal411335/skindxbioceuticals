@@ -1,13 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
-  ImagePlus,
   Plus,
   Trash2,
-  Upload,
 } from "lucide-react";
 
 import {
@@ -25,19 +22,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { showError } from "@/lib/toast";
 import type { PromoBannerFormErrors } from "@/schemas/promo-collection-banners-schema";
-import { uploadPromoBannerImage } from "@/services/api/promo-banner";
-import { ApiError } from "@/services/api/errors";
-import type { SiteCode } from "@/types/auth";
 import type {
   PromoBannerFormValues,
   PromoBannerItemFormValues,
 } from "@/types/promo-collection-banners";
 
 type PromoBannerTabProps = {
-  siteCode: SiteCode;
-  entityId: string | null;
   values: PromoBannerFormValues;
   errors: PromoBannerFormErrors;
   onChange: (next: PromoBannerFormValues) => void;
@@ -59,36 +50,12 @@ function updateItem(
 }
 
 export function PromoBannerTab({
-  siteCode,
-  entityId,
   values,
   errors,
   onChange,
   formId = "promo-banner-form",
   onSubmit,
 }: PromoBannerTabProps) {
-  const fileRefs = useRef<Array<HTMLInputElement | null>>([]);
-  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
-
-  const handleUpload = async (index: number, file?: File) => {
-    if (!file) return;
-    setUploadingIndex(index);
-    try {
-      const uploaded = await uploadPromoBannerImage(siteCode, file, entityId);
-      onChange(
-        updateItem(values, index, {
-          image: { url: uploaded.url, publicId: uploaded.publicId },
-        }),
-      );
-    } catch (error) {
-      showError(
-        error instanceof ApiError ? error.message : "Failed to upload image",
-      );
-    } finally {
-      setUploadingIndex(null);
-    }
-  };
-
   return (
     <form id={formId} onSubmit={onSubmit} className="space-y-6">
       <Card className="overflow-hidden border-border bg-card shadow-sm">
@@ -99,8 +66,8 @@ export function PromoBannerTab({
                 Promo banner row
               </CardTitle>
               <CardDescription className="mt-1">
-                Image tiles with mini heading, heading, and CTA. Storefront
-                shows three at a time.
+                Color-led tiles with mini heading, description, heading, and CTA.
+                Storefront shows three at a time.
               </CardDescription>
             </div>
             <Button
@@ -126,8 +93,8 @@ export function PromoBannerTab({
           ) : null}
           {values.items.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No promo banners yet. Add an image, headings, and optional CTA for
-              the home carousel.
+              No promo banners yet. Add headings, descriptions, and an optional
+              CTA for the home carousel.
             </p>
           ) : null}
 
@@ -197,66 +164,7 @@ export function PromoBannerTab({
                 </div>
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
-                <div className="space-y-2">
-                  <Label>Image</Label>
-                  {item.image.url ? (
-                    <div className="overflow-hidden rounded-lg border border-border bg-muted/20">
-                      {/* eslint-disable-next-line @next/next/no-img-element -- admin Cloudinary preview */}
-                      <img
-                        src={item.image.url}
-                        alt=""
-                        className="h-36 w-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex h-36 items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 text-muted-foreground">
-                      <ImagePlus className="h-6 w-6" />
-                    </div>
-                  )}
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      disabled={uploadingIndex === index}
-                      onClick={() => fileRefs.current[index]?.click()}
-                    >
-                      <Upload className="h-4 w-4" />
-                      {uploadingIndex === index ? "Uploading…" : "Upload"}
-                    </Button>
-                    {item.image.url ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          onChange(
-                            updateItem(values, index, {
-                              image: { url: "", publicId: "" },
-                            }),
-                          )
-                        }
-                      >
-                        Remove
-                      </Button>
-                    ) : null}
-                  </div>
-                  <input
-                    ref={(node) => {
-                      fileRefs.current[index] = node;
-                    }}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="sr-only"
-                    onChange={(event) => {
-                      void handleUpload(index, event.target.files?.[0]);
-                      event.target.value = "";
-                    }}
-                  />
-                </div>
-
+              <div className="grid gap-4">
                 <div className="grid gap-4 self-start">
                   <div className="grid gap-2">
                     <Label htmlFor={`promo-mini-heading-${index}`}>
@@ -289,6 +197,22 @@ export function PromoBannerTab({
                         )
                       }
                       placeholder="e.g. Barrier essentials"
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor={`promo-description-${index}`}>Description</Label>
+                    <Input
+                      id={`promo-description-${index}`}
+                      value={item.description}
+                      onChange={(event) =>
+                        onChange(
+                          updateItem(values, index, {
+                            description: event.target.value,
+                          }),
+                        )
+                      }
+                      placeholder="e.g. Gentle dermatological daily care tuned to natural skin pH."
                       className="h-11"
                     />
                   </div>

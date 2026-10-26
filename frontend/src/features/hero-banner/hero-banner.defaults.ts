@@ -1,6 +1,4 @@
-import {
-  heroAssociateFallback,
-} from "@/data/landing";
+import { heroAssociateFallback } from "@/data/landing";
 import type { StorefrontHeroSlide } from "@/types/hero-banner";
 
 /** Static fallback slides when the API returns no active hero banners. */
@@ -25,6 +23,7 @@ export const FALLBACK_HERO_SLIDES: StorefrontHeroSlide[] = [
       id: partner.id,
       src: "",
       alt: partner.name,
+      clickUrl: "",
     })),
-  }
+  },
 ];

@@ -5,6 +5,7 @@ export type HeroBannerGridImage = {
   imageUrl: string;
   imagePublicId: string;
   alt: string;
+  clickUrl: string;
   order: number;
 };
 
@@ -54,5 +55,5 @@ export type StorefrontHeroSlide = {
   leftImageClickUrl: string;
   rightImageUrl: string;
   rightImageClickUrl: string;
-  gridImages: Array<{ id: string; src: string; alt: string }>;
+  gridImages: Array<{ id: string; src: string; alt: string; clickUrl: string }>;
 };

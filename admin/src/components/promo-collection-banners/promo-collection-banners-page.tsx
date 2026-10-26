@@ -47,7 +47,6 @@ export function PromoCollectionBannersPage({ siteCode }: { siteCode: SiteCode })
   );
   const [collectionValues, setCollectionValues] =
     useState<CollectionBannerFormValues>(createEmptyCollectionFormValues);
-  const [promoRecordId, setPromoRecordId] = useState<string | null>(null);
   const [collectionRecordId, setCollectionRecordId] = useState<string | null>(
     null,
   );
@@ -68,7 +67,6 @@ export function PromoCollectionBannersPage({ siteCode }: { siteCode: SiteCode })
         fetchCollectionBannerConfig(siteCode),
       ]);
       setPromoValues(promoDtoToFormValues(promoDto));
-      setPromoRecordId(promoDto.id);
       setCollectionValues(collectionDtoToFormValues(collectionDto));
       setCollectionRecordId(collectionDto.id);
     } catch (error) {
@@ -107,7 +105,6 @@ export function PromoCollectionBannersPage({ siteCode }: { siteCode: SiteCode })
       const payload = toPromoBannerPayload(validation.data);
       const saved = await upsertPromoBannerConfig(siteCode, payload);
       setPromoValues(promoDtoToFormValues(saved));
-      setPromoRecordId(saved.id);
       showSuccess("Promo banners saved");
     } catch (error) {
       showError(
@@ -203,8 +200,6 @@ export function PromoCollectionBannersPage({ siteCode }: { siteCode: SiteCode })
 
             <TabsContent value="promo">
               <PromoBannerTab
-                siteCode={siteCode}
-                entityId={promoRecordId}
                 values={promoValues}
                 errors={promoErrors}
                 onChange={setPromoValues}

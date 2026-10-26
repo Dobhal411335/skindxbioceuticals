@@ -93,6 +93,9 @@ function validateSlide(
       if (!isHttpUrl(image.image.url)) {
         return `${label}: grid image ${gridIndex + 1} URL is invalid`;
       }
+      if (!isOptionalUrl(image.clickUrl)) {
+        return `${label}: invalid grid image ${gridIndex + 1} click URL`;
+      }
     }
   }
 
@@ -155,6 +158,7 @@ export function toHeroBannerPayload(
                 imageUrl: image.image.url.trim(),
                 imagePublicId: image.image.publicId.trim(),
                 alt: image.alt.trim(),
+                clickUrl: image.clickUrl.trim(),
                 order: imageIndex,
               }))
           : [],

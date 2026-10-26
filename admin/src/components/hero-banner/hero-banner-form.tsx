@@ -662,6 +662,23 @@ export function HeroBannerForm({
                               }
                             />
                           </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`click-url-${key}`}>Image click URL</Label>
+                            <Input
+                              id={`click-url-${key}`}
+                              value={gridImage.clickUrl}
+                              onChange={(event) =>
+                                updateSlide(index, {
+                                  gridImages: slide.gridImages.map((item, i) =>
+                                    i === gridIndex
+                                      ? { ...item, clickUrl: event.target.value }
+                                      : item,
+                                  ),
+                                })
+                              }
+                              placeholder="/shop or https://…"
+                            />
+                          </div>
                           {slide.gridImages.length > 4 ? (
                             <Button
                               type="button"

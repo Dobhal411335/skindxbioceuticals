@@ -11,6 +11,7 @@ export type NavbarSection = {
   id: string;
   siteCode: "IN" | "COM";
   title: string;
+  description?: string;
   url: string;
   menuHeading?: string;
   menuDescription?: string;
@@ -25,6 +26,7 @@ export type StorefrontNavLink = {
   id: string;
   label: string;
   href: string;
+  description: string;
   menuHeading: string;
   menuDescription: string;
   children: Array<{ id: string; label: string; href: string; description: string }>;

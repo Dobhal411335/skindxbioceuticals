@@ -87,10 +87,17 @@ function FullWidthSlide({ slide, priority }: { slide: StorefrontHeroSlide; prior
   return (
     <HeroClickable
       href={slide.buttonUrl}
-      className={`relative block ${HERO_FRAME}`}
+      className={`relative overflow-hidden block ${HERO_FRAME}`}
       ariaLabel="Hero banner"
     >
-      <Image src={src} alt="" fill className="object-cover" sizes="100vw" priority={priority} />
+      <Image
+        src={src}
+        alt=""
+        fill
+        className="object-cover transition-transform duration-300 ease-out hover:scale-[1.03]"
+        sizes="100vw"
+        priority={priority}
+      />
     </HeroClickable>
   );
 }
@@ -154,7 +161,7 @@ function SplitDualSlide({ slide, priority }: { slide: StorefrontHeroSlide; prior
               src={mobileSrc}
               alt=""
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-300 ease-out hover:scale-[1.03]"
               sizes="100vw"
               priority={priority}
             />
@@ -176,14 +183,14 @@ function SplitDualSlide({ slide, priority }: { slide: StorefrontHeroSlide; prior
         {slide.leftImageUrl ? (
           <HeroClickable
             href={slide.leftImageClickUrl}
-            className="relative block size-full"
+            className="relative block overflow-hidden size-full"
             ariaLabel="Open left hero image"
           >
             <Image
               src={slide.leftImageUrl}
               alt=""
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-300 ease-out hover:scale-[1.03]"
               sizes="350px"
               priority={priority}
             />
@@ -199,14 +206,14 @@ function SplitDualSlide({ slide, priority }: { slide: StorefrontHeroSlide; prior
         {slide.rightImageUrl ? (
           <HeroClickable
             href={slide.rightImageClickUrl}
-            className="relative block size-full"
+            className="relative overflow-hidden block size-full"
             ariaLabel="Open right hero image"
           >
             <Image
               src={slide.rightImageUrl}
               alt=""
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-300 ease-out hover:scale-[1.03]"
               sizes="350px"
               priority={priority}
             />
@@ -289,27 +296,33 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
                   .filter(Boolean)
                   .join(" ")}
               >
-                {image.src ? (
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    className="object-contain p-5"
-                    sizes="250px"
-                  />
-                ) : (
-                  <span
-                    className="flex size-full items-center justify-center text-sm font-bold tracking-wide text-foreground"
-                    aria-hidden
-                  >
-                    {image.alt
-                      .split(" ")
-                      .map((part) => part[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase() || "SB"}
-                  </span>
-                )}
+                <HeroClickable
+                  href={image.clickUrl}
+                  className="group relative block size-full overflow-hidden"
+                  ariaLabel={`Open ${image.alt}`}
+                >
+                  {image.src ? (
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      className="object-contain p-5 transition-transform duration-300 ease-out hover:scale-[1.04]"
+                      sizes="250px"
+                    />
+                  ) : (
+                    <span
+                      className="flex size-full items-center justify-center text-sm font-bold tracking-wide text-foreground transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+                      aria-hidden
+                    >
+                      {image.alt
+                        .split(" ")
+                        .map((part) => part[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase() || "SB"}
+                    </span>
+                  )}
+                </HeroClickable>
               </div>
             );
           })}

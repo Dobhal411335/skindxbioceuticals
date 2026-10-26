@@ -13,7 +13,7 @@ type OurServicesProps = Pick<StorefrontAboutUsBanner, "servicesHeading" | "servi
 function ServiceImage({ service }: { service: StorefrontService }) {
   return service.image.src ? (
     <div className="relative min-h-72 overflow-hidden rounded-2xl bg-muted sm:min-h-96 lg:min-h-[28rem]">
-      <Image src={service.image.src} alt={service.image.alt} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 38vw" />
+      <Image src={service.image.src} alt={service.image.alt} fill className="object-cover hover:scale-105 transition-transform duration-300 ease-out" sizes="(max-width: 1024px) 100vw, 38vw" />
     </div>
   ) : <div className="min-h-72 rounded-2xl bg-muted sm:min-h-96 lg:min-h-[28rem]" />;
 }

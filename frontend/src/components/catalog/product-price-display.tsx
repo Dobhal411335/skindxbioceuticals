@@ -124,7 +124,7 @@ export function ProductPriceDisplay({
         {formatInr(priced.unitPrice)}
       </span>
       {priced.hasDiscount ? (
-        <span className="text-sm mt-1 text-muted-foreground line-through">
+        <span className="text-sm text-muted-foreground mt-0.5 line-through">
           {formatInr(priced.originalPrice)}
         </span>
       ) : null}

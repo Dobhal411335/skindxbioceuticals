@@ -21,6 +21,7 @@ export function createEmptyGridImage(): HeroBannerGridImageFormValues {
   return {
     image: emptyImage(),
     alt: "",
+    clickUrl: "",
   };
 }
 
@@ -99,6 +100,7 @@ export function dtoToFormValues(dto: HeroBannerConfigDto): HeroBannerFormValues 
       gridImages: slide.gridImages.map((image) => ({
         image: { url: image.imageUrl, publicId: image.imagePublicId },
         alt: image.alt,
+        clickUrl: image.clickUrl,
       })),
     })),
   };

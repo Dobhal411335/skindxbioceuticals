@@ -88,6 +88,17 @@ export function ManageNavbarForm({
             ) : null}
           </div>
 
+          <div className="grid gap-2">
+            <Label htmlFor="navbar-description">Description</Label>
+            <Input
+              id="navbar-description"
+              value={values.description}
+              onChange={(event) => updateField("description", event.target.value)}
+              placeholder="A short description for the featured dropdown panel"
+              className="h-11"
+            />
+          </div>
+
           <div className="grid gap-5 rounded-xl border border-border bg-muted/30 p-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="navbar-menu-heading">Dropdown Heading</Label>

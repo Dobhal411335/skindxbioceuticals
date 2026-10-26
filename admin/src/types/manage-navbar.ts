@@ -13,6 +13,7 @@ export type NavbarSectionDto = {
   id: string;
   siteCode: SiteCode;
   title: string;
+  description: string;
   url: string;
   menuHeading: string;
   menuDescription: string;
@@ -33,6 +34,7 @@ export type NavbarSubSectionFormValues = {
 
 export type NavbarSectionFormValues = {
   title: string;
+  description: string;
   url: string;
   menuHeading: string;
   menuDescription: string;
@@ -43,6 +45,7 @@ export type NavbarSectionFormValues = {
 
 export type NavbarSectionPayload = {
   title: string;
+  description: string;
   url: string;
   menuHeading: string;
   menuDescription: string;

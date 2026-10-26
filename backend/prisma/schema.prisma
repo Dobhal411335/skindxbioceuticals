@@ -1218,6 +1218,7 @@ model NavbarSection {
   id        String   @id @default(uuid()) @db.Uuid
   siteId    String   @map("site_id") @db.Uuid
   title     String
+  description String @default("") @db.Text
   url       String   @default("#")
   menuHeading String  @default("") @map("menu_heading")
   menuDescription String @default("") @map("menu_description")
@@ -1693,6 +1694,7 @@ model HeroBannerGridImage {
   imageUrl      String   @map("image_url")
   imagePublicId String   @default("") @map("image_public_id")
   alt           String   @default("")
+  clickUrl      String   @default("") @map("click_url")
   order         Int      @default(0)
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -1703,7 +1705,7 @@ model HeroBannerGridImage {
   @@map("hero_banner_grid_images")
 }
 
-/// Home promo banner row: image tiles with optional click URLs.
+/// Home promo banner row: color-led content tiles with optional click URLs.
 model PromoBannerConfig {
   id        String   @id @default(uuid()) @db.Uuid
   siteId    String   @unique @map("site_id") @db.Uuid
@@ -1719,10 +1721,9 @@ model PromoBannerConfig {
 model PromoBannerItem {
   id            String   @id @default(uuid()) @db.Uuid
   configId      String   @map("config_id") @db.Uuid
-  imageUrl      String   @default("") @map("image_url")
-  imagePublicId String   @default("") @map("image_public_id")
   miniHeading   String   @default("") @map("mini_heading")
   heading       String   @default("") @map("heading")
+  description   String   @default("")
   buttonLabel   String   @default("") @map("button_label")
   buttonUrl     String   @default("") @map("button_url")
   sortOrder     Int      @default(0) @map("sort_order")

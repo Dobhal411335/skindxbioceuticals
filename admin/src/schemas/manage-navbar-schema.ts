@@ -20,6 +20,7 @@ const navUrlSchema = z
 
 export const navbarSectionFormSchema = z.object({
   title: z.string().trim().min(1, "Navbar section title is required").max(200),
+  description: z.string().trim().max(500).default(""),
   url: navUrlSchema,
   menuHeading: z.string().trim().max(300),
   menuDescription: z.string().trim().max(500),
@@ -70,6 +71,7 @@ export function toNavbarSectionPayload(
 
   return {
     title: values.title.trim(),
+    description: values.description.trim(),
     url: values.url.trim() || "#",
     menuHeading: values.menuHeading.trim(),
     menuDescription: values.menuDescription.trim(),

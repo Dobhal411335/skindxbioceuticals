@@ -30,6 +30,7 @@ function mapRecord(row: {
     imageUrl: string;
     imagePublicId: string;
     alt: string;
+    clickUrl?: string;
     order: number;
   }>;
 }): HeroBannerSlideRecord {
@@ -62,6 +63,7 @@ function mapRecord(row: {
       imageUrl: image.imageUrl,
       imagePublicId: image.imagePublicId,
       alt: image.alt,
+      clickUrl: image.clickUrl,
       order: image.order,
     })),
   };
@@ -117,6 +119,7 @@ export class HeroBannerRepository {
                 imageUrl: image.imageUrl,
                 imagePublicId: image.imagePublicId,
                 alt: image.alt,
+                clickUrl: image.clickUrl || '',
                 order: image.order,
               })),
             },

@@ -25,12 +25,12 @@ type AboutSplitProps = {
 function AboutCardContent({ card }: { card: StorefrontAboutCard }) {
   return (
     <div className="grid items-stretch gap-0 overflow-hidden bg-background lg:grid-cols-2">
-      <div className="relative aspect-4/5 bg-surface sm:aspect-5/4 lg:aspect-auto lg:min-h-[28rem] rounded">
+      <div className="relative overflow-hidden aspect-4/5 bg-surface sm:aspect-5/4 lg:aspect-auto lg:min-h-[28rem] rounded">
         <Image
           src={card.image.src}
           alt={card.image.alt}
           fill
-          className="object-cover rounded-md"
+          className="object-cover rounded-md hover:scale-105 transition-transform duration-300 ease-out"
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
       </div>

@@ -10,6 +10,16 @@ import {
 } from "@/components/social-media-post/social-platform-icons";
 import { AdminAppShell } from "@/components/layout/admin-app-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { showError, showSuccess } from "@/lib/toast";
 import {
@@ -260,35 +270,6 @@ export function SocialMediaPostPage({ siteCode }: { siteCode: SiteCode }) {
           </Alert>
         ) : null}
 
-        {pendingDelete ? (
-          <Alert>
-            <AlertTitle>Delete post?</AlertTitle>
-            <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <span>
-                Delete this {activeTab} post? This action cannot be undone.
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPendingDelete(null)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => void handleDelete(pendingDelete)}
-                >
-                  Delete
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        ) : null}
-
         <div className="space-y-8">
           <SocialMediaPostForm
             siteCode={siteCode}
@@ -317,6 +298,36 @@ export function SocialMediaPostPage({ siteCode }: { siteCode: SiteCode }) {
           )}
         </div>
       </div>
+
+      <AlertDialog
+        open={Boolean(pendingDelete)}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {pendingDelete?.postType ?? activeTab} post?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This {pendingDelete?.postType ?? activeTab} post will be permanently
+              removed from the site. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (pendingDelete) void handleDelete(pendingDelete);
+              }}
+            >
+              Delete post
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminAppShell>
   );
 }

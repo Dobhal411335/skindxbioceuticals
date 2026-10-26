@@ -14,9 +14,9 @@ export function newClientKey(): string {
 export function createEmptyPromoItem(): PromoBannerItemFormValues {
   return {
     clientKey: newClientKey(),
-    image: { url: "", publicId: "" },
     miniHeading: "",
     heading: "",
+    description: "",
     buttonLabel: "",
     buttonUrl: "",
     active: true,
@@ -33,9 +33,9 @@ export function promoDtoToFormValues(
   return {
     items: dto.items.map((item) => ({
       clientKey: item.id || newClientKey(),
-      image: { url: item.imageUrl, publicId: item.imagePublicId },
       miniHeading: item.miniHeading || "",
       heading: item.heading || "",
+      description: item.description || "",
       buttonLabel: item.buttonLabel || "",
       buttonUrl: item.buttonUrl,
       active: item.active,

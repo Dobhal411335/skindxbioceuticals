@@ -63,7 +63,7 @@ export default async function HomePage() {
   ]);
 
   return (
-    <>
+    <div className="">
       <HeroSection slides={heroSlides} />
       <TrustBenefitsBar />
       <ClinicalConfidenceSection config={clinicalConfidence} />
@@ -92,6 +92,6 @@ export default async function HomePage() {
       <MarqueeBanner />
       <InsightsQaSection items={landingInsights.qaItems} />
       <CookieConsentBanner />
-    </>
+    </div>
   );
 }

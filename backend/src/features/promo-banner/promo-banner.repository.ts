@@ -10,10 +10,9 @@ function mapRecord(row: {
   updatedAt: Date;
   items: Array<{
     id: string;
-    imageUrl: string;
-    imagePublicId: string;
     miniHeading: string;
     heading: string;
+    description: string;
     buttonLabel: string;
     buttonUrl: string;
     sortOrder: number;
@@ -26,10 +25,9 @@ function mapRecord(row: {
     updatedAt: row.updatedAt,
     items: row.items.map((item) => ({
       id: item.id,
-      imageUrl: item.imageUrl,
-      imagePublicId: item.imagePublicId,
       miniHeading: item.miniHeading,
       heading: item.heading,
+      description: item.description,
       buttonLabel: item.buttonLabel,
       buttonUrl: item.buttonUrl,
       sortOrder: item.sortOrder,

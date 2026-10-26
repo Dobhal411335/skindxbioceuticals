@@ -1,9 +1,8 @@
 export type PromoBannerItemDto = {
   id: string;
-  imageUrl: string;
-  imagePublicId: string;
   miniHeading: string;
   heading: string;
+  description: string;
   buttonLabel: string;
   buttonUrl: string;
   sortOrder: number;
@@ -19,10 +18,9 @@ export type PromoBannerConfigDto = {
 
 export type StorefrontPromoBanner = {
   id: string;
-  imageUrl: string;
   miniHeading: string;
   heading: string;
+  description: string;
   buttonLabel: string;
   href: string;
-  alt: string;
 };

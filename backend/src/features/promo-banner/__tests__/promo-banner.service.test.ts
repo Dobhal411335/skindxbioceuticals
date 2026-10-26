@@ -1,16 +1,10 @@
-import { deleteStoredCloudinaryAssetBestEffort } from '@/lib/cloudinary';
 import {
-  collectOrphanedPromoPublicIds,
   emptyPromoBannerConfigDto,
   PromoBannerService,
   toPromoBannerConfigDto,
 } from '../promo-banner.service';
 import type { PromoBannerRepository } from '../promo-banner.repository';
 import type { PromoBannerConfigRecord } from '../promo-banner.types';
-
-jest.mock('@/lib/cloudinary', () => ({
-  deleteStoredCloudinaryAssetBestEffort: jest.fn(),
-}));
 
 function makeRecord(
   overrides: Partial<PromoBannerConfigRecord> = {},
@@ -22,10 +16,9 @@ function makeRecord(
     items: [
       {
         id: 'item-1',
-        imageUrl: 'http://res.cloudinary.com/demo/image/upload/v1/promo.jpg',
-        imagePublicId: 'promo/tile-1',
-        miniHeading: 'New',
-        heading: 'Barrier essentials',
+        miniHeading: 'Formulation standard',
+        heading: 'Everyday skincare essentials',
+        description: 'Gentle dermatological daily care.',
         buttonLabel: 'Shop now',
         buttonUrl: '/shop',
         sortOrder: 0,
@@ -33,10 +26,9 @@ function makeRecord(
       },
       {
         id: 'item-2',
-        imageUrl: 'https://cdn.example.com/hidden.jpg',
-        imagePublicId: 'promo/hidden',
         miniHeading: '',
         heading: 'Hidden',
+        description: '',
         buttonLabel: '',
         buttonUrl: '/hidden',
         sortOrder: 1,
@@ -65,17 +57,13 @@ describe('PromoBannerService', () => {
     expect(dto).toEqual(emptyPromoBannerConfigDto('IN'));
   });
 
-  it('maps records and prefers https Cloudinary URLs', async () => {
+  it('maps color-led promo copy', async () => {
     const record = makeRecord();
     (repository.findBySiteId as jest.Mock).mockResolvedValue(record);
     const dto = await service.getForSite('site-1', 'IN');
     expect(dto).toEqual(toPromoBannerConfigDto(record, 'IN'));
-    expect(dto.items[0]?.imageUrl).toBe(
-      'https://res.cloudinary.com/demo/image/upload/v1/promo.jpg',
-    );
-    expect(dto.items[0]?.miniHeading).toBe('New');
-    expect(dto.items[0]?.heading).toBe('Barrier essentials');
-    expect(dto.items[0]?.buttonLabel).toBe('Shop now');
+    expect(dto.items[0]?.heading).toBe('Everyday skincare essentials');
+    expect(dto.items[0]?.description).toBe('Gentle dermatological daily care.');
   });
 
   it('filters inactive items for public reads', async () => {
@@ -86,24 +74,21 @@ describe('PromoBannerService', () => {
     expect(dto.items[0]?.id).toBe('item-1');
   });
 
-  it('upserts and cleans orphaned Cloudinary assets', async () => {
-    const previous = makeRecord();
+  it('upserts promo copy without media fields', async () => {
     const nextRecord = makeRecord({
       items: [
         {
           id: 'item-3',
-          imageUrl: 'https://cdn.example.com/new.jpg',
-          imagePublicId: 'promo/new',
-          miniHeading: 'Fresh',
-          heading: 'New drop',
-          buttonLabel: 'Explore',
+          miniHeading: 'Targeted clinical actives',
+          heading: 'Discover advanced skin care',
+          description: 'Targeted actives with proven biocompatibility.',
+          buttonLabel: 'Explore products',
           buttonUrl: '/new',
           sortOrder: 0,
           active: true,
         },
       ],
     });
-    (repository.findBySiteId as jest.Mock).mockResolvedValue(previous);
     (repository.upsertBySiteId as jest.Mock).mockResolvedValue(nextRecord);
 
     const dto = await service.upsertForSite({
@@ -113,11 +98,10 @@ describe('PromoBannerService', () => {
       body: {
         items: [
           {
-            imageUrl: 'https://cdn.example.com/new.jpg',
-            imagePublicId: 'promo/new',
-            miniHeading: 'Fresh',
-            heading: 'New drop',
-            buttonLabel: 'Explore',
+            miniHeading: 'Targeted clinical actives',
+            heading: 'Discover advanced skin care',
+            description: 'Targeted actives with proven biocompatibility.',
+            buttonLabel: 'Explore products',
             buttonUrl: '/new',
             active: true,
           },
@@ -126,26 +110,15 @@ describe('PromoBannerService', () => {
     });
 
     expect(dto.items).toHaveLength(1);
-    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('promo/tile-1');
-    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('promo/hidden');
-  });
-
-  it('collectOrphanedPromoPublicIds returns removed public ids', () => {
-    const previous = makeRecord();
-    const orphans = collectOrphanedPromoPublicIds(previous, {
-      items: [
-        {
-          imageUrl: 'https://cdn.example.com/new.jpg',
-          imagePublicId: 'promo/tile-1',
-          miniHeading: '',
-          heading: '',
-          buttonLabel: '',
-          buttonUrl: '/shop',
-          sortOrder: 0,
-          active: true,
-        },
-      ],
-    });
-    expect(orphans).toEqual(['promo/hidden']);
+    expect(repository.upsertBySiteId).toHaveBeenCalledWith(
+      'site-1',
+      expect.objectContaining({
+        items: [
+          expect.objectContaining({
+            description: 'Targeted actives with proven biocompatibility.',
+          }),
+        ],
+      }),
+    );
   });
 });

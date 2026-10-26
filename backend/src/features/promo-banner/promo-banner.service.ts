@@ -1,4 +1,3 @@
-import { deleteStoredCloudinaryAssetBestEffort } from '@/lib/cloudinary';
 import { logger } from '@/lib/logger';
 import type { SiteCode } from '@/types/common';
 import { promoBannerRepository } from './promo-banner.repository';
@@ -10,13 +9,6 @@ import type {
   PromoBannerItemDto,
   SiteCodeDto,
 } from './promo-banner.types';
-
-function preferHttpsUrl(url: string): string {
-  if (url.startsWith('http://res.cloudinary.com/')) {
-    return `https://${url.slice('http://'.length)}`;
-  }
-  return url;
-}
 
 export function emptyPromoBannerConfigDto(siteCode: SiteCodeDto): PromoBannerConfigDto {
   return {
@@ -30,10 +22,9 @@ export function emptyPromoBannerConfigDto(siteCode: SiteCodeDto): PromoBannerCon
 function toItemDto(item: PromoBannerConfigRecord['items'][number]): PromoBannerItemDto {
   return {
     id: item.id,
-    imageUrl: preferHttpsUrl(item.imageUrl),
-    imagePublicId: item.imagePublicId,
     miniHeading: item.miniHeading,
     heading: item.heading,
+    description: item.description,
     buttonLabel: item.buttonLabel,
     buttonUrl: item.buttonUrl,
     sortOrder: item.sortOrder,
@@ -61,43 +52,15 @@ export function toPromoBannerConfigDto(
 function bodyToUpsertData(body: PromoBannerConfigBody): PromoBannerConfigUpsertData {
   return {
     items: body.items.map((item, index) => ({
-      imageUrl: preferHttpsUrl(item.imageUrl || ''),
-      imagePublicId: item.imagePublicId || '',
       miniHeading: item.miniHeading || '',
       heading: item.heading || '',
+      description: item.description || '',
       buttonLabel: item.buttonLabel || '',
       buttonUrl: item.buttonUrl || '',
       sortOrder: item.sortOrder ?? index,
       active: item.active,
     })),
   };
-}
-
-function collectPublicIds(
-  source: Pick<PromoBannerConfigRecord, 'items'> | Pick<PromoBannerConfigUpsertData, 'items'>,
-): string[] {
-  const ids: string[] = [];
-  for (const item of source.items) {
-    const trimmed = item.imagePublicId.trim();
-    if (trimmed) ids.push(trimmed);
-  }
-  return ids;
-}
-
-export function collectOrphanedPromoPublicIds(
-  previous: PromoBannerConfigRecord | null,
-  next: PromoBannerConfigUpsertData,
-): string[] {
-  if (!previous) return [];
-
-  const retained = new Set(collectPublicIds(next));
-  const orphans = new Set<string>();
-  for (const publicId of collectPublicIds(previous)) {
-    if (!retained.has(publicId)) {
-      orphans.add(publicId);
-    }
-  }
-  return [...orphans];
 }
 
 export class PromoBannerService {
@@ -121,14 +84,8 @@ export class PromoBannerService {
     userId: string;
     body: PromoBannerConfigBody;
   }): Promise<PromoBannerConfigDto> {
-    const existing = await this.repository.findBySiteId(input.siteId);
     const data = bodyToUpsertData(input.body);
     const record = await this.repository.upsertBySiteId(input.siteId, data);
-
-    const orphanedPublicIds = collectOrphanedPromoPublicIds(existing, data);
-    await Promise.all(
-      orphanedPublicIds.map((publicId) => deleteStoredCloudinaryAssetBestEffort(publicId)),
-    );
 
     logger.info(
       {
@@ -137,7 +94,6 @@ export class PromoBannerService {
         userId: input.userId,
         promoBannerConfigId: record.id,
         itemCount: record.items.length,
-        orphanedImageCount: orphanedPublicIds.length,
       },
       'Promo banner config upserted',
     );
