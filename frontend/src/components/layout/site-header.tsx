@@ -72,8 +72,8 @@ export function SiteHeader() {
   return (
     <>
       {utilityContacts.length > 0 && (
-        <div className="hidden bg-[#14272E] md:block">
-          <div className="mx-10 flex items-center justify-end gap-5 py-2 text-xs text-white">
+        <div className="border-b border-white/50 bg-[#14272E]">
+          <div className="md:mx-10 flex w-full items-center justify-between md:justify-end md:gap-5 py-2 text-xs text-white">
             {utilityContacts.map(({ href, icon: Icon, label, text }) => (
               <Link
                 key={`${label}-${text}`}
@@ -85,7 +85,7 @@ export function SiteHeader() {
                   : {})}
               >
                 <Icon className="size-3.5" aria-hidden="true" />
-                <span>{text}</span>
+                <span className="truncate">{text}</span>
               </Link>
             ))}
           </div>

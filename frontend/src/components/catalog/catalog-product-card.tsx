@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, Heart, Minus, Plus } from "lucide-react";
+import { Eye, Heart, Minus, Plus, ShoppingCart } from "lucide-react";
 
 import {
   ProductDiscountBadge,
@@ -188,11 +188,12 @@ export function CatalogProductCard({
     ) : (
       <Button
         type="button"
-        className="w-full rounded-full font-semibold py-5"
+        className="w-full rounded font-semibold py-5"
         disabled={!canAdd}
         onClick={() => void addToCart()}
       >
         {canAdd ? "Add To Cart" : "Out of stock"}
+        <ShoppingCart className="size-4 mr-2 inline-block" />
       </Button>
     );
 
