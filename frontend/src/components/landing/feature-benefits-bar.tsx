@@ -14,7 +14,7 @@ export function FeatureBenefitsBar() {
 
   return (
     <section
-      className="border-y border-black"
+      className="border-y my-10 border-black"
       aria-label="Shopping benefits"
     >
       <div className="container-page grid gap-4 py-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">

@@ -48,6 +48,10 @@ export type CollectionBannerItemFormValues = {
   title: string;
   description: string;
   buttonUrl: string;
+  button1Label: string;
+  button1Url: string;
+  button2Label: string;
+  button2Url: string;
   active: boolean;
 };
 
@@ -64,6 +68,10 @@ export type CollectionBannerItemDto = {
   title: string;
   description: string;
   buttonUrl: string;
+  button1Label: string;
+  button1Url: string;
+  button2Label: string;
+  button2Url: string;
   sortOrder: number;
   active: boolean;
 };
@@ -86,6 +94,10 @@ export type CollectionBannerConfigPayload = {
     title: string;
     description: string;
     buttonUrl: string;
+    button1Label: string;
+    button1Url: string;
+    button2Label: string;
+    button2Url: string;
     sortOrder: number;
     active: boolean;
   }>;

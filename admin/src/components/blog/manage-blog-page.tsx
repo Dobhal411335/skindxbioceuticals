@@ -44,7 +44,7 @@ import {
   createBlog,
   deleteBlog,
   fetchBlogs,
-  patchBlog,
+  updateBlog,
 } from "@/services/api/blog";
 import { ApiError } from "@/services/api/errors";
 import { showError, showSuccess } from "@/lib/toast";
@@ -56,6 +56,13 @@ function createEmptyValues(): BlogCreateFormValues {
     name: "",
     category: "",
     slug: "",
+    badgeText: "",
+    stat1Number: "",
+    stat1Name: "",
+    stat1Text: "",
+    stat2Number: "",
+    stat2Name: "",
+    stat2Text: "",
   };
 }
 
@@ -69,13 +76,11 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
   const [values, setValues] = useState<BlogCreateFormValues>(createEmptyValues);
   const [errors, setErrors] = useState<BlogCreateFormErrors>({});
   const [slugTouched, setSlugTouched] = useState(false);
-  const [editingNameId, setEditingNameId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
+  const [editingBlog, setEditingBlog] = useState<BlogDto | null>(null);
   const [pendingDelete, setPendingDelete] = useState<BlogDto | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSavingName, setIsSavingName] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadBlogs = useCallback(async () => {
@@ -103,6 +108,27 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
     setValues(createEmptyValues());
     setErrors({});
     setSlugTouched(false);
+    setEditingBlog(null);
+  };
+
+  const startEdit = (blog: BlogDto) => {
+    setEditingBlog(blog);
+    setValues({
+      name: blog.name,
+      category: blog.category,
+      slug: blog.slug,
+      badgeText: blog.badgeText,
+      stat1Number: blog.stat1Number,
+      stat1Name: blog.stat1Name,
+      stat1Text: blog.stat1Text,
+      stat2Number: blog.stat2Number,
+      stat2Name: blog.stat2Name,
+      stat2Text: blog.stat2Text,
+    });
+    setErrors({});
+    setSlugTouched(true);
+    setPendingDelete(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleNameChange = (name: string) => {
@@ -125,8 +151,18 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
     setIsSubmitting(true);
     setErrors({});
     try {
-      await createBlog(siteCode, validated.data);
-      showSuccess("Blog created");
+      if (editingBlog) {
+        await updateBlog(siteCode, editingBlog.id, {
+          ...editingBlog,
+          ...validated.data,
+          publishedAt: editingBlog.publishedAt,
+          title: editingBlog.title || editingBlog.name,
+        });
+        showSuccess("Blog updated");
+      } else {
+        await createBlog(siteCode, validated.data);
+        showSuccess("Blog created");
+      }
       resetForm();
       await loadBlogs();
     } catch (error) {
@@ -138,46 +174,14 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
     }
   };
 
-  const startEditName = (blog: BlogDto) => {
-    setEditingNameId(blog.id);
-    setEditingName(blog.name);
-    setPendingDelete(null);
-  };
-
-  const cancelEditName = () => {
-    setEditingNameId(null);
-    setEditingName("");
-  };
-
-  const saveEditName = async (blogId: string) => {
-    const name = editingName.trim();
-    if (!name) {
-      showError("Blog name is required");
-      return;
-    }
-    setIsSavingName(true);
-    try {
-      await patchBlog(siteCode, blogId, { name });
-      showSuccess("Blog name updated");
-      cancelEditName();
-      await loadBlogs();
-    } catch (error) {
-      showError(
-        error instanceof ApiError ? error.message : "Failed to update blog name",
-      );
-    } finally {
-      setIsSavingName(false);
-    }
-  };
-
   const handleDelete = async () => {
     if (!pendingDelete) return;
     setIsDeleting(true);
     try {
       await deleteBlog(siteCode, pendingDelete.id);
       showSuccess("Blog deleted");
-      if (editingNameId === pendingDelete.id) {
-        cancelEditName();
+      if (editingBlog?.id === pendingDelete.id) {
+        resetForm();
       }
       setPendingDelete(null);
       await loadBlogs();
@@ -219,11 +223,13 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
             <CardHeader className="border-b border-border/70">
               <div className="flex items-center gap-2">
                 <Newspaper className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg font-semibold">Create blog</CardTitle>
+                <CardTitle className="text-lg font-semibold">
+                  {editingBlog ? "Edit blog" : "Create blog"}
+                </CardTitle>
               </div>
               <CardDescription>
-                Add a name and category. Slug is generated from the name and can
-                be edited before saving. Open Edit Blog to finish the article.
+                Add the landing-card badge and optional stat cards here. Slug is
+                generated from the name and can be edited before saving.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 pt-6">
@@ -260,9 +266,70 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
                   ) : null}
                 </div>
               </div>
+              <div className="space-y-4 rounded-lg border border-border/70 p-4">
+                <div>
+                  <Label htmlFor="blog-badge">Landing card badge (optional)</Label>
+                  <Input
+                    id="blog-badge"
+                    value={values.badgeText}
+                    onChange={(event) =>
+                      setValues((prev) => ({ ...prev, badgeText: event.target.value }))
+                    }
+                    placeholder="e.g. Transformation · Technology"
+                  />
+                </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {([1, 2] as const).map((number) => (
+                    <div key={number} className="space-y-3 rounded-md bg-muted/30 p-3">
+                      <p className="text-sm font-medium">Stat card {number} (optional)</p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Input
+                          value={values[`stat${number}Number`]}
+                          onChange={(event) =>
+                            setValues((prev) => ({
+                              ...prev,
+                              [`stat${number}Number`]: event.target.value,
+                            }))
+                          }
+                          placeholder="Number, e.g. 32%"
+                          aria-label={`Stat card ${number} number`}
+                        />
+                        <Input
+                          value={values[`stat${number}Name`]}
+                          onChange={(event) =>
+                            setValues((prev) => ({
+                              ...prev,
+                              [`stat${number}Name`]: event.target.value,
+                            }))
+                          }
+                          placeholder="Name, e.g. faster decisions"
+                          aria-label={`Stat card ${number} name`}
+                        />
+                      </div>
+                      <Input
+                        value={values[`stat${number}Text`]}
+                        onChange={(event) =>
+                          setValues((prev) => ({
+                            ...prev,
+                            [`stat${number}Text`]: event.target.value,
+                          }))
+                        }
+                        placeholder="Optional supporting text"
+                        aria-label={`Stat card ${number} supporting text`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="flex flex-wrap gap-3">
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating…" : "Create blog"}
+                  {isSubmitting
+                    ? editingBlog
+                      ? "Updating…"
+                      : "Creating…"
+                    : editingBlog
+                      ? "Update blog"
+                      : "Create blog"}
                 </Button>
                 <Button
                   type="button"
@@ -270,7 +337,7 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
                   onClick={resetForm}
                   disabled={isSubmitting}
                 >
-                  Clear
+                  {editingBlog ? "Cancel" : "Clear"}
                 </Button>
               </div>
             </CardContent>
@@ -281,7 +348,7 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
           <CardHeader className="border-b border-border/70">
             <CardTitle className="text-lg font-semibold">Existing blogs</CardTitle>
             <CardDescription>
-              Edit the display name inline, delete a post, or open the full editor.
+              Edit the blog details above, delete a post, or open the full editor.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
@@ -303,21 +370,10 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
                 </TableHeader>
                 <TableBody>
                   {blogs.map((blog) => {
-                    const isEditing = editingNameId === blog.id;
                     return (
                       <TableRow key={blog.id}>
                         <TableCell className="max-w-[220px] font-medium">
-                          {isEditing ? (
-                            <Input
-                              value={editingName}
-                              onChange={(event) =>
-                                setEditingName(event.target.value)
-                              }
-                              aria-label="Edit blog name"
-                            />
-                          ) : (
-                            blog.name
-                          )}
+                          {blog.name}
                         </TableCell>
                         <TableCell>{blog.category}</TableCell>
                         <TableCell>
@@ -336,37 +392,15 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap items-center justify-end gap-2">
-                            {isEditing ? (
-                              <>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  disabled={isSavingName}
-                                  onClick={() => void saveEditName(blog.id)}
-                                >
-                                  {isSavingName ? "Saving…" : "Save"}
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={cancelEditName}
-                                  disabled={isSavingName}
-                                >
-                                  Cancel
-                                </Button>
-                              </>
-                            ) : (
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={() => startEditName(blog)}
-                              >
-                                <Pencil className="mr-1 size-3.5" aria-hidden />
-                                Edit name
-                              </Button>
-                            )}
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => startEdit(blog)}
+                            >
+                              <Pencil className="mr-1 size-3.5" aria-hidden />
+                              Edit
+                            </Button>
                             <Button asChild size="sm">
                               <Link
                                 href={`/admin/${siteCode.toLowerCase()}/blog/${blog.id}/edit`}

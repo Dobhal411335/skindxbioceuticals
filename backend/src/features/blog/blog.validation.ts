@@ -26,6 +26,13 @@ const imageUrlSchema = z
 export const blogCreateBodySchema = z.object({
   name: z.string().trim().min(1, 'Blog name is required').max(200),
   category: z.string().trim().min(1, 'Blog category is required').max(120),
+  badgeText: z.string().trim().max(120).default(''),
+  stat1Number: z.string().trim().max(80).default(''),
+  stat1Name: z.string().trim().max(120).default(''),
+  stat1Text: z.string().trim().max(240).default(''),
+  stat2Number: z.string().trim().max(80).default(''),
+  stat2Name: z.string().trim().max(120).default(''),
+  stat2Text: z.string().trim().max(240).default(''),
   slug: slugSchema.optional(),
   active: z.boolean().default(true),
 });
@@ -34,6 +41,13 @@ export const blogUpdateBodySchema = z.object({
   name: z.string().trim().min(1, 'Blog name is required').max(200),
   slug: slugSchema,
   category: z.string().trim().min(1, 'Blog category is required').max(120),
+  badgeText: z.string().trim().max(120).default(''),
+  stat1Number: z.string().trim().max(80).default(''),
+  stat1Name: z.string().trim().max(120).default(''),
+  stat1Text: z.string().trim().max(240).default(''),
+  stat2Number: z.string().trim().max(80).default(''),
+  stat2Name: z.string().trim().max(120).default(''),
+  stat2Text: z.string().trim().max(240).default(''),
   title: z.string().trim().min(1, 'Title is required').max(300),
   publishedAt: z.coerce.date({ message: 'Date is required' }),
   createdBy: z.string().trim().max(120).default(''),
@@ -81,8 +95,16 @@ export const blogPublicListQuerySchema = z.object({
     .transform((value) => value === true || value === 'true'),
 });
 
-export type BlogCreateBody = z.infer<typeof blogCreateBodySchema>;
-export type BlogUpdateBody = z.infer<typeof blogUpdateBodySchema>;
+export type BlogCreateBody = Omit<
+  z.infer<typeof blogCreateBodySchema>,
+  'badgeText' | 'stat1Number' | 'stat1Name' | 'stat1Text' | 'stat2Number' | 'stat2Name' | 'stat2Text'
+> &
+  Partial<Pick<z.infer<typeof blogCreateBodySchema>, 'badgeText' | 'stat1Number' | 'stat1Name' | 'stat1Text' | 'stat2Number' | 'stat2Name' | 'stat2Text'>>;
+export type BlogUpdateBody = Omit<
+  z.infer<typeof blogUpdateBodySchema>,
+  'badgeText' | 'stat1Number' | 'stat1Name' | 'stat1Text' | 'stat2Number' | 'stat2Name' | 'stat2Text'
+> &
+  Partial<Pick<z.infer<typeof blogUpdateBodySchema>, 'badgeText' | 'stat1Number' | 'stat1Name' | 'stat1Text' | 'stat2Number' | 'stat2Name' | 'stat2Text'>>;
 export type BlogPatchBody = z.infer<typeof blogPatchBodySchema>;
 
 export function normalizeBlogCreateInput(raw: unknown): unknown {

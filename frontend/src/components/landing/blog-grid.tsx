@@ -11,6 +11,13 @@ function toLandingPost(blog: {
   slug: string;
   title: string;
   category: string;
+  badgeText?: string;
+  stat1Number?: string;
+  stat1Name?: string;
+  stat1Text?: string;
+  stat2Number?: string;
+  stat2Name?: string;
+  stat2Text?: string;
   publishedAt: string;
   createdBy: string;
   imageUrl: string;
@@ -28,6 +35,11 @@ function toLandingPost(blog: {
     title: blog.title,
     excerpt,
     category: blog.category,
+    badgeText: blog.badgeText?.trim() || undefined,
+    stats: [
+      { number: blog.stat1Number?.trim() || "", name: blog.stat1Name?.trim() || "", text: blog.stat1Text?.trim() || undefined },
+      { number: blog.stat2Number?.trim() || "", name: blog.stat2Name?.trim() || "", text: blog.stat2Text?.trim() || undefined },
+    ].filter((stat) => stat.number || stat.name || stat.text),
     date: formatBlogDate(blog.publishedAt),
     author: blog.createdBy || "SkinDx Editorial",
     image: blog.imageUrl || "https://placehold.co/800x600/png?text=SkinDx+Blog",
@@ -51,12 +63,14 @@ function EditorialBlogCard({ post, featured = false }: { post: LandingPost; feat
       />
       <div
         aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-[#07151d]/95 via-[#07151d]/35 to-transparent"
+        className="absolute inset-0 bg-gradient-to-t from-[#07151d]/95 via-[#07151d]/25 to-transparent"
       />
       <div className="relative z-10 mt-auto flex max-w-2xl flex-col items-start gap-2 p-5 text-white sm:p-7">
-        <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold tracking-[0.12em] uppercase backdrop-blur-sm">
-          {post.category}
-        </span>
+        {post.badgeText ? (
+          <span className="rounded-full bg-white/15 px-3 py-3 text-[11px] font-bold tracking-[0.14em] uppercase backdrop-blur-sm">
+            {post.badgeText}
+          </span>
+        ) : null}
         <h3
           className={`font-display font-semibold leading-tight tracking-tight ${featured ? "text-2xl sm:text-4xl" : "text-xl sm:text-2xl"}`}
         >
@@ -67,7 +81,33 @@ function EditorialBlogCard({ post, featured = false }: { post: LandingPost; feat
             {post.excerpt}
           </p>
         ) : null}
-        <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-white/85">
+        {post.stats?.length ? (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {post.stats.slice(0, 2).map((stat) => (
+              <div
+                key={`${stat.number}-${stat.name}`}
+                className="min-w-[6.5rem] rounded-xl border border-white/15 bg-white/10 px-3 py-3 backdrop-blur-md"
+              >
+                {stat.number ? (
+                  <strong className="block text-xl font-semibold leading-none sm:text-xl">
+                    {stat.number}
+                  </strong>
+                ) : null}
+                {stat.name ? (
+                  <span className="mt-1 block text-[12px] font-medium leading-tight text-white/75">
+                    {stat.name}
+                  </span>
+                ) : null}
+                {stat.text ? (
+                  <span className="mt-1 block text-[10px] leading-tight text-white/65">
+                    {stat.text}
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <span className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-white/85">
           {post.date} · By {post.author}
           <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </span>
@@ -105,7 +145,7 @@ export async function BlogGrid() {
           <ArrowUpRight className="size-4" aria-hidden />
         </Link>
       </div>
-      <div className="grid gap-4 lg:grid-cols-2 lg:grid-rows-2">
+      <div className="grid gap-4 lg:grid-cols-[1.35fr_0.9fr] lg:grid-rows-2">
         {blogs.map((blog, index) => (
           <EditorialBlogCard key={blog.id} post={toLandingPost(blog)} featured={index === 0} />
         ))}

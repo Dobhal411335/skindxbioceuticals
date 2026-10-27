@@ -14,6 +14,8 @@ export type LandingPost = {
   title: string;
   excerpt: string;
   category: string;
+  badgeText?: string;
+  stats?: Array<{ number: string; name: string; text?: string }>;
   date: string;
   author: string;
   image: string;

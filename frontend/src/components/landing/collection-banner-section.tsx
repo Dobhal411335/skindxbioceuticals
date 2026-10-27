@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import type { StorefrontCollectionBanner } from "@/types/collection-banner";
+import { ArrowUpRight } from "lucide-react";
 
 type CollectionBannerSectionProps = {
   banner: StorefrontCollectionBanner;
@@ -21,17 +22,28 @@ function SlideMedia({
   imageUrl,
   alt,
   href,
+  button1Label,
+  button1Url,
+  button2Label,
+  button2Url,
 }: {
   imageUrl: string;
   alt: string;
   href: string;
+  button1Label: string;
+  button1Url: string;
+  button2Label: string;
+  button2Url: string;
 }) {
+  const hasButtons = Boolean(
+    (button1Label && button1Url) || (button2Label && button2Url),
+  );
   const media = imageUrl ? (
     <Image
       src={imageUrl}
       alt={alt}
       fill
-      className="object-cover"
+      className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
       sizes="(max-width: 1024px) 100vw, 55vw"
       priority={false}
     />
@@ -41,36 +53,62 @@ function SlideMedia({
     </div>
   );
 
-  if (!href) {
-    return (
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted sm:aspect-[5/4]">
-        {media}
-      </div>
-    );
-  }
-
+  const imageClassName = "absolute inset-0";
   const isExternal = /^https?:\/\//i.test(href);
-  const className =
-    "relative block aspect-[4/3] w-full overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:aspect-[5/4]";
-
-  if (isExternal) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-      >
+  const imageLink = href ? (
+    isExternal ? (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={imageClassName}>
         {media}
+      </a>
+    ) : (
+      <Link href={href} className={imageClassName}>
+        {media}
+      </Link>
+    )
+  ) : (
+    <div className={imageClassName}>{media}</div>
+  );
+
+  return (
+    <div className="group relative aspect-[4/3] w-full overflow-hidden bg-muted focus-within:ring-2 focus-within:ring-ring sm:aspect-[5/4]">
+      {imageLink}
+      {hasButtons ? (
+        <div className="pointer-events-none absolute bottom-5 left-5 z-10 flex translate-y-4 flex-wrap justify-start gap-3 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100">
+          {button1Label && button1Url ? (
+            <HoverButton href={button1Url} label={button1Label} primary />
+          ) : null}
+          {button2Label && button2Url ? (
+            <HoverButton href={button2Url} label={button2Label} />
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function HoverButton({
+  href,
+  label,
+  primary = false,
+}: {
+  href: string;
+  label: string;
+  primary?: boolean;
+}) {
+  const className = `inline-flex items-center justify-center rounded border px-4 py-2 text-xl font-semibold transition-colors ${
+    primary
+      ? "border-[#d9794c] bg-[#d9794c] text-white hover:bg-[#bd613c]"
+      : "border-white/70 bg-[#172c34]/80 text-white backdrop-blur-sm hover:bg-[#172c34]"
+  }`;
+  if (/^https?:\/\//i.test(href)) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        {label}
+        <ArrowUpRight className="ml-2 h-4 w-4" />
       </a>
     );
   }
-
-  return (
-    <Link href={href} className={className}>
-      {media}
-    </Link>
-  );
+  return <Link href={href} className={className}>{label} <ArrowUpRight className="ml-2 h-4 w-4" /> </Link>;
 }
 
 export function CollectionBannerSection({
@@ -125,6 +163,10 @@ export function CollectionBannerSection({
                     imageUrl={item.imageUrl}
                     alt={item.alt}
                     href={item.href}
+                    button1Label={item.button1Label}
+                    button1Url={item.button1Url}
+                    button2Label={item.button2Label}
+                    button2Url={item.button2Url}
                   />
                 </CarouselItem>
               ))}

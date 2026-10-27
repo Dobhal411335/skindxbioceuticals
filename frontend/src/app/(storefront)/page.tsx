@@ -8,6 +8,7 @@ import { FeaturedProductRail } from "@/components/landing/featured-product-rail"
 import { HeroSection } from "@/components/landing/hero-section";
 import { InsightsGrid } from "@/components/landing/insights-grid";
 import { InsightsQaSection } from "@/components/landing/insights-qa-section";
+import { HowWeWorkSection } from "@/components/landing/how-we-work-section";
 import { MarqueeBanner } from "@/components/landing/marquee-banner";
 import { ProductHighlightColumns } from "@/components/landing/product-highlight-columns";
 import { CollectionBannerSection } from "@/components/landing/collection-banner-section";
@@ -85,6 +86,7 @@ export default async function HomePage() {
       <BlogGrid />
       <InsightsGrid insights={landingInsights} />
       <FeatureBenefitsBar />
+      <HowWeWorkSection />
       <StyleGallery items={galleryItems} />
       <CollectionBannerSection banner={collectionBanner} />
       <FaqSection items={landingFaqs} />

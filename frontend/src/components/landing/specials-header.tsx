@@ -23,7 +23,7 @@ export function SpecialsHeader({ promo = FALLBACK_ABOUT_US_BANNER.promo }: Speci
           <div className="mt-8 h-1 w-20 rounded-full bg-gradient-to-r from-[#c56f4d] to-[#f0d8c9]" />
         </div>
 
-        <div className="min-w-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-3">
+        <div className="min-w-0 lg:pr-3">
           <p className="max-w-3xl text-2xl leading-[1.42] tracking-[-0.025em] text-[#17252b] sm:text-3xl">
             {promo.description}
           </p>

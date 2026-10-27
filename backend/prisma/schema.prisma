@@ -1020,6 +1020,13 @@ model Blog {
   name          String
   slug          String
   category      String
+  badgeText     String   @default("") @map("badge_text")
+  stat1Number   String   @default("") @map("stat_1_number")
+  stat1Name     String   @default("") @map("stat_1_name")
+  stat1Text     String   @default("") @map("stat_1_text")
+  stat2Number   String   @default("") @map("stat_2_number")
+  stat2Name     String   @default("") @map("stat_2_name")
+  stat2Text     String   @default("") @map("stat_2_text")
   title         String   @default("")
   publishedAt   DateTime @default(now()) @map("published_at")
   createdBy     String   @default("") @map("created_by")
@@ -1760,6 +1767,10 @@ model CollectionBannerItem {
   title         String
   description   String   @default("") @db.Text
   buttonUrl     String   @default("") @map("button_url")
+  button1Label  String   @default("") @map("button_1_label")
+  button1Url    String   @default("") @map("button_1_url")
+  button2Label  String   @default("") @map("button_2_label")
+  button2Url    String   @default("") @map("button_2_url")
   sortOrder     Int      @default(0) @map("sort_order")
   active        Boolean  @default(true)
   createdAt     DateTime @default(now()) @map("created_at")

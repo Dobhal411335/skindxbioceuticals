@@ -430,9 +430,9 @@ Uploads use existing media APIs with `feature=insights`: `POST /api/v1/media/ima
 Site-scoped blog posts. Create with `name`, `category`, optional `slug` (auto-generated from name when omitted). Edit fills `title`, `publishedAt`, `createdBy`, cover image, TipTap HTML `description`, `blockquote`, and `active`.
 
 - `GET /api/v1/admin/sites/:siteCode/blogs` — Bearer admin JWT; `requireSiteAccess`. Optional `?category=`. Lists all blogs for the site (including inactive), newest `publishedAt` first.
-- `POST /api/v1/admin/sites/:siteCode/blogs` — create. Body: `name`, `category`, optional `slug`, optional `active` (default true). Title defaults to name; content/image fields start empty. Slug unique per site (`409` on conflict when explicit).
+- `POST /api/v1/admin/sites/:siteCode/blogs` — create. Body: `name`, `category`, optional `slug`, optional `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, and optional `active` (default true). Title defaults to name; content/image fields start empty. Slug unique per site (`409` on conflict when explicit).
 - `GET /api/v1/admin/sites/:siteCode/blogs/:blogId` — one blog for edit.
-- `PUT /api/v1/admin/sites/:siteCode/blogs/:blogId` — full update. Body: `name`, `slug`, `category`, `title`, `publishedAt`, `createdBy`, `imageUrl`, `imagePublicId`, `description`, `blockquote`, `active`. Prefer HTTPS image URLs. Replacing `imagePublicId` deletes the previous Cloudinary asset best-effort.
+- `PUT /api/v1/admin/sites/:siteCode/blogs/:blogId` — full update. Body: `name`, `slug`, `category`, optional landing-card fields `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, plus `title`, `publishedAt`, `createdBy`, `imageUrl`, `imagePublicId`, `description`, `blockquote`, `active`. Prefer HTTPS image URLs. Replacing `imagePublicId` deletes the previous Cloudinary asset best-effort.
 - `PATCH /api/v1/admin/sites/:siteCode/blogs/:blogId` — `{ name? }` and/or `{ active? }` (at least one required). Used for inline name edits on the admin list.
 - `DELETE /api/v1/admin/sites/:siteCode/blogs/:blogId` — deletes the row and its cover Cloudinary asset when present.
 
@@ -479,7 +479,7 @@ Uploads use existing media APIs with `feature=promo`: `POST /api/v1/media/images
 Site-scoped post-gallery collection companion banner: section header + titled image slides.
 
 - `GET /api/v1/admin/sites/:siteCode/collection-banners` — Bearer admin JWT; `requireSiteAccess`. Returns `sectionLabel`, `sectionHeading`, and all items (including inactive) ordered by `sortOrder`.
-- `PUT /api/v1/admin/sites/:siteCode/collection-banners` — replace section fields + items. Body: `sectionLabel`, `sectionHeading`, `items[]` with `imageUrl`, `imagePublicId`, `title` (required), `description`, `buttonUrl`, `sortOrder?`, `active`. Orphaned Cloudinary assets deleted best-effort after save.
+- `PUT /api/v1/admin/sites/:siteCode/collection-banners` — replace section fields + items. Body: `sectionLabel`, `sectionHeading`, `items[]` with `imageUrl`, `imagePublicId`, `title` (required), `description`, `buttonUrl`, optional hover CTA fields `button1Label`, `button1Url`, `button2Label`, `button2Url`, `sortOrder?`, `active`. Orphaned Cloudinary assets deleted best-effort after save.
 
 Uploads use existing media APIs with `feature=collection`: `POST /api/v1/media/images`.
 

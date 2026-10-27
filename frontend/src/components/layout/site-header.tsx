@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Mail, MessageCircle, Phone, type LucideIcon } from "lucide-react";
 
 import { HeaderAccountMenu } from "@/components/layout/header-account-menu";
 import { HeaderCartButton } from "@/components/layout/header-cart-button";
@@ -19,65 +19,81 @@ import {
 } from "@/components/ui/navigation-menu";
 import { useCompanyBasicInfo } from "@/providers/company-basic-info-provider";
 import { useNavbarSections } from "@/providers/navbar-sections-provider";
-import { useTopAdvertisement } from "@/providers/top-advertisement-provider";
 const navTriggerClassName =
-  "relative rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase text-white/80 transition-[color,background-color,transform] duration-200 ease-out hover:!bg-transparent hover:text-white focus:!bg-transparent active:scale-[0.98] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 data-open:!bg-transparent data-open:text-white data-open:after:scale-x-100 data-open:hover:!bg-transparent data-popup-open:!bg-transparent data-popup-open:text-white data-popup-open:after:scale-x-100 data-popup-open:hover:!bg-transparent";
+  "relative gap-2 rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase text-white/80 transition-[color,background-color,transform] duration-200 ease-out [&>svg]:ml-0 hover:!bg-transparent hover:text-white focus:!bg-transparent active:scale-[0.98] after:pointer-events-none after:absolute after:bottom-1 after:left-3 after:right-8 after:h-px after:origin-left after:scale-x-0 after:bg-[#f28b5b] after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100 data-open:!bg-transparent data-open:text-white data-open:after:scale-x-100 data-open:hover:!bg-transparent data-popup-open:!bg-transparent data-popup-open:text-white data-popup-open:after:scale-x-100 data-popup-open:hover:!bg-transparent";
 
 const navLinkClassName =
-  "relative rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase text-white/80 transition-[color,background-color,transform] duration-200 ease-out hover:bg-transparent hover:text-white focus:bg-transparent active:scale-[0.98] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100";
-
-function UtilityLine({
-  text,
-  href,
-  className,
-}: {
-  text: string;
-  href?: string;
-  className?: string;
-}) {
-  if (href) {
-    return (
-      <Link href={href} className={`transition-colors hover:text-foreground ${className ?? ""}`}>
-        {text}
-      </Link>
-    );
-  }
-  return <p className={className}>{text}</p>;
-}
+  "relative rounded-md px-3 py-2 text-xs font-semibold tracking-wide uppercase text-white/80 transition-[color,background-color,transform] duration-200 ease-out hover:bg-transparent hover:text-white focus:bg-transparent active:scale-[0.98] after:pointer-events-none after:absolute after:inset-x-3 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-[#f28b5b] after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 focus-visible:after:scale-x-100";
 
 export function SiteHeader() {
   const company = useCompanyBasicInfo();
   const navLinks = useNavbarSections();
-  const { utilityItems } = useTopAdvertisement();
 
   const brandName = company.companyName?.trim() || "SkinDx";
   const logoUrl = company.mainLogo?.url?.trim() || company.mobileUiLogo?.url?.trim() || "";
-  const leftUtility = utilityItems[0];
-  const rightUtility = utilityItems[1];
+  const email = company.emails?.[0]?.trim() || "";
+  const phone = company.contactNumbers?.[0]?.trim() || "";
+  const whatsapp = company.whatsappNumber?.trim() || phone;
+  const phoneDigits = phone.replace(/\D/g, "");
+  const whatsappDigits = whatsapp.replace(/\D/g, "");
+
+  const utilityContacts = [
+    email
+      ? {
+          href: `mailto:${email}`,
+          icon: Mail,
+          label: "Email us",
+          text: email,
+        }
+      : null,
+    phone
+      ? {
+          href: `tel:${phoneDigits || phone}`,
+          icon: Phone,
+          label: "Call us",
+          text: phone,
+        }
+      : null,
+    whatsapp
+      ? {
+          href: `https://wa.me/${whatsappDigits || whatsapp}`,
+          icon: MessageCircle,
+          label: "Chat with us on WhatsApp",
+          text: whatsapp,
+        }
+      : null,
+  ].filter(Boolean) as Array<{
+    href: string;
+    icon: LucideIcon;
+    label: string;
+    text: string;
+  }>;
 
   return (
     <>
-      {/* {(leftUtility || rightUtility) && (
-        <div className="hidden bg-[#132128] md:block">
-          <div className="container-page flex items-center justify-between py-2 text-xs text-white/70">
-            {leftUtility ? (
-              <UtilityLine text={leftUtility.text} href={leftUtility.href} />
-            ) : (
-              <span />
-            )}
-            {rightUtility ? (
-              <UtilityLine
-                text={rightUtility.text}
-                href={rightUtility.href}
-                className="tracking-wide"
-              />
-            ) : null}
+      {utilityContacts.length > 0 && (
+        <div className="hidden bg-[#14272E] md:block">
+          <div className="mx-10 flex items-center justify-end gap-5 py-2 text-xs text-white">
+            {utilityContacts.map(({ href, icon: Icon, label, text }) => (
+              <Link
+                key={`${label}-${text}`}
+                href={href}
+                aria-label={`${label}: ${text}`}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap transition-opacity hover:opacity-80"
+                {...(href.startsWith("https://")
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+              >
+                <Icon className="size-3.5" aria-hidden="true" />
+                <span>{text}</span>
+              </Link>
+            ))}
           </div>
         </div>
-      )} */}
+      )}
 
       <header className="sticky top-0 z-40 bg-[#14272E] backdrop-blur supports-backdrop-filter:bg-[#14272E] border-b border-white/50">
-        <div className="container-page flex items-center gap-3 py-3 lg:py-4">
+        <div className="mx-10 flex items-center gap-3 py-3 lg:py-4">
           <MobileNav />
 
           <Link

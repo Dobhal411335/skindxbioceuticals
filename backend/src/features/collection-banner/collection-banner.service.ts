@@ -18,9 +18,7 @@ function preferHttpsUrl(url: string): string {
   return url;
 }
 
-export function emptyCollectionBannerConfigDto(
-  siteCode: SiteCodeDto,
-): CollectionBannerConfigDto {
+export function emptyCollectionBannerConfigDto(siteCode: SiteCodeDto): CollectionBannerConfigDto {
   return {
     id: null,
     siteCode,
@@ -31,9 +29,7 @@ export function emptyCollectionBannerConfigDto(
   };
 }
 
-function toItemDto(
-  item: CollectionBannerConfigRecord['items'][number],
-): CollectionBannerItemDto {
+function toItemDto(item: CollectionBannerConfigRecord['items'][number]): CollectionBannerItemDto {
   return {
     id: item.id,
     imageUrl: preferHttpsUrl(item.imageUrl),
@@ -41,6 +37,10 @@ function toItemDto(
     title: item.title,
     description: item.description,
     buttonUrl: item.buttonUrl,
+    button1Label: item.button1Label ?? '',
+    button1Url: item.button1Url ?? '',
+    button2Label: item.button2Label ?? '',
+    button2Url: item.button2Url ?? '',
     sortOrder: item.sortOrder,
     active: item.active,
   };
@@ -58,16 +58,12 @@ export function toCollectionBannerConfigDto(
     siteCode,
     sectionLabel: record.sectionLabel,
     sectionHeading: record.sectionHeading,
-    items: record.items
-      .filter((item) => !activeOnly || item.active)
-      .map(toItemDto),
+    items: record.items.filter((item) => !activeOnly || item.active).map(toItemDto),
     updatedAt: record.updatedAt.toISOString(),
   };
 }
 
-function bodyToUpsertData(
-  body: CollectionBannerConfigBody,
-): CollectionBannerConfigUpsertData {
+function bodyToUpsertData(body: CollectionBannerConfigBody): CollectionBannerConfigUpsertData {
   return {
     sectionLabel: body.sectionLabel || '',
     sectionHeading: body.sectionHeading || '',
@@ -77,6 +73,10 @@ function bodyToUpsertData(
       title: item.title,
       description: item.description || '',
       buttonUrl: item.buttonUrl || '',
+      button1Label: item.button1Label || '',
+      button1Url: item.button1Url || '',
+      button2Label: item.button2Label || '',
+      button2Url: item.button2Url || '',
       sortOrder: item.sortOrder ?? index,
       active: item.active,
     })),
@@ -85,8 +85,7 @@ function bodyToUpsertData(
 
 function collectPublicIds(
   source:
-    | Pick<CollectionBannerConfigRecord, 'items'>
-    | Pick<CollectionBannerConfigUpsertData, 'items'>,
+    Pick<CollectionBannerConfigRecord, 'items'> | Pick<CollectionBannerConfigUpsertData, 'items'>,
 ): string[] {
   const ids: string[] = [];
   for (const item of source.items) {

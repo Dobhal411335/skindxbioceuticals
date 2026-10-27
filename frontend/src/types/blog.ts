@@ -3,6 +3,13 @@ export type StorefrontBlog = {
   slug: string;
   name: string;
   category: string;
+  badgeText?: string;
+  stat1Number?: string;
+  stat1Name?: string;
+  stat1Text?: string;
+  stat2Number?: string;
+  stat2Name?: string;
+  stat2Text?: string;
   title: string;
   publishedAt: string;
   createdBy: string;
@@ -17,6 +24,13 @@ export type StorefrontBlogCard = {
   slug: string;
   name: string;
   category: string;
+  badgeText?: string;
+  stat1Number?: string;
+  stat1Name?: string;
+  stat1Text?: string;
+  stat2Number?: string;
+  stat2Name?: string;
+  stat2Text?: string;
   title: string;
   publishedAt: string;
   createdBy: string;

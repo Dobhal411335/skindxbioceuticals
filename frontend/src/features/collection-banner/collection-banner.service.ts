@@ -46,6 +46,10 @@ export function mapCollectionBannerConfigToStorefront(
       description: item.description.trim(),
       imageUrl: preferHttps(item.imageUrl.trim()),
       href: optionalHref(item.buttonUrl),
+      button1Label: item.button1Label?.trim() || "",
+      button1Url: optionalHref(item.button1Url),
+      button2Label: item.button2Label?.trim() || "",
+      button2Url: optionalHref(item.button2Url),
       alt: item.title.trim(),
     }));
 

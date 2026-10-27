@@ -12,7 +12,7 @@ export function ClinicalConfidenceSection({ config }: { config: StorefrontClinic
       aria-labelledby="clinical-confidence-heading"
     >
       <div className="container-page grid gap-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.45fr)_minmax(0,0.72fr)] lg:items-stretch">
-        {cards[0] ? <ConfidenceCard card={cards[0]} /> : <div />}
+        {cards[0] ? <ConfidenceCard card={cards[0]} showDoctorStat /> : <div />}
         <div className="relative flex min-h-[26rem] flex-col justify-center overflow-hidden rounded-[8px] bg-[#172c34] px-8 py-12 text-white sm:px-10 lg:px-12 lg:py-14">
           {config.backgroundImageUrl ? (
             <Image
@@ -72,7 +72,13 @@ export function ClinicalConfidenceSection({ config }: { config: StorefrontClinic
   );
 }
 
-function ConfidenceCard({ card }: { card: StorefrontClinicalConfidence["cards"][number] }) {
+function ConfidenceCard({
+  card,
+  showDoctorStat = false,
+}: {
+  card: StorefrontClinicalConfidence["cards"][number];
+  showDoctorStat?: boolean;
+}) {
   return (
     <article className="flex min-h-[26rem] flex-col rounded-[8px] border border-[#e8e5df] bg-white p-4 shadow-sm">
       <div className="relative aspect-[0.92] overflow-hidden rounded-[3px] bg-[#eef0ed]">
@@ -92,6 +98,11 @@ function ConfidenceCard({ card }: { card: StorefrontClinicalConfidence["cards"][
           {card.heading}
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-[#647178]">{card.description}</p>
+        {showDoctorStat ? (
+          <p className="mt-4 text-xs font-medium text-[#176e73]">
+            Trusted by 40+ doctors across India.
+          </p>
+        ) : null}
         {card.buttonLabel ? (
           <Link
             href={card.buttonUrl || "#"}

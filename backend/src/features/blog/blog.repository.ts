@@ -12,6 +12,13 @@ function mapBlog(row: {
   name: string;
   slug: string;
   category: string;
+  badgeText: string;
+  stat1Number: string;
+  stat1Name: string;
+  stat1Text: string;
+  stat2Number: string;
+  stat2Name: string;
+  stat2Text: string;
   title: string;
   publishedAt: Date;
   createdBy: string;
@@ -29,6 +36,13 @@ function mapBlog(row: {
     name: row.name,
     slug: row.slug,
     category: row.category,
+    badgeText: row.badgeText,
+    stat1Number: row.stat1Number,
+    stat1Name: row.stat1Name,
+    stat1Text: row.stat1Text,
+    stat2Number: row.stat2Number,
+    stat2Name: row.stat2Name,
+    stat2Text: row.stat2Text,
     title: row.title,
     publishedAt: row.publishedAt,
     createdBy: row.createdBy,
@@ -132,6 +146,13 @@ export class BlogRepository {
         name: data.name,
         slug: data.slug,
         category: data.category,
+        badgeText: data.badgeText ?? '',
+        stat1Number: data.stat1Number ?? '',
+        stat1Name: data.stat1Name ?? '',
+        stat1Text: data.stat1Text ?? '',
+        stat2Number: data.stat2Number ?? '',
+        stat2Name: data.stat2Name ?? '',
+        stat2Text: data.stat2Text ?? '',
         title: data.title,
         publishedAt: data.publishedAt,
         createdBy: data.createdBy,
@@ -164,6 +185,13 @@ export class BlogRepository {
         name: data.name,
         slug: data.slug,
         category: data.category,
+        badgeText: data.badgeText ?? '',
+        stat1Number: data.stat1Number ?? '',
+        stat1Name: data.stat1Name ?? '',
+        stat1Text: data.stat1Text ?? '',
+        stat2Number: data.stat2Number ?? '',
+        stat2Name: data.stat2Name ?? '',
+        stat2Text: data.stat2Text ?? '',
         title: data.title,
         publishedAt: data.publishedAt,
         createdBy: data.createdBy,

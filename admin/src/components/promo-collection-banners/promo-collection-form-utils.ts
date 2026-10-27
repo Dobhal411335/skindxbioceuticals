@@ -50,6 +50,10 @@ export function createEmptyCollectionItem(): CollectionBannerItemFormValues {
     title: "",
     description: "",
     buttonUrl: "",
+    button1Label: "",
+    button1Url: "",
+    button2Label: "",
+    button2Url: "",
     active: true,
   };
 }
@@ -75,6 +79,10 @@ export function collectionDtoToFormValues(
       title: item.title,
       description: item.description,
       buttonUrl: item.buttonUrl,
+      button1Label: item.button1Label || "",
+      button1Url: item.button1Url || "",
+      button2Label: item.button2Label || "",
+      button2Url: item.button2Url || "",
       active: item.active,
     })),
   };

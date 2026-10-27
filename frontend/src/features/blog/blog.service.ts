@@ -25,6 +25,13 @@ type ApiBlog = {
   slug: string;
   name: string;
   category: string;
+  badgeText?: string;
+  stat1Number?: string;
+  stat1Name?: string;
+  stat1Text?: string;
+  stat2Number?: string;
+  stat2Name?: string;
+  stat2Text?: string;
   title: string;
   publishedAt: string;
   createdBy: string;
@@ -39,6 +46,13 @@ type ApiBlogCard = {
   slug: string;
   name: string;
   category: string;
+  badgeText?: string;
+  stat1Number?: string;
+  stat1Name?: string;
+  stat1Text?: string;
+  stat2Number?: string;
+  stat2Name?: string;
+  stat2Text?: string;
   title: string;
   publishedAt: string;
   createdBy: string;
@@ -77,6 +91,13 @@ function mapBlog(row: ApiBlog): StorefrontBlog {
     slug: row.slug,
     name: row.name,
     category: row.category,
+    badgeText: row.badgeText || "",
+    stat1Number: row.stat1Number || "",
+    stat1Name: row.stat1Name || "",
+    stat1Text: row.stat1Text || "",
+    stat2Number: row.stat2Number || "",
+    stat2Name: row.stat2Name || "",
+    stat2Text: row.stat2Text || "",
     title: row.title || row.name,
     publishedAt: row.publishedAt,
     createdBy: row.createdBy || "",
@@ -93,6 +114,13 @@ function mapCard(row: ApiBlogCard): StorefrontBlogCard {
     slug: row.slug,
     name: row.name,
     category: row.category,
+    badgeText: row.badgeText || "",
+    stat1Number: row.stat1Number || "",
+    stat1Name: row.stat1Name || "",
+    stat1Text: row.stat1Text || "",
+    stat2Number: row.stat2Number || "",
+    stat2Name: row.stat2Name || "",
+    stat2Text: row.stat2Text || "",
     title: row.title || row.name,
     publishedAt: row.publishedAt,
     createdBy: row.createdBy || "",

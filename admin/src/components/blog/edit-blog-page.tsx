@@ -39,6 +39,13 @@ import type { BlogDto, BlogEditFormValues } from "@/types/blog";
 
 function createEmptyEditValues(): BlogEditFormValues {
   return {
+    badgeText: "",
+    stat1Number: "",
+    stat1Name: "",
+    stat1Text: "",
+    stat2Number: "",
+    stat2Name: "",
+    stat2Text: "",
     title: "",
     publishedAt: "",
     createdBy: "",
@@ -52,6 +59,13 @@ function createEmptyEditValues(): BlogEditFormValues {
 
 function dtoToEditValues(blog: BlogDto): BlogEditFormValues {
   return {
+    badgeText: blog.badgeText,
+    stat1Number: blog.stat1Number,
+    stat1Name: blog.stat1Name,
+    stat1Text: blog.stat1Text,
+    stat2Number: blog.stat2Number,
+    stat2Name: blog.stat2Name,
+    stat2Text: blog.stat2Text,
     title: blog.title || blog.name,
     publishedAt: toDateInputValue(blog.publishedAt),
     createdBy: blog.createdBy,
@@ -279,6 +293,62 @@ export function EditBlogPage({
                     View public page /blog/{blog.slug}
                     <ExternalLink className="size-3.5" aria-hidden />
                   </a>
+                </div>
+
+                <div className="space-y-4 rounded-lg border border-border/70 p-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="blog-badge">Landing card badge (optional)</Label>
+                    <Input
+                      id="blog-badge"
+                      value={values.badgeText}
+                      onChange={(event) =>
+                        setValues((prev) => ({ ...prev, badgeText: event.target.value }))
+                      }
+                      placeholder="e.g. Transformation · Technology"
+                    />
+                  </div>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {([1, 2] as const).map((number) => (
+                      <div key={number} className="space-y-3 rounded-md bg-muted/30 p-3">
+                        <p className="text-sm font-medium">Stat card {number} (optional)</p>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <Input
+                            value={values[`stat${number}Number`]}
+                            onChange={(event) =>
+                              setValues((prev) => ({
+                                ...prev,
+                                [`stat${number}Number`]: event.target.value,
+                              }))
+                            }
+                            placeholder="Number, e.g. 32%"
+                            aria-label={`Stat card ${number} number`}
+                          />
+                          <Input
+                            value={values[`stat${number}Name`]}
+                            onChange={(event) =>
+                              setValues((prev) => ({
+                                ...prev,
+                                [`stat${number}Name`]: event.target.value,
+                              }))
+                            }
+                            placeholder="Name, e.g. faster decisions"
+                            aria-label={`Stat card ${number} name`}
+                          />
+                        </div>
+                        <Input
+                          value={values[`stat${number}Text`]}
+                          onChange={(event) =>
+                            setValues((prev) => ({
+                              ...prev,
+                              [`stat${number}Text`]: event.target.value,
+                            }))
+                          }
+                          placeholder="Optional supporting text"
+                          aria-label={`Stat card ${number} supporting text`}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">

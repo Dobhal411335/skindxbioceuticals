@@ -359,6 +359,64 @@ export function CollectionBannerTab({
                       className="h-11"
                     />
                   </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor={`collection-button-1-label-${index}`}>
+                        Hover button 1 label
+                      </Label>
+                      <Input
+                        id={`collection-button-1-label-${index}`}
+                        value={item.button1Label}
+                        onChange={(event) =>
+                          onChange(updateItem(values, index, { button1Label: event.target.value }))
+                        }
+                        placeholder="Shop SkinCare"
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor={`collection-button-1-url-${index}`}>
+                        Hover button 1 URL
+                      </Label>
+                      <Input
+                        id={`collection-button-1-url-${index}`}
+                        value={item.button1Url}
+                        onChange={(event) =>
+                          onChange(updateItem(values, index, { button1Url: event.target.value }))
+                        }
+                        placeholder="/category"
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor={`collection-button-2-label-${index}`}>
+                        Hover button 2 label
+                      </Label>
+                      <Input
+                        id={`collection-button-2-label-${index}`}
+                        value={item.button2Label}
+                        onChange={(event) =>
+                          onChange(updateItem(values, index, { button2Label: event.target.value }))
+                        }
+                        placeholder="Explore Products"
+                        className="h-11"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor={`collection-button-2-url-${index}`}>
+                        Hover button 2 URL
+                      </Label>
+                      <Input
+                        id={`collection-button-2-url-${index}`}
+                        value={item.button2Url}
+                        onChange={(event) =>
+                          onChange(updateItem(values, index, { button2Url: event.target.value }))
+                        }
+                        placeholder="/shop"
+                        className="h-11"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

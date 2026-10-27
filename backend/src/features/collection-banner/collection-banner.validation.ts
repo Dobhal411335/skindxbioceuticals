@@ -38,6 +38,10 @@ const collectionBannerItemSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(300),
   description: z.string().trim().max(4000).default(''),
   buttonUrl: optionalUrlSchema.default(''),
+  button1Label: z.string().trim().max(80).default(''),
+  button1Url: optionalUrlSchema.default(''),
+  button2Label: z.string().trim().max(80).default(''),
+  button2Url: optionalUrlSchema.default(''),
   sortOrder: z.number().int().min(0).max(10_000).optional(),
   active: z.boolean().default(true),
 });
@@ -48,9 +52,21 @@ export const collectionBannerConfigBodySchema = z.object({
   items: z.array(collectionBannerItemSchema).max(50).default([]),
 });
 
-export type CollectionBannerConfigBody = z.infer<
-  typeof collectionBannerConfigBodySchema
->;
+type CollectionBannerItemBody = Omit<
+  z.infer<typeof collectionBannerItemSchema>,
+  'button1Label' | 'button1Url' | 'button2Label' | 'button2Url'
+> &
+  Partial<
+    Pick<
+      z.infer<typeof collectionBannerItemSchema>,
+      'button1Label' | 'button1Url' | 'button2Label' | 'button2Url'
+    >
+  >;
+
+export type CollectionBannerConfigBody = Omit<
+  z.infer<typeof collectionBannerConfigBodySchema>,
+  'items'
+> & { items: CollectionBannerItemBody[] };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object') return null;
@@ -71,6 +87,10 @@ function normalizeItems(raw: unknown): unknown[] {
         title,
         description: String(entry.description ?? '').trim(),
         buttonUrl: String(entry.buttonUrl ?? '').trim(),
+        button1Label: String(entry.button1Label ?? '').trim(),
+        button1Url: String(entry.button1Url ?? '').trim(),
+        button2Label: String(entry.button2Label ?? '').trim(),
+        button2Url: String(entry.button2Url ?? '').trim(),
         sortOrder: entry.sortOrder,
         active: entry.active ?? true,
       };

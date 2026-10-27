@@ -6,6 +6,13 @@ export type BlogDto = {
   name: string;
   slug: string;
   category: string;
+  badgeText: string;
+  stat1Number: string;
+  stat1Name: string;
+  stat1Text: string;
+  stat2Number: string;
+  stat2Name: string;
+  stat2Text: string;
   title: string;
   publishedAt: string;
   createdBy: string;
@@ -21,6 +28,13 @@ export type BlogDto = {
 export type BlogCreatePayload = {
   name: string;
   category: string;
+  badgeText: string;
+  stat1Number: string;
+  stat1Name: string;
+  stat1Text: string;
+  stat2Number: string;
+  stat2Name: string;
+  stat2Text: string;
   slug?: string;
   active?: boolean;
 };
@@ -29,6 +43,13 @@ export type BlogUpdatePayload = {
   name: string;
   slug: string;
   category: string;
+  badgeText: string;
+  stat1Number: string;
+  stat1Name: string;
+  stat1Text: string;
+  stat2Number: string;
+  stat2Name: string;
+  stat2Text: string;
   title: string;
   publishedAt: string;
   createdBy: string;
@@ -43,9 +64,23 @@ export type BlogCreateFormValues = {
   name: string;
   category: string;
   slug: string;
+  badgeText: string;
+  stat1Number: string;
+  stat1Name: string;
+  stat1Text: string;
+  stat2Number: string;
+  stat2Name: string;
+  stat2Text: string;
 };
 
 export type BlogEditFormValues = {
+  badgeText: string;
+  stat1Number: string;
+  stat1Name: string;
+  stat1Text: string;
+  stat2Number: string;
+  stat2Name: string;
+  stat2Text: string;
   title: string;
   publishedAt: string;
   createdBy: string;

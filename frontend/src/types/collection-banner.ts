@@ -5,6 +5,10 @@ export type CollectionBannerItemDto = {
   title: string;
   description: string;
   buttonUrl: string;
+  button1Label: string;
+  button1Url: string;
+  button2Label: string;
+  button2Url: string;
   sortOrder: number;
   active: boolean;
 };
@@ -24,6 +28,10 @@ export type StorefrontCollectionSlide = {
   description: string;
   imageUrl: string;
   href: string;
+  button1Label: string;
+  button1Url: string;
+  button2Label: string;
+  button2Url: string;
   alt: string;
 };
 

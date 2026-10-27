@@ -114,6 +114,24 @@ export function validateCollectionBannerForm(
       errors.items = `Slide ${index + 1}: enter a path, hash link, or absolute URL`;
       break;
     }
+    for (const [buttonIndex, button] of [
+      { label: item.button1Label, url: item.button1Url },
+      { label: item.button2Label, url: item.button2Url },
+    ].entries()) {
+      if (button.label.trim().length > 80) {
+        errors.items = `Slide ${index + 1}: button ${buttonIndex + 1} label must be 80 characters or fewer`;
+        break;
+      }
+      if (!isOptionalUrl(button.url)) {
+        errors.items = `Slide ${index + 1}: button ${buttonIndex + 1} URL is invalid`;
+        break;
+      }
+      if (button.label.trim() && !button.url.trim()) {
+        errors.items = `Slide ${index + 1}: button ${buttonIndex + 1} URL is required when a label is set`;
+        break;
+      }
+    }
+    if (errors.items) break;
   }
 
   if (Object.keys(errors).length > 0) {
@@ -134,6 +152,10 @@ export function toCollectionBannerPayload(
       title: item.title.trim(),
       description: item.description.trim(),
       buttonUrl: item.buttonUrl.trim(),
+      button1Label: item.button1Label.trim(),
+      button1Url: item.button1Url.trim(),
+      button2Label: item.button2Label.trim(),
+      button2Url: item.button2Url.trim(),
       sortOrder: index,
       active: item.active,
     })),

@@ -273,6 +273,35 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
               </Button>
             ) : null}
           </div>
+
+          <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
+            <div className="flex -space-x-3" aria-label="Leadership team testimonials">
+              {["person1.jpg", "person2.jpg", "person3.jpg", "person4.jpg"].map(
+                (person, index) => (
+                  <div
+                    key={person}
+                    className="relative size-11 overflow-hidden rounded-full border-2 border-[#14272e] bg-[#203640] shadow-sm"
+                  >
+                    <Image
+                      src={`/person/${person}`}
+                      alt={`Leadership team member ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="44px"
+                    />
+                  </div>
+                ),
+              )}
+            </div>
+            <div className="text-center sm:text-left">
+              <div className="text-base leading-none tracking-[0.18em] text-[#f0a15f]" aria-label="5 out of 5 stars">
+                ★★★★★
+              </div>
+              <p className="mt-2 text-xs font-medium text-[#b5c2c6] sm:text-base">
+                Trusted by 180+ leadership teams worldwide
+              </p>
+            </div>
+          </div>
         </div>
 
         <div

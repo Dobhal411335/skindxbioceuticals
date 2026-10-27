@@ -17,6 +17,10 @@ function mapRecord(row: {
     title: string;
     description: string;
     buttonUrl: string;
+    button1Label?: string;
+    button1Url?: string;
+    button2Label?: string;
+    button2Url?: string;
     sortOrder: number;
     active: boolean;
   }>;
@@ -34,6 +38,10 @@ function mapRecord(row: {
       title: item.title,
       description: item.description,
       buttonUrl: item.buttonUrl,
+      button1Label: item.button1Label ?? '',
+      button1Url: item.button1Url ?? '',
+      button2Label: item.button2Label ?? '',
+      button2Url: item.button2Url ?? '',
       sortOrder: item.sortOrder,
       active: item.active,
     })),
