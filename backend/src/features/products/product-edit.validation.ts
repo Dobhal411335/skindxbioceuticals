@@ -63,15 +63,12 @@ export const productColorsSectionSchema = z.object({
 
 /** Empty strings become null so base (no size/color) offers validate cleanly. */
 const optionalVariantLabel = (max: number) =>
-  z.preprocess(
-    (value) => {
-      if (value == null) return null;
-      if (typeof value !== 'string') return value;
-      const trimmed = value.trim();
-      return trimmed.length > 0 ? trimmed : null;
-    },
-    z.string().max(max).nullable(),
-  );
+  z.preprocess((value) => {
+    if (value == null) return null;
+    if (typeof value !== 'string') return value;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }, z.string().max(max).nullable());
 
 export const productVariantsSectionSchema = z.object({
   variants: z
@@ -169,7 +166,14 @@ export const productTagsSectionSchema = z.object({
 });
 
 export const productHighlightsSectionSchema = z.object({
-  highlights: z.array(z.string().trim().min(1).max(300)).max(30),
+  highlights: z
+    .array(
+      z.object({
+        question: z.string().trim().min(1).max(300),
+        answer: z.string().trim().min(1).max(50_000),
+      }),
+    )
+    .max(30),
 });
 
 export type ProductSizesSectionBody = z.infer<typeof productSizesSectionSchema>;

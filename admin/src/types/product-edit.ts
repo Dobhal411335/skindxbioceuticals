@@ -85,7 +85,8 @@ export type CatalogTagDto = {
 
 export type ProductHighlightDto = {
   id: string;
-  text: string;
+  question: string;
+  answer: string;
   sortOrder: number;
 };
 

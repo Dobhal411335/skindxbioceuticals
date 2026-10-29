@@ -116,9 +116,7 @@ type CardSource = {
   } | null;
 };
 
-function toPublicCardCouponDto(
-  coupon: CardSource['coupon'],
-): PublicProductCardDto['coupon'] {
+function toPublicCardCouponDto(coupon: CardSource['coupon']): PublicProductCardDto['coupon'] {
   if (!coupon) return null;
   if (coupon.coupon.isActive === false) return null;
   return {
@@ -164,9 +162,9 @@ export function toPublicProductCardDto(
     coupon: toPublicCardCouponDto(row.coupon),
     tax: row.tax
       ? {
-        cgst: decimalToNumber(row.tax.cgst) ?? 0,
-        sgst: decimalToNumber(row.tax.sgst) ?? 0,
-      }
+          cgst: decimalToNumber(row.tax.cgst) ?? 0,
+          sgst: decimalToNumber(row.tax.sgst) ?? 0,
+        }
       : null,
   };
 }
@@ -219,7 +217,7 @@ export class ProductService {
   constructor(
     private readonly repository = productRepository,
     private readonly categories = categoryService,
-  ) { }
+  ) {}
 
   private async uniqueProductSlug(
     siteId: string,
@@ -254,8 +252,7 @@ export class ProductService {
     const page = input.page ?? 1;
     const limit = input.limit;
     const sort = input.sort ?? 'default';
-    const offset =
-      input.offset != null ? input.offset : Math.max(0, (page - 1) * limit);
+    const offset = input.offset != null ? input.offset : Math.max(0, (page - 1) * limit);
     const hasCatalogFilters =
       Boolean(input.q?.trim()) ||
       Boolean(input.categorySlug) ||
@@ -271,9 +268,7 @@ export class ProductService {
       const rows = await this.repository.listActivePublicCards(input.siteId, {
         limit,
       });
-      const items = rows.map((row) =>
-        toPublicProductCardDto(row, input.siteCode, cardOpts),
-      );
+      const items = rows.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts));
       return {
         items,
         meta: {
@@ -290,9 +285,7 @@ export class ProductService {
       q: input.q,
     });
 
-    let cards = rows.map((row) =>
-      toPublicProductCardDto(row, input.siteCode, cardOpts),
-    );
+    let cards = rows.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts));
     cards = cards.filter(
       (card) =>
         matchesPriceRange(card, input.priceMin, input.priceMax) &&
@@ -373,15 +366,9 @@ export class ProductService {
     ]);
 
     return {
-      recent: recent.map((row) =>
-        toPublicProductCardDto(row, input.siteCode, cardOpts),
-      ),
-      featured: featured.map((row) =>
-        toPublicProductCardDto(row, input.siteCode, cardOpts),
-      ),
-      bestSellers: bestSellers.map((row) =>
-        toPublicProductCardDto(row, input.siteCode, cardOpts),
-      ),
+      recent: recent.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts)),
+      featured: featured.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts)),
+      bestSellers: bestSellers.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts)),
     };
   }
 
@@ -401,6 +388,7 @@ export class ProductService {
     const relatedRows = await this.repository.listRelatedActive(input.siteId, {
       excludeProductId: record.id,
       subcategoryId: record.subcategoryId,
+      limit: 6,
     });
 
     const relatedProducts: PublicRelatedProductDto[] = relatedRows.map((row) => {
@@ -427,9 +415,9 @@ export class ProductService {
         coupon: toPublicCardCouponDto(row.coupon),
         tax: row.tax
           ? {
-            cgst: decimalToNumber(row.tax.cgst) ?? 0,
-            sgst: decimalToNumber(row.tax.sgst) ?? 0,
-          }
+              cgst: decimalToNumber(row.tax.cgst) ?? 0,
+              sgst: decimalToNumber(row.tax.sgst) ?? 0,
+            }
           : null,
       };
     });
@@ -475,9 +463,7 @@ export class ProductService {
         sku: row.sku,
         name: row.name,
         price: decimalToNumber(row.price) ?? 0,
-        ...(includeVendorPrice
-          ? { vendorPrice: decimalToNumber(row.vendorPrice ?? null) }
-          : {}),
+        ...(includeVendorPrice ? { vendorPrice: decimalToNumber(row.vendorPrice ?? null) } : {}),
         sizeLabel: row.sizeLabel,
         colorLabel: row.colorLabel,
         weightGrams: row.weightGrams ?? null,
@@ -513,22 +499,23 @@ export class ProductService {
       })),
       highlights: record.highlights.map((row) => ({
         id: row.id,
-        text: row.text,
+        question: row.question,
+        answer: row.answer,
         sortOrder: row.sortOrder,
       })),
       tax: record.tax
         ? {
-          cgst: decimalToNumber(record.tax.cgst) ?? 0,
-          sgst: decimalToNumber(record.tax.sgst) ?? 0,
-        }
+            cgst: decimalToNumber(record.tax.cgst) ?? 0,
+            sgst: decimalToNumber(record.tax.sgst) ?? 0,
+          }
         : null,
       coupon: record.coupon
         ? {
-          couponId: record.coupon.couponId,
-          code: record.coupon.coupon.code,
-          type: record.coupon.coupon.type,
-          value: decimalToNumber(record.coupon.coupon.value) ?? 0,
-        }
+            couponId: record.coupon.couponId,
+            code: record.coupon.coupon.code,
+            type: record.coupon.coupon.type,
+            value: decimalToNumber(record.coupon.coupon.value) ?? 0,
+          }
         : null,
       relatedProducts,
       averageRating: stats.averageRating,
@@ -554,10 +541,7 @@ export class ProductService {
     subcategoryId: string;
   }): Promise<CatalogProductDto[]> {
     await this.categories.requireSubcategory(input.siteId, input.subcategoryId);
-    const rows = await this.repository.listBySubcategory(
-      input.siteId,
-      input.subcategoryId,
-    );
+    const rows = await this.repository.listBySubcategory(input.siteId, input.subcategoryId);
     return rows.map((row) => toCatalogProductDto(row, input.siteCode));
   }
 
@@ -623,11 +607,7 @@ export class ProductService {
     }
 
     if (
-      await this.repository.productCodeExists(
-        input.siteId,
-        input.body.productCode,
-        existing.id,
-      )
+      await this.repository.productCodeExists(input.siteId, input.body.productCode, existing.id)
     ) {
       throw new ConflictError('A product with this code already exists for this site');
     }
@@ -688,11 +668,7 @@ export class ProductService {
 
     if (
       input.body.productCode &&
-      (await this.repository.productCodeExists(
-        input.siteId,
-        input.body.productCode,
-        existing.id,
-      ))
+      (await this.repository.productCodeExists(input.siteId, input.body.productCode, existing.id))
     ) {
       throw new ConflictError('A product with this code already exists for this site');
     }
@@ -703,21 +679,15 @@ export class ProductService {
     }
 
     const record = await this.repository.patch(input.siteId, input.productId, {
-      ...(input.body.productCode !== undefined
-        ? { productCode: input.body.productCode }
-        : {}),
+      ...(input.body.productCode !== undefined ? { productCode: input.body.productCode } : {}),
       ...(input.body.name !== undefined ? { name: input.body.name } : {}),
       ...(slug ? { slug } : {}),
       ...(input.body.active !== undefined
         ? { status: input.body.active ? 'ACTIVE' : 'DRAFT' }
         : {}),
-      ...(input.body.isFeatured !== undefined
-        ? { isFeatured: input.body.isFeatured }
-        : {}),
+      ...(input.body.isFeatured !== undefined ? { isFeatured: input.body.isFeatured } : {}),
       ...(input.body.isRecent !== undefined ? { isRecent: input.body.isRecent } : {}),
-      ...(input.body.isBestSeller !== undefined
-        ? { isBestSeller: input.body.isBestSeller }
-        : {}),
+      ...(input.body.isBestSeller !== undefined ? { isBestSeller: input.body.isBestSeller } : {}),
     });
     if (!record) {
       throw new NotFoundError('Product not found');
@@ -756,9 +726,7 @@ export class ProductService {
     }
 
     if (await this.repository.hasOrderItems(input.productId)) {
-      throw new ConflictError(
-        'Cannot delete a product that appears on existing orders',
-      );
+      throw new ConflictError('Cannot delete a product that appears on existing orders');
     }
 
     const deleted = await this.repository.delete(input.siteId, input.productId);
@@ -777,10 +745,7 @@ export class ProductService {
     );
   }
 
-  async listDirect(input: {
-    siteId: string;
-    siteCode: SiteCode;
-  }): Promise<CatalogProductDto[]> {
+  async listDirect(input: { siteId: string; siteCode: SiteCode }): Promise<CatalogProductDto[]> {
     const rows = await this.repository.listByProductType(input.siteId, 'DIRECT');
     return rows.map((row) => toCatalogProductDto(row, input.siteCode));
   }
@@ -836,11 +801,7 @@ export class ProductService {
     }
 
     if (
-      await this.repository.productCodeExists(
-        input.siteId,
-        input.body.productCode,
-        existing.id,
-      )
+      await this.repository.productCodeExists(input.siteId, input.body.productCode, existing.id)
     ) {
       throw new ConflictError('A product with this code already exists for this site');
     }
@@ -894,11 +855,7 @@ export class ProductService {
 
     if (
       input.body.productCode &&
-      (await this.repository.productCodeExists(
-        input.siteId,
-        input.body.productCode,
-        existing.id,
-      ))
+      (await this.repository.productCodeExists(input.siteId, input.body.productCode, existing.id))
     ) {
       throw new ConflictError('A product with this code already exists for this site');
     }
@@ -909,21 +866,15 @@ export class ProductService {
     }
 
     const record = await this.repository.patch(input.siteId, input.productId, {
-      ...(input.body.productCode !== undefined
-        ? { productCode: input.body.productCode }
-        : {}),
+      ...(input.body.productCode !== undefined ? { productCode: input.body.productCode } : {}),
       ...(input.body.name !== undefined ? { name: input.body.name } : {}),
       ...(slug ? { slug } : {}),
       ...(input.body.active !== undefined
         ? { status: input.body.active ? 'ACTIVE' : 'DRAFT' }
         : {}),
-      ...(input.body.isFeatured !== undefined
-        ? { isFeatured: input.body.isFeatured }
-        : {}),
+      ...(input.body.isFeatured !== undefined ? { isFeatured: input.body.isFeatured } : {}),
       ...(input.body.isRecent !== undefined ? { isRecent: input.body.isRecent } : {}),
-      ...(input.body.isBestSeller !== undefined
-        ? { isBestSeller: input.body.isBestSeller }
-        : {}),
+      ...(input.body.isBestSeller !== undefined ? { isBestSeller: input.body.isBestSeller } : {}),
     });
     if (!record) {
       throw new NotFoundError('Product not found');
@@ -955,9 +906,7 @@ export class ProductService {
     }
 
     if (await this.repository.hasOrderItems(input.productId)) {
-      throw new ConflictError(
-        'Cannot delete a product that appears on existing orders',
-      );
+      throw new ConflictError('Cannot delete a product that appears on existing orders');
     }
 
     const deleted = await this.repository.delete(input.siteId, input.productId);
@@ -986,8 +935,7 @@ export class ProductService {
   }): Promise<AdminProductListResultDto> {
     const limit = input.query.limit ?? 10;
     const page = input.query.page ?? 1;
-    const skip =
-      input.query.offset != null ? input.query.offset : (page - 1) * limit;
+    const skip = input.query.offset != null ? input.query.offset : (page - 1) * limit;
 
     const statusFilter =
       input.query.status === 'active'
@@ -1065,9 +1013,7 @@ export class ProductService {
     }
 
     if (await this.repository.hasOrderItems(input.productId)) {
-      throw new ConflictError(
-        'Cannot delete a product that appears on existing orders',
-      );
+      throw new ConflictError('Cannot delete a product that appears on existing orders');
     }
 
     const deleted = await this.repository.delete(input.siteId, input.productId);
@@ -1088,18 +1034,14 @@ export class ProductService {
 }
 
 /** Inclusive calendar-day createdAt window for admin list period filters. */
-function resolveAdminCreatedRange(
-  query: AdminProductListQuery,
-): { from: Date; to: Date } | null {
+function resolveAdminCreatedRange(query: AdminProductListQuery): { from: Date; to: Date } | null {
   const period = query.period ?? 'today';
   if (period === 'all') {
     return null;
   }
 
   const dateStr =
-    period === 'day' && query.date
-      ? query.date
-      : new Date().toISOString().slice(0, 10);
+    period === 'day' && query.date ? query.date : new Date().toISOString().slice(0, 10);
 
   const from = new Date(`${dateStr}T00:00:00.000`);
   const to = new Date(`${dateStr}T23:59:59.999`);

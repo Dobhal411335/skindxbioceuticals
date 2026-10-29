@@ -73,7 +73,7 @@ export function SiteHeader() {
     <>
       {utilityContacts.length > 0 && (
         <div className="border-b border-white/50 bg-[#14272E]">
-          <div className="md:mx-10 flex w-full items-center justify-between md:justify-end md:gap-5 py-2 text-xs text-white">
+          <div className="md:px-10 px-5 flex w-full items-center justify-between md:justify-end md:gap-5 py-2 text-xs text-white">
             {utilityContacts.map(({ href, icon: Icon, label, text }) => (
               <Link
                 key={`${label}-${text}`}

@@ -231,11 +231,11 @@ function FeaturedHighlightCard({
       <div className="mt-3 flex items-center gap-2">
         <Button 
           type="button"
-          className="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-[#1f6663]"
+          className="h-11 flex-1 rounded-lg bg-primary px-4 text-[15px] font-semibold text-white hover:bg-[#1f6663]"
           disabled={!canAdd}
           onClick={() => void addToCart()}
         >
-          <ShoppingCart className="size-4" />
+          <ShoppingCart className="size-5" />
           Add to cart <span aria-hidden>·</span>{" "}
           {priced.unitPrice.toLocaleString("en-IN", {
             style: "currency",

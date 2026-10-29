@@ -32,10 +32,7 @@ export function ProductRecommendations({ products }: ProductRecommendationsProps
             Related products from the same category, excluding the current item.
           </p>
           <Button asChild className="mt-8 rounded-full p-6" size="lg">
-            <Link
-              href="/category"
-              className="flex items-center justify-center gap-2"
-            >
+            <Link href="/category" className="flex items-center justify-center gap-2">
               <span>Browse categories</span>
               <ArrowUpRight className="size-4" />
             </Link>
@@ -47,7 +44,7 @@ export function ProductRecommendations({ products }: ProductRecommendationsProps
               {products.map((product) => (
                 <CarouselItem
                   key={product.id}
-                  className="basis-[70%] pl-3 sm:basis-1/2 lg:basis-1/3"
+                  className="flex basis-[70%] pl-3 sm:basis-1/2 lg:basis-1/3"
                 >
                   <ProductCard product={product} />
                 </CarouselItem>

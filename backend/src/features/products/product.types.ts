@@ -222,7 +222,8 @@ export type PublicProductTagDto = {
 
 export type PublicProductHighlightDto = {
   id: string;
-  text: string;
+  question: string;
+  answer: string;
   sortOrder: number;
 };
 

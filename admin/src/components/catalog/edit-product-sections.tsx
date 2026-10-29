@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -485,14 +486,18 @@ function sizeSelectOptions(
 function colorSelectOptions(
   data: ProductEditDto,
   currentName: string,
-): string[] {
-  const names = data.colors
+): Array<{ value: string; name: string; hex: string | null }> {
+  const options = data.colors
     .filter((color) => color.active || color.name === currentName)
-    .map((color) => color.name);
-  if (currentName && !names.includes(currentName)) {
-    names.push(currentName);
+    .map((color) => ({
+      value: `${color.id}:${color.name}:${color.hex ?? ""}`,
+      name: color.name,
+      hex: color.hex,
+    }));
+  if (currentName && !options.some((option) => option.name === currentName)) {
+    options.push({ value: currentName, name: currentName, hex: null });
   }
-  return names;
+  return options;
 }
 
 export function QuantityManagementSection({
@@ -673,8 +678,17 @@ export function QuantityManagementSection({
             <Label htmlFor="offer-color">Color (optional)</Label>
             <Select
               key={`offer-color-${draftEpoch}`}
-              value={draft.colorLabel || undefined}
-              onValueChange={(value) => patchDraft({ colorLabel: value })}
+              value={
+                (colorOptions.find((option) => option.name === draft.colorLabel)
+                  ?.value ?? draft.colorLabel) || undefined
+              }
+              onValueChange={(value) =>
+                patchDraft({
+                  colorLabel:
+                    colorOptions.find((option) => option.value === value)?.name ??
+                    value,
+                })
+              }
               disabled={!hasColorOptions}
             >
               <SelectTrigger id="offer-color" className="w-full">
@@ -687,9 +701,10 @@ export function QuantityManagementSection({
                 />
               </SelectTrigger>
               <SelectContent>
-                {colorOptions.map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
+                {colorOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.name}
+                    {option.hex ? ` (${option.hex})` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -2356,13 +2371,17 @@ export function HighlightsSection({
   onUpdated,
 }: SectionProps) {
   const [highlights, setHighlights] = useState(
-    data.highlights.length > 0 ? data.highlights.map((h) => h.text) : [""],
+    data.highlights.length > 0
+      ? data.highlights.map(({ question, answer }) => ({ question, answer }))
+      : [{ question: "", answer: "" }],
   );
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setHighlights(
-      data.highlights.length > 0 ? data.highlights.map((h) => h.text) : [""],
+      data.highlights.length > 0
+        ? data.highlights.map(({ question, answer }) => ({ question, answer }))
+        : [{ question: "", answer: "" }],
     );
   }, [data.highlights]);
 
@@ -2370,7 +2389,12 @@ export function HighlightsSection({
     setSaving(true);
     try {
       const next = await updateProductHighlights(siteCode, productId, {
-        highlights: highlights.map((h) => h.trim()).filter(Boolean),
+        highlights: highlights
+          .map(({ question, answer }) => ({
+            question: question.trim(),
+            answer: answer.trim(),
+          }))
+          .filter(({ question, answer }) => question && answer),
       });
       onUpdated(next);
       showSuccess("Highlights saved");
@@ -2386,37 +2410,56 @@ export function HighlightsSection({
   return (
     <div className="space-y-6">
       <ProductNameField name={data.product.name} />
-      {highlights.map((text, index) => (
-        <div key={index} className="flex gap-2">
-          <Input
-            value={text}
+      {highlights.map((highlight, index) => (
+        <div key={index} className="space-y-3 rounded-lg border border-border p-4">
+          <div className="flex gap-2">
+            <Input
+              value={highlight.question}
+              onChange={(e) =>
+                setHighlights((prev) =>
+                  prev.map((row, i) =>
+                    i === index ? { ...row, question: e.target.value } : row,
+                  ),
+                )
+              }
+              placeholder={`Question ${index + 1}`}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              disabled={highlights.length <= 1}
+              onClick={() =>
+                setHighlights((prev) =>
+                  prev.length > 1 ? prev.filter((_, i) => i !== index) : prev,
+                )
+              }
+              aria-label={`Remove question ${index + 1}`}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <Textarea
+            value={highlight.answer}
             onChange={(e) =>
               setHighlights((prev) =>
-                prev.map((row, i) => (i === index ? e.target.value : row)),
+                prev.map((row, i) =>
+                  i === index ? { ...row, answer: e.target.value } : row,
+                ),
               )
             }
-            placeholder={`Highlight ${index + 1}`}
+            placeholder="Answer"
+            rows={4}
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            disabled={highlights.length <= 1}
-            onClick={() =>
-              setHighlights((prev) =>
-                prev.length > 1 ? prev.filter((_, i) => i !== index) : prev,
-              )
-            }
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       ))}
       <div className="flex gap-2">
         <Button
           type="button"
           variant="outline"
-          onClick={() => setHighlights((prev) => [...prev, ""])}
+          onClick={() =>
+            setHighlights((prev) => [...prev, { question: "", answer: "" }])
+          }
         >
           <Plus className="mr-2 h-4 w-4" />
           Add highlight

@@ -340,7 +340,9 @@ export function ProductViewModal({
                   label="Highlights"
                   value={
                     payload.highlights.length
-                      ? payload.highlights.map((item) => item.text).join(" · ")
+                      ? payload.highlights
+                          .map((item) => `${item.question}: ${item.answer}`)
+                          .join(" · ")
                       : "—"
                   }
                 />

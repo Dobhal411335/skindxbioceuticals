@@ -68,11 +68,20 @@ function truncateHtml(value: string, max = 80): string {
   return truncate(stripHtmlToText(value), max);
 }
 
-export function ColorsCurrentTable({ data }: { data: ProductEditDto }) {
+export function ColorsCurrentTable({
+  data,
+  onEdit,
+  onDelete,
+}: {
+  data: ProductEditDto;
+  onEdit?: (colorId: string) => void;
+  onDelete?: (colorId: string) => void;
+}) {
   const rows = [...data.colors].sort((a, b) => a.sortOrder - b.sortOrder);
+  const showActions = Boolean(onEdit || onDelete);
   return (
     <SectionTableShell title="Current product colors">
-      <Table className="min-w-[560px]">
+      <Table className="min-w-[680px]">
         <TableHeader>
           <TableRow>
             <TableHead className="w-12">#</TableHead>
@@ -81,11 +90,12 @@ export function ColorsCurrentTable({ data }: { data: ProductEditDto }) {
             <TableHead>Hex</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Sort</TableHead>
+            {showActions ? <TableHead className="w-[110px]">Actions</TableHead> : null}
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.length === 0 ? (
-            <EmptyRow colSpan={6} label="No colors saved for this product yet." />
+            <EmptyRow colSpan={showActions ? 7 : 6} label="No colors saved for this product yet." />
           ) : (
             rows.map((row, index) => (
               <TableRow key={row.id}>
@@ -115,6 +125,34 @@ export function ColorsCurrentTable({ data }: { data: ProductEditDto }) {
                   <StatusBadge active={row.active} />
                 </TableCell>
                 <TableCell>{row.sortOrder}</TableCell>
+                {showActions ? (
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      {onEdit ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Edit ${row.name}`}
+                          onClick={() => onEdit(row.id)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+                      {onDelete ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Delete ${row.name}`}
+                          onClick={() => onDelete(row.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                ) : null}
               </TableRow>
             ))
           )}

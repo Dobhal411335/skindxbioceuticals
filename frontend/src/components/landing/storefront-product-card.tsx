@@ -150,18 +150,18 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
           </div>
         </div>
 
-        <div className="mt-4 flex flex-1 flex-col gap-1.5 px-0.5">
+        <div className="mt-4 flex flex-col gap-1.5 px-0.5">
           <p className="text-[10px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
             {product.categoryName ?? "Product"}
           </p>
           <Link
             href={href}
-            className="line-clamp-2 ellipsis text-sm leading-[1.35] font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="line-clamp-2 min-h-8 ellipsis text-md leading-[1.35] font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {product.name}
           </Link>
           {product.description ? (
-            <p className="line-clamp-2 min-h-10 text-xs leading-relaxed text-muted-foreground">
+            <p className="line-clamp-2 min-h-5 text-xs leading-relaxed text-muted-foreground">
               {product.description
                 .replace(/<[^>]*>/g, " ")
                 .replace(/\s+/g, " ")
@@ -172,6 +172,7 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
               Everyday care formulated for comfortable, healthy-looking skin.
             </p>
           )}
+          <div className="flex items-center justify-between gap-2">
           <ProductPriceDisplay
             price={product.price}
             vendorPrice={product.vendorPrice}
@@ -184,7 +185,7 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
           />
 
           <div
-            className="mb-2 flex items-center justify-end gap-1 text-xs text-primary"
+            className="mt-2 flex items-center justify-end gap-1 text-md text-primary"
             aria-label={
               product.reviewCount > 0
                 ? `Rated ${product.averageRating} out of 5 from ${product.reviewCount} reviews`
@@ -194,11 +195,12 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
             <Star className="size-3.5 fill-current" aria-hidden />
             <span>{product.averageRating.toFixed(1)}</span>
           </div>
+          </div>
 
           <Button
             type="button"
             className={cn(
-              "mt-auto w-full rounded-[3px] py-5 text-sm font-semibold transition-colors duration-300",
+              "mt-3 w-full rounded-[3px] py-5 text-sm font-semibold transition-colors duration-300",
               canAdd ? "bg-primary text-primary-foreground" : "",
             )}
             disabled={!canAdd}

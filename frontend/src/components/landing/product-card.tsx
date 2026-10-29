@@ -39,8 +39,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const isVendor = useIsVendor();
 
   const href = `/products/${product.slug}`;
-  const imageUrl =
-    product.imageUrl || "https://placehold.co/600x600/png?text=SkinDx";
+  const imageUrl = product.imageUrl || "https://placehold.co/600x600/png?text=SkinDx";
   const inWishlist = isInWishlist(product.id);
   const canAdd = Boolean(product.defaultVariantId) && product.quantity > 0;
   const priced = priceProductForRole({
@@ -133,10 +132,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         </Link>
 
         {discountPercent != null ? (
-          <ProductDiscountBadge
-            percent={discountPercent}
-            className="absolute top-2 left-2 z-10"
-          />
+          <ProductDiscountBadge percent={discountPercent} className="absolute top-2 left-2 z-10" />
         ) : null}
 
         <div className="absolute top-2.5 right-2.5 z-10">
@@ -155,9 +151,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             disabled={wishlistPending || wishlistAuthLoading}
             onClick={() => void onWishlist()}
           >
-            <Heart
-              className={cn("size-3.5", inWishlist ? "fill-primary" : "")}
-            />
+            <Heart className={cn("size-3.5", inWishlist ? "fill-primary" : "")} />
           </Button>
         </div>
       </div>
@@ -168,15 +162,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
         </p>
         <Link
           href={href}
-          className="line-clamp-2 text-base leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="line-clamp-2 min-h-[2.75rem] text-base leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           {product.name}
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-xl font-semibold text-foreground">
-            {formatInr(priced.unitPrice)}
-          </p>
+          <p className="text-xl font-semibold text-foreground">{formatInr(priced.unitPrice)}</p>
           {priced.hasDiscount ? (
             <p className="text-sm text-muted-foreground line-through">
               {formatInr(priced.originalPrice)}
@@ -192,7 +184,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         <Button
           type="button"
           className={cn(
-            "w-full rounded-full p-5 font-semibold transition-all duration-300",
+            "mt-auto w-full rounded-full p-5 font-semibold transition-all duration-300",
             "translate-y-1 opacity-0 pointer-events-none",
             "group-hover:translate-y-0 group-hover:opacity-100 group-hover:pointer-events-auto",
             "focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:pointer-events-auto",

@@ -368,7 +368,7 @@ describe('ProductService', () => {
       infoSections: [{ id: 'i1', title: 'Ingredients', body: '<p>Water</p>', sortOrder: 0 }],
       editorialReviews: [{ rating: 5 }],
       reviews: [{ rating: 3 }],
-      highlights: [{ id: 'h1', text: 'Lightweight', sortOrder: 0 }],
+      highlights: [{ id: 'h1', question: 'What is it?', answer: 'Lightweight', sortOrder: 0 }],
       tax: { cgst: { toString: () => '9' }, sgst: { toString: () => '9' } },
       coupon: null,
       tags: [{ tag: { id: 't1', name: 'Serum' } }],

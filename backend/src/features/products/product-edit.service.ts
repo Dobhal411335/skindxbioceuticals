@@ -46,7 +46,10 @@ function preferHttpsUrl(url: string): string {
   return url;
 }
 
-function toMediaRef(url: string | null | undefined, publicId: string | null | undefined): MediaRefDto | null {
+function toMediaRef(
+  url: string | null | undefined,
+  publicId: string | null | undefined,
+): MediaRefDto | null {
   if (!url) return null;
   return { url: preferHttpsUrl(url), publicId: publicId ?? '' };
 }
@@ -70,7 +73,11 @@ export class ProductEditService {
     return product;
   }
 
-  private async loadEditDto(siteId: string, siteCode: SiteCode, productId: string): Promise<ProductEditDto> {
+  private async loadEditDto(
+    siteId: string,
+    siteCode: SiteCode,
+    productId: string,
+  ): Promise<ProductEditDto> {
     const record = await this.repository.findEditPayload(siteId, productId);
     if (!record) {
       throw new NotFoundError('Product not found');
@@ -176,7 +183,8 @@ export class ProductEditService {
 
     const highlights: ProductHighlightDto[] = record.highlights.map((row) => ({
       id: row.id,
-      text: row.text,
+      question: row.question,
+      answer: row.answer,
       sortOrder: row.sortOrder,
     }));
 
@@ -320,10 +328,7 @@ export class ProductEditService {
 
     await this.repository.replaceSizes(input.productId, input.body);
 
-    if (
-      previousPublicId &&
-      previousPublicId !== (input.body.sizeChartPublicId ?? null)
-    ) {
+    if (previousPublicId && previousPublicId !== (input.body.sizeChartPublicId ?? null)) {
       await deleteStoredCloudinaryAssetBestEffort(previousPublicId);
     }
 
@@ -380,8 +385,7 @@ export class ProductEditService {
       if (variant.sizeLabel) {
         const existing = variant.id ? existingById.get(variant.id) : undefined;
         const allowed =
-          sizeLabels.has(variant.sizeLabel) ||
-          existing?.sizeLabel === variant.sizeLabel;
+          sizeLabels.has(variant.sizeLabel) || existing?.sizeLabel === variant.sizeLabel;
         if (!allowed) {
           throw new ValidationError(
             `Size "${variant.sizeLabel}" is not configured for this product`,
@@ -391,8 +395,7 @@ export class ProductEditService {
       if (variant.colorLabel) {
         const existing = variant.id ? existingById.get(variant.id) : undefined;
         const allowed =
-          colorNames.has(variant.colorLabel) ||
-          existing?.colorLabel === variant.colorLabel;
+          colorNames.has(variant.colorLabel) || existing?.colorLabel === variant.colorLabel;
         if (!allowed) {
           throw new ValidationError(
             `Color "${variant.colorLabel}" is not configured for this product`,
@@ -401,10 +404,7 @@ export class ProductEditService {
       }
     }
 
-    const { removedPublicIds } = await this.repository.replaceVariants(
-      input.productId,
-      input.body,
-    );
+    const { removedPublicIds } = await this.repository.replaceVariants(input.productId, input.body);
     await Promise.all(
       removedPublicIds.map((publicId) => deleteStoredCloudinaryAssetBestEffort(publicId)),
     );
@@ -429,10 +429,7 @@ export class ProductEditService {
   }): Promise<ProductEditDto> {
     await this.requireProduct(input.siteId, input.productId);
     if (input.body.couponId) {
-      const coupon = await this.repository.findCouponById(
-        input.siteId,
-        input.body.couponId,
-      );
+      const coupon = await this.repository.findCouponById(input.siteId, input.body.couponId);
       if (!coupon || !coupon.isActive) {
         throw new ValidationError('Selected coupon is not available');
       }
@@ -502,7 +499,7 @@ export class ProductEditService {
     const normalizedBody: ProductGallerySectionBody = {
       bannerUrl: input.body.bannerUrl
         ? preferHttpsUrl(input.body.bannerUrl)
-        : input.body.bannerUrl ?? null,
+        : (input.body.bannerUrl ?? null),
       bannerPublicId: input.body.bannerPublicId ?? null,
       images: input.body.images.map((img) => ({
         ...img,
@@ -650,10 +647,7 @@ export class ProductEditService {
     reviewId: string;
   }): Promise<ProductEditDto> {
     await this.requireProduct(input.siteId, input.productId);
-    const deleted = await this.repository.deleteEditorialReview(
-      input.productId,
-      input.reviewId,
-    );
+    const deleted = await this.repository.deleteEditorialReview(input.productId, input.reviewId);
     if (!deleted) {
       throw new NotFoundError('Review not found');
     }

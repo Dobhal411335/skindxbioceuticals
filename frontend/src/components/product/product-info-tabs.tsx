@@ -15,7 +15,7 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
   const defaultValue = sections[0]?.id ?? "description";
 
   return (
-    <section className="container-page section-space border-t border-gray-500">
+    <section className="container-page section-space">
       <Tabs defaultValue={defaultValue}>
         <TabsList variant="line" className="h-auto w-full flex-wrap justify-start gap-2">
           {sections.length === 0 ? (

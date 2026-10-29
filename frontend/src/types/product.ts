@@ -72,7 +72,8 @@ export type PublicProductTag = {
 
 export type PublicProductHighlight = {
   id: string;
-  text: string;
+  question: string;
+  answer: string;
   sortOrder: number;
 };
 
@@ -153,11 +154,7 @@ export type PublicProductFacets = {
 
 export type CatalogAvailability = "in_stock" | "out_of_stock";
 
-export type CatalogSort =
-  | "default"
-  | "rating"
-  | "price_asc"
-  | "price_desc";
+export type CatalogSort = "default" | "rating" | "price_asc" | "price_desc";
 
 export type CatalogViewMode = "list" | 2 | 3 | 4;
 

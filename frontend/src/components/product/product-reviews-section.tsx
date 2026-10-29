@@ -67,7 +67,7 @@ function ReviewCard({ review }: { review: PublicProductEditorialReview }) {
         )}
         <div>
           <p className="text-sm font-semibold text-[#17283d]">{review.createdByName}</p>
-          <p className="text-xs text-[#657487]">Verified customer</p>
+          <p className="text-xs text-[#657487]">-Verified customer</p>
         </div>
       </figcaption>
     </figure>
@@ -100,7 +100,7 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="container-page section-space sm:py-20 lg:py-24">
-        <div className="mb-10 flex items-end justify-between gap-8">
+        <div className="mb-10 flex items-start justify-between gap-8">
           <div>
             <p className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
               Community voices
@@ -137,6 +137,23 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
               </span>
             </div>
           </div>
+          {reviews.length > 1 ? (
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              className="size-12 shrink-0 rounded-full border-[#dedbd5] bg-white text-[#17283d] shadow-sm hover:bg-white"
+              onClick={() => setIsPaused((prev) => !prev)}
+              aria-label={isPaused ? "Play product reviews" : "Pause product reviews"}
+              aria-pressed={isPaused}
+            >
+              {isPaused ? (
+                <Play className="size-5 fill-current" />
+              ) : (
+                <Pause className="size-5 fill-current" />
+              )}
+            </Button>
+          ) : null}
         </div>
 
         {reviews.length > 0 ? (
@@ -146,7 +163,7 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
             className="w-full"
           >
             <CarouselContent className="-ml-5 py-2">
-            {reviews.map((review) => (
+              {reviews.map((review) => (
                 <CarouselItem
                   key={review.id}
                   className="flex basis-full pl-5 sm:basis-1/2 lg:basis-1/3"
@@ -157,22 +174,8 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
             </CarouselContent>
             {reviews.length > 1 ? (
               <>
-                <CarouselPrevious className="-left-3 hidden border-[#dedbd5] bg-white text-[#17283d] shadow-sm md:flex" />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  className="absolute top-1/2 right-10 z-10 hidden size-10 -translate-y-1/2 rounded-full border-[#dedbd5] bg-white text-[#17283d] shadow-sm md:flex"
-                  onClick={() => setIsPaused((prev) => !prev)}
-                  aria-label={isPaused ? "Play product reviews" : "Pause product reviews"}
-                >
-                  {isPaused ? (
-                    <Play className="size-3.5 fill-current" />
-                  ) : (
-                    <Pause className="size-3.5 fill-current" />
-                  )}
-                </Button>
-                <CarouselNext className="-right-3 hidden border-[#dedbd5] bg-white text-[#17283d] shadow-sm md:flex" />
+                <CarouselPrevious className="-left-5 hidden size-12 border-[#dedbd5] bg-white text-[#17283d] shadow-sm md:flex" />
+                <CarouselNext className="-right-5 hidden size-12 border-[#dedbd5] bg-white text-[#17283d] shadow-sm md:flex" />
               </>
             ) : null}
           </Carousel>

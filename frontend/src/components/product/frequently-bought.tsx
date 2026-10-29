@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, useMemo, useState } from "react";
-import { Eye, Heart, Plus, ShoppingCart } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Eye, Heart, ShoppingCart } from "lucide-react";
 
 import {
   ProductDiscountBadge,
@@ -14,6 +14,13 @@ import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import {
   buildCartPricingFields,
   discountPercentForBadge,
@@ -32,7 +39,7 @@ type FrequentlyBoughtProps = {
 
 export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
   // Same subcategory only; current product is already excluded by the API.
-  const bundle = product.relatedProducts;
+  const bundle = product.relatedProducts.slice(0, 6);
 
   const { add: addToCartAction } = useCartActions();
   const { openCart } = useCartUi();
@@ -145,9 +152,7 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
 
     if (added > 0) {
       showSuccess(
-        added === 1
-          ? "Added selected item to cart."
-          : `Added ${added} selected items to cart.`,
+        added === 1 ? "Added selected item to cart." : `Added ${added} selected items to cart.`,
         { id: "cart.add.bundle" },
       );
       openCart();
@@ -161,191 +166,174 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
 
   return (
     <section className="w-full section-space bg-primary/15">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <h2 className="font-sans-serif text-3xl font-semibold mb-8">
-          Frequently bought together
-        </h2>
+      <div className="container-page mx-auto px-4 sm:px-6">
+        <h2 className="font-sans-serif text-4xl font-semibold mb-8">Frequently bought together</h2>
         <div className="flex flex-col xl:flex-row gap-8 items-start w-full">
-          <div className="flex-1 flex flex-wrap items-stretch gap-4 sm:gap-5">
-            {bundle.map((item, index) => {
-              const priced = priceProductForRole({
-                price: item.price,
-                vendorPrice: item.vendorPrice,
-                isVendor,
-                coupon: item.coupon ?? null,
-              });
-              const discountPercent = discountPercentForBadge(priced);
-              const imageUrl =
-                item.imageUrl ||
-                "https://placehold.co/600x600/png?text=SkinDx";
-              const checked = Boolean(selected[item.id]);
-              const canAdd =
-                Boolean(item.defaultVariantId) && item.quantity > 0;
-              const inWishlist = isInWishlist(item.id);
-              const href = `/products/${item.slug}`;
+          <div className="relative min-w-0 flex-1 px-1 sm:px-4">
+            <Carousel opts={{ align: "start", loop: bundle.length > 3 }}>
+              <CarouselContent className="-ml-4">
+                {bundle.map((item) => {
+                  const priced = priceProductForRole({
+                    price: item.price,
+                    vendorPrice: item.vendorPrice,
+                    isVendor,
+                    coupon: item.coupon ?? null,
+                  });
+                  const discountPercent = discountPercentForBadge(priced);
+                  const imageUrl = item.imageUrl || "https://placehold.co/600x600/png?text=SkinDx";
+                  const checked = Boolean(selected[item.id]);
+                  const canAdd = Boolean(item.defaultVariantId) && item.quantity > 0;
+                  const inWishlist = isInWishlist(item.id);
+                  const href = `/products/${item.slug}`;
 
-              return (
-                <Fragment key={item.id}>
-                  {index > 0 ? (
-                    <Plus
-                      className="hidden lg:block size-5 shrink-0 self-center text-muted-foreground"
-                      aria-hidden
-                    />
-                  ) : null}
-                  <article
-                    className={cn(
-                      "group relative flex w-full max-w-[280px] flex-col rounded-xl border bg-card p-2 shadow-none transition-[border-color,box-shadow,opacity] duration-300 sm:w-[260px]",
-                      checked
-                        ? "border-border hover:border-primary hover:shadow-sm"
-                        : "border-border/70 opacity-70",
-                    )}
-                  >
-                    <div className="absolute top-3 left-3 z-20">
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(value) =>
-                          setSelected((prev) => ({
-                            ...prev,
-                            [item.id]: value === true,
-                          }))
-                        }
-                        aria-label={`Include ${item.name} in bundle`}
-                        className="size-5 border-2 bg-card shadow-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                      />
-                    </div>
-
-                    <div className="relative aspect-square overflow-hidden rounded-lg bg-surface">
-                      <Link
-                        href={href}
-                        className="absolute inset-0 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <Image
-                          src={imageUrl}
-                          alt={item.name}
-                          fill
-                          className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
-                          sizes="(max-width: 640px) 80vw, 260px"
-                        />
-                      </Link>
-
-                      {discountPercent != null ? (
-                        <ProductDiscountBadge
-                          percent={discountPercent}
-                          className="absolute top-2 left-10 z-10"
-                        />
-                      ) : null}
-
-                      <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-2">
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="secondary"
-                          className={cn(
-                            "size-9 rounded-full border-2 bg-card shadow-sm transition-all duration-200",
-                            "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
-                            inWishlist
-                              ? "border-primary text-primary opacity-100"
-                              : "border-primary/50 text-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground",
-                          )}
-                          aria-label={
-                            inWishlist
-                              ? "Remove from wishlist"
-                              : "Add to wishlist"
-                          }
-                          disabled={
-                            wishlistPendingId === item.id || wishlistAuthLoading
-                          }
-                          onClick={() => void onWishlist(item)}
-                        >
-                          <Heart
-                            className={cn(
-                              "size-3.5",
-                              inWishlist ? "fill-primary" : "",
-                            )}
-                          />
-                        </Button>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="secondary"
-                          className={cn(
-                            "size-9 rounded-full border-2 border-foreground/40 bg-card text-foreground shadow-sm",
-                            "translate-x-1 opacity-0 transition-all duration-200 delay-75",
-                            "group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
-                            "hover:border-foreground hover:bg-foreground hover:text-background",
-                          )}
-                          aria-label="Quick look"
-                          onClick={() =>
-                            setQuickView({
-                              slug: item.slug,
-                              categoryName: item.categoryName,
-                            })
-                          }
-                        >
-                          <Eye className="size-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-1 flex-col gap-2 px-0.5">
-                      <p className="text-[11px] font-semibold tracking-[0.08em] text-primary uppercase">
-                        {item.categoryName ?? "Product"}
-                      </p>
-                      <Link
-                        href={href}
-                        className="line-clamp-2 text-base leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {item.name}
-                      </Link>
-                      <ProductRatingStars
-                        averageRating={item.averageRating}
-                        reviewCount={item.reviewCount}
-                        className="text-foreground"
-                      />
-                      <ProductPriceDisplay
-                        price={item.price}
-                        vendorPrice={item.vendorPrice}
-                        isVendor={isVendor}
-                        coupon={item.coupon}
-                        priced={priced}
-                        showBadge={false}
-                        size="lg"
-                      />
-
-                      <Button
-                        type="button"
+                  return (
+                    <CarouselItem
+                      key={item.id}
+                      className="basis-full pl-4 sm:basis-1/2 lg:basis-1/3"
+                    >
+                      <article
                         className={cn(
-                          "mt-auto w-full rounded-full p-5 font-semibold transition-colors duration-300",
-                          canAdd ? "bg-primary text-primary-foreground" : "",
+                          "group relative flex h-full w-full min-w-0 flex-col rounded-xl border bg-card p-2 shadow-none transition-[border-color,box-shadow,opacity] duration-300",
+                          checked
+                            ? "border-border hover:border-primary hover:shadow-sm"
+                            : "border-border/70 opacity-70",
                         )}
-                        disabled={!canAdd || cartPendingId === item.id}
-                        onClick={() => void onAddToCart(item)}
                       >
-                        {canAdd ? (
-                          <>
-                            <ShoppingCart className="size-4" />
-                            <span>Add To Cart</span>
-                          </>
-                        ) : (
-                          "Out of stock"
-                        )}
-                      </Button>
-                    </div>
-                  </article>
-                </Fragment>
-              );
-            })}
+                        <div className="absolute top-3 left-3 z-20">
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(value) =>
+                              setSelected((prev) => ({
+                                ...prev,
+                                [item.id]: value === true,
+                              }))
+                            }
+                            aria-label={`Include ${item.name} in bundle`}
+                            className="size-5 border-2 bg-card shadow-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          />
+                        </div>
+
+                        <div className="relative aspect-square overflow-hidden rounded-lg bg-surface">
+                          <Link
+                            href={href}
+                            className="absolute inset-0 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <Image
+                              src={imageUrl}
+                              alt={item.name}
+                              fill
+                              className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
+                              sizes="(max-width: 640px) 80vw, 260px"
+                            />
+                          </Link>
+
+                          {discountPercent != null ? (
+                            <ProductDiscountBadge
+                              percent={discountPercent}
+                              className="absolute top-2 left-10 z-10"
+                            />
+                          ) : null}
+
+                          <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-2">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="secondary"
+                              className={cn(
+                                "size-9 rounded-full border-2 bg-card shadow-sm transition-all duration-200",
+                                "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
+                                inWishlist
+                                  ? "border-primary text-primary opacity-100"
+                                  : "border-primary/50 text-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground",
+                              )}
+                              aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                              disabled={wishlistPendingId === item.id || wishlistAuthLoading}
+                              onClick={() => void onWishlist(item)}
+                            >
+                              <Heart className={cn("size-3.5", inWishlist ? "fill-primary" : "")} />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="secondary"
+                              className={cn(
+                                "size-9 rounded-full border-2 border-foreground/40 bg-card text-foreground shadow-sm",
+                                "translate-x-1 opacity-0 transition-all duration-200 delay-75",
+                                "group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
+                                "hover:border-foreground hover:bg-foreground hover:text-background",
+                              )}
+                              aria-label="Quick look"
+                              onClick={() =>
+                                setQuickView({
+                                  slug: item.slug,
+                                  categoryName: item.categoryName,
+                                })
+                              }
+                            >
+                              <Eye className="size-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex flex-1 flex-col gap-2 px-0.5">
+                          <p className="text-[11px] font-semibold tracking-[0.08em] text-primary uppercase">
+                            {item.categoryName ?? "Product"}
+                          </p>
+                          <Link
+                            href={href}
+                            className="line-clamp-2 text-base leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            {item.name}
+                          </Link>
+                          <ProductRatingStars
+                            averageRating={item.averageRating}
+                            reviewCount={item.reviewCount}
+                            className="text-foreground"
+                          />
+                          <ProductPriceDisplay
+                            price={item.price}
+                            vendorPrice={item.vendorPrice}
+                            isVendor={isVendor}
+                            coupon={item.coupon}
+                            priced={priced}
+                            showBadge={false}
+                            size="lg"
+                          />
+
+                          <Button
+                            type="button"
+                            className={cn(
+                              "mt-auto w-full rounded-full p-5 font-semibold transition-colors duration-300",
+                              canAdd ? "bg-primary text-primary-foreground" : "",
+                            )}
+                            disabled={!canAdd || cartPendingId === item.id}
+                            onClick={() => void onAddToCart(item)}
+                          >
+                            {canAdd ? (
+                              <>
+                                <ShoppingCart className="size-4" />
+                                <span>Add To Cart</span>
+                              </>
+                            ) : (
+                              "Out of stock"
+                            )}
+                          </Button>
+                        </div>
+                      </article>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+              <CarouselPrevious className="-left-3 hidden size-10 lg:flex" />
+              <CarouselNext className="-right-3 hidden size-10 lg:flex" />
+            </Carousel>
           </div>
 
           <div className="w-full max-w-sm flex-shrink-0 xl:sticky xl:top-24">
             <div className="bg-card rounded-xl border border-border px-8 py-6 flex flex-col gap-5 shadow-sm justify-center">
               <div className="flex flex-col items-center justify-center">
-                <p className="text-xl font-semibold text-black">
-                  Total for selected
-                </p>
-                <span className="font-bold text-3xl mt-1 block text-black">
-                  {formatInr(total)}
-                </span>
+                <p className="text-xl font-semibold text-black">Total for selected</p>
+                <span className="font-bold text-3xl mt-1 block text-black">{formatInr(total)}</span>
                 <p className="text-xs text-muted-foreground mt-1">
                   {selectedItems.length} product
                   {selectedItems.length === 1 ? "" : "s"} selected

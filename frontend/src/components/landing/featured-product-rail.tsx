@@ -83,14 +83,14 @@ export function FeaturedProductRail({ products }: FeaturedProductRailProps) {
               {items.map((product) => (
                 <CarouselItem
                   key={product.id}
-                  className="basis-[78%] pl-3 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                  className="basis-[78%] pl-3 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 py-2"
                 >
                   <StorefrontProductCard product={product} />
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="-left-3 hidden md:flex" />
-            <CarouselNext className="-right-3 hidden md:flex" />
+            <CarouselPrevious className="-left-3 hidden size-12 md:flex" />
+            <CarouselNext className="-right-3 hidden size-12 md:flex" />
           </Carousel>
         </div>
       </div>

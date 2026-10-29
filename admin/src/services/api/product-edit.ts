@@ -285,7 +285,7 @@ export function updateProductTags(
 export function updateProductHighlights(
   siteCode: SiteCode,
   productId: string,
-  body: { highlights: string[] },
+  body: { highlights: Array<{ question: string; answer: string }> },
 ) {
   return putSection(siteCode, productId, "highlights", body);
 }

@@ -16,6 +16,7 @@ import {
 import type { SiteCode } from "@/types/auth";
 import type {
   CatalogColorDto,
+  ProductColorDto,
   ProductEditDto,
 } from "@/types/product-edit";
 
@@ -140,10 +141,12 @@ export function ColorManagementSection({
   );
   const [customName, setCustomName] = useState("");
   const [customHex, setCustomHex] = useState("#287F79");
+  const [editingColorId, setEditingColorId] = useState<string | null>(null);
   const [showAddMaster, setShowAddMaster] = useState(false);
   const [newName, setNewName] = useState("");
   const [newHex, setNewHex] = useState("#287F79");
   const [saving, setSaving] = useState(false);
+  const [deletingColorId, setDeletingColorId] = useState<string | null>(null);
   const [addingMaster, setAddingMaster] = useState(false);
 
   const colorOptions = useMemo(
@@ -153,11 +156,18 @@ export function ColorManagementSection({
 
   const toggleHex = (hex: string) => {
     const normalized = normalizeHex(hex);
-    setSelectedHexes((prev) =>
-      prev.includes(normalized)
-        ? prev.filter((h) => h !== normalized)
-        : [...prev, normalized],
-    );
+    setSelectedHexes((prev) => {
+      const saved = data.colors
+        .filter((color) => color.hex)
+        .map((color) => normalizeHex(color.hex as string));
+      const current = new Set([...saved, ...prev]);
+      if (current.has(normalized)) {
+        current.delete(normalized);
+      } else {
+        current.add(normalized);
+      }
+      return [...current];
+    });
   };
 
   const handleAddCatalogColor = async () => {
@@ -225,6 +235,98 @@ export function ColorManagementSection({
     setCustomHex("#287F79");
   };
 
+  const removeColorFromDraft = (color: ProductColorDto) => {
+    if (color.hex) {
+      const hex = normalizeHex(color.hex);
+      setSelectedHexes((hexes) => hexes.filter((value) => value !== hex));
+      setCustomColors((colors) =>
+        colors.filter((row) => !row.hex || normalizeHex(row.hex) !== hex),
+      );
+      return;
+    }
+    setCustomColors((colors) =>
+      colors.filter((row) => row.name.toLowerCase() !== color.name.toLowerCase()),
+    );
+  };
+
+  const handleEditColor = (colorId: string) => {
+    const color = data.colors.find((row) => row.id === colorId);
+    if (!color) return;
+    removeColorFromDraft(color);
+    setEditingColorId(color.id);
+    setCustomName(color.name);
+    setCustomHex(color.hex ?? "");
+  };
+
+  const handleDeleteColor = async (colorId: string) => {
+    const color = data.colors.find((row) => row.id === colorId);
+    if (!color) return;
+    setDeletingColorId(colorId);
+    try {
+      const next = await updateProductColors(siteCode, productId, {
+        colors: data.colors
+          .filter((row) => row.id !== colorId)
+          .map((row) => ({
+            colorId: row.colorId,
+            name: row.name,
+            hex: row.hex,
+            active: row.active,
+            sortOrder: row.sortOrder,
+          })),
+      });
+      removeColorFromDraft(color);
+      if (editingColorId === color.id) {
+        setEditingColorId(null);
+        setCustomName("");
+        setCustomHex("#287F79");
+      }
+      onUpdated(next);
+      showSuccess(`${color.name} deleted`);
+    } catch (error) {
+      showError(
+        error instanceof ApiError ? error.message : "Failed to delete color",
+      );
+    } finally {
+      setDeletingColorId(null);
+    }
+  };
+
+  const handleCustomColorSubmit = () => {
+    if (editingColorId) {
+      const name = customName.trim();
+      const hex = customHex.trim();
+      if (!name) {
+        showError("Enter a custom color name");
+        return;
+      }
+      if (hex && !isValidHex(hex)) {
+        showError("Hex must be #RRGGBB");
+        return;
+      }
+      const normalizedHex = hex ? normalizeHex(hex) : "";
+      const catalogMatch = colorOptions.find(
+        (option) => normalizeHex(option.hex) === normalizedHex,
+      );
+      if (catalogMatch) {
+        setSelectedHexes((prev) =>
+          prev.includes(normalizedHex) ? prev : [...prev, normalizedHex],
+        );
+      } else {
+        setCustomColors((prev) => [...prev, { name, hex: normalizedHex }]);
+        if (normalizedHex) {
+          setSelectedHexes((prev) =>
+            prev.includes(normalizedHex) ? prev : [...prev, normalizedHex],
+          );
+        }
+      }
+      setEditingColorId(null);
+      setCustomName("");
+      setCustomHex("#287F79");
+      return;
+    }
+    addCustomColor();
+  };
+
   const removeCustomColor = (index: number) => {
     const removed = customColors[index];
     if (removed?.hex) {
@@ -274,6 +376,25 @@ export function ColorManagementSection({
         });
 
       const next = await updateProductColors(siteCode, productId, { colors });
+      setSelectedHexes(
+        next.colors
+          .filter((color) => color.hex)
+          .map((color) => normalizeHex(color.hex as string)),
+      );
+      setCustomColors(
+        next.colors
+          .filter((color) => {
+            if (!color.hex) return true;
+            const hex = normalizeHex(color.hex);
+            return !colorOptions.some(
+              (option) => normalizeHex(option.hex) === hex,
+            );
+          })
+          .map((color) => ({
+            name: color.name,
+            hex: color.hex ? normalizeHex(color.hex) : "",
+          })),
+      );
       onUpdated(next);
       showSuccess("Colors saved");
     } catch (error) {
@@ -400,9 +521,22 @@ export function ColorManagementSection({
             placeholder="#RRGGBB"
             className="sm:w-36"
           />
-          <Button type="button" variant="secondary" onClick={addCustomColor}>
-            Add
+          <Button type="button" variant="secondary" onClick={handleCustomColorSubmit}>
+            {editingColorId ? "Update" : "Add"}
           </Button>
+          {editingColorId ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setEditingColorId(null);
+                setCustomName("");
+                setCustomHex("#287F79");
+              }}
+            >
+              Cancel
+            </Button>
+          ) : null}
         </div>
         {customColors.length > 0 ? (
           <div className="flex flex-wrap gap-2">
@@ -437,7 +571,7 @@ export function ColorManagementSection({
       <div className="flex justify-center">
         <Button
           type="button"
-          disabled={saving}
+          disabled={saving || deletingColorId !== null}
           onClick={() => void handleSave()}
           className="min-w-[160px]"
         >
@@ -445,7 +579,11 @@ export function ColorManagementSection({
         </Button>
       </div>
 
-      <ColorsCurrentTable data={data} />
+      <ColorsCurrentTable
+        data={data}
+        onEdit={handleEditColor}
+        onDelete={(colorId) => void handleDeleteColor(colorId)}
+      />
     </div>
   );
 }

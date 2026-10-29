@@ -290,19 +290,14 @@ export class ProductEditRepository {
       },
     });
 
-    const nextGalleryIds = new Set(
-      body.images.map((img) => img.imagePublicId).filter(Boolean),
-    );
+    const nextGalleryIds = new Set(body.images.map((img) => img.imagePublicId).filter(Boolean));
     const removedPublicIds = (existingProduct?.galleryImages ?? [])
       .map((row) => row.imagePublicId)
       .filter((id) => id && !nextGalleryIds.has(id));
 
     const nextBannerPublicId = body.bannerPublicId ?? null;
     const previousBannerPublicId = existingProduct?.bannerPublicId ?? null;
-    if (
-      previousBannerPublicId &&
-      previousBannerPublicId !== nextBannerPublicId
-    ) {
+    if (previousBannerPublicId && previousBannerPublicId !== nextBannerPublicId) {
       removedPublicIds.push(previousBannerPublicId);
     }
 
@@ -451,9 +446,10 @@ export class ProductEditRepository {
       await tx.productHighlight.deleteMany({ where: { productId } });
       if (body.highlights.length > 0) {
         await tx.productHighlight.createMany({
-          data: body.highlights.map((text, index) => ({
+          data: body.highlights.map((highlight, index) => ({
             productId,
-            text,
+            question: highlight.question,
+            answer: highlight.answer,
             sortOrder: index,
           })),
         });
