@@ -12,6 +12,12 @@ import { Design5Form } from "@/components/webpages/designs/design-5-form";
 import { Design6Form } from "@/components/webpages/designs/design-6-form";
 import { Design7Form } from "@/components/webpages/designs/design-7-form";
 import { Design9Form } from "@/components/webpages/designs/design-9-form";
+import { Design10Form } from "@/components/webpages/designs/design-10-form";
+import { Design11Form } from "@/components/webpages/designs/design-11-form";
+import { Design12Form } from "@/components/webpages/designs/design-12-form";
+import { Design13Form } from "@/components/webpages/designs/design-13-form";
+import { Design14Form } from "@/components/webpages/designs/design-14-form";
+import { Design15Form } from "@/components/webpages/designs/design-15-form";
 import {
   buildContentPayload,
   createEmptyEditValues,
@@ -257,6 +263,24 @@ export function EditWebpagePage({
             ) : null}
             {values.templateType === "design9" ? (
               <Design9Form {...designFormProps} />
+            ) : null}
+            {values.templateType === "design10" ? (
+              <Design10Form {...designFormProps} />
+            ) : null}
+            {values.templateType === "design11" ? (
+              <Design11Form {...designFormProps} />
+            ) : null}
+            {values.templateType === "design12" ? (
+              <Design12Form {...designFormProps} />
+            ) : null}
+            {values.templateType === "design13" ? (
+              <Design13Form {...designFormProps} />
+            ) : null}
+            {values.templateType === "design14" ? (
+              <Design14Form {...designFormProps} />
+            ) : null}
+            {values.templateType === "design15" ? (
+              <Design15Form {...designFormProps} />
             ) : null}
 
             <div className="flex justify-end gap-3">

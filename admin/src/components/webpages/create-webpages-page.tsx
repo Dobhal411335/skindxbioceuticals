@@ -67,6 +67,12 @@ const TEMPLATE_OPTIONS: { value: WebpageTemplateType; label: string }[] = [
   { value: "design6", label: "Team Page Design" },
   { value: "design7", label: "Gallery Page Design" },
   { value: "design9", label: "Our Philosophy Design" },
+  { value: "design10", label: "About Us Design" },
+  { value: "design11", label: "Our Services Design" },
+  { value: "design12", label: "Services Details Design" },
+  { value: "design13", label: "Contact Us Design" },
+  { value: "design14", label: "Industries Design" },
+  { value: "design15", label: "Terms and Conditions Design" },
 ];
 
 function slugifyTitle(title: string): string {

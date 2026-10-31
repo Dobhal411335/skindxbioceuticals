@@ -118,6 +118,7 @@ function collectPublicIds(record: WebpageRecord): string[] {
   walk(record.gridCards);
   walk(record.teamCards);
   walk(record.design9Cards);
+  walk(record.design10HeroImage); walk(record.design10JourneyImage); walk(record.design10LeadershipCards); walk(record.design10GlobalCards); walk(record.design10GlobalImage); walk(record.design10DefineCards); walk(record.design10JourneyTimeline); walk(record.design10ExploreCards);
   return [...keys];
 }
 
@@ -275,6 +276,39 @@ export function toWebpageDto(record: WebpageRecord, siteCode: SiteCode): Webpage
     design9MainHeading: record.design9MainHeading,
     design9Description: record.design9Description,
     design9Cards: record.design9Cards ?? [],
+    design10HeroMiniHeading: record.design10HeroMiniHeading, design10HeroMainHeading: record.design10HeroMainHeading, design10HeroDescription: record.design10HeroDescription, design10HeroImage: asImageAsset(record.design10HeroImage) ?? emptyImage(),
+    design10StoryMiniHeading: record.design10StoryMiniHeading, design10StoryDescription: record.design10StoryDescription, design10StoryParagraph: record.design10StoryParagraph, design10StorySmallParagraph: record.design10StorySmallParagraph,
+    design10DefineMiniHeading: record.design10DefineMiniHeading, design10DefineCards: record.design10DefineCards ?? [],
+    design10JourneyMiniHeading: record.design10JourneyMiniHeading, design10JourneyMainHeading: record.design10JourneyMainHeading, design10JourneyImage: asImageAsset(record.design10JourneyImage) ?? emptyImage(), design10JourneyTimeline: record.design10JourneyTimeline ?? [],
+    design10LeadershipMiniHeading: record.design10LeadershipMiniHeading, design10LeadershipMainHeading: record.design10LeadershipMainHeading, design10LeadershipCards: record.design10LeadershipCards ?? [],
+    design10GlobalMiniHeading: record.design10GlobalMiniHeading, design10GlobalMainHeading: record.design10GlobalMainHeading, design10GlobalDescription: record.design10GlobalDescription, design10GlobalCards: record.design10GlobalCards ?? [], design10GlobalImage: asImageAsset(record.design10GlobalImage) ?? emptyImage(),
+    design10ExploreMiniHeading: record.design10ExploreMiniHeading, design10ExploreMainHeading: record.design10ExploreMainHeading, design10ExploreCards: record.design10ExploreCards ?? [],
+    design11HeroMiniHeading: record.design11HeroMiniHeading, design11HeroMainHeading: record.design11HeroMainHeading, design11HeroDescription: record.design11HeroDescription, design11HeroImage: asImageAsset(record.design11HeroImage) ?? emptyImage(),
+    design11CapabilitiesMiniHeading: record.design11CapabilitiesMiniHeading, design11CapabilitiesMainHeading: record.design11CapabilitiesMainHeading, design11CapabilitiesDescription: record.design11CapabilitiesDescription, design11CapabilitiesCards: record.design11CapabilitiesCards ?? [],
+    design11ProcessMiniHeading: record.design11ProcessMiniHeading, design11ProcessMainHeading: record.design11ProcessMainHeading, design11ProcessDescription: record.design11ProcessDescription, design11ProcessCards: record.design11ProcessCards ?? [],
+    design11EngagementMiniHeading: record.design11EngagementMiniHeading, design11EngagementMainHeading: record.design11EngagementMainHeading, design11EngagementCards: record.design11EngagementCards ?? [],
+    design11FaqMiniHeading: record.design11FaqMiniHeading, design11FaqMainHeading: record.design11FaqMainHeading, design11FaqDescription: record.design11FaqDescription, design11FaqItems: record.design11FaqItems ?? [],
+    design11ExploreMiniHeading: record.design11ExploreMiniHeading, design11ExploreMainHeading: record.design11ExploreMainHeading, design11ExploreCards: record.design11ExploreCards ?? [],
+    design12HeroMiniHeading: record.design12HeroMiniHeading, design12HeroMainHeading: record.design12HeroMainHeading, design12HeroDescription: record.design12HeroDescription, design12HeroImage: asImageAsset(record.design12HeroImage) ?? emptyImage(),
+    design12ChallengeMiniHeading: record.design12ChallengeMiniHeading, design12ChallengeMainHeading: record.design12ChallengeMainHeading, design12ChallengeDescription: record.design12ChallengeDescription, design12ChallengeCard: record.design12ChallengeCard ?? {},
+    design12HelpMiniHeading: record.design12HelpMiniHeading, design12HelpMainHeading: record.design12HelpMainHeading, design12HelpCards: record.design12HelpCards ?? [],
+    design12MethodologyMiniHeading: record.design12MethodologyMiniHeading, design12MethodologyMainHeading: record.design12MethodologyMainHeading, design12MethodologyDescription: record.design12MethodologyDescription, design12MethodologyCards: record.design12MethodologyCards ?? [],
+    design12OutcomesMiniHeading: record.design12OutcomesMiniHeading, design12OutcomesMainHeading: record.design12OutcomesMainHeading, design12OutcomeCards: record.design12OutcomeCards ?? [],
+    design12RelatedMiniHeading: record.design12RelatedMiniHeading, design12RelatedMainHeading: record.design12RelatedMainHeading, design12RelatedCards: record.design12RelatedCards ?? [],
+    design12ExploreMiniHeading: record.design12ExploreMiniHeading, design12ExploreMainHeading: record.design12ExploreMainHeading, design12ExploreCards: record.design12ExploreCards ?? [],
+    design13HeroMiniHeading: record.design13HeroMiniHeading, design13HeroMainHeading: record.design13HeroMainHeading, design13HeroDescription: record.design13HeroDescription, design13HeroImage: asImageAsset(record.design13HeroImage) ?? emptyImage(),
+    design13ProcessMiniHeading: record.design13ProcessMiniHeading, design13ProcessMainHeading: record.design13ProcessMainHeading, design13ProcessTimeline: record.design13ProcessTimeline ?? [],
+    design13FaqMiniHeading: record.design13FaqMiniHeading, design13FaqMainHeading: record.design13FaqMainHeading, design13FaqItems: record.design13FaqItems ?? [],
+    design13ExploreMiniHeading: record.design13ExploreMiniHeading, design13ExploreMainHeading: record.design13ExploreMainHeading, design13ExploreCards: record.design13ExploreCards ?? [],
+    design14HeroMiniHeading: record.design14HeroMiniHeading, design14HeroMainHeading: record.design14HeroMainHeading, design14HeroDescription: record.design14HeroDescription, design14HeroImage: asImageAsset(record.design14HeroImage) ?? emptyImage(),
+    design14SectorsMiniHeading: record.design14SectorsMiniHeading, design14SectorsMainHeading: record.design14SectorsMainHeading, design14SectorsDescription: record.design14SectorsDescription, design14SectorCards: record.design14SectorCards ?? [],
+    design14PerspectiveMiniHeading: record.design14PerspectiveMiniHeading, design14PerspectiveMainHeading: record.design14PerspectiveMainHeading, design14PerspectiveDescription: record.design14PerspectiveDescription, design14PerspectiveCards: record.design14PerspectiveCards ?? [],
+    design14QuestionsMiniHeading: record.design14QuestionsMiniHeading, design14QuestionsMainHeading: record.design14QuestionsMainHeading, design14QuestionsDescription: record.design14QuestionsDescription, design14QuestionCards: record.design14QuestionCards ?? [],
+    design14Quote: record.design14Quote, design14QuoteDesignation: record.design14QuoteDesignation,
+    design14ExploreMiniHeading: record.design14ExploreMiniHeading, design14ExploreMainHeading: record.design14ExploreMainHeading, design14ExploreCards: record.design14ExploreCards ?? [],
+    design15HeroMiniHeading: record.design15HeroMiniHeading, design15HeroMainHeading: record.design15HeroMainHeading, design15HeroDescription: record.design15HeroDescription,
+    design15NoticeMiniHeading: record.design15NoticeMiniHeading, design15NoticeMainHeading: record.design15NoticeMainHeading, design15NoticeDescription: record.design15NoticeDescription, design15FaqItems: record.design15FaqItems ?? [],
+    design15ExploreCards: record.design15ExploreCards ?? [],
   };
 }
 
@@ -473,6 +507,7 @@ export class WebpageService {
     assign('design9MiniHeading');
     assign('design9MainHeading');
     assign('design9Description');
+    assign('design10HeroMiniHeading'); assign('design10HeroMainHeading'); assign('design10HeroDescription'); assign('design10StoryMiniHeading'); assign('design10StoryDescription'); assign('design10StoryParagraph'); assign('design10StorySmallParagraph'); assign('design10DefineMiniHeading'); assign('design10JourneyMiniHeading'); assign('design10JourneyMainHeading'); assign('design10LeadershipMiniHeading'); assign('design10LeadershipMainHeading'); assign('design10GlobalMiniHeading'); assign('design10GlobalMainHeading'); assign('design10GlobalDescription'); assign('design10ExploreMiniHeading'); assign('design10ExploreMainHeading'); assign('design11HeroMiniHeading'); assign('design11HeroMainHeading'); assign('design11HeroDescription'); assign('design11CapabilitiesMiniHeading'); assign('design11CapabilitiesMainHeading'); assign('design11CapabilitiesDescription'); assign('design11ProcessMiniHeading'); assign('design11ProcessMainHeading'); assign('design11ProcessDescription'); assign('design11EngagementMiniHeading'); assign('design11EngagementMainHeading'); assign('design11FaqMiniHeading'); assign('design11FaqMainHeading'); assign('design11FaqDescription'); assign('design11ExploreMiniHeading'); assign('design11ExploreMainHeading'); assign('design12HeroMiniHeading'); assign('design12HeroMainHeading'); assign('design12HeroDescription'); assign('design12ChallengeMiniHeading'); assign('design12ChallengeMainHeading'); assign('design12ChallengeDescription'); assign('design12HelpMiniHeading'); assign('design12HelpMainHeading'); assign('design12MethodologyMiniHeading'); assign('design12MethodologyMainHeading'); assign('design12MethodologyDescription'); assign('design12OutcomesMiniHeading'); assign('design12OutcomesMainHeading'); assign('design12RelatedMiniHeading'); assign('design12RelatedMainHeading'); assign('design12ExploreMiniHeading'); assign('design12ExploreMainHeading'); assign('design13HeroMiniHeading'); assign('design13HeroMainHeading'); assign('design13HeroDescription'); assign('design13ProcessMiniHeading'); assign('design13ProcessMainHeading'); assign('design13FaqMiniHeading'); assign('design13FaqMainHeading'); assign('design13ExploreMiniHeading'); assign('design13ExploreMainHeading'); assign('design14HeroMiniHeading'); assign('design14HeroMainHeading'); assign('design14HeroDescription'); assign('design14SectorsMiniHeading'); assign('design14SectorsMainHeading'); assign('design14SectorsDescription'); assign('design14PerspectiveMiniHeading'); assign('design14PerspectiveMainHeading'); assign('design14PerspectiveDescription'); assign('design14QuestionsMiniHeading'); assign('design14QuestionsMainHeading'); assign('design14QuestionsDescription'); assign('design14Quote'); assign('design14QuoteDesignation'); assign('design14ExploreMiniHeading'); assign('design14ExploreMainHeading'); assign('design15HeroMiniHeading'); assign('design15HeroMainHeading'); assign('design15HeroDescription'); assign('design15NoticeMiniHeading'); assign('design15NoticeMainHeading'); assign('design15NoticeDescription');
 
     for (const key of [
       'imageFirst',
@@ -484,6 +519,7 @@ export class WebpageService {
       'advertisementImage',
       'sideThumbImage',
       'mainProfileImage',
+      'design10HeroImage', 'design10JourneyImage', 'design10GlobalImage', 'design11HeroImage', 'design12HeroImage', 'design13HeroImage', 'design14HeroImage',
     ] as const) {
       const normalized = normalizeImageInput(input.body[key]);
       if (normalized !== undefined) data[key] = normalized;
@@ -512,6 +548,25 @@ export class WebpageService {
     }
     if (input.body.design9Cards !== undefined) {
       data.design9Cards = sanitizeDesign9Cards(input.body.design9Cards);
+    }
+    for (const key of ['design10DefineCards','design10JourneyTimeline','design10LeadershipCards','design10GlobalCards','design10ExploreCards'] as const) {
+      if (input.body[key] !== undefined) data[key] = input.body[key];
+    }
+    for (const key of ['design11CapabilitiesCards','design11ProcessCards','design11EngagementCards','design11FaqItems','design11ExploreCards'] as const) {
+      if (input.body[key] !== undefined) data[key] = input.body[key];
+    }
+    if (input.body.design12ChallengeCard !== undefined) data.design12ChallengeCard = input.body.design12ChallengeCard;
+    for (const key of ['design12HelpCards','design12MethodologyCards','design12OutcomeCards','design12RelatedCards','design12ExploreCards'] as const) {
+      if (input.body[key] !== undefined) data[key] = input.body[key];
+    }
+    for (const key of ['design13ProcessTimeline','design13FaqItems','design13ExploreCards'] as const) {
+      if (input.body[key] !== undefined) data[key] = input.body[key];
+    }
+    for (const key of ['design14SectorCards','design14PerspectiveCards','design14QuestionCards','design14ExploreCards'] as const) {
+      if (input.body[key] !== undefined) data[key] = input.body[key];
+    }
+    for (const key of ['design15FaqItems','design15ExploreCards'] as const) {
+      if (input.body[key] !== undefined) data[key] = input.body[key];
     }
 
     const record = await this.repository.updateContent(
