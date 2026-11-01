@@ -108,6 +108,8 @@ type CardSource = {
       type: string;
       value: { toString(): string } | number;
       isActive?: boolean;
+      startsAt?: Date | null;
+      endsAt?: Date | null;
     };
   } | null;
   tax?: {
@@ -116,9 +118,21 @@ type CardSource = {
   } | null;
 };
 
+function isCouponCurrentlyValid(coupon: {
+  isActive?: boolean;
+  startsAt?: Date | null;
+  endsAt?: Date | null;
+}): boolean {
+  if (coupon.isActive === false) return false;
+  const now = new Date();
+  if (coupon.startsAt && coupon.startsAt > now) return false;
+  if (coupon.endsAt && coupon.endsAt < now) return false;
+  return true;
+}
+
 function toPublicCardCouponDto(coupon: CardSource['coupon']): PublicProductCardDto['coupon'] {
   if (!coupon) return null;
-  if (coupon.coupon.isActive === false) return null;
+  if (!isCouponCurrentlyValid(coupon.coupon)) return null;
   return {
     couponId: coupon.couponId,
     code: coupon.coupon.code,
@@ -509,14 +523,15 @@ export class ProductService {
             sgst: decimalToNumber(record.tax.sgst) ?? 0,
           }
         : null,
-      coupon: record.coupon
-        ? {
-            couponId: record.coupon.couponId,
-            code: record.coupon.coupon.code,
-            type: record.coupon.coupon.type,
-            value: decimalToNumber(record.coupon.coupon.value) ?? 0,
-          }
-        : null,
+      coupon:
+        record.coupon && isCouponCurrentlyValid(record.coupon.coupon)
+          ? {
+              couponId: record.coupon.couponId,
+              code: record.coupon.coupon.code,
+              type: record.coupon.coupon.type,
+              value: decimalToNumber(record.coupon.coupon.value) ?? 0,
+            }
+          : null,
       relatedProducts,
       averageRating: stats.averageRating,
       reviewCount: stats.reviewCount,

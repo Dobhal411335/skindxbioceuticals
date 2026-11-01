@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import {
-
   CheckCircle2,
   ClipboardList,
   ExternalLink,
@@ -26,11 +25,7 @@ import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -60,11 +55,7 @@ import { useCartTotals } from "@/hooks/useCartTotals";
 import { showError, showInfo, showSuccess } from "@/lib/toast";
 import { formatPaiseToInr } from "@/lib/utils";
 import { setCartNotes } from "@/store/slices/cartSlice";
-import {
-  DEFAULT_COUNTRY_CODE,
-  INDIA_STATES,
-  isIndiaState,
-} from "@/utils/states";
+import { DEFAULT_COUNTRY_CODE, INDIA_STATES, isIndiaState } from "@/utils/states";
 import { toApiError } from "@/services/api/errors";
 
 const GUEST_TOKEN_KEY = "skindx_guest_checkout_token";
@@ -140,10 +131,7 @@ export function CheckoutPageView() {
   // Prefer local paint: only block empty-state while hydrate/sync is still pending.
   const cartLoading =
     items.length === 0 &&
-    (authLoading ||
-      !cartHydrated ||
-      cartStatus === "syncing" ||
-      cartStatus === "loading");
+    (authLoading || !cartHydrated || cartStatus === "syncing" || cartStatus === "loading");
 
   useCartTaxEnrichment(items, {
     enabled: !cartLoading && items.length > 0,
@@ -167,9 +155,7 @@ export function CheckoutPageView() {
 
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [addressesLoading, setAddressesLoading] = useState(false);
-  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<
-    string | null
-  >(null);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string | null>(null);
   const [saveAsDefault, setSaveAsDefault] = useState(false);
 
   const idempotencyKeyRef = useRef<string | null>(null);
@@ -180,9 +166,7 @@ export function CheckoutPageView() {
   const [prescriptionFileName, setPrescriptionFileName] = useState<string | null>(null);
   const prescriptionFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  async function handlePrescriptionFileChange(
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) {
+  async function handlePrescriptionFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -253,8 +237,7 @@ export function CheckoutPageView() {
         if (cancelled) return;
         addressesLoadedForUserRef.current = user.id;
         setSavedAddresses(addresses);
-        const preferred =
-          addresses.find((address) => address.isDefault) ?? addresses[0] ?? null;
+        const preferred = addresses.find((address) => address.isDefault) ?? addresses[0] ?? null;
         if (preferred) {
           applySavedAddress(preferred);
         }
@@ -372,10 +355,7 @@ export function CheckoutPageView() {
     }
     setOtpBusy(true);
     try {
-      const verified = await checkoutService.verifyGuestOtp(
-        guestSessionToken,
-        otp,
-      );
+      const verified = await checkoutService.verifyGuestOtp(guestSessionToken, otp);
       setGuestStep("verified");
       setEmail(verified.email);
       sessionStorage.setItem(GUEST_TOKEN_KEY, guestSessionToken);
@@ -480,10 +460,7 @@ export function CheckoutPageView() {
           setSelectedSavedAddressId(createdAddress.id);
           setSaveAsDefault(false);
         } catch (err) {
-          showError(
-            toApiError(err).message ||
-            "Could not save address. Continuing to payment…",
-          );
+          showError(toApiError(err).message || "Could not save address. Continuing to payment…");
         }
       }
 
@@ -507,7 +484,8 @@ export function CheckoutPageView() {
         shippingAddress,
         notes: combinedNotes || undefined,
         prescriptionImageUrl: prescriptionImageUrl || undefined,
-        guestSessionToken: isAuthenticated ? undefined : guestSessionToken ?? undefined,
+        expectedAmountInPaise: totalInPaise,
+        guestSessionToken: isAuthenticated ? undefined : (guestSessionToken ?? undefined),
         idempotencyKey: ensureIdempotencyKey(),
       });
 
@@ -539,22 +517,14 @@ export function CheckoutPageView() {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
-              guestSessionToken: isAuthenticated
-                ? undefined
-                : guestSessionToken ?? undefined,
+              guestSessionToken: isAuthenticated ? undefined : (guestSessionToken ?? undefined),
             });
 
             if (verified.confirmationToken) {
-              sessionStorage.setItem(
-                CONFIRMATION_TOKEN_KEY,
-                verified.confirmationToken,
-              );
+              sessionStorage.setItem(CONFIRMATION_TOKEN_KEY, verified.confirmationToken);
             }
 
-            if (
-              verified.paymentStatus === "CAPTURED" ||
-              verified.orderStatus === "CONFIRMED"
-            ) {
+            if (verified.paymentStatus === "CAPTURED" || verified.orderStatus === "CONFIRMED") {
               void clearCartAction();
               clearGuestCheckoutStorage();
               idempotencyKeyRef.current = null;
@@ -567,9 +537,10 @@ export function CheckoutPageView() {
             } else {
               showInfo("Payment is still processing. Checking status…");
               router.push(
-                `/checkout/thank-you?orderId=${verified.orderId}${verified.confirmationToken
-                  ? `&confirmationToken=${verified.confirmationToken}`
-                  : ""
+                `/checkout/thank-you?orderId=${verified.orderId}${
+                  verified.confirmationToken
+                    ? `&confirmationToken=${verified.confirmationToken}`
+                    : ""
                 }`,
               );
             }
@@ -585,9 +556,7 @@ export function CheckoutPageView() {
             try {
               const status = await checkoutService.getPaymentStatus({
                 orderId: created.orderId,
-                guestSessionToken: isAuthenticated
-                  ? undefined
-                  : guestSessionToken ?? undefined,
+                guestSessionToken: isAuthenticated ? undefined : (guestSessionToken ?? undefined),
               });
               if (status.paymentStatus === "CAPTURED") {
                 void clearCartAction();
@@ -606,8 +575,23 @@ export function CheckoutPageView() {
       });
 
       rzp.open();
-    } catch {
-      showError("Could not start payment. Please try again.");
+    } catch (error) {
+      idempotencyKeyRef.current = null;
+      const apiError = toApiError(error);
+      const message = apiError.message.toLowerCase();
+      if (
+        message.includes("insufficient stock") ||
+        message.includes("out of stock") ||
+        message.includes("currently available") ||
+        message.includes("are available")
+      ) {
+        showError(
+          apiError.message ||
+            "The requested quantity is not available. Please reduce the quantity or choose another product.",
+        );
+      } else {
+        showError(apiError.message || "Could not start payment. Please try again.");
+      }
       setPayBusy(false);
     }
   }
@@ -661,11 +645,7 @@ export function CheckoutPageView() {
                 </div>
 
                 {guestStep === "email" ? (
-                  <Button
-                    type="button"
-                    onClick={() => void sendGuestOtp()}
-                    disabled={otpBusy}
-                  >
+                  <Button type="button" onClick={() => void sendGuestOtp()} disabled={otpBusy}>
                     {otpBusy ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
@@ -749,7 +729,8 @@ export function CheckoutPageView() {
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Have a doctor&apos;s prescription for your items? Upload a clear photo or scan (PNG, JPG, or WebP up to 10MB) for our verification team.
+              Have a doctor&apos;s prescription for your items? Upload a clear photo or scan (PNG,
+              JPG, or WebP up to 10MB) for our verification team.
             </p>
 
             <input
@@ -803,8 +784,8 @@ export function CheckoutPageView() {
                 <div className="flex items-center gap-3">
                   <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-background shadow-xs">
                     <Image
-                    height={250}
-                    width={200}
+                      height={250}
+                      width={200}
                       src={prescriptionImageUrl}
                       alt="Prescription preview"
                       className="size-full object-cover"
@@ -876,9 +857,7 @@ export function CheckoutPageView() {
             </div>
 
             {isAuthenticated && addressesLoading ? (
-              <p className="text-sm text-muted-foreground">
-                Loading saved addresses…
-              </p>
+              <p className="text-sm text-muted-foreground">Loading saved addresses…</p>
             ) : null}
 
             {hasSavedAddresses ? (
@@ -926,8 +905,8 @@ export function CheckoutPageView() {
                   })}
                 </ul>
                 <p className="text-xs text-muted-foreground">
-                  Check an address to fill the delivery form. You can still edit
-                  the fields below before paying.
+                  Check an address to fill the delivery form. You can still edit the fields below
+                  before paying.
                 </p>
               </div>
             ) : null}
@@ -977,7 +956,10 @@ export function CheckoutPageView() {
               </div>
 
               <div>
-                <Label htmlFor="checkout-address-line1" className="mb-1.5 block text-xs font-medium">
+                <Label
+                  htmlFor="checkout-address-line1"
+                  className="mb-1.5 block text-xs font-medium"
+                >
                   Address line 1 <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -994,7 +976,10 @@ export function CheckoutPageView() {
               </div>
 
               <div>
-                <Label htmlFor="checkout-address-line2" className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                <Label
+                  htmlFor="checkout-address-line2"
+                  className="mb-1.5 block text-xs font-medium text-muted-foreground"
+                >
                   Apartment, suite, unit, building, floor (optional)
                 </Label>
                 <Input
@@ -1053,7 +1038,10 @@ export function CheckoutPageView() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="checkout-postal-code" className="mb-1.5 block text-xs font-medium">
+                  <Label
+                    htmlFor="checkout-postal-code"
+                    className="mb-1.5 block text-xs font-medium"
+                  >
                     PIN code <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -1089,16 +1077,11 @@ export function CheckoutPageView() {
                       maxLength={10}
                       required
                       value={phone}
-                      onChange={(e) =>
-                        setPhone(normalizeIndianMobileDigits(e.target.value))
-                      }
+                      onChange={(e) => setPhone(normalizeIndianMobileDigits(e.target.value))}
                       aria-describedby="checkout-phone-hint"
                     />
                   </div>
-                  <p
-                    id="checkout-phone-hint"
-                    className="mt-1 text-[11px] text-muted-foreground"
-                  >
+                  <p id="checkout-phone-hint" className="mt-1 text-[11px] text-muted-foreground">
                     Saved as {INDIA_DIAL_CODE} followed by your 10-digit number
                   </p>
                 </div>
@@ -1110,9 +1093,7 @@ export function CheckoutPageView() {
                 <Checkbox
                   id="checkout-save-address"
                   checked={saveAsDefault}
-                  onCheckedChange={(checked) =>
-                    setSaveAsDefault(checked === true)
-                  }
+                  onCheckedChange={(checked) => setSaveAsDefault(checked === true)}
                   className="mt-0.5"
                 />
                 <Label
@@ -1124,7 +1105,6 @@ export function CheckoutPageView() {
               </div>
             ) : null}
           </section>
-
         </div>
       </div>
 
@@ -1138,9 +1118,7 @@ export function CheckoutPageView() {
               </h2>
               <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                 {items.reduce((sum, item) => sum + item.quantity, 0)}{" "}
-                {items.reduce((sum, item) => sum + item.quantity, 0) === 1
-                  ? "item"
-                  : "items"}
+                {items.reduce((sum, item) => sum + item.quantity, 0) === 1 ? "item" : "items"}
               </span>
             </div>
 
@@ -1174,9 +1152,7 @@ export function CheckoutPageView() {
                         {item.productCode ? (
                           <p className="mt-0.5 text-xs text-muted-foreground">
                             Code:{" "}
-                            <span className="font-medium text-foreground">
-                              {item.productCode}
-                            </span>
+                            <span className="font-medium text-foreground">{item.productCode}</span>
                           </p>
                         ) : null}
                         {item.variantLabel ? (
@@ -1225,6 +1201,7 @@ export function CheckoutPageView() {
                       <QuantityStepper
                         size="sm"
                         value={item.quantity}
+                        max={Math.max(1, item.availableQuantity ?? 99)}
                         onChange={(quantity) => void setQuantity(item.id, quantity)}
                       />
 
@@ -1292,11 +1269,7 @@ export function CheckoutPageView() {
                             >
                               Cancel
                             </Button>
-                            <Button
-                              type="button"
-                              size="xs"
-                              onClick={() => saveItemNote(item.id)}
-                            >
+                            <Button type="button" size="xs" onClick={() => saveItemNote(item.id)}>
                               Save
                             </Button>
                           </div>
@@ -1353,9 +1326,7 @@ export function CheckoutPageView() {
               <Textarea
                 id="checkout-order-notes"
                 value={extras.notes}
-                onChange={(event) =>
-                  dispatch(setCartNotes(event.target.value.slice(0, 2000)))
-                }
+                onChange={(event) => dispatch(setCartNotes(event.target.value.slice(0, 2000)))}
                 placeholder="Special instruction for seller…"
                 rows={3}
                 maxLength={2000}
@@ -1363,9 +1334,7 @@ export function CheckoutPageView() {
               />
               <p className="mt-1.5 text-[11px] text-muted-foreground">
                 Included with your order when you pay
-                {items.some((item) => item.note?.trim())
-                  ? ", along with any item notes above"
-                  : ""}
+                {items.some((item) => item.note?.trim()) ? ", along with any item notes above" : ""}
                 .
               </p>
             </div>
@@ -1392,15 +1361,12 @@ export function CheckoutPageView() {
             />
           </div>
 
-
           {/* Payment Section Card */}
           <section className="rounded-xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-2.5 border-b border-border/60 pb-3">
               <ShieldCheck className="size-5 text-green-600" />
               <div>
-                <h2 className="text-base font-semibold tracking-tight text-foreground">
-                  Payment
-                </h2>
+                <h2 className="text-base font-semibold tracking-tight text-foreground">Payment</h2>
                 <p className="text-xs text-muted-foreground">
                   Pay securely with Razorpay. Cards, UPI, Netbanking & Wallets accepted.
                 </p>
@@ -1428,12 +1394,11 @@ export function CheckoutPageView() {
                 href="/cart"
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
               >
-                <ShoppingCart className="size-5"/>
+                <ShoppingCart className="size-5" />
                 Return to cart
               </Link>
             </p>
           </section>
-
         </div>
       </aside>
     </div>

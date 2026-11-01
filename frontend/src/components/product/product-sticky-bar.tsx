@@ -128,6 +128,7 @@ export function ProductStickyBar({
         : undefined,
       cgstPercent: product.tax?.cgst ?? 0,
       sgstPercent: product.tax?.sgst ?? 0,
+      availableQuantity: selectedVariant.quantity,
       quantity,
     });
     if (ok) openCart();

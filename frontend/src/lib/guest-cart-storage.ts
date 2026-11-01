@@ -24,6 +24,7 @@ const guestCartItemSchema = z.object({
   productId: z.string().uuid(),
   variantId: z.string().uuid(),
   quantity: z.number().int().min(1).max(99),
+  availableQuantity: z.number().int().min(0).max(999999).optional(),
   productName: z.string().optional(),
   productSlug: z.string().optional(),
   categoryName: z.string().nullable().optional(),
@@ -48,6 +49,7 @@ export type GuestCartItem = {
   productId: string;
   variantId: string;
   quantity: number;
+  availableQuantity?: number;
   productName?: string;
   productSlug?: string;
   categoryName?: string | null;
@@ -91,6 +93,10 @@ function sanitizeItem(raw: unknown): GuestCartItem | null {
     productId,
     variantId,
     quantity,
+    availableQuantity:
+      typeof record.availableQuantity === "number"
+        ? Math.max(0, Math.floor(record.availableQuantity))
+        : undefined,
     productName:
       record.productName === undefined ? undefined : String(record.productName),
     productSlug:

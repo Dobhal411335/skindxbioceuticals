@@ -40,6 +40,7 @@ export type CartAddInput = {
   productCode?: string | null;
   variantLabel?: string;
   quantity?: number;
+  availableQuantity?: number;
   unitPriceInPaise: number;
   originalUnitPriceInPaise?: number;
   discountCode?: string | null;
@@ -54,6 +55,7 @@ function toGuestBagItem(item: CartItem): GuestCartItem | null {
     productId: item.productId,
     variantId: item.variantId,
     quantity: item.quantity,
+    availableQuantity: item.availableQuantity,
     productName: item.name,
     productSlug: item.slug,
     categoryName: item.categoryName ?? null,
@@ -102,7 +104,11 @@ function mergeAddIntoItems(
         ...existing,
         // Keep server UUID when present; client lines use productId:variantId.
         id: zUuid(existing.id) ? existing.id : lineId,
-        quantity: existing.quantity + quantity,
+        quantity: Math.min(
+          input.availableQuantity ?? 99,
+          existing.quantity + quantity,
+        ),
+        availableQuantity: input.availableQuantity ?? existing.availableQuantity,
         unitPriceInPaise: input.unitPriceInPaise,
         originalUnitPriceInPaise: input.originalUnitPriceInPaise,
         discountCode: input.discountCode,
@@ -129,6 +135,7 @@ function mergeAddIntoItems(
         productCode: input.productCode ?? null,
         variantLabel: input.variantLabel,
         quantity,
+        availableQuantity: input.availableQuantity,
         unitPriceInPaise: input.unitPriceInPaise,
         originalUnitPriceInPaise: input.originalUnitPriceInPaise,
         discountCode: input.discountCode,
@@ -180,7 +187,10 @@ export function useCartActions() {
       return false;
     }
 
-    const quantity = input.quantity ?? 1;
+    const quantity = Math.min(
+      input.availableQuantity ?? 99,
+      Math.max(1, input.quantity ?? 1),
+    );
     const { nextItems, merged } = mergeAddIntoItems(items, input, quantity);
 
     // Instant UI for everyone (guest + logged-in).
@@ -250,8 +260,9 @@ export function useCartActions() {
     }
 
     const previous = items;
-    const capped = Math.max(1, quantity);
     const target = previous.find((item) => item.id === itemId);
+    const maxQuantity = Math.max(1, target?.availableQuantity ?? 99);
+    const capped = Math.min(maxQuantity, Math.max(1, quantity));
     const next = previous.map((item) =>
       item.id === itemId ? { ...item, quantity: capped } : item,
     );

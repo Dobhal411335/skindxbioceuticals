@@ -193,6 +193,7 @@ export function ProductPurchasePanel({
         : undefined,
       cgstPercent: product.tax?.cgst ?? 0,
       sgstPercent: product.tax?.sgst ?? 0,
+      availableQuantity: selectedVariant.quantity,
       quantity: qty,
     };
   }

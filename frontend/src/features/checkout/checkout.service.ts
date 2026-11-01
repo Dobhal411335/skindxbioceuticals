@@ -29,9 +29,10 @@ export const checkoutService = {
   async sendGuestOtp(
     sessionToken: string,
   ): Promise<{ accepted: true; resendAvailableAt?: string }> {
-    const response = await apiClient.post<
-      Envelope<{ accepted: true; resendAvailableAt?: string }>
-    >(API_ENDPOINTS.CHECKOUT.GUEST_SEND_OTP, { sessionToken });
+    const response = await apiClient.post<Envelope<{ accepted: true; resendAvailableAt?: string }>>(
+      API_ENDPOINTS.CHECKOUT.GUEST_SEND_OTP,
+      { sessionToken },
+    );
     return response.data.data;
   },
 
@@ -51,12 +52,14 @@ export const checkoutService = {
   ): Promise<{ url: string; publicId: string }> {
     const formData = new FormData();
     formData.append("file", file);
-    const response = await apiClient.post<
-      Envelope<{ url: string; publicId: string }>
-    >(API_ENDPOINTS.CHECKOUT.UPLOAD_PRESCRIPTION, formData, {
-      params: { siteCode },
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const response = await apiClient.post<Envelope<{ url: string; publicId: string }>>(
+      API_ENDPOINTS.CHECKOUT.UPLOAD_PRESCRIPTION,
+      formData,
+      {
+        params: { siteCode },
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
     return response.data.data;
   },
 
@@ -65,6 +68,7 @@ export const checkoutService = {
     shippingAddress: CheckoutShippingAddress;
     notes?: string;
     prescriptionImageUrl?: string | null;
+    expectedAmountInPaise?: number;
     guestSessionToken?: string;
     idempotencyKey: string;
   }): Promise<CreatePaymentOrderResult> {
@@ -75,6 +79,7 @@ export const checkoutService = {
         shippingAddress: input.shippingAddress,
         notes: input.notes,
         prescriptionImageUrl: input.prescriptionImageUrl,
+        expectedAmountInPaise: input.expectedAmountInPaise,
         guestSessionToken: input.guestSessionToken,
       },
       {

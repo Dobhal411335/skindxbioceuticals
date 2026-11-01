@@ -148,6 +148,7 @@ export function CartDrawer() {
                         <QuantityStepper
                           size="sm"
                           value={item.quantity}
+                          max={Math.max(1, item.availableQuantity ?? 99)}
                           onChange={(quantity) =>
                             void setQuantity(item.id, quantity)
                           }

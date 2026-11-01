@@ -415,6 +415,7 @@ export function ProductQuickView({
       discountInPaise: pricing.discountInPaise,
       cgstPercent: product.tax?.cgst ?? 0,
       sgstPercent: product.tax?.sgst ?? 0,
+      availableQuantity: selectedVariant.quantity,
       quantity: clampQty(quantity),
     };
   }

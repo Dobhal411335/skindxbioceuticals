@@ -98,6 +98,7 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
       discountInPaise: pricing.discountInPaise,
       cgstPercent: item.tax?.cgst ?? 0,
       sgstPercent: item.tax?.sgst ?? 0,
+      availableQuantity: item.quantity,
       quantity: 1,
     });
   }

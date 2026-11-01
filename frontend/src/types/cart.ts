@@ -16,6 +16,8 @@ export type CartItem = {
   productCode?: string | null;
   variantLabel?: string;
   quantity: number;
+  /** Current sellable inventory for this variant, when known. */
+  availableQuantity?: number;
   /** Payable unit price after product discount (if any). */
   unitPriceInPaise: number;
   /** List/original price before product discount. */

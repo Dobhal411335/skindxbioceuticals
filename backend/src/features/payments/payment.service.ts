@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { authRepository } from '@/features/auth/auth.repository';
-import {priceCheckoutLines,sumCheckoutTotals} from '@/features/checkout/checkout.pricing';
+import { priceCheckoutLines, sumCheckoutTotals } from '@/features/checkout/checkout.pricing';
 import { guestCheckoutService } from '@/features/checkout/guest-checkout.service';
 import { env } from '@/config/env';
 import { sha256 } from '@/lib/crypto';
@@ -77,21 +77,30 @@ export class PaymentService {
         throw new ConflictError('Idempotency key reused with different checkout payload');
       }
       if (existing.providerOrderId && existing.status !== 'FAILED') {
-        let confirmationToken: string | undefined;
-        if (actor.kind === 'guest') {
-          confirmationToken = await this.guests.issueConfirmationToken(actor.session.id);
+        if (
+          input.body.expectedAmountInPaise != null &&
+          existing.amountInPaise !== input.body.expectedAmountInPaise &&
+          (existing.status === 'PENDING' || existing.status === 'AUTHORIZED')
+        ) {
+          await this.repository.markPaymentFailed(existing.id, 'PRICING_CHANGED');
+          await this.releaseReservations(existing.orderId);
+        } else {
+          let confirmationToken: string | undefined;
+          if (actor.kind === 'guest') {
+            confirmationToken = await this.guests.issueConfirmationToken(actor.session.id);
+          }
+          return {
+            orderId: existing.orderId,
+            orderNumber: existing.order.orderNumber,
+            razorpayOrderId: existing.providerOrderId,
+            amountInPaise: existing.amountInPaise,
+            currency: existing.currency,
+            keyId: getRazorpayPublicKeyId(),
+            paymentId: existing.id,
+            status: existing.status,
+            confirmationToken,
+          };
         }
-        return {
-          orderId: existing.orderId,
-          orderNumber: existing.order.orderNumber,
-          razorpayOrderId: existing.providerOrderId,
-          amountInPaise: existing.amountInPaise,
-          currency: existing.currency,
-          keyId: getRazorpayPublicKeyId(),
-          paymentId: existing.id,
-          status: existing.status,
-          confirmationToken,
-        };
       }
     }
 
@@ -138,7 +147,11 @@ export class PaymentService {
       const reserved = variant.inventory?.quantityReserved ?? 0;
       const available = onHand - reserved;
       if (qty > available) {
-        throw new ConflictError(`Insufficient stock for ${variant.product.name}`);
+        throw new ConflictError(
+          available > 0
+            ? `Only ${available} unit${available === 1 ? '' : 's'} of ${variant.product.name} are available.`
+            : `No units of ${variant.product.name} are currently available. Stock may be reserved by another pending order.`,
+        );
       }
     }
 
@@ -149,6 +162,12 @@ export class PaymentService {
     const amountInPaise = rupeesToPaise(totals.grandTotal);
     if (amountInPaise < 100) {
       throw new ValidationError('Order total is too low for payment');
+    }
+    if (
+      input.body.expectedAmountInPaise != null &&
+      input.body.expectedAmountInPaise !== amountInPaise
+    ) {
+      throw new ConflictError('Cart pricing changed. Refresh checkout before starting payment.');
     }
 
     const orderNumber = nextOrderNumber();
@@ -199,7 +218,11 @@ export class PaymentService {
         }
         const available = inv.quantityOnHand - inv.quantityReserved;
         if (line.quantity > available) {
-          throw new ConflictError(`Insufficient stock for ${line.productName}`);
+          throw new ConflictError(
+            available > 0
+              ? `Only ${available} unit${available === 1 ? '' : 's'} of ${line.productName} are available.`
+              : `No units of ${line.productName} are currently available. Stock may be reserved by another pending order.`,
+          );
         }
         await tx.inventoryItem.update({
           where: { id: inv.id },
@@ -453,9 +476,7 @@ export class PaymentService {
         variantName: item.variantName,
         sku: item.sku,
         unitPrice: decimalToString(item.unitPrice),
-        originalUnitPrice: item.originalUnitPrice
-          ? decimalToString(item.originalUnitPrice)
-          : null,
+        originalUnitPrice: item.originalUnitPrice ? decimalToString(item.originalUnitPrice) : null,
         quantity: item.quantity,
         lineTotal: decimalToString(item.lineTotal),
         cgstPercent: decimalToString(item.cgstPercent),
@@ -508,8 +529,7 @@ export class PaymentService {
       const paymentEntity = payload.payload?.payment?.entity;
       const orderEntity = payload.payload?.order?.entity;
       const providerOrderId =
-        (paymentEntity?.order_id as string | undefined) ??
-        (orderEntity?.id as string | undefined);
+        (paymentEntity?.order_id as string | undefined) ?? (orderEntity?.id as string | undefined);
       const providerPaymentId = paymentEntity?.id as string | undefined;
 
       if (!providerOrderId) {
@@ -552,7 +572,13 @@ export class PaymentService {
       if (!providerOrderId) return;
       const payment = await this.repository.findByProviderOrderId(providerOrderId);
       if (!payment || payment.status === 'CAPTURED') return;
-      await this.repository.markPaymentFailed(payment.id, 'WEBHOOK_PAYMENT_FAILED');
+      const failed = await this.repository.markPaymentFailed(
+        payment.id,
+        'WEBHOOK_PAYMENT_FAILED',
+      );
+      if (failed.count > 0) {
+        await this.releaseReservations(payment.orderId);
+      }
     }
   }
 

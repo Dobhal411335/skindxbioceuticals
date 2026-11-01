@@ -28,6 +28,8 @@ export const createPaymentOrderBodySchema = z.object({
   billingAddress: shippingAddressSchema.optional(),
   notes: z.string().trim().max(2000).optional(),
   prescriptionImageUrl: z.string().trim().url().max(2000).optional().nullable(),
+  /** Client display total used only to detect stale cart pricing. */
+  expectedAmountInPaise: z.number().int().positive().optional(),
   /** Required for guest checkout; ignored when authenticated. */
   guestSessionToken: z.string().min(32).max(256).optional(),
 });

@@ -24,6 +24,7 @@ export function mapAccountCartItemToCartItem(
     productCode: item.productCode ?? null,
     variantLabel: item.variantName,
     quantity: item.quantity,
+    availableQuantity: item.availableQuantity,
     unitPriceInPaise: unitPaise,
     originalUnitPriceInPaise: hasDiscount ? listPaise : undefined,
     discountCode: item.discountCode,

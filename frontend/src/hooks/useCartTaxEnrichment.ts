@@ -21,6 +21,7 @@ function toGuestBagItem(item: CartItem): GuestCartItem | null {
     productId: item.productId,
     variantId: item.variantId,
     quantity: item.quantity,
+    availableQuantity: item.availableQuantity,
     productName: item.name,
     productSlug: item.slug,
     categoryName: item.categoryName ?? null,

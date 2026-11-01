@@ -69,6 +69,7 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
       discountInPaise: pricing.discountInPaise,
       cgstPercent: product.tax?.cgst ?? 0,
       sgstPercent: product.tax?.sgst ?? 0,
+      availableQuantity: product.quantity,
       quantity: 1,
     });
     if (ok) openCart();
