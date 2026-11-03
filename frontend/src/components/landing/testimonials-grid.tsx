@@ -122,13 +122,11 @@ export function TestimonialsGrid({ reviews = [] }: TestimonialsGridProps) {
               </p>
               <h2
                 id="testimonials-heading"
-                className="mt-2 text-4xl font-semibold tracking-tight text-[#101d2d] sm:text-5xl"
+                className="mt-5 max-w-2xl text-4xl leading-[0.98] font-semibold tracking-[-0.045em] text-foreground sm:text-5xl"
               >
                 What our customers say
               </h2>
-              <p className="mt-2 text-sm text-[#34475c] sm:text-base">
-                Hear from the people who trust us with their care.
-              </p>
+              <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
             </div>
 
             {reviews.length > 4 ? (

@@ -198,6 +198,13 @@ export type PublicProductVideoDto = {
   sortOrder: number;
 };
 
+export type PublicProductPdfDto = {
+  id: string;
+  name: string;
+  pdfUrl: string;
+  sortOrder: number;
+};
+
 export type PublicProductInfoSectionDto = {
   id: string;
   title: string;
@@ -266,6 +273,7 @@ export type PublicProductDetailDto = {
   colors: PublicProductColorDto[];
   variants: PublicProductVariantDto[];
   videos: PublicProductVideoDto[];
+  pdfs: PublicProductPdfDto[];
   infoSections: PublicProductInfoSectionDto[];
   editorialReviews: PublicProductEditorialReviewDto[];
   tags: PublicProductTagDto[];

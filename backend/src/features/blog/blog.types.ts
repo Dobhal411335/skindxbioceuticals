@@ -2,6 +2,11 @@ import type { SiteCode } from '@/types/common';
 
 export type SiteCodeDto = SiteCode;
 
+export type BlogAccordionItem = {
+  question: string;
+  description: string;
+};
+
 export type BlogDto = {
   id: string;
   siteCode: SiteCodeDto;
@@ -22,6 +27,7 @@ export type BlogDto = {
   imagePublicId: string;
   description: string;
   blockquote: string;
+  accordionItems: BlogAccordionItem[];
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -46,6 +52,7 @@ export type BlogPublicDto = {
   imageUrl: string;
   description: string;
   blockquote: string;
+  accordionItems: BlogAccordionItem[];
   createdAt: string;
 };
 
@@ -92,6 +99,7 @@ export type BlogRecord = {
   imagePublicId: string;
   description: string;
   blockquote: string;
+  accordionItems: BlogAccordionItem[];
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -115,6 +123,7 @@ export type BlogCreateWrite = {
   imagePublicId: string;
   description: string;
   blockquote: string;
+  accordionItems: BlogAccordionItem[];
   active: boolean;
 };
 
@@ -136,6 +145,7 @@ export type BlogUpdateWrite = {
   imagePublicId: string;
   description: string;
   blockquote: string;
+  accordionItems: BlogAccordionItem[];
   active: boolean;
 };
 
@@ -143,3 +153,36 @@ export type BlogPatchWrite = {
   name?: string;
   active?: boolean;
 };
+
+export function parseBlogAccordionItems(value: unknown): BlogAccordionItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const items: BlogAccordionItem[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+    const row = entry as Record<string, unknown>;
+    const question =
+      typeof row.question === 'string'
+        ? row.question.trim()
+        : typeof row.left === 'string'
+          ? row.left.trim()
+          : '';
+    const description =
+      typeof row.description === 'string'
+        ? row.description.trim()
+        : typeof row.right === 'string'
+          ? row.right.trim()
+          : typeof row.answer === 'string'
+            ? row.answer.trim()
+            : '';
+    if (!question && !description) {
+      continue;
+    }
+    items.push({ question, description });
+  }
+  return items;
+}

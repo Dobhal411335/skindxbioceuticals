@@ -355,8 +355,8 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-gray-500">
-        <p className="py-5 text-center text-md text-white bg-[#14272E]">
-          &copy; {new Date().getFullYear()} {brandName} All Rights Reserved.
+        <p className="py-4 text-center text-sm text-white bg-[#14272E]">
+          &copy; {new Date().getFullYear()} {brandName}. All Rights Reserved.
         </p>
       </div>
     </footer>

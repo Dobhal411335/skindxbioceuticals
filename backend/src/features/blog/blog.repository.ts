@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type {
   BlogCreateWrite,
@@ -5,6 +6,7 @@ import type {
   BlogRecord,
   BlogUpdateWrite,
 } from './blog.types';
+import { parseBlogAccordionItems } from './blog.types';
 
 function mapBlog(row: {
   id: string;
@@ -26,6 +28,7 @@ function mapBlog(row: {
   imagePublicId: string;
   description: string;
   blockquote: string;
+  accordionItems: Prisma.JsonValue;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -50,6 +53,7 @@ function mapBlog(row: {
     imagePublicId: row.imagePublicId,
     description: row.description,
     blockquote: row.blockquote,
+    accordionItems: parseBlogAccordionItems(row.accordionItems),
     active: row.active,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -112,7 +116,7 @@ export class BlogRepository {
     siteId: string,
     category: string,
     excludeId: string,
-    limit = 4,
+    limit = 3,
   ): Promise<BlogRecord[]> {
     const rows = await prisma.blog.findMany({
       where: {
@@ -160,6 +164,7 @@ export class BlogRepository {
         imagePublicId: data.imagePublicId,
         description: data.description,
         blockquote: data.blockquote,
+        accordionItems: data.accordionItems as Prisma.InputJsonValue,
         active: data.active,
       },
     });
@@ -199,6 +204,7 @@ export class BlogRepository {
         imagePublicId: data.imagePublicId,
         description: data.description,
         blockquote: data.blockquote,
+        accordionItems: data.accordionItems as Prisma.InputJsonValue,
         active: data.active,
       },
     });

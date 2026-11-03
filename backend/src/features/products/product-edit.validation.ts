@@ -129,6 +129,19 @@ export const productVideosSectionSchema = z.object({
     .max(20),
 });
 
+export const productPdfsSectionSchema = z.object({
+  pdfs: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(200),
+        pdfUrl: z.string().trim().url().max(2000),
+        pdfPublicId: z.string().trim().max(500).default(''),
+        sortOrder: z.number().int().min(0).optional(),
+      }),
+    )
+    .max(20),
+});
+
 export const productDescriptionSectionSchema = z.object({
   description: z.string().trim().max(100_000),
 });
@@ -183,6 +196,7 @@ export type ProductCouponSectionBody = z.infer<typeof productCouponSectionSchema
 export type ProductTaxSectionBody = z.infer<typeof productTaxSectionSchema>;
 export type ProductGallerySectionBody = z.infer<typeof productGallerySectionSchema>;
 export type ProductVideosSectionBody = z.infer<typeof productVideosSectionSchema>;
+export type ProductPdfsSectionBody = z.infer<typeof productPdfsSectionSchema>;
 export type ProductDescriptionSectionBody = z.infer<typeof productDescriptionSectionSchema>;
 export type ProductInfoSectionBody = z.infer<typeof productInfoSectionSchema>;
 export type ProductEditorialReviewBody = z.infer<typeof productEditorialReviewBodySchema>;

@@ -1,15 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
-import { formatBlogDate } from "@/features/blog/blog.service";
-import type { StorefrontBlog } from "@/types/blog";
-import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
+
+import type { StorefrontBlog } from "@/types/blog";
 
 type BlogListItemProps = {
   post: StorefrontBlog;
-  reversed?: boolean;
 };
 
 function excerptFromHtml(html: string): string {
@@ -20,56 +16,68 @@ function excerptFromHtml(html: string): string {
     .slice(0, 180);
 }
 
-export function BlogListItem({ post, reversed = false }: BlogListItemProps) {
+function estimateReadMinutes(html: string): number {
+  const words = html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
+export function BlogListItem({ post }: BlogListItemProps) {
   const excerpt = excerptFromHtml(post.description);
   const imageSrc =
     post.imageUrl || "https://placehold.co/800x600/png?text=SkinDx+Blog";
+  const readMinutes = estimateReadMinutes(post.description || post.title);
 
   return (
-    <article
-      className={cn(
-        "grid items-center gap-6 border-b border-border py-10 md:grid-cols-2 md:gap-10",
-      )}
-    >
-      <div
-        className={cn(
-          "relative aspect-[4/3] overflow-hidden bg-surface",
-          reversed && "md:order-2",
-        )}
-      >
-        <Image
-          src={imageSrc}
-          alt={post.title}
-          fill
-          className="object-cover transition-transform duration-300 hover:scale-105"
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
-      </div>
-      <div className={cn(reversed && "md:order-1")}>
-        <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-          {post.category}
-        </p>
-        <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+    <article className="overflow-hidden rounded-[28px] bg-white shadow-[0_8px_30px_rgba(40,30,20,0.04)]">
+      <div className="grid md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)]">
+        <Link
+          href={`/blog/${post.slug}`}
+          className="relative block aspect-[4/3] overflow-hidden bg-[#f3ebe1] md:aspect-auto md:min-h-[260px]"
+        >
+          <Image
+            src={imageSrc}
+            alt={post.title}
+            fill
+            className="object-cover transition-transform duration-300 hover:scale-105"
+            sizes="(max-width: 768px) 100vw, 40vw"
+          />
+        </Link>
+
+        <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-9">
+          <div className="flex items-center justify-between gap-3 text-[11px] font-semibold tracking-[0.16em] text-[#c97852] uppercase">
+            <span>{post.category || "Blog"}</span>
+            <span>{readMinutes} min read</span>
+          </div>
+
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-[#1d262b] sm:text-[1.75rem] sm:leading-tight">
+            <Link
+              href={`/blog/${post.slug}`}
+              className="transition-colors hover:text-[#c97852] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c97852]"
+            >
+              {post.title}
+            </Link>
+          </h2>
+
+          {excerpt ? (
+            <p className="mt-4 text-sm leading-relaxed text-[#6d787e] sm:text-[15px]">
+              {excerpt}
+              {excerpt.length >= 180 ? "…" : ""}
+            </p>
+          ) : null}
+
           <Link
             href={`/blog/${post.slug}`}
-            className="hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#c97852] transition-colors hover:text-[#b56742] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c97852]"
           >
-            {post.title}
+            Read the article
+            <ArrowRight className="size-4" aria-hidden />
           </Link>
-        </h2>
-        <p className="mt-3 text-xs tracking-wide text-muted-foreground uppercase">
-          {formatBlogDate(post.publishedAt)}
-          {post.createdBy ? ` · ${post.createdBy}` : ""}
-        </p>
-        {excerpt ? (
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            {excerpt}
-            {excerpt.length >= 180 ? "…" : ""}
-          </p>
-        ) : null}
-        <Button asChild variant="outline" className="mt-6">
-          <Link href={`/blog/${post.slug}`}>Read More <ArrowRight className="size-4" aria-hidden /></Link>
-        </Button>
+        </div>
       </div>
     </article>
   );

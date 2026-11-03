@@ -20,6 +20,7 @@ import {
   productGallerySectionSchema,
   productHighlightsSectionSchema,
   productInfoSectionSchema,
+  productPdfsSectionSchema,
   productSizesSectionSchema,
   productTagsSectionSchema,
   productTaxSectionSchema,
@@ -128,6 +129,13 @@ productEditRoutes.put(
   validate({ params: productEditParamSchema, body: productVideosSectionSchema }),
   requireSiteAccess('siteCode'),
   asyncHandler(productEditController.updateVideos),
+);
+
+productEditRoutes.put(
+  '/:productId/sections/pdfs',
+  validate({ params: productEditParamSchema, body: productPdfsSectionSchema }),
+  requireSiteAccess('siteCode'),
+  asyncHandler(productEditController.updatePdfs),
 );
 
 productEditRoutes.put(

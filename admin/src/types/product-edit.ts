@@ -59,6 +59,22 @@ export type ProductVideoDto = {
   sortOrder: number;
 };
 
+export type ProductPdfDto = {
+  id: string;
+  name: string;
+  pdfUrl: string;
+  pdfPublicId: string;
+  sortOrder: number;
+};
+
+export type ProductPdfDto = {
+  id: string;
+  name: string;
+  pdfUrl: string;
+  pdfPublicId: string;
+  sortOrder: number;
+};
+
 export type ProductInfoSectionDto = {
   id: string;
   title: string;
@@ -120,6 +136,7 @@ export type ProductEditDto = {
   variants: ProductVariantOfferDto[];
   gallery: ProductGalleryImageDto[];
   videos: ProductVideoDto[];
+  pdfs: ProductPdfDto[];
   description: string;
   infoSections: ProductInfoSectionDto[];
   editorialReviews: ProductEditorialReviewDto[];
@@ -138,6 +155,7 @@ export type ProductEditSectionKey =
   | "coupon"
   | "tax"
   | "gallery"
+  | "pdf"
   | "video"
   | "description"
   | "info"
@@ -157,6 +175,7 @@ export const PRODUCT_EDIT_SECTIONS: ProductEditSection[] = [
   { key: "coupon", label: "Apply Coupon" },
   { key: "tax", label: "Apply Tax" },
   { key: "gallery", label: "Product Gallery" },
+  { key: "pdf", label: "Upload PDF" },
   { key: "video", label: "Video Management" },
   { key: "description", label: "Product Description" },
   { key: "info", label: "Product Information" },

@@ -7,6 +7,8 @@ import {
   ArrowLeft,
   ExternalLink,
   Newspaper,
+  Plus,
+  Trash2,
   UploadCloud,
 } from "lucide-react";
 
@@ -27,6 +29,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { storefrontBaseUrl } from "@/config/env";
 import {
+  normalizeAccordionItems,
   toDateInputValue,
   validateBlogEditForm,
   type BlogEditFormErrors,
@@ -53,6 +56,7 @@ function createEmptyEditValues(): BlogEditFormValues {
     imagePublicId: "",
     description: "",
     blockquote: "",
+    accordionItems: [{ question: "", description: "" }],
     active: true,
   };
 }
@@ -73,6 +77,7 @@ function dtoToEditValues(blog: BlogDto): BlogEditFormValues {
     imagePublicId: blog.imagePublicId,
     description: blog.description,
     blockquote: blog.blockquote,
+    accordionItems: normalizeAccordionItems(blog.accordionItems),
     active: blog.active,
   };
 }
@@ -495,6 +500,103 @@ export function EditBlogPage({
                   rows={4}
                   placeholder="Optional featured quote"
                 />
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card shadow-sm">
+              <CardHeader className="border-b border-border/70">
+                <CardTitle className="text-lg font-semibold">Accordion</CardTitle>
+                <CardDescription>
+                  Optional FAQ-style questions and descriptions shown after the
+                  blockquote on the public article page.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-6">
+                {values.accordionItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="grid items-start gap-3 rounded-xl border border-border/60 bg-muted/20 p-3 md:grid-cols-[1fr_2fr_auto]"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor={`blog-accordion-question-${index}`}>
+                        Question
+                      </Label>
+                      <Input
+                        id={`blog-accordion-question-${index}`}
+                        value={item.question}
+                        onChange={(event) =>
+                          setValues((prev) => {
+                            const next = [...prev.accordionItems];
+                            next[index] = {
+                              ...next[index],
+                              question: event.target.value,
+                            };
+                            return { ...prev, accordionItems: next };
+                          })
+                        }
+                        placeholder="e.g. How often should I use this?"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`blog-accordion-description-${index}`}>
+                        Description
+                      </Label>
+                      <Textarea
+                        id={`blog-accordion-description-${index}`}
+                        value={item.description}
+                        onChange={(event) =>
+                          setValues((prev) => {
+                            const next = [...prev.accordionItems];
+                            next[index] = {
+                              ...next[index],
+                              description: event.target.value,
+                            };
+                            return { ...prev, accordionItems: next };
+                          })
+                        }
+                        rows={3}
+                        placeholder="Answer or supporting details"
+                      />
+                    </div>
+                    <div className="flex gap-1.5 md:pt-7">
+                      <Button
+                        type="button"
+                        size="icon"
+                        onClick={() =>
+                          setValues((prev) => ({
+                            ...prev,
+                            accordionItems: [
+                              ...prev.accordionItems,
+                              { question: "", description: "" },
+                            ],
+                          }))
+                        }
+                        aria-label="Add accordion item"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                      {values.accordionItems.length > 1 ? (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          className="border-rose-200 text-rose-600"
+                          onClick={() =>
+                            setValues((prev) => ({
+                              ...prev,
+                              accordionItems: prev.accordionItems.filter(
+                                (_, itemIndex) => itemIndex !== index,
+                              ),
+                            }))
+                          }
+                          aria-label={`Remove accordion item ${index + 1}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
 

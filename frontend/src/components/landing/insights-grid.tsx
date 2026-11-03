@@ -99,23 +99,21 @@ export function InsightsGrid({ insights }: InsightsGridProps) {
   const showControls = cards.length > 3;
 
   return (
-    <section className="w-full bg-[#f3e7d5] py-14 sm:py-16" aria-labelledby="insights-heading">
+    <section className="w-full bg-white py-14 sm:py-16" aria-labelledby="insights-heading">
       <div className="container-page">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold tracking-[0.16em] text-[#9a7653] uppercase">
+            <p className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
               Related insights
             </p>
             <h2
               id="insights-heading"
-              className="mt-2 font-display text-3xl font-semibold tracking-tight text-[#18252b] sm:text-4xl"
+              className="mt-5 max-w-2xl text-4xl leading-[0.98] font-semibold tracking-[-0.045em] text-foreground sm:text-5xl"
             >
               Continue exploring.
             </h2>
+            <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
           </div>
-          <span className="hidden rounded-full border border-[#d8c9b5] px-4 py-2 text-xs font-semibold text-[#6e5a45] sm:inline-flex">
-            All insights
-          </span>
         </div>
 
         <Carousel opts={{ align: "start", loop: showControls }} className="w-full">

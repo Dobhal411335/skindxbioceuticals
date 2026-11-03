@@ -48,6 +48,13 @@ export type PublicProductVideo = {
   sortOrder: number;
 };
 
+export type PublicProductPdf = {
+  id: string;
+  name: string;
+  pdfUrl: string;
+  sortOrder: number;
+};
+
 export type PublicProductInfoSection = {
   id: string;
   title: string;
@@ -194,6 +201,7 @@ export type PublicProductDetail = {
   colors: PublicProductColor[];
   variants: PublicProductVariant[];
   videos: PublicProductVideo[];
+  pdfs: PublicProductPdf[];
   infoSections: PublicProductInfoSection[];
   editorialReviews: PublicProductEditorialReview[];
   tags: PublicProductTag[];

@@ -22,7 +22,7 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
             <TabsTrigger value="description">Product details</TabsTrigger>
           ) : (
             sections.map((section) => (
-              <TabsTrigger key={section.id} value={section.id}>
+              <TabsTrigger key={section.id} value={section.id} className="text-sm font-bold tracking-[0.08em] text-[#2f3438] uppercase sm:text-xs">
                 {section.title}
               </TabsTrigger>
             ))

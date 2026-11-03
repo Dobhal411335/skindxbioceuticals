@@ -28,6 +28,7 @@ export function mapStaticPostToStorefront(
     imageUrl: post.image,
     description: post.content.map((paragraph) => `<p>${paragraph}</p>`).join(""),
     blockquote: "",
+    accordionItems: [],
     createdAt: post.date,
   };
 }
@@ -59,6 +60,7 @@ export function getFallbackBlogBySlug(slug: string): StorefrontBlogDetail | null
 
   const related = getRecentBlogPosts(4)
     .filter((entry) => entry.slug !== post.slug && entry.category === post.category)
+    .slice(0, 3)
     .map(mapStaticPostToCard);
 
   const relatedFallback =

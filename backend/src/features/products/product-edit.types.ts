@@ -59,6 +59,14 @@ export type ProductVideoDto = {
   sortOrder: number;
 };
 
+export type ProductPdfDto = {
+  id: string;
+  name: string;
+  pdfUrl: string;
+  pdfPublicId: string;
+  sortOrder: number;
+};
+
 export type ProductInfoSectionDto = {
   id: string;
   title: string;
@@ -120,6 +128,7 @@ export type ProductEditDto = {
   variants: ProductVariantOfferDto[];
   gallery: ProductGalleryImageDto[];
   videos: ProductVideoDto[];
+  pdfs: ProductPdfDto[];
   description: string;
   infoSections: ProductInfoSectionDto[];
   editorialReviews: ProductEditorialReviewDto[];

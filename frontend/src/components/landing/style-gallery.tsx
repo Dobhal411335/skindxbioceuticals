@@ -263,16 +263,14 @@ export function StyleGallery({ items }: { items: GalleryItem[] }) {
       className="container-page section-space"
       aria-labelledby="gallery-heading"
     >
-      <div className="mx-auto max-w-3xl text-center">
+      <div className="">
         <h2
           id="gallery-heading"
           className="font-sans text-4xl font-semibold tracking-tight"
         >
           #Lookbook Gallery
         </h2>
-        <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-          Real routines, textures, and moments from SkinDx Bioc.
-        </p>
+        <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
       </div>
 
       <div className="mt-10">

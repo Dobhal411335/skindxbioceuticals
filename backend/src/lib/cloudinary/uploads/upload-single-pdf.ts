@@ -5,6 +5,18 @@ import { buildFolderPath } from '../utils/build-folder-path';
 import { normalizeUploadResult } from '../utils/normalize-upload-result';
 import { validateUpload } from '../utils/validate-upload';
 
+/** Raw Cloudinary URLs need a `.pdf` suffix or browsers treat them as downloads. */
+function buildPdfPublicId(originalName: string): string {
+  const withoutExt = originalName.replace(/\.pdf$/i, '').trim() || 'document';
+  const safeBase = withoutExt
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'document';
+  const unique = Date.now().toString(36);
+  return `${safeBase}-${unique}.pdf`;
+}
+
 export async function uploadSinglePdf(
   file: Express.Multer.File,
   options: UploadOptions,
@@ -13,11 +25,14 @@ export async function uploadSinglePdf(
     validateUpload(file, 'raw');
 
     const folder = buildFolderPath(options);
+    const publicId = buildPdfPublicId(file.originalname);
 
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
+          // Extension must be in public_id for raw assets or delivery URLs omit `.pdf`.
+          public_id: publicId,
           resource_type: 'raw',
         },
         (error, result) => {

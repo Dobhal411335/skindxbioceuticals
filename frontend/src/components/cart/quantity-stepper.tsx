@@ -36,7 +36,7 @@ export function QuantityStepper({
         type="button"
         variant="ghost"
         size={buttonSize}
-        className="size-8 rounded-full text-black hover:bg-background hover:text-foreground disabled:bg-transparent disabled:opacity-10 sm:size-9"
+        className="size-8 rounded-full text-black hover:bg-background hover:text-foreground disabled:bg-transparent disabled:opacity-10 sm:size-9 cursor-pointer"
         aria-label="Decrease quantity"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
@@ -64,7 +64,7 @@ export function QuantityStepper({
         type="button"
         variant="ghost"
         size={buttonSize}
-        className="size-8 rounded-full text-black hover:bg-background hover:text-foreground disabled:bg-transparent disabled:opacity-10 sm:size-9"
+        className="size-8 rounded-full text-black hover:bg-background hover:text-foreground disabled:bg-transparent disabled:opacity-10 sm:size-9 cursor-pointer"
         aria-label="Increase quantity"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}

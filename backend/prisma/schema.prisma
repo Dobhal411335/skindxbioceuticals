@@ -422,6 +422,7 @@ model Product {
   colors           ProductColor[]
   galleryImages    ProductGalleryImage[]
   videos           ProductVideo[]
+  pdfs             ProductPdf[]
   infoSections     ProductInfoSection[]
   editorialReviews ProductEditorialReview[]
   tags             ProductTag[]
@@ -540,6 +541,23 @@ model ProductVideo {
 
   @@index([productId, sortOrder])
   @@map("product_videos")
+}
+
+/// Product PDF documents uploaded via Cloudinary (raw/resource_type=raw).
+model ProductPdf {
+  id          String   @id @default(uuid()) @db.Uuid
+  productId   String   @map("product_id") @db.Uuid
+  name        String
+  pdfUrl      String   @map("pdf_url")
+  pdfPublicId String   @default("") @map("pdf_public_id")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+  @@map("product_pdfs")
 }
 
 model ProductInfoSection {
@@ -1035,6 +1053,8 @@ model Blog {
   imagePublicId String   @default("") @map("image_public_id")
   description   String   @default("") @db.Text
   blockquote    String   @default("") @db.Text
+  /// FAQ-style accordion rows: `[{ question, description }]`
+  accordionItems Json @default("[]") @map("accordion_items")
   active        Boolean  @default(true)
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")

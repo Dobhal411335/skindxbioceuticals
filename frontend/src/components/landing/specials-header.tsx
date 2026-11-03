@@ -10,8 +10,7 @@ export function SpecialsHeader({ promo = FALLBACK_ABOUT_US_BANNER.promo }: Speci
     <section className="border-y border-[#e7dfd7] bg-[#fbf8f3]" aria-labelledby="specials-heading">
       <div className="container-page section-space grid gap-12 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.35fr)] lg:gap-20">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <div className="flex items-center gap-3 text-[11px] font-semibold tracking-[0.18em] text-[#a84f30] uppercase">
-            <span className="h-px w-7 bg-[#c56f4d]" aria-hidden />
+        <div className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
             <span>{promo.label}</span>
           </div>
           <h2

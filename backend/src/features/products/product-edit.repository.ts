@@ -10,6 +10,7 @@ import type {
   ProductGallerySectionBody,
   ProductHighlightsSectionBody,
   ProductInfoSectionBody,
+  ProductPdfsSectionBody,
   ProductSizesSectionBody,
   ProductTagsSectionBody,
   ProductTaxSectionBody,
@@ -30,6 +31,7 @@ export class ProductEditRepository {
         colors: { orderBy: { sortOrder: 'asc' } },
         galleryImages: { orderBy: { sortOrder: 'asc' } },
         videos: { orderBy: { sortOrder: 'asc' } },
+        pdfs: { orderBy: { sortOrder: 'asc' } },
         infoSections: { orderBy: { sortOrder: 'asc' } },
         editorialReviews: { orderBy: { sortOrder: 'asc' } },
         highlights: { orderBy: { sortOrder: 'asc' } },
@@ -342,6 +344,39 @@ export class ProductEditRepository {
         });
       }
     });
+  }
+
+  async replacePdfs(
+    productId: string,
+    body: ProductPdfsSectionBody,
+  ): Promise<{ removedPublicIds: string[] }> {
+    const existing = await prisma.productPdf.findMany({
+      where: { productId },
+      select: { pdfPublicId: true },
+    });
+    const nextPublicIds = new Set(
+      body.pdfs.map((pdf) => pdf.pdfPublicId.trim()).filter(Boolean),
+    );
+    const removedPublicIds = existing
+      .map((row) => row.pdfPublicId.trim())
+      .filter((publicId) => publicId && !nextPublicIds.has(publicId));
+
+    await prisma.$transaction(async (tx) => {
+      await tx.productPdf.deleteMany({ where: { productId } });
+      if (body.pdfs.length > 0) {
+        await tx.productPdf.createMany({
+          data: body.pdfs.map((pdf, index) => ({
+            productId,
+            name: pdf.name,
+            pdfUrl: pdf.pdfUrl,
+            pdfPublicId: pdf.pdfPublicId,
+            sortOrder: pdf.sortOrder ?? index,
+          })),
+        });
+      }
+    });
+
+    return { removedPublicIds };
   }
 
   async updateDescription(productId: string, body: ProductDescriptionSectionBody): Promise<void> {

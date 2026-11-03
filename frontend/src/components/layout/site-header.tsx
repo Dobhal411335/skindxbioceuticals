@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Mail, MessageCircle, Phone, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone, type LucideIcon } from "lucide-react";
 
 import { HeaderAccountMenu } from "@/components/layout/header-account-menu";
 import { HeaderCartButton } from "@/components/layout/header-cart-button";
@@ -32,6 +32,12 @@ export function SiteHeader() {
   const brandName = company.companyName?.trim() || "SkinDx";
   const logoUrl = company.mainLogo?.url?.trim() || company.mobileUiLogo?.url?.trim() || "";
   const email = company.emails?.[0]?.trim() || "";
+  const address = company.officeAddresses?.[0]?.trim() || "";
+  const mapHref =
+    company.googleMapLink?.trim() ||
+    company.googleLink?.trim() ||
+    company.googleUrl?.trim() ||
+    "";
   const phone = company.contactNumbers?.[0]?.trim() || "";
   const whatsapp = company.whatsappNumber?.trim() || phone;
   const phoneDigits = phone.replace(/\D/g, "");
@@ -69,25 +75,56 @@ export function SiteHeader() {
     text: string;
   }>;
 
+  const showUtilityBar = Boolean(address) || utilityContacts.length > 0;
+
   return (
     <>
-      {utilityContacts.length > 0 && (
+      {showUtilityBar && (
         <div className="border-b border-white/50 bg-[#14272E]">
-          <div className="md:px-10 px-5 flex w-full items-center justify-between md:justify-end md:gap-5 py-2 text-xs text-white">
-            {utilityContacts.map(({ href, icon: Icon, label, text }) => (
-              <Link
-                key={`${label}-${text}`}
-                href={href}
-                aria-label={`${label}: ${text}`}
-                className="inline-flex items-center gap-1.5 whitespace-nowrap transition-opacity hover:opacity-80"
-                {...(href.startsWith("https://")
-                  ? { target: "_blank", rel: "noopener noreferrer" }
-                  : {})}
-              >
-                <Icon className="size-3.5" aria-hidden="true" />
-                <span className="truncate">{text}</span>
-              </Link>
-            ))}
+          <div className="md:px-10 px-5 flex w-full items-center justify-between gap-4 py-2 text-xs text-white">
+            {address ? (
+              mapHref ? (
+                <Link
+                  href={mapHref}
+                  aria-label={`Address: ${address}`}
+                  className="inline-flex min-w-0 items-center gap-1.5 transition-opacity hover:opacity-80"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{address}</span>
+                </Link>
+              ) : (
+                <span
+                  className="inline-flex min-w-0 items-center gap-1.5"
+                  aria-label={`Address: ${address}`}
+                >
+                  <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{address}</span>
+                </span>
+              )
+            ) : (
+              <span />
+            )}
+
+            {utilityContacts.length > 0 && (
+              <div className="flex shrink-0 items-center gap-3 md:gap-5">
+                {utilityContacts.map(({ href, icon: Icon, label, text }) => (
+                  <Link
+                    key={`${label}-${text}`}
+                    href={href}
+                    aria-label={`${label}: ${text}`}
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap transition-opacity hover:opacity-80"
+                    {...(href.startsWith("https://")
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                  >
+                    <Icon className="size-3.5" aria-hidden="true" />
+                    <span className="truncate">{text}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -8,6 +8,7 @@ import {
 } from "@/features/blog/blog.defaults";
 import type {
   StorefrontBlog,
+  StorefrontBlogAccordionItem,
   StorefrontBlogCard,
   StorefrontBlogCategory,
   StorefrontBlogDetail,
@@ -38,6 +39,7 @@ type ApiBlog = {
   imageUrl: string;
   description?: string;
   blockquote?: string;
+  accordionItems?: StorefrontBlogAccordionItem[];
   createdAt?: string;
 };
 
@@ -85,6 +87,21 @@ function preferHttps(url: string): string {
   return url;
 }
 
+function mapAccordionItems(
+  value: StorefrontBlogAccordionItem[] | undefined,
+): StorefrontBlogAccordionItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => ({
+      question: typeof item?.question === "string" ? item.question.trim() : "",
+      description:
+        typeof item?.description === "string" ? item.description.trim() : "",
+    }))
+    .filter((item) => item.question.length > 0 || item.description.length > 0);
+}
+
 function mapBlog(row: ApiBlog): StorefrontBlog {
   return {
     id: row.id,
@@ -104,6 +121,7 @@ function mapBlog(row: ApiBlog): StorefrontBlog {
     imageUrl: preferHttps(row.imageUrl || ""),
     description: row.description || "",
     blockquote: row.blockquote || "",
+    accordionItems: mapAccordionItems(row.accordionItems),
     createdAt: row.createdAt || row.publishedAt,
   };
 }

@@ -1,4 +1,5 @@
 import type {
+  BlogAccordionItem,
   BlogCreateFormValues,
   BlogCreatePayload,
   BlogEditFormValues,
@@ -104,9 +105,27 @@ export function validateBlogEditForm(
       imagePublicId: values.imagePublicId.trim(),
       description: values.description,
       blockquote: values.blockquote.trim(),
+      accordionItems: values.accordionItems
+        .map((item) => ({
+          question: item.question.trim(),
+          description: item.description.trim(),
+        }))
+        .filter((item) => item.question.length > 0 || item.description.length > 0),
       active: values.active,
     },
   };
+}
+
+export function normalizeAccordionItems(
+  value: BlogAccordionItem[] | undefined | null,
+): BlogAccordionItem[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    return [{ question: "", description: "" }];
+  }
+  return value.map((item) => ({
+    question: item.question ?? "",
+    description: item.description ?? "",
+  }));
 }
 
 /** Date input value (yyyy-mm-dd) from an ISO timestamp. */

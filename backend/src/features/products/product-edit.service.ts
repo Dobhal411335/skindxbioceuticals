@@ -15,6 +15,7 @@ import type {
   ProductGallerySectionBody,
   ProductHighlightsSectionBody,
   ProductInfoSectionBody,
+  ProductPdfsSectionBody,
   ProductSizesSectionBody,
   ProductTagsSectionBody,
   ProductTaxSectionBody,
@@ -33,6 +34,7 @@ import type {
   ProductGalleryImageDto,
   ProductHighlightDto,
   ProductInfoSectionDto,
+  ProductPdfDto,
   ProductSizeDto,
   ProductTaxDto,
   ProductVariantOfferDto,
@@ -157,6 +159,14 @@ export class ProductEditService {
       sortOrder: row.sortOrder,
     }));
 
+    const pdfs: ProductPdfDto[] = record.pdfs.map((row) => ({
+      id: row.id,
+      name: row.name,
+      pdfUrl: preferHttpsUrl(row.pdfUrl),
+      pdfPublicId: row.pdfPublicId,
+      sortOrder: row.sortOrder,
+    }));
+
     const infoSections: ProductInfoSectionDto[] = record.infoSections.map((row) => ({
       id: row.id,
       title: row.title,
@@ -233,6 +243,7 @@ export class ProductEditService {
       variants,
       gallery,
       videos,
+      pdfs,
       description: record.description ?? '',
       infoSections,
       editorialReviews,
@@ -542,6 +553,42 @@ export class ProductEditService {
         productId: input.productId,
       },
       'Product videos updated',
+    );
+    return this.loadEditDto(input.siteId, input.siteCode, input.productId);
+  }
+
+  async updatePdfs(input: {
+    siteId: string;
+    siteCode: SiteCode;
+    userId: string;
+    productId: string;
+    body: ProductPdfsSectionBody;
+  }): Promise<ProductEditDto> {
+    await this.requireProduct(input.siteId, input.productId);
+    const normalizedBody: ProductPdfsSectionBody = {
+      pdfs: input.body.pdfs.map((pdf) => ({
+        ...pdf,
+        pdfUrl: preferHttpsUrl(pdf.pdfUrl),
+        pdfPublicId: pdf.pdfPublicId.trim(),
+      })),
+    };
+    const { removedPublicIds } = await this.repository.replacePdfs(
+      input.productId,
+      normalizedBody,
+    );
+    await Promise.all(
+      removedPublicIds.map((publicId) =>
+        deleteStoredCloudinaryAssetBestEffort(publicId, { resourceType: 'raw' }),
+      ),
+    );
+    logger.info(
+      {
+        event: 'product_edit.pdfs_updated',
+        siteCode: input.siteCode,
+        userId: input.userId,
+        productId: input.productId,
+      },
+      'Product PDFs updated',
     );
     return this.loadEditDto(input.siteId, input.siteCode, input.productId);
   }

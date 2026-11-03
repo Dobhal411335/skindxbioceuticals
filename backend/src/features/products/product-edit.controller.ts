@@ -12,6 +12,7 @@ import type {
   ProductGallerySectionBody,
   ProductHighlightsSectionBody,
   ProductInfoSectionBody,
+  ProductPdfsSectionBody,
   ProductSizesSectionBody,
   ProductTagsSectionBody,
   ProductTaxSectionBody,
@@ -147,6 +148,18 @@ export class ProductEditController {
       body: req.body as ProductVideosSectionBody,
     });
     sendSuccess(res, data, 'Videos updated');
+  };
+
+  updatePdfs = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user || !req.site) throw new UnauthorizedError();
+    const data = await this.service.updatePdfs({
+      siteId: req.site.id,
+      siteCode: req.site.code,
+      userId: req.user.id,
+      productId: String(req.params.productId),
+      body: req.body as ProductPdfsSectionBody,
+    });
+    sendSuccess(res, data, 'PDFs updated');
   };
 
   updateDescription = async (req: Request, res: Response): Promise<void> => {

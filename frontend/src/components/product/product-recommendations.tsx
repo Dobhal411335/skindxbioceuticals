@@ -22,15 +22,14 @@ export function ProductRecommendations({ products }: ProductRecommendationsProps
   if (products.length === 0) return null;
 
   return (
-    <section className="container-page section-space">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.6fr)] lg:items-center">
+    <section className="bg-[#f7f3eb]">
+      <div className="container-page section-space grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.6fr)] lg:items-center">
         <div>
-          <h2 className="font-display text-4xl font-semibold tracking-tight">
+          <h2 id="more-from-this-category-heading" className="max-w-xl font-medium text-5xl leading-[0.98] tracking-[-0.04em] text-[#1c2a2e]"
+          >
             More from this category
           </h2>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Related products from the same category, excluding the current item.
-          </p>
+          <div className="mt-2 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
           <Button asChild className="mt-8 rounded-full p-6" size="lg">
             <Link href="/category" className="flex items-center justify-center gap-2">
               <span>Browse categories</span>

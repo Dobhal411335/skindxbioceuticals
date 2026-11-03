@@ -116,7 +116,7 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
               src={imageUrl}
               alt={product.name}
               fill
-              className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
               sizes="(max-width: 768px) 70vw, 25vw"
             />
           </Link>

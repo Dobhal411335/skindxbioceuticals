@@ -374,6 +374,27 @@ export function ProductViewModal({
                   ))}
                 </div>
               ) : null}
+              {(payload.pdfs?.length ?? 0) > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    PDFs
+                  </p>
+                  <ul className="space-y-1 text-sm">
+                    {payload.pdfs.map((pdf) => (
+                      <li key={pdf.id}>
+                        <a
+                          href={pdf.pdfUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary underline-offset-2 hover:underline"
+                        >
+                          {pdf.name || pdf.pdfUrl}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               {payload.videos.length > 0 ? (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">

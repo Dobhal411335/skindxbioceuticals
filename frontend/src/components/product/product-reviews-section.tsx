@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Pause, Play, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
 import {
   Carousel,
@@ -13,7 +13,6 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PublicProductDetail, PublicProductEditorialReview } from "@/types/product";
 
@@ -31,7 +30,7 @@ function ReviewCard({ review }: { review: PublicProductEditorialReview }) {
     .join("");
 
   return (
-    <figure className="flex h-full flex-col justify-between rounded-2xl border border-black/[0.06] bg-white p-7 text-left shadow-[0_2px_12px_rgba(20,30,40,0.06)] transition-shadow duration-200 hover:shadow-[0_8px_24px_rgba(20,30,40,0.1)] sm:p-8">
+    <figure className="flex h-full flex-col justify-between rounded-2xl border border-gray-500 bg-white p-7 text-left sm:p-8">
       <div className="flex items-center gap-1.5" aria-label={`${rating} out of 5 stars`}>
         {Array.from({ length: 5 }).map((_, index) => (
           <Star
@@ -55,7 +54,7 @@ function ReviewCard({ review }: { review: PublicProductEditorialReview }) {
         className="rich-html mt-5 line-clamp-6 flex-1 text-base italic leading-relaxed text-[#34475c]"
         dangerouslySetInnerHTML={{ __html: review.body }}
       />
-      <figcaption className="mt-8 flex items-center gap-3 border-t border-[#e8e5df] pt-5">
+      <figcaption className="mt-8 flex items-center gap-3 border-t border-gray-500 pt-5">
         {review.imageUrl ? (
           <div className="relative size-15 border bordre-primary overflow-hidden rounded-full bg-surface">
             <Image src={review.imageUrl} alt="" fill className="object-cover" sizes="40px" />
@@ -77,11 +76,9 @@ function ReviewCard({ review }: { review: PublicProductEditorialReview }) {
 export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
   const reviews = product.editorialReviews ?? [];
   const [api, setApi] = useState<CarouselApi>();
-  const [isPaused, setIsPaused] = useState(false);
 
   useCarouselAutoplay(api, {
     enabled: reviews.length > 1,
-    paused: isPaused,
     intervalMs: 5000,
   });
 
@@ -94,66 +91,45 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
   return (
     <section
       id="product-reviews"
-      className="scroll-mt-24 overflow-hidden border-y border-[#e8e5df] bg-[#f7f5f1]"
+      className="scroll-mt-24 overflow-hidden border-y border-[#e8e5df] bg-white"
       aria-labelledby="product-reviews-heading"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
     >
       <div className="container-page section-space sm:py-20 lg:py-24">
-        <div className="mb-10 flex items-start justify-between gap-8">
-          <div>
-            <p className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
-              Community voices
-            </p>
-            <h2
-              id="product-reviews-heading"
-              className="mt-2 text-4xl font-semibold tracking-tight text-[#101d2d] sm:text-5xl"
+        <div className="mb-10">
+          <p className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
+            Community voices
+          </p>
+          <h2
+            id="product-reviews-heading"
+            className="mt-2 text-4xl font-semibold tracking-tight text-[#101d2d] sm:text-5xl"
+          >
+            What customers say
+          </h2>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <div
+              className="flex items-center gap-0.5"
+              aria-label={`Average rating ${product.averageRating} out of 5`}
             >
-              What customers say
-            </h2>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <div
-                className="flex items-center gap-0.5"
-                aria-label={`Average rating ${product.averageRating} out of 5`}
-              >
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star
-                    key={index}
-                    className={cn(
-                      "size-5",
-                      index < filled
-                        ? "fill-[#ef6a24] text-[#ef6a24]"
-                        : "fill-transparent text-[#ef6a24]/30",
-                    )}
-                    aria-hidden
-                  />
-                ))}
-              </div>
-              <span className="font-semibold text-[#17283d]">
-                {product.averageRating.toFixed(1)}
-              </span>
-              <span>
-                from {product.reviewCount} {product.reviewCount === 1 ? "customer" : "customers"}
-              </span>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star
+                  key={index}
+                  className={cn(
+                    "size-5",
+                    index < filled
+                      ? "fill-[#ef6a24] text-[#ef6a24]"
+                      : "fill-transparent text-[#ef6a24]/30",
+                  )}
+                  aria-hidden
+                />
+              ))}
             </div>
+            <span className="font-semibold text-[#17283d]">
+              {product.averageRating.toFixed(1)}
+            </span>
+            <span>
+              from {product.reviewCount} {product.reviewCount === 1 ? "customer" : "customers"}
+            </span>
           </div>
-          {reviews.length > 1 ? (
-            <Button
-              type="button"
-              size="icon"
-              variant="outline"
-              className="size-12 shrink-0 rounded-full border-[#dedbd5] bg-white text-[#17283d] shadow-sm hover:bg-white"
-              onClick={() => setIsPaused((prev) => !prev)}
-              aria-label={isPaused ? "Play product reviews" : "Pause product reviews"}
-              aria-pressed={isPaused}
-            >
-              {isPaused ? (
-                <Play className="size-5 fill-current" />
-              ) : (
-                <Pause className="size-5 fill-current" />
-              )}
-            </Button>
-          ) : null}
         </div>
 
         {reviews.length > 0 ? (

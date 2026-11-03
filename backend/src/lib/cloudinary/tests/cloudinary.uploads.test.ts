@@ -1,4 +1,5 @@
 import { uploadSingleImage } from '../uploads/upload-single-image';
+import { uploadSinglePdf } from '../uploads/upload-single-pdf';
 import { cloudinary } from '../cloudinary.config';
 import { CloudinaryError } from '../cloudinary.errors';
 
@@ -47,6 +48,38 @@ describe('Cloudinary Uploads', () => {
       expect.objectContaining({
         folder: 'skindx/in/products',
         resource_type: 'image',
+      }),
+      expect.any(Function),
+    );
+  });
+
+  it('should upload PDFs as raw assets with a .pdf public_id', async () => {
+    const pdfFile = {
+      originalname: 'Ingredient Sheet.PDF',
+      size: 2048,
+      buffer: Buffer.from('%PDF'),
+      mimetype: 'application/pdf',
+    } as Express.Multer.File;
+
+    (cloudinary.uploader.upload_stream as jest.Mock).mockImplementation((_options, callback) => {
+      callback(null, {
+        public_id: 'skindx/in/products/ingredient-sheet-abc.pdf',
+        secure_url:
+          'https://res.cloudinary.com/demo/raw/upload/v1/skindx/in/products/ingredient-sheet-abc.pdf',
+        format: 'pdf',
+        resource_type: 'raw',
+        bytes: 2048,
+      });
+      return { end: jest.fn() };
+    });
+
+    await uploadSinglePdf(pdfFile, mockOptions);
+
+    expect(cloudinary.uploader.upload_stream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        folder: 'skindx/in/products',
+        resource_type: 'raw',
+        public_id: expect.stringMatching(/\.pdf$/),
       }),
       expect.any(Function),
     );

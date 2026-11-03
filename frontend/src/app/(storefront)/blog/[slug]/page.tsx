@@ -4,8 +4,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Quote } from "lucide-react";
 
+import { BlogAccordion } from "@/components/blog/blog-accordion";
+import { BlogRelatedSection } from "@/components/blog/blog-related-section";
 import { BlogSidebar } from "@/components/blog/blog-sidebar";
-import { OffersBanner } from "@/components/shared/offers-banner";
 import {
   formatBlogDate,
   getBlogBySlug,
@@ -62,122 +63,100 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
   return (
     <>
-      <article className="container-page section-space">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.6fr)] lg:items-start">
-          <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto">
-            <BlogSidebar
-              categories={list.categories}
-              recent={recent}
-              share={{
-                title: post.title,
-                text: shareText,
-                url: `/blog/${post.slug}`,
-                toastId: "blog.share",
-                errorMessage: "Could not share this article.",
-              }}
-            />
-          </div>
-
-          <div className="min-w-0">
-            <nav className="mb-4 text-sm text-muted-foreground" aria-label="Breadcrumb">
-              <Link href="/" className="hover:text-foreground">
-                Home
-              </Link>
-              <span className="mx-2">/</span>
-              <Link href="/blog" className="hover:text-foreground">
-                Blog
-              </Link>
-              <span className="mx-2">/</span>
-              <span className="text-foreground">{post.title}</span>
-            </nav>
-
-            <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-              {post.category}
-            </p>
-            <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              {post.title}
-            </h1>
-            <p className="mt-3 text-sm text-muted-foreground">
-              {formatBlogDate(post.publishedAt)}
-              {post.createdBy ? ` · By ${post.createdBy}` : ""}
-            </p>
-
-            <div className="relative mt-8 aspect-[16/9] overflow-hidden bg-surface">
-              <Image
-                src={imageSrc}
-                alt={post.title}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 70vw"
+      <article className="bg-[#f4ebe1]">
+        <div className="container-page section-space py-12 sm:py-16 lg:py-20">
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.55fr)] lg:gap-10">
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <BlogSidebar
+                categories={list.categories}
+                recent={recent}
+                share={{
+                  title: post.title,
+                  text: shareText,
+                  url: `/blog/${post.slug}`,
+                  toastId: "blog.share",
+                  errorMessage: "Could not share this article.",
+                }}
               />
             </div>
 
-            {post.blockquote ? (
-              <blockquote className="mt-8 flex items-start gap-4 rounded-xl bg-muted/70 px-6 py-7 sm:gap-5 sm:px-8 sm:py-8">
-                <Quote
-                  className="mt-0.5 size-7 shrink-0 text-secondary sm:size-8"
-                  strokeWidth={2.25}
-                  aria-hidden
-                />
-                <p className="text-base leading-snug font-bold text-secondary sm:text-lg">
-                  {formatBlockquoteText(post.blockquote)}
+            <div className="min-w-0 space-y-6">
+              <div className="rounded-[28px] bg-white p-6 shadow-[0_8px_30px_rgba(40,30,20,0.04)] sm:p-8 lg:p-10">
+                <nav
+                  className="text-sm font-medium text-[#7a858b]"
+                  aria-label="Breadcrumb"
+                >
+                  <Link
+                    href="/"
+                    className="transition-colors hover:text-[#1d262b] underline decoration-[#c97852] decoration-1 underline-offset-4"
+                  >
+                    Home
+                  </Link>
+                  <span className="mx-2">/</span>
+                  <Link
+                    href="/blog"
+                    className="transition-colors hover:text-[#1d262b] underline decoration-[#c97852] decoration-1 underline-offset-4"
+                  >
+                    Blog
+                  </Link>
+                  <span className="mx-2">/</span>
+                  <span className="text-[#1d262b]">{post.title}</span>
+                </nav>
+
+                <p className="mt-6 text-[11px] font-semibold tracking-[0.16em] text-[#c97852] uppercase">
+                  {post.category}
                 </p>
-              </blockquote>
-            ) : null}
+                <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#1d262b] sm:text-4xl sm:leading-tight">
+                  {post.title}
+                </h1>
+                <p className="mt-3 text-sm tracking-wide text-[#6d787e] uppercase">
+                  {formatBlogDate(post.publishedAt)}
+                  {post.createdBy ? ` · ${post.createdBy}` : ""}
+                </p>
 
-            {post.description ? (
-              <div
-                className="rich-html mt-8 max-w-none text-sm leading-relaxed text-muted-foreground sm:text-base"
-                dangerouslySetInnerHTML={{ __html: post.description }}
-              />
-            ) : (
-              <p className="mt-8 text-sm text-muted-foreground">
-                This article does not have content yet.
-              </p>
-            )}
+                <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-md bg-[#f3ebe1]">
+                  <Image
+                    src={imageSrc}
+                    alt={post.title}
+                    fill
+                    priority
+                    className="rounded-md object-cover"
+                    sizes="(max-width: 1024px) 100vw, 70vw"
+                  />
+                </div>
 
-            {post.related.length > 0 ? (
-              <div className="mt-12 border-t border-border pt-8">
-                <h2 className="text-lg font-semibold">Related articles</h2>
-                <ul className="mt-6 grid gap-6 sm:grid-cols-2">
-                  {post.related.map((entry) => (
-                    <li key={entry.id}>
-                      <Link
-                        href={`/blog/${entry.slug}`}
-                        className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <div className="relative aspect-[4/3] overflow-hidden bg-surface">
-                          <Image
-                            src={
-                              entry.imageUrl ||
-                              "https://placehold.co/800x600/png?text=SkinDx+Blog"
-                            }
-                            alt={entry.name}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            sizes="(max-width: 768px) 100vw, 30vw"
-                          />
-                        </div>
-                        <p className="mt-3 text-sm font-semibold group-hover:text-primary">
-                          {entry.name}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {formatBlogDate(entry.publishedAt)}
-                          {entry.createdBy ? ` · ${entry.createdBy}` : ""}
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                {post.blockquote ? (
+                  <blockquote className="mt-8 flex items-start gap-4 rounded-2xl bg-[#f7f1ea] px-6 py-7 sm:gap-5 sm:px-8 sm:py-8">
+                    <Quote
+                      className="mt-0.5 size-7 shrink-0 text-[#c97852] sm:size-8"
+                      strokeWidth={2.25}
+                      aria-hidden
+                    />
+                    <p className="text-base leading-snug font-semibold text-[#1d262b] sm:text-lg">
+                      {formatBlockquoteText(post.blockquote)}
+                    </p>
+                  </blockquote>
+                ) : null}
+
+                <BlogAccordion items={post.accordionItems} />
+
+                {post.description ? (
+                  <div
+                    className="rich-html mt-8 max-w-none text-sm leading-relaxed text-[#6d787e] sm:text-base [&_a]:text-[#c97852] [&_h1]:text-[#1d262b] [&_h2]:text-[#1d262b] [&_h3]:text-[#1d262b] [&_img]:rounded-md [&_strong]:text-[#1d262b]"
+                    dangerouslySetInnerHTML={{ __html: post.description }}
+                  />
+                ) : (
+                  <p className="mt-8 text-sm text-[#6d787e]">
+                    This article does not have content yet.
+                  </p>
+                )}
               </div>
-            ) : (
-              null
-            )}
+            </div>
           </div>
         </div>
+
+        <BlogRelatedSection items={post.related} />
       </article>
-      <OffersBanner />
     </>
   );
 }

@@ -72,6 +72,7 @@ function makeProduct(
       },
     ],
     videos: [],
+    pdfs: [],
     infoSections: [],
     editorialReviews: [],
     tags: [],

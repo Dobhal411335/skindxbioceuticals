@@ -57,6 +57,7 @@ export function toBlogDto(record: BlogRecord, siteCode: SiteCode): BlogDto {
     imagePublicId: record.imagePublicId,
     description: record.description,
     blockquote: record.blockquote,
+    accordionItems: record.accordionItems,
     active: record.active,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
@@ -83,6 +84,7 @@ export function toBlogPublicDto(record: BlogRecord, siteCode: SiteCode): BlogPub
     imageUrl: preferHttpsUrl(record.imageUrl),
     description: record.description,
     blockquote: record.blockquote,
+    accordionItems: record.accordionItems,
     createdAt: record.createdAt.toISOString(),
   };
 }
@@ -177,7 +179,7 @@ export class BlogService {
       siteId,
       record.category,
       record.id,
-      4,
+      3,
     );
 
     return {
@@ -215,6 +217,7 @@ export class BlogService {
       imagePublicId: '',
       description: '',
       blockquote: '',
+      accordionItems: [],
       active: input.body.active,
     });
 
@@ -283,6 +286,7 @@ export class BlogService {
       imagePublicId: nextPublicId,
       description: input.body.description,
       blockquote: input.body.blockquote,
+      accordionItems: input.body.accordionItems ?? [],
       active: input.body.active,
     });
     if (!record) {

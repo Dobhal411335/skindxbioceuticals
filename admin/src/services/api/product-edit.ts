@@ -204,6 +204,21 @@ export function updateProductVideos(
   return putSection(siteCode, productId, "videos", body);
 }
 
+export function updateProductPdfs(
+  siteCode: SiteCode,
+  productId: string,
+  body: {
+    pdfs: Array<{
+      name: string;
+      pdfUrl: string;
+      pdfPublicId?: string;
+      sortOrder?: number;
+    }>;
+  },
+) {
+  return putSection(siteCode, productId, "pdfs", body);
+}
+
 export function updateProductDescription(
   siteCode: SiteCode,
   productId: string,
@@ -300,6 +315,39 @@ export async function uploadProductImage(
 
   const { data } = await apiClient.post<ApiSuccess<MediaUploadResponse>>(
     endpoints.media.uploadImage,
+    formData,
+    {
+      params: {
+        siteCode,
+        feature: "products",
+        ...(entityId ? { entityId } : {}),
+      },
+      headers: { "Content-Type": "multipart/form-data" },
+    },
+  );
+
+  return resolveProductMediaUpload(data.data);
+}
+
+const MAX_PRODUCT_PDF_BYTES = 10 * 1024 * 1024;
+
+export async function uploadProductPdf(
+  siteCode: SiteCode,
+  file: File,
+  entityId?: string | null,
+): Promise<{ url: string; publicId: string }> {
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    throw new Error("Only PDF files are allowed");
+  }
+  if (file.size > MAX_PRODUCT_PDF_BYTES) {
+    throw new Error("PDF must be 10MB or smaller");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const { data } = await apiClient.post<ApiSuccess<MediaUploadResponse>>(
+    endpoints.media.uploadDocument,
     formData,
     {
       params: {

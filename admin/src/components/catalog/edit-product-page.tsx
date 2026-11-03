@@ -13,6 +13,7 @@ import {
   InfoSection,
   QuantityManagementSection,
   ReviewSection,
+  PdfSection,
   SizeManagementSection,
   TagsSection,
   TaxSection,
@@ -218,6 +219,15 @@ export function EditProductPage({
                 {activeSection === "gallery" ? (
                   <GallerySection
                     key={`gallery-${data.product.updatedAt}`}
+                    siteCode={siteCode}
+                    productId={productId}
+                    data={data}
+                    onUpdated={setData}
+                  />
+                ) : null}
+                {activeSection === "pdf" ? (
+                  <PdfSection
+                    key={`pdf-${data.product.updatedAt}`}
                     siteCode={siteCode}
                     productId={productId}
                     data={data}

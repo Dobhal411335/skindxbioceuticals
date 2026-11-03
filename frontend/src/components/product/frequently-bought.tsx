@@ -166,10 +166,12 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
   if (bundle.length === 0) return null;
 
   return (
-    <section className="w-full section-space bg-primary/15">
+    <section className="w-full section-space bg-[#f7f3eb]">
       <div className="container-page mx-auto px-4 sm:px-6">
-        <h2 className="font-sans-serif text-4xl font-semibold mb-8">Frequently bought together</h2>
-        <div className="flex flex-col xl:flex-row gap-8 items-start w-full">
+        <h2 id="frequently-bought-together-heading" className="max-w-xl font-serif text-5xl leading-[0.98] tracking-[-0.04em] text-[#1c2a2e] mb-5"
+          >Frequently bought together</h2>
+          <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
+        <div className="flex flex-col xl:flex-row gap-8 items-start w-full mt-5">
           <div className="relative min-w-0 flex-1 px-1 sm:px-4">
             <Carousel opts={{ align: "start", loop: bundle.length > 3 }}>
               <CarouselContent className="-ml-4">

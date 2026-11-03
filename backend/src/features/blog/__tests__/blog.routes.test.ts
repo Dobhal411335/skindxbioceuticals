@@ -111,11 +111,25 @@ describe('Blog API routes', () => {
         imagePublicId: 'blog/post',
         description: '<p>Body</p>',
         blockquote: 'Quote',
+        accordionItems: [
+          { question: 'What should I know?', description: 'Start with the basics.' },
+        ],
         active: true,
       });
 
     expect(response.status).toBe(200);
-    expect(blogService.updateForSite).toHaveBeenCalled();
+    expect(blogService.updateForSite).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          accordionItems: [
+            {
+              question: 'What should I know?',
+              description: 'Start with the basics.',
+            },
+          ],
+        }),
+      }),
+    );
   });
 
   it('patches blog name', async () => {

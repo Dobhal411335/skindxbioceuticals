@@ -95,7 +95,7 @@ function HoverButton({
   label: string;
   primary?: boolean;
 }) {
-  const className = `inline-flex items-center justify-center rounded border px-4 py-2 text-xl font-semibold transition-colors ${
+  const className = `inline-flex items-center justify-center rounded-full border px-4 py-2 text-xl font-semibold transition-colors ${
     primary
       ? "border-[#d9794c] bg-[#d9794c] text-white hover:bg-[#bd613c]"
       : "border-white/70 bg-[#172c34]/80 text-white backdrop-blur-sm hover:bg-[#172c34]"

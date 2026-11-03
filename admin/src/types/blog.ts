@@ -1,5 +1,10 @@
 import type { SiteCode } from "@/types/auth";
 
+export type BlogAccordionItem = {
+  question: string;
+  description: string;
+};
+
 export type BlogDto = {
   id: string;
   siteCode: SiteCode;
@@ -20,6 +25,7 @@ export type BlogDto = {
   imagePublicId: string;
   description: string;
   blockquote: string;
+  accordionItems: BlogAccordionItem[];
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -57,6 +63,7 @@ export type BlogUpdatePayload = {
   imagePublicId: string;
   description: string;
   blockquote: string;
+  accordionItems: BlogAccordionItem[];
   active: boolean;
 };
 
@@ -88,5 +95,6 @@ export type BlogEditFormValues = {
   imagePublicId: string;
   description: string;
   blockquote: string;
+  accordionItems: BlogAccordionItem[];
   active: boolean;
 };

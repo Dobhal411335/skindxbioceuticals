@@ -365,6 +365,7 @@ describe('ProductService', () => {
         },
       ],
       videos: [],
+      pdfs: [],
       infoSections: [{ id: 'i1', title: 'Ingredients', body: '<p>Water</p>', sortOrder: 0 }],
       editorialReviews: [{ rating: 5 }],
       reviews: [{ rating: 3 }],

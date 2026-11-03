@@ -1,3 +1,8 @@
+export type StorefrontBlogAccordionItem = {
+  question: string;
+  description: string;
+};
+
 export type StorefrontBlog = {
   id: string;
   slug: string;
@@ -16,6 +21,7 @@ export type StorefrontBlog = {
   imageUrl: string;
   description: string;
   blockquote: string;
+  accordionItems: StorefrontBlogAccordionItem[];
   createdAt: string;
 };
 

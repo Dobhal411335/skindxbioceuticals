@@ -492,6 +492,12 @@ export class ProductService {
         description: row.description,
         sortOrder: row.sortOrder,
       })),
+      pdfs: record.pdfs.map((row) => ({
+        id: row.id,
+        name: row.name,
+        pdfUrl: preferHttpsUrl(row.pdfUrl),
+        sortOrder: row.sortOrder,
+      })),
       infoSections: record.infoSections.map((row) => ({
         id: row.id,
         title: row.title,

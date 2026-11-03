@@ -23,6 +23,19 @@ const imageUrlSchema = z
     { message: 'Image URL must use http or https' },
   );
 
+const blogAccordionItemSchema = z.object({
+  question: z.string().trim().max(300),
+  description: z.string().trim().max(5000),
+});
+
+const blogAccordionItemsSchema = z
+  .array(blogAccordionItemSchema)
+  .max(50)
+  .default([])
+  .transform((items) =>
+    items.filter((item) => item.question.length > 0 || item.description.length > 0),
+  );
+
 export const blogCreateBodySchema = z.object({
   name: z.string().trim().min(1, 'Blog name is required').max(200),
   category: z.string().trim().min(1, 'Blog category is required').max(120),
@@ -55,6 +68,7 @@ export const blogUpdateBodySchema = z.object({
   imagePublicId: z.string().trim().max(500).default(''),
   description: z.string().max(200_000).default(''),
   blockquote: z.string().trim().max(5000).default(''),
+  accordionItems: blogAccordionItemsSchema,
   active: z.boolean().default(true),
 });
 
@@ -102,9 +116,28 @@ export type BlogCreateBody = Omit<
   Partial<Pick<z.infer<typeof blogCreateBodySchema>, 'badgeText' | 'stat1Number' | 'stat1Name' | 'stat1Text' | 'stat2Number' | 'stat2Name' | 'stat2Text'>>;
 export type BlogUpdateBody = Omit<
   z.infer<typeof blogUpdateBodySchema>,
-  'badgeText' | 'stat1Number' | 'stat1Name' | 'stat1Text' | 'stat2Number' | 'stat2Name' | 'stat2Text'
+  | 'badgeText'
+  | 'stat1Number'
+  | 'stat1Name'
+  | 'stat1Text'
+  | 'stat2Number'
+  | 'stat2Name'
+  | 'stat2Text'
+  | 'accordionItems'
 > &
-  Partial<Pick<z.infer<typeof blogUpdateBodySchema>, 'badgeText' | 'stat1Number' | 'stat1Name' | 'stat1Text' | 'stat2Number' | 'stat2Name' | 'stat2Text'>>;
+  Partial<
+    Pick<
+      z.infer<typeof blogUpdateBodySchema>,
+      | 'badgeText'
+      | 'stat1Number'
+      | 'stat1Name'
+      | 'stat1Text'
+      | 'stat2Number'
+      | 'stat2Name'
+      | 'stat2Text'
+      | 'accordionItems'
+    >
+  >;
 export type BlogPatchBody = z.infer<typeof blogPatchBodySchema>;
 
 export function normalizeBlogCreateInput(raw: unknown): unknown {
@@ -194,6 +227,11 @@ export function normalizeBlogUpdateInput(raw: unknown): unknown {
       typeof payload.blockquote === 'string'
         ? payload.blockquote.trim()
         : payload.blockquote,
+    accordionItems: Array.isArray(payload.accordionItems)
+      ? payload.accordionItems
+      : Array.isArray(payload.accordion)
+        ? payload.accordion
+        : payload.accordionItems,
     active: payload.active ?? true,
   };
 }

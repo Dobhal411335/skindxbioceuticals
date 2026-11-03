@@ -6,6 +6,7 @@ import { Loader2, Plus, Star, Trash2, UploadCloud } from "lucide-react";
 import { ColorManagementSection } from "@/components/catalog/edit-product-colors";
 import {
   CouponCurrentTable,
+  PdfsCurrentTable,
   ReviewsCurrentTable,
   TagsCurrentTable,
   VariantsCurrentTable,
@@ -57,12 +58,14 @@ import {
   updateProductGallery,
   updateProductHighlights,
   updateProductInfo,
+  updateProductPdfs,
   updateProductSizes,
   updateProductTags,
   updateProductTax,
   updateProductVariants,
   updateProductVideos,
   uploadProductImage,
+  uploadProductPdf,
 } from "@/services/api/product-edit";
 import type { SiteCode } from "@/types/auth";
 import type {
@@ -70,9 +73,31 @@ import type {
   CouponOptionDto,
   ProductEditDto,
   ProductEditorialReviewDto,
+  ProductPdfDto,
   ProductVariantOfferDto,
   ProductVideoDto,
 } from "@/types/product-edit";
+
+function youtubeEmbedUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url.trim());
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") {
+      const id = parsed.pathname.replace(/^\//, "").split("/")[0];
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const id =
+        parsed.searchParams.get("v") ||
+        parsed.pathname.match(/\/embed\/([^/]+)/)?.[1] ||
+        parsed.pathname.match(/\/shorts\/([^/]+)/)?.[1];
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 const NO_COUPON_VALUE = "__none__";
 
@@ -1407,6 +1432,268 @@ export function GallerySection({
 }
 
 const EMPTY_VIDEO_ROW = { name: "", url: "", description: "" };
+const MAX_PRODUCT_PDF_BYTES = 10 * 1024 * 1024;
+
+export function PdfSection({
+  siteCode,
+  productId,
+  data,
+  onUpdated,
+}: SectionProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [name, setName] = useState("");
+  const [pdfUrl, setPdfUrl] = useState("");
+  const [pdfPublicId, setPdfPublicId] = useState("");
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    };
+  }, [localPreviewUrl]);
+
+  const resetForm = () => {
+    setEditingId(null);
+    setName("");
+    setPdfUrl("");
+    setPdfPublicId("");
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    setLocalPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const loadPdfIntoForm = (pdf: ProductPdfDto) => {
+    setEditingId(pdf.id);
+    setName(pdf.name);
+    setPdfUrl(pdf.pdfUrl);
+    setPdfPublicId(pdf.pdfPublicId);
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    setLocalPreviewUrl(null);
+  };
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      showError("Only PDF files are allowed");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > MAX_PRODUCT_PDF_BYTES) {
+      showError("PDF must be 10MB or smaller");
+      event.target.value = "";
+      return;
+    }
+
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    setLocalPreviewUrl(URL.createObjectURL(file));
+    setUploading(true);
+    try {
+      const uploaded = await uploadProductPdf(siteCode, file, productId);
+      setPdfUrl(uploaded.url);
+      setPdfPublicId(uploaded.publicId);
+      showSuccess("PDF uploaded");
+    } catch (error) {
+      showError(
+        error instanceof ApiError ? error.message : "Failed to upload PDF",
+      );
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  const handleSave = async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      showError("Enter the PDF name");
+      return;
+    }
+    if (!pdfUrl.trim()) {
+      showError("Upload a PDF before saving");
+      return;
+    }
+
+    const sortedExisting = [...(data.pdfs ?? [])].sort(
+      (a, b) => a.sortOrder - b.sortOrder,
+    );
+
+    const nextRows = editingId
+      ? sortedExisting.map((pdf) =>
+          pdf.id === editingId
+            ? {
+                name: trimmedName,
+                pdfUrl,
+                pdfPublicId,
+              }
+            : {
+                name: pdf.name,
+                pdfUrl: pdf.pdfUrl,
+                pdfPublicId: pdf.pdfPublicId,
+              },
+        )
+      : [
+          ...sortedExisting.map((pdf) => ({
+            name: pdf.name,
+            pdfUrl: pdf.pdfUrl,
+            pdfPublicId: pdf.pdfPublicId,
+          })),
+          { name: trimmedName, pdfUrl, pdfPublicId },
+        ];
+
+    const wasEditing = Boolean(editingId);
+    setSaving(true);
+    try {
+      const next = await updateProductPdfs(siteCode, productId, {
+        pdfs: nextRows.map((pdf, index) => ({
+          ...pdf,
+          sortOrder: index,
+        })),
+      });
+      onUpdated(next);
+      resetForm();
+      showSuccess(wasEditing ? "PDF updated" : "PDF saved");
+    } catch (error) {
+      showError(
+        error instanceof ApiError
+          ? error.message
+          : wasEditing
+            ? "Failed to update PDF"
+            : "Failed to save PDF",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (pdfId: string) => {
+    const remaining = [...(data.pdfs ?? [])]
+      .filter((pdf) => pdf.id !== pdfId)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((pdf, index) => ({
+        name: pdf.name,
+        pdfUrl: pdf.pdfUrl,
+        pdfPublicId: pdf.pdfPublicId,
+        sortOrder: index,
+      }));
+
+    setDeletingId(pdfId);
+    try {
+      const next = await updateProductPdfs(siteCode, productId, {
+        pdfs: remaining,
+      });
+      onUpdated(next);
+      if (editingId === pdfId) resetForm();
+      showSuccess("PDF removed");
+    } catch (error) {
+      showError(
+        error instanceof ApiError ? error.message : "Failed to remove PDF",
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const previewSrc = localPreviewUrl || pdfUrl;
+
+  return (
+    <div className="space-y-6">
+      <ProductNameField name={data.product.name} />
+
+      <div className="space-y-2">
+        <Label htmlFor="product-pdf-name">Enter the PDF name</Label>
+        <Input
+          id="product-pdf-name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="e.g. Ingredient list"
+        />
+      </div>
+
+      <div className="space-y-3 rounded-lg border border-dashed border-border p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <Label>Upload PDF</Label>
+            <p className="text-xs text-muted-foreground">
+              PDF only · max 10MB · stored on Cloudinary
+            </p>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            className="sr-only"
+            onChange={(event) => void handleFileChange(event)}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading…
+              </>
+            ) : (
+              <>
+                <UploadCloud className="mr-2 h-4 w-4" />
+                Select PDF
+              </>
+            )}
+          </Button>
+        </div>
+
+        {previewSrc ? (
+          <div className="overflow-hidden rounded-md border bg-muted/30">
+            <iframe
+              title="PDF preview"
+              src={previewSrc}
+              className="h-56 w-full"
+            />
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Choose a PDF to see a small preview here.
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" disabled={saving || uploading} onClick={() => void handleSave()}>
+          {saving
+            ? editingId
+              ? "Updating…"
+              : "Saving…"
+            : editingId
+              ? "Update PDF"
+              : "Save PDF"}
+        </Button>
+        {editingId ? (
+          <Button type="button" variant="outline" onClick={resetForm}>
+            Cancel edit
+          </Button>
+        ) : null}
+      </div>
+
+      <PdfsCurrentTable
+        data={data}
+        editingId={editingId}
+        onEdit={loadPdfIntoForm}
+        onDelete={(pdfId) => void handleDelete(pdfId)}
+        deletingId={deletingId}
+      />
+    </div>
+  );
+}
 
 export function VideoSection({
   siteCode,
@@ -1416,6 +1703,7 @@ export function VideoSection({
 }: SectionProps) {
   const [videos, setVideos] = useState([{ ...EMPTY_VIDEO_ROW }]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingVideo, setViewingVideo] = useState<ProductVideoDto | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -1658,9 +1946,58 @@ export function VideoSection({
         data={data}
         editingId={editingId}
         onEdit={loadVideoIntoForm}
+        onView={setViewingVideo}
         onDelete={(videoId) => void handleDelete(videoId)}
         deletingId={deletingId}
       />
+
+      <Dialog
+        open={Boolean(viewingVideo)}
+        onOpenChange={(open) => {
+          if (!open) setViewingVideo(null);
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+          {viewingVideo ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>{viewingVideo.name}</DialogTitle>
+                <DialogDescription className="truncate">
+                  {viewingVideo.url}
+                </DialogDescription>
+              </DialogHeader>
+              {youtubeEmbedUrl(viewingVideo.url) ? (
+                <div className="aspect-video overflow-hidden rounded-lg border bg-muted">
+                  <iframe
+                    title={viewingVideo.name}
+                    src={youtubeEmbedUrl(viewingVideo.url) ?? undefined}
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <a
+                  href={viewingVideo.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-primary underline-offset-2 hover:underline"
+                >
+                  Open video URL
+                </a>
+              )}
+              {viewingVideo.description ? (
+                <div
+                  className="admin-rich-html mt-2 text-sm leading-relaxed text-muted-foreground"
+                  dangerouslySetInnerHTML={{ __html: viewingVideo.description }}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">No description.</p>
+              )}
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

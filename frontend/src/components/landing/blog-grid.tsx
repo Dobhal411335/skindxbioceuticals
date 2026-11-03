@@ -127,19 +127,20 @@ export async function BlogGrid() {
     <section className="container-page section-space" aria-labelledby="blog-grid-heading">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
+          <p className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
+            Our Blog
+          </p>
           <h2
             id="blog-grid-heading"
-            className="font-display text-3xl font-semibold tracking-tight text-secondary sm:text-4xl"
+            className="mt-5 max-w-2xl text-4xl leading-[0.98] font-semibold tracking-[-0.045em] text-foreground sm:text-5xl"
           >
             {insightsIntro.title}
           </h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            {insightsIntro.subtitle}
-          </p>
+          <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
         </div>
         <Link
           href="/blog"
-          className="inline-flex w-fit items-center gap-1 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-secondary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex w-fit items-center gap-1 rounded-full border border-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary bg-primary hover:text-white transition-colors duration-300"
         >
           View all blogs
           <ArrowUpRight className="size-4" aria-hidden />

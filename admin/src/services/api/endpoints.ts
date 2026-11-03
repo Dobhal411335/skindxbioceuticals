@@ -144,6 +144,7 @@ export const endpoints = {
   media: {
     uploadImage: "/media/images",
     uploadVideo: "/media/videos",
+    uploadDocument: "/media/documents",
     bulkDelete: "/media/bulk-delete",
   },
 } as const;

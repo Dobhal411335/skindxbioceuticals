@@ -22,6 +22,7 @@ const productEditRepository = {
   upsertTax: jest.fn(),
   replaceGallery: jest.fn(),
   replaceVideos: jest.fn(),
+  replacePdfs: jest.fn(),
   updateDescription: jest.fn(),
   replaceInfoSections: jest.fn(),
   createEditorialReview: jest.fn(),
@@ -58,6 +59,7 @@ function emptyEditRecord(overrides: Record<string, unknown> = {}) {
     colors: [],
     galleryImages: [],
     videos: [],
+    pdfs: [],
     infoSections: [],
     editorialReviews: [],
     highlights: [],
@@ -211,6 +213,46 @@ describe('ProductEditService', () => {
     );
     expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith(
       'products/old-g1',
+    );
+  });
+
+  it('updates pdfs and cleans removed Cloudinary raw assets', async () => {
+    productEditRepository.replacePdfs.mockResolvedValue({
+      removedPublicIds: ['products/old.pdf'],
+    });
+    productEditRepository.findEditPayload.mockResolvedValue(emptyEditRecord());
+
+    await service.updatePdfs({
+      siteId: 'site',
+      siteCode: 'IN',
+      userId: 'user',
+      productId: '55555555-5555-5555-5555-555555555555',
+      body: {
+        pdfs: [
+          {
+            name: 'Ingredient sheet',
+            pdfUrl: 'http://res.cloudinary.com/demo/raw/upload/v1/sheet.pdf',
+            pdfPublicId: 'products/sheet.pdf',
+          },
+        ],
+      },
+    });
+
+    expect(productEditRepository.replacePdfs).toHaveBeenCalledWith(
+      '55555555-5555-5555-5555-555555555555',
+      {
+        pdfs: [
+          {
+            name: 'Ingredient sheet',
+            pdfUrl: 'https://res.cloudinary.com/demo/raw/upload/v1/sheet.pdf',
+            pdfPublicId: 'products/sheet.pdf',
+          },
+        ],
+      },
+    );
+    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith(
+      'products/old.pdf',
+      { resourceType: 'raw' },
     );
   });
 

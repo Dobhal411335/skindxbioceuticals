@@ -6,11 +6,13 @@ import { FrequentlyBought } from "@/components/product/frequently-bought";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductHighlights } from "@/components/product/product-highlights";
 import { ProductInfoTabs } from "@/components/product/product-info-tabs";
+import { ProductPdfsSection } from "@/components/product/product-pdfs-section";
 import { ProductPurchasePanel } from "@/components/product/product-purchase-panel";
 import { ProductRecommendations } from "@/components/product/product-recommendations";
 import { ProductReviewsSection } from "@/components/product/product-reviews-section";
 import { ProductStickyBar } from "@/components/product/product-sticky-bar";
 import { ProductTrustSidebar } from "@/components/product/product-trust-sidebar";
+import { ProductVideosSection } from "@/components/product/product-videos-section";
 import { fetchProductBySlugClient } from "@/features/products/product.service";
 import {
   defaultColor,
@@ -53,7 +55,7 @@ export function ProductDetailView({ product: initialProduct }: ProductDetailView
   }, [isVendor, initialProduct.slug]);
 
   return (
-    <div className="pb-24">
+    <div className="">
       <div className="container-page section-space">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,0.7fr)]">
           <ProductGallery images={product.gallery} productName={product.name} />
@@ -74,6 +76,8 @@ export function ProductDetailView({ product: initialProduct }: ProductDetailView
         </div>
       </div>
 
+      <ProductPdfsSection productName={product.name} pdfs={product.pdfs ?? []} />
+      <ProductVideosSection videos={product.videos ?? []} />
       <ProductHighlights highlights={product.highlights} />
       <ProductInfoTabs product={product} />
       <FrequentlyBought product={product} />

@@ -211,6 +211,7 @@ export class ProductRepository {
         colors: { where: { active: true }, orderBy: { sortOrder: 'asc' } },
         galleryImages: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }] },
         videos: { orderBy: { sortOrder: 'asc' } },
+        pdfs: { orderBy: { sortOrder: 'asc' } },
         infoSections: { orderBy: { sortOrder: 'asc' } },
         editorialReviews: {
           where: { active: true },

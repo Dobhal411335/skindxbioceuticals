@@ -102,6 +102,23 @@ function FullWidthSlide({ slide, priority }: { slide: StorefrontHeroSlide; prior
   );
 }
 
+function accentLastWord(text: string) {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  const lastSpace = trimmed.lastIndexOf(" ");
+  if (lastSpace === -1) {
+    return <span className="font-display italic font-medium">{trimmed}</span>;
+  }
+
+  return (
+    <>
+      {trimmed.slice(0, lastSpace)}{" "}
+      <span className="font-serif italic font-medium text-[#d9794c]">{trimmed.slice(lastSpace + 1)}</span>
+    </>
+  );
+}
+
 function SplitCopy({ slide }: { slide: StorefrontHeroSlide }) {
   return (
     <>
@@ -232,7 +249,7 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
     <div
       className={`relative flex ${HERO_FRAME} items-center justify-center border-b border-[#263b43] bg-[#14272e] text-white`}
     >
-      <div className="container-page flex h-full w-full flex-col items-center justify-center gap-10 py-10 lg:flex-row lg:justify-between lg:gap-20 lg:py-12">
+      <div className="container-page flex h-full w-full flex-col items-center justify-center gap-10 py-10 lg:flex-row lg:justify-center lg:gap-[18%] lg:py-12">
         <div className="max-w-xl text-center lg:text-left">
           {slide.miniHeading ? (
             <div className="flex items-center justify-center gap-3 text-[11px] font-semibold tracking-[0.18em] text-[#e7aa87] uppercase lg:justify-start">
@@ -241,7 +258,7 @@ function MultiImageSlide({ slide }: { slide: StorefrontHeroSlide }) {
             </div>
           ) : null}
           <h2 className="mt-7 text-5xl leading-[0.94] font-semibold tracking-[-0.05em] sm:text-6xl">
-            {slide.mainHeading}
+            {accentLastWord(slide.mainHeading)}
           </h2>
           {slide.description ? (
             <p className="mt-7 max-w-lg text-base leading-relaxed text-[#b5c2c6] sm:text-lg">

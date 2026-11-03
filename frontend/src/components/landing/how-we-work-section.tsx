@@ -31,20 +31,17 @@ export function HowWeWorkSection() {
       <div className="bg-[#f3e7d5] h-screen  px-6 py-20 sm:px-10 sm:py-16 lg:px-12 lg:py-14">
         <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end container-page">
           <div>
-            <p className="text-[10px] mt-10 font-bold tracking-[0.2em] text-[#b0785d] uppercase">
+            <p className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
               How we work
             </p>
             <h2
               id="how-we-work-heading"
-              className="mt-4 max-w-3xl text-4xl  leading-[1.02] tracking-tight text-[#15262d] sm:text-5xl lg:text-[4rem]"
+              className="mt-5 max-w-2xl text-4xl leading-[0.98] font-semibold tracking-[-0.045em] text-foreground sm:text-5xl"
             >
               A rigorous path from ambiguity to action.
             </h2>
+            <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
           </div>
-          <p className="max-w-md text-base leading-7 text-[#6d7778] sm:text-lg sm:leading-8 lg:mb-1 lg:justify-self-end">
-            Structured enough to create momentum. Flexible enough to fit the
-            reality of your business.
-          </p>
         </div>
 
         <div className="relative container-page mt-12 grid gap-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4 lg:gap-8">

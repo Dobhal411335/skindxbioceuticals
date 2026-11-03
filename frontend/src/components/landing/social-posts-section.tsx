@@ -77,6 +77,14 @@ export function SocialPostsSection({ posts }: SocialPostsSectionProps) {
       aria-label="Social media posts"
     >
       <div className="container-page">
+        <div className="mb-8 flex w-full items-center gap-4 sm:mb-10 sm:gap-6">
+          <span className="h-px flex-1 bg-[#2f3438]" aria-hidden />
+          <p className="shrink-0 text-center text-sm font-bold tracking-[0.08em] text-[#2f3438] uppercase sm:text-base">
+            @ Follow us on Instagram
+          </p>
+          <span className="h-px flex-1 bg-[#2f3438]" aria-hidden />
+        </div>
+
         <Carousel
           opts={{ align: "start", loop: posts.length > 4 }}
           setApi={setApi}
@@ -103,7 +111,7 @@ export function SocialPostsSection({ posts }: SocialPostsSectionProps) {
                     href={post.postUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative block h-48 w-full overflow-hidden rounded-md border border-border bg-surface"
+                    className="group relative block h-60 w-full overflow-hidden rounded-md border border-border bg-surface"
                   >
                     <Image
                       src={post.imageUrl}

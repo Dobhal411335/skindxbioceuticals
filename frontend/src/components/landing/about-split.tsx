@@ -56,8 +56,7 @@ export function AboutSplit({
   return (
     <section className="container-page section-space" aria-labelledby="about-heading">
       <div className="mb-10 max-w-3xl sm:mb-14">
-        <p className="flex items-center gap-2 text-xs font-bold tracking-[0.2em] text-primary uppercase">
-          <span className="h-px w-7 bg-primary" aria-hidden="true" />
+      <p className="text-sm font-semibold tracking-[0.18em] text-[#ef6a24] uppercase">
           About us
         </p>
         <h2
@@ -66,6 +65,8 @@ export function AboutSplit({
         >
           Science-led care translated into everyday confidence.
         </h2>
+        <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
+
       </div>
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (

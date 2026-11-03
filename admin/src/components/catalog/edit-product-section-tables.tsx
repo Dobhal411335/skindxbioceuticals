@@ -17,6 +17,7 @@ import { stripHtmlToText } from "@/lib/tiptap/extensions";
 import type {
   ProductEditDto,
   ProductEditorialReviewDto,
+  ProductPdfDto,
   ProductVideoDto,
 } from "@/types/product-edit";
 
@@ -326,17 +327,19 @@ export function VideosCurrentTable({
   data,
   onEdit,
   onDelete,
+  onView,
   deletingId,
   editingId,
 }: {
   data: ProductEditDto;
   onEdit?: (video: ProductVideoDto) => void;
   onDelete?: (videoId: string) => void;
+  onView?: (video: ProductVideoDto) => void;
   deletingId?: string | null;
   editingId?: string | null;
 }) {
   const rows = [...data.videos].sort((a, b) => a.sortOrder - b.sortOrder);
-  const showActions = Boolean(onEdit || onDelete);
+  const showActions = Boolean(onEdit || onDelete || onView);
   return (
     <SectionTableShell title="Current videos">
       <Table className="min-w-[720px]">
@@ -365,24 +368,40 @@ export function VideosCurrentTable({
                 className={editingId === row.id ? "bg-muted/40" : undefined}
               >
                 <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                <TableCell className="font-medium">{row.name}</TableCell>
-                <TableCell className="max-w-[240px]">
+                <TableCell className="max-w-[220px] font-medium">
+                  <p className="line-clamp-3 whitespace-normal">{row.name}</p>
+                </TableCell>
+                <TableCell className="max-w-[200px]">
                   <a
                     href={row.url}
                     target="_blank"
                     rel="noreferrer"
                     className="block truncate text-primary underline-offset-2 hover:underline"
+                    title={row.url}
                   >
                     {row.url}
                   </a>
                 </TableCell>
-                <TableCell className="max-w-[240px] whitespace-normal">
-                  {truncateHtml(row.description)}
+                <TableCell className="max-w-[260px]">
+                  <p className="line-clamp-3 whitespace-normal text-sm text-muted-foreground">
+                    {stripHtmlToText(row.description) || "—"}
+                  </p>
                 </TableCell>
                 <TableCell>{row.sortOrder}</TableCell>
                 {showActions ? (
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {onView ? (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => onView(row)}
+                          aria-label={`View video ${row.name}`}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      ) : null}
                       {onEdit ? (
                         <Button
                           type="button"
@@ -409,6 +428,98 @@ export function VideosCurrentTable({
                     </div>
                   </TableCell>
                 ) : null}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </SectionTableShell>
+  );
+}
+
+export function PdfsCurrentTable({
+  data,
+  onEdit,
+  onDelete,
+  deletingId,
+  editingId,
+}: {
+  data: ProductEditDto;
+  onEdit?: (pdf: ProductPdfDto) => void;
+  onDelete?: (pdfId: string) => void;
+  deletingId?: string | null;
+  editingId?: string | null;
+}) {
+  const rows = [...(data.pdfs ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+  return (
+    <SectionTableShell title="Current PDFs">
+      <Table className="min-w-[720px]">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12">#</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>PDF</TableHead>
+            <TableHead>Sort</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.length === 0 ? (
+            <EmptyRow colSpan={5} label="No PDFs saved for this product yet." />
+          ) : (
+            rows.map((row, index) => (
+              <TableRow
+                key={row.id}
+                className={editingId === row.id ? "bg-muted/40" : undefined}
+              >
+                <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                <TableCell className="max-w-[240px] font-medium">
+                  <p className="line-clamp-2 whitespace-normal">{row.name}</p>
+                </TableCell>
+                <TableCell className="max-w-[280px]">
+                  <a
+                    href={row.pdfUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate text-primary underline-offset-2 hover:underline"
+                    title={row.pdfUrl}
+                  >
+                    {truncate(row.pdfUrl, 48)}
+                  </a>
+                </TableCell>
+                <TableCell>{row.sortOrder}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button asChild type="button" size="sm" variant="outline">
+                      <a href={row.pdfUrl} target="_blank" rel="noreferrer">
+                        View whole PDF
+                      </a>
+                    </Button>
+                    {onEdit ? (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => onEdit(row)}
+                        aria-label={`Edit PDF ${row.name}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    ) : null}
+                    {onDelete ? (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        disabled={deletingId === row.id}
+                        onClick={() => onDelete(row.id)}
+                        aria-label={`Delete PDF ${row.name}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </TableCell>
               </TableRow>
             ))
           )}

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import type { StorefrontInsightQa } from "@/types/insights";
 
 /** Landing preview height before the single “Read more”. */
-const COLLAPSED_MAX_HEIGHT_CLASS = "max-h-80 sm:max-h-96";
+const COLLAPSED_MAX_HEIGHT_CLASS = "max-h-80 sm:max-h-80";
 
 export function FadeRichBlock({
   html,

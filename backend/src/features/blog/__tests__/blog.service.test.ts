@@ -1,6 +1,6 @@
 import { BlogService, slugifyBlogName, toBlogDto } from '../blog.service';
 import type { BlogRepository } from '../blog.repository';
-import type { BlogRecord } from '../blog.types';
+import { parseBlogAccordionItems, type BlogRecord } from '../blog.types';
 import { ConflictError, NotFoundError } from '@/utils/AppError';
 import {
   deleteStoredCloudinaryAsset,
@@ -26,6 +26,9 @@ function makeRecord(overrides: Partial<BlogRecord> = {}): BlogRecord {
     imagePublicId: 'blog/post',
     description: '<p>Body</p>',
     blockquote: 'Clarity over jargon.',
+    accordionItems: [
+      { question: 'What is this?', description: 'A short answer.' },
+    ],
     active: true,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -66,6 +69,19 @@ describe('BlogService', () => {
 
   it('slugifies blog names', () => {
     expect(slugifyBlogName('Skin Care Tips!')).toBe('skin-care-tips');
+  });
+
+  it('parses accordion items and drops empty rows', () => {
+    expect(
+      parseBlogAccordionItems([
+        { question: ' Q1 ', description: ' A1 ' },
+        { question: '', description: '' },
+        { left: 'Legacy Q', right: 'Legacy A' },
+      ]),
+    ).toEqual([
+      { question: 'Q1', description: 'A1' },
+      { question: 'Legacy Q', description: 'Legacy A' },
+    ]);
   });
 
   it('lists and maps blogs for a site', async () => {
@@ -145,10 +161,59 @@ describe('BlogService', () => {
           imagePublicId: 'blog/a',
           description: '<p>Hi</p>',
           blockquote: '',
+          accordionItems: [],
           active: true,
         },
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('persists accordion items on update', async () => {
+    const existing = makeRecord({ accordionItems: [] });
+    const updated = makeRecord({
+      accordionItems: [
+        { question: 'How often?', description: 'Twice daily.' },
+      ],
+    });
+    findByIdForSite.mockResolvedValue(existing);
+    slugExists.mockResolvedValue(false);
+    update.mockResolvedValue(updated);
+
+    const dto = await service.updateForSite({
+      siteId: existing.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      blogId: existing.id,
+      body: {
+        name: existing.name,
+        slug: existing.slug,
+        category: existing.category,
+        title: existing.title,
+        publishedAt: existing.publishedAt,
+        createdBy: existing.createdBy,
+        imageUrl: existing.imageUrl,
+        imagePublicId: existing.imagePublicId,
+        description: existing.description,
+        blockquote: existing.blockquote,
+        accordionItems: [
+          { question: 'How often?', description: 'Twice daily.' },
+        ],
+        active: true,
+      },
+    });
+
+    expect(update).toHaveBeenCalledWith(
+      existing.siteId,
+      existing.id,
+      expect.objectContaining({
+        accordionItems: [
+          { question: 'How often?', description: 'Twice daily.' },
+        ],
+      }),
+    );
+    expect(dto.accordionItems).toEqual([
+      { question: 'How often?', description: 'Twice daily.' },
+    ]);
   });
 
   it('returns public detail with related cards and cleans Cloudinary on delete', async () => {
@@ -202,6 +267,7 @@ describe('BlogService', () => {
         imagePublicId: 'blog/new',
         description: existing.description,
         blockquote: existing.blockquote,
+        accordionItems: existing.accordionItems,
         active: true,
       },
     });

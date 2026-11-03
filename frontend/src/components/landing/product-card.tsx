@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Eye, Heart, ShoppingCart } from "lucide-react";
 
 import { ProductDiscountBadge } from "@/components/catalog/product-price-display";
 import { useCartUi } from "@/components/cart/cart-ui-context";
+import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { Button } from "@/components/ui/button";
 import {
   buildCartPricingFields,
@@ -34,6 +35,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     isInWishlist,
     authLoading: wishlistAuthLoading,
   } = useWishlistActions();
+  const [quickOpen, setQuickOpen] = useState(false);
   const [wishlistPending, setWishlistPending] = useState(false);
   const [cartPending, setCartPending] = useState(false);
   const isVendor = useIsVendor();
@@ -112,98 +114,121 @@ export function ProductCard({ product, className }: ProductCardProps) {
   }
 
   return (
-    <article
-      className={cn(
-        "group flex h-full flex-col rounded-xl border border-border bg-card p-2 shadow-none transition-[border-color,box-shadow] duration-300 hover:border-primary hover:shadow-sm",
-        className,
-      )}
-    >
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-surface">
-        <Link
-          href={href}
-          className="absolute inset-0 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
-            sizes="(max-width: 768px) 70vw, 25vw"
-          />
-        </Link>
+    <>
+      <article
+        className={cn(
+          "group flex h-full flex-col rounded-xl border border-border bg-card p-2 shadow-none transition-[border-color,box-shadow] duration-300 hover:shadow-sm",
+          className,
+        )}
+      >
+        <div className="relative aspect-square overflow-hidden rounded-lg bg-surface">
+          <Link
+            href={href}
+            className="absolute inset-0 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Image
+              src={imageUrl}
+              alt={product.name}
+              fill
+              className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
+              sizes="(max-width: 768px) 70vw, 25vw"
+            />
+          </Link>
 
-        {discountPercent != null ? (
-          <ProductDiscountBadge percent={discountPercent} className="absolute top-2 left-2 z-10" />
-        ) : null}
+          {discountPercent != null ? (
+            <ProductDiscountBadge percent={discountPercent} className="absolute top-2 left-2 z-10" />
+          ) : null}
 
-        <div className="absolute top-2.5 right-2.5 z-10">
+          <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-2">
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              className={cn(
+                "size-9 rounded-full border-2 bg-card shadow-sm transition-all duration-200",
+                "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
+                inWishlist
+                  ? "border-primary text-primary opacity-100"
+                  : "border-primary/50 text-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground",
+              )}
+              aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+              disabled={wishlistPending || wishlistAuthLoading}
+              onClick={() => void onWishlist()}
+            >
+              <Heart className={cn("size-3.5", inWishlist ? "fill-primary" : "")} />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              className={cn(
+                "size-9 rounded-full border-2 border-primary/50 bg-card text-foreground shadow-sm transition-all duration-200",
+                "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
+                "hover:border-primary hover:bg-primary hover:text-primary-foreground",
+              )}
+              aria-label="Quick look"
+              onClick={() => setQuickOpen(true)}
+            >
+              <Eye className="size-3.5" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-1 flex-col gap-2 px-0.5">
+          <p className="text-[11px] font-semibold tracking-[0.08em] text-primary uppercase">
+            {product.categoryName ?? "Product"}
+          </p>
+          <Link
+            href={href}
+            className="line-clamp-2 min-h-[2.75rem] text-base leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {product.name}
+          </Link>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xl font-semibold text-foreground">{formatInr(priced.unitPrice)}</p>
+            {priced.hasDiscount ? (
+              <p className="text-sm text-muted-foreground line-through">
+                {formatInr(priced.originalPrice)}
+              </p>
+            ) : null}
+            {discountLabel ? (
+              <p className="inline-flex rounded bg-primary px-2.5 py-1 text-xs font-semibold text-white">
+                {discountLabel}
+              </p>
+            ) : null}
+          </div>
+
           <Button
             type="button"
-            size="icon"
-            variant="secondary"
             className={cn(
-              "size-9 rounded-full border-2 bg-card shadow-sm transition-all duration-200",
-              "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
-              inWishlist
-                ? "border-primary text-primary opacity-100"
-                : "border-primary/50 text-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground",
+              "mt-auto w-full rounded-full p-5 font-semibold transition-all mb-2 duration-300",
+              "translate-y-1 opacity-0 pointer-events-none",
+              "group-hover:translate-y-0 group-hover:opacity-100 group-hover:pointer-events-auto",
+              "focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:pointer-events-auto",
+              canAdd ? "bg-primary text-primary-foreground" : "",
             )}
-            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
-            disabled={wishlistPending || wishlistAuthLoading}
-            onClick={() => void onWishlist()}
+            disabled={!canAdd || cartPending}
+            onClick={() => void addToCart()}
           >
-            <Heart className={cn("size-3.5", inWishlist ? "fill-primary" : "")} />
+            {canAdd ? (
+              <>
+                <ShoppingCart className="size-4" />
+                <span>Add To Cart</span>
+              </>
+            ) : (
+              "Out of stock"
+            )}
           </Button>
         </div>
-      </div>
+      </article>
 
-      <div className="mt-4 flex flex-1 flex-col gap-2 px-0.5">
-        <p className="text-[11px] font-semibold tracking-[0.08em] text-primary uppercase">
-          {product.categoryName ?? "Product"}
-        </p>
-        <Link
-          href={href}
-          className="line-clamp-2 min-h-[2.75rem] text-base leading-snug font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          {product.name}
-        </Link>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-xl font-semibold text-foreground">{formatInr(priced.unitPrice)}</p>
-          {priced.hasDiscount ? (
-            <p className="text-sm text-muted-foreground line-through">
-              {formatInr(priced.originalPrice)}
-            </p>
-          ) : null}
-          {discountLabel ? (
-            <p className="inline-flex rounded bg-primary px-2.5 py-1 text-xs font-semibold text-white">
-              {discountLabel}
-            </p>
-          ) : null}
-        </div>
-
-        <Button
-          type="button"
-          className={cn(
-            "mt-auto w-full rounded-full p-5 font-semibold transition-all duration-300",
-            "translate-y-1 opacity-0 pointer-events-none",
-            "group-hover:translate-y-0 group-hover:opacity-100 group-hover:pointer-events-auto",
-            "focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:pointer-events-auto",
-            canAdd ? "bg-primary text-primary-foreground" : "",
-          )}
-          disabled={!canAdd || cartPending}
-          onClick={() => void addToCart()}
-        >
-          {canAdd ? (
-            <>
-              <ShoppingCart className="size-4" />
-              <span>Add To Cart</span>
-            </>
-          ) : (
-            "Out of stock"
-          )}
-        </Button>
-      </div>
-    </article>
+      <ProductQuickView
+        slug={quickOpen ? product.slug : null}
+        categoryName={product.categoryName}
+        open={quickOpen}
+        onOpenChange={setQuickOpen}
+      />
+    </>
   );
 }

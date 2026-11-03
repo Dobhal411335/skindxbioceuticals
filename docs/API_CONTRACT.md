@@ -427,12 +427,12 @@ Uploads use existing media APIs with `feature=insights`: `POST /api/v1/media/ima
 
 ### Admin blogs (implemented)
 
-Site-scoped blog posts. Create with `name`, `category`, optional `slug` (auto-generated from name when omitted). Edit fills `title`, `publishedAt`, `createdBy`, cover image, TipTap HTML `description`, `blockquote`, and `active`.
+Site-scoped blog posts. Create with `name`, `category`, optional `slug` (auto-generated from name when omitted). Edit fills `title`, `publishedAt`, `createdBy`, cover image, TipTap HTML `description`, `blockquote`, optional `accordionItems` (`[{ question, description }]`), and `active`.
 
 - `GET /api/v1/admin/sites/:siteCode/blogs` — Bearer admin JWT; `requireSiteAccess`. Optional `?category=`. Lists all blogs for the site (including inactive), newest `publishedAt` first.
-- `POST /api/v1/admin/sites/:siteCode/blogs` — create. Body: `name`, `category`, optional `slug`, optional `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, and optional `active` (default true). Title defaults to name; content/image fields start empty. Slug unique per site (`409` on conflict when explicit).
+- `POST /api/v1/admin/sites/:siteCode/blogs` — create. Body: `name`, `category`, optional `slug`, optional `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, and optional `active` (default true). Title defaults to name; content/image/accordion fields start empty. Slug unique per site (`409` on conflict when explicit).
 - `GET /api/v1/admin/sites/:siteCode/blogs/:blogId` — one blog for edit.
-- `PUT /api/v1/admin/sites/:siteCode/blogs/:blogId` — full update. Body: `name`, `slug`, `category`, optional landing-card fields `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, plus `title`, `publishedAt`, `createdBy`, `imageUrl`, `imagePublicId`, `description`, `blockquote`, `active`. Prefer HTTPS image URLs. Replacing `imagePublicId` deletes the previous Cloudinary asset best-effort.
+- `PUT /api/v1/admin/sites/:siteCode/blogs/:blogId` — full update. Body: `name`, `slug`, `category`, optional landing-card fields `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, plus `title`, `publishedAt`, `createdBy`, `imageUrl`, `imagePublicId`, `description`, `blockquote`, optional `accordionItems` (`[{ question, description }]`, max 50; empty rows dropped), `active`. Prefer HTTPS image URLs. Replacing `imagePublicId` deletes the previous Cloudinary asset best-effort.
 - `PATCH /api/v1/admin/sites/:siteCode/blogs/:blogId` — `{ name? }` and/or `{ active? }` (at least one required). Used for inline name edits on the admin list.
 - `DELETE /api/v1/admin/sites/:siteCode/blogs/:blogId` — deletes the row and its cover Cloudinary asset when present.
 
@@ -441,7 +441,7 @@ Uploads use existing media APIs with `feature=blog`: `POST /api/v1/media/images`
 ### Public blogs (storefront)
 
 - `GET /api/v1/sites/:siteCode/blogs` — public read for an active site (no auth). Returns `{ blogs, categories }` with active blogs only. Optional `?category=`, `?limit=`, `?recent=true` (caps at 4). Used by `.in` `/blog`, landing `BlogGrid`, and sidebar recent articles (falls back to static data when the API is unavailable). Prefer HTTPS Cloudinary image URLs.
-- `GET /api/v1/sites/:siteCode/blogs/:slug` — public detail by site-scoped slug. Returns the active blog plus `related[]` cards (same category, excluding current, max 4: `name`, `imageUrl`, `publishedAt`, `createdBy`). Inactive/missing → `404`.
+- `GET /api/v1/sites/:siteCode/blogs/:slug` — public detail by site-scoped slug. Returns the active blog plus `related[]` cards (same category, excluding current, max 3: `name`, `imageUrl`, `publishedAt`, `createdBy`). Used by the storefront “You might also like” section. Inactive/missing → `404`.
 
 ### Admin webpages (implemented)
 
@@ -545,7 +545,7 @@ Catalog product DTO includes `productType` (`DIRECT` | `CATEGORY`) and nullable 
 **Product edit details (section PUT pattern)**  
 Prefer focused section replaces over one giant nested PUT so saving sizes cannot wipe gallery/tax. All require Bearer admin JWT + `requireSiteAccess`. Responses return the full edit payload after mutation. View All Products detail modal reuses this payload.
 
-- `GET /api/v1/admin/sites/:siteCode/products/:productId/edit` — load core product + all section data (sizes, colors, variants/offers, gallery, videos, description, info sections, editorial reviews, tags, highlights, tax, coupon) plus site color/tag masters and active coupon options.
+- `GET /api/v1/admin/sites/:siteCode/products/:productId/edit` — load core product + all section data (sizes, colors, variants/offers, gallery, videos, pdfs, description, info sections, editorial reviews, tags, highlights, tax, coupon) plus site color/tag masters and active coupon options.
 - `POST /api/v1/admin/sites/:siteCode/products/catalog-colors` — body `{ name, hex }` (`#RRGGBB`); site-scoped master color.
 - `PUT .../products/:productId/sections/sizes` — `{ sizeChartUrl?, sizeChartPublicId?, sizes[{ label, active, sortOrder? }] }` (sizes optional; empty array clears).
 - `PUT .../sections/colors` — `{ colors[{ colorId?, name, hex?, active, sortOrder? }] }` (replace-all; colors optional; empty array clears).
@@ -554,6 +554,7 @@ Prefer focused section replaces over one giant nested PUT so saving sizes cannot
 - `PUT|DELETE .../sections/tax` — PUT `{ cgst, sgst }`; DELETE clears tax.
 - `PUT .../sections/gallery` — `{ images[{ imageUrl, imagePublicId, isPrimary, sortOrder? }] }`.
 - `PUT .../sections/videos` — `{ videos[{ name, url, description?, sortOrder? }] }`.
+- `PUT .../sections/pdfs` — `{ pdfs[{ name, pdfUrl, pdfPublicId?, sortOrder? }] }` (max 20). Replacing rows deletes removed Cloudinary raw assets best-effort. Upload via `POST /api/v1/media/documents` with `feature=products` (PDF only, max 10MB).
 - `PUT .../sections/description` — `{ description }`.
 - `PUT .../sections/info` — `{ sections[{ title, body, sortOrder? }] }`.
 - `POST|PUT|DELETE .../sections/reviews[/:reviewId]` — admin editorial reviews (`createdByName`, `rating` 1–5, `title`, `body`, optional image).
@@ -624,7 +625,7 @@ Response joins PDP-related data into one payload:
 - `gallery[]` ordered with primary first (`imageUrl`, `imagePublicId`, `isPrimary`, `sortOrder`)
 - Active `sizes[]` / `colors[]` (may be empty when the product sells a single base price)
 - Active `variants[]` with mandatory `price` (INR rupees), `quantity` (inventory on hand), optional nullable `sizeLabel` / `colorLabel` (both null = base/default offer), optional `sku` / `profileImage`
-- `videos[]`, `infoSections[]` (title + HTML body), active `editorialReviews[]`, `tags[]`, `highlights[]`
+- `videos[]`, `pdfs[]` (`name`, `pdfUrl`, `sortOrder`), `infoSections[]` (title + HTML body), active `editorialReviews[]`, `tags[]`, `highlights[]`
 - Optional `tax` (`cgst`/`sgst`) and linked `coupon` summary for display
 - `relatedProducts[]` — all other ACTIVE products in the same subcategory (current product excluded), each with `id`, `slug`, `name`, `categoryName`, `price`, `imageUrl`, `averageRating`, `reviewCount`, `defaultVariantId`, `quantity`, optional `coupon`, and optional `tax`
 
