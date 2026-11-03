@@ -105,6 +105,9 @@ export const endpoints = {
       `/admin/sites/${siteCode}/doctor-appointments`,
     doctorAppointment: (siteCode: string, appointmentId: string) =>
       `/admin/sites/${siteCode}/doctor-appointments/${appointmentId}`,
+    enquiries: (siteCode: string) => `/admin/sites/${siteCode}/enquiries`,
+    enquiry: (siteCode: string, enquiryId: string) =>
+      `/admin/sites/${siteCode}/enquiries/${enquiryId}`,
     vendorApplications: (siteCode: string) =>
       `/admin/sites/${siteCode}/vendors/applications`,
     vendorApplication: (siteCode: string, applicationId: string) =>

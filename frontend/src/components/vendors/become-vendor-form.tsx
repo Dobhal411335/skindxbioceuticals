@@ -443,7 +443,7 @@ export function BecomeVendorForm() {
     }
   };
 
-  if (!showThankYou) {
+  if (showThankYou) {
     return (
       <div className="mx-auto max-w-xl rounded-xl border border-border bg-background p-8 text-center shadow-sm motion-safe:animate-[fade-up_0.55s_ease-out_both] motion-reduce:animate-none">
         <div className="relative mx-auto mb-5 flex size-24 items-center justify-center">

@@ -16,7 +16,7 @@ import { paymentRoutes } from '@/features/payments/payment.routes';
 import { couponRoutes } from '@/features/coupons/coupon.routes';
 import { reviewRoutes } from '@/features/reviews/review.routes';
 import { inventoryRoutes } from '@/features/inventory/inventory.routes';
-import { enquiryRoutes } from '@/features/enquiries/enquiry.routes';
+import { enquiryPublicRoutes } from '@/features/enquiries/enquiry.public.routes';
 import { adminRoutes } from '@/features/admin/admin.routes';
 import { companyBasicInfoPublicRoutes } from '@/features/company-basic-info/company-basic-info.public.routes';
 import { navbarSectionsPublicRoutes } from '@/features/navbar-sections/navbar-sections.public.routes';
@@ -63,7 +63,6 @@ export function registerRoutes(app: Application): void {
   v1.use('/coupons', couponRoutes);
   v1.use('/reviews', reviewRoutes);
   v1.use('/inventory', inventoryRoutes);
-  v1.use('/enquiries', enquiryRoutes);
   v1.use('/admin', adminRoutes);
   v1.use('/media', mediaRoutes);
   v1.use('/settings', settingsRoutes);
@@ -88,6 +87,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/doctors', doctorProfilesPublicRoutes);
   v1.use('/sites/:siteCode/doctor-page', doctorPagePublicRoutes);
   v1.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsPublicRoutes);
+  v1.use('/sites/:siteCode/enquiries', enquiryPublicRoutes);
   v1.use('/sites/:siteCode/vendors', vendorsPublicRoutes);
   v1.use('/sites/:siteCode/categories', categoryPublicRoutes);
   v1.use('/sites/:siteCode/category', categoryPublicRoutes);

@@ -1,13 +1,44 @@
 import { Router } from 'express';
-import { enquiryController } from './enquiry.controller';
 import { asyncHandler } from '@/utils/asyncHandler';
+import { requireSiteAccess } from '@/middlewares/siteAccess.middleware';
+import { validate } from '@/middlewares/validate.middleware';
+import { siteCodeParamSchema } from '@/features/admin/admin.validation';
+import { enquiryController } from './enquiry.controller';
+import {
+  enquiryIdParamSchema,
+  enquiryListQuerySchema,
+  enquiryPatchBodySchema,
+} from './enquiry.validation';
 
 /**
- * Enquiry routes - wiring only (path + middleware + controller).
- * No business logic here.
+ * Mounted under `/admin` after authenticate + ADMIN/SUPER_ADMIN authorize.
+ * Path: `/admin/sites/:siteCode/enquiries`
  */
-const router = Router();
+export const enquiryAdminRoutes = Router({ mergeParams: true });
 
-router.get('/status', asyncHandler(enquiryController.status));
+enquiryAdminRoutes.get(
+  '/',
+  validate({ params: siteCodeParamSchema, query: enquiryListQuerySchema }),
+  requireSiteAccess('siteCode'),
+  asyncHandler(enquiryController.list),
+);
 
-export const enquiryRoutes = router;
+enquiryAdminRoutes.get(
+  '/:enquiryId',
+  validate({ params: enquiryIdParamSchema }),
+  requireSiteAccess('siteCode'),
+  asyncHandler(enquiryController.get),
+);
+
+enquiryAdminRoutes.patch(
+  '/:enquiryId',
+  validate({
+    params: enquiryIdParamSchema,
+    body: enquiryPatchBodySchema,
+  }),
+  requireSiteAccess('siteCode'),
+  asyncHandler(enquiryController.patch),
+);
+
+/** @deprecated Keep export alias for any older imports of scaffold routes. */
+export const enquiryRoutes = enquiryAdminRoutes;

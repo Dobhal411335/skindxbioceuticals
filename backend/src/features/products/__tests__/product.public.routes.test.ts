@@ -80,10 +80,12 @@ describe('Public product API routes', () => {
       offset: undefined,
       q: undefined,
       categorySlug: undefined,
+      subcategorySlug: undefined,
       priceMin: undefined,
       priceMax: undefined,
       availability: undefined,
       sort: 'default',
+      includeVendorPrice: false,
     });
   });
 
@@ -119,7 +121,7 @@ describe('Public product API routes', () => {
     });
 
     const response = await request(app).get(
-      '/api/v1/sites/IN/products?q=serum&categorySlug=skincare&priceMin=10&priceMax=500&availability=in_stock&sort=price_asc&page=2&limit=8',
+      '/api/v1/sites/IN/products?q=serum&categorySlug=skincare&subcategorySlug=face-serum&priceMin=10&priceMax=500&availability=in_stock&sort=price_asc&page=2&limit=8',
     );
 
     expect(response.status).toBe(200);
@@ -131,11 +133,42 @@ describe('Public product API routes', () => {
       offset: undefined,
       q: 'serum',
       categorySlug: 'skincare',
+      subcategorySlug: 'face-serum',
       priceMin: 10,
       priceMax: 500,
       availability: 'in_stock',
       sort: 'price_asc',
+      includeVendorPrice: false,
     });
+  });
+
+  it('accepts subcategorySlug without categorySlug', async () => {
+    (productService.listPublic as jest.Mock).mockResolvedValue({
+      items: [],
+      meta: { page: 1, limit: 15, total: 0, totalPages: 0 },
+    });
+
+    const response = await request(app).get(
+      '/api/v1/sites/IN/products?subcategorySlug=face-serum',
+    );
+
+    expect(response.status).toBe(200);
+    expect(productService.listPublic).toHaveBeenCalledWith(
+      expect.objectContaining({
+        siteId: site.id,
+        siteCode: 'IN',
+        subcategorySlug: 'face-serum',
+        categorySlug: undefined,
+      }),
+    );
+  });
+
+  it('rejects an invalid subcategorySlug value', async () => {
+    const response = await request(app).get(
+      '/api/v1/sites/IN/products?subcategorySlug=Bad Slug!',
+    );
+    expect(response.status).toBe(422);
+    expect(productService.listPublic).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid sort value', async () => {
@@ -160,6 +193,7 @@ describe('Public product API routes', () => {
     expect(productService.listPublicHighlights).toHaveBeenCalledWith({
       siteId: site.id,
       siteCode: 'IN',
+      includeVendorPrice: false,
     });
   });
 
@@ -186,6 +220,7 @@ describe('Public product API routes', () => {
       siteId: site.id,
       siteCode: 'IN',
       slug: 'vitamin-c-serum',
+      includeVendorPrice: false,
     });
   });
 

@@ -370,6 +370,13 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Footer columns, brand copy, logo, and social links for the selected website.",
     ["IN", "COM"],
   ),
+  live(
+    "contact-page-enquiry",
+    "contact-page-enquiry",
+    "Contact Page Enquiry",
+    "Contact form enquiries submitted from the storefront Contact Us page.",
+    ["IN", "COM"],
+  ),
   shell(
     "product-information",
     "product-information",

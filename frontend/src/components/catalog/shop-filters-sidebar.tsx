@@ -28,6 +28,8 @@ type ShopFiltersSidebarProps = {
   onPriceRangeChange: (range: [number, number]) => void;
   availability: CatalogAvailability | null;
   onAvailabilityChange: (value: CatalogAvailability | null) => void;
+  /** Hide root category filter (subcategory-scoped PLP). */
+  hideCategoryFilter?: boolean;
   className?: string;
 };
 
@@ -60,6 +62,7 @@ export function ShopFiltersSidebar({
   onPriceRangeChange,
   availability,
   onAvailabilityChange,
+  hideCategoryFilter = false,
   className,
 }: ShopFiltersSidebarProps) {
   const sliderMin = Math.max(0, Math.floor(priceBounds.min));
@@ -78,49 +81,55 @@ export function ShopFiltersSidebar({
     <aside className={cn("w-full", className)}>
       <Accordion
         type="multiple"
-        defaultValue={["categories", "price", "availability"]}
+        defaultValue={
+          hideCategoryFilter
+            ? ["price", "availability"]
+            : ["categories", "price", "availability"]
+        }
         className="w-full"
       >
-        <AccordionItem value="categories" className="py-5">
-          <AccordionTrigger className="py-0 text-md font-semibold">
-            Product Categories
-          </AccordionTrigger>
-          <AccordionContent className="pt-3">
-            {categories.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No categories published yet.
-              </p>
-            ) : (
-              <ul className="max-h-64 space-y-1 overflow-y-auto pr-1">
-                {categories.map((category) => {
-                  const selected = selectedCategorySlug === category.slug;
-                  return (
-                    <li key={category.id}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onCategoryChange(selected ? null : category.slug)
-                        }
-                        className={cn(
-                          "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-                          "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                          selected
-                            ? "bg-primary/10 font-medium text-primary"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        <span className="truncate">{category.name}</span>
-                        <span className="shrink-0 tabular-nums">
-                          ({category.productCount})
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </AccordionContent>
-        </AccordionItem>
+        {!hideCategoryFilter ? (
+          <AccordionItem value="categories" className="py-5">
+            <AccordionTrigger className="py-0 text-md font-semibold">
+              Product Categories
+            </AccordionTrigger>
+            <AccordionContent className="pt-3">
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No categories published yet.
+                </p>
+              ) : (
+                <ul className="max-h-64 space-y-1 overflow-y-auto pr-1">
+                  {categories.map((category) => {
+                    const selected = selectedCategorySlug === category.slug;
+                    return (
+                      <li key={category.id}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onCategoryChange(selected ? null : category.slug)
+                          }
+                          className={cn(
+                            "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+                            "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            selected
+                              ? "bg-primary/10 font-medium text-primary"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          <span className="truncate">{category.name}</span>
+                          <span className="shrink-0 tabular-nums">
+                            ({category.productCount})
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        ) : null}
 
         <AccordionItem value="price" className="py-5">
           <AccordionTrigger className="py-0 text-md font-semibold">

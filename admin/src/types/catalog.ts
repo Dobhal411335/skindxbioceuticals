@@ -17,11 +17,15 @@ export type CategoryDto = {
 
 export type CategoryFormValues = {
   name: string;
+  bannerUrl: string;
+  bannerPublicId: string;
   active: boolean;
 };
 
 export type CategoryPayload = {
   name: string;
+  bannerUrl: string;
+  bannerPublicId: string;
   active: boolean;
 };
 

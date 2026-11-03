@@ -60,13 +60,13 @@ export type PublicSubcategoryDto = {
   products: CatalogProductSummaryDto[];
 };
 
-/** Root categories have no banner; banners live on subcategories. */
 export type PublicCategoryDto = {
   id: string;
   siteCode: SiteCodeDto;
   name: string;
   slug: string;
   order: number;
+  bannerUrl: string | null;
 };
 
 export type PublicCategoryDetailDto = PublicCategoryDto & {

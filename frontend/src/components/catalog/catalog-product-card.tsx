@@ -213,7 +213,7 @@ export function CatalogProductCard({
           src={imageUrl}
           alt={product.name}
           fill
-          className="object-contain transition-transform duration-300 group-hover:scale-[1.04]"
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
           sizes={
             isList
               ? "144px"
@@ -303,7 +303,7 @@ export function CatalogProductCard({
     <>
       <article
         className={cn(
-          "group rounded-xl border border-gray-600 bg-card p-3 shadow-none transition-[border-color,box-shadow] duration-300 hover:border-primary hover:shadow-sm",
+          "group rounded-xl bg-card p-3 shadow-none transition-[border-color,box-shadow] duration-300",
           isList
             ? "flex flex-col gap-4 p-4 sm:flex-row sm:items-stretch"
             : "flex h-full flex-col",

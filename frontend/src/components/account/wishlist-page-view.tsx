@@ -244,7 +244,7 @@ export function WishlistPageView() {
             <Heart className="size-10 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Your wishlist is empty.</p>
             <Button asChild>
-              <Link href="/category">Discover Products</Link>
+              <Link href="/shop">Discover Products</Link>
             </Button>
           </CardContent>
         </Card>

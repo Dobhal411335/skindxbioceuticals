@@ -15,21 +15,21 @@ const Mini = ({ children, light = false }: { children?: string; light?: boolean 
       {children}
     </p>
   ) : null;
-const Copy = ({
-  html,
-  light = false,
-  className = "",
-}: {
-  html?: string;
-  light?: boolean;
-  className?: string;
-}) =>
-  isFilledText(html) ? (
-    <HtmlBlock
-      html={html!}
-      className={`${light ? "!text-white [&_p]:!text-white" : "text-[#637179]"} [&_p]:leading-7 ${className}`}
-    />
-  ) : null;
+  const Copy = ({
+    html,
+    light = false,
+    className = "",
+  }: {
+    html?: string;
+    light?: boolean;
+    className?: string;
+  }) =>
+    isFilledText(html) ? (
+      <HtmlBlock
+        html={html!}
+        className={`${light ? "!text-white [&_p]:!text-white" : "text-[#637179]"} [&_p]:leading-7 ${className}`}
+      />
+    ) : null;
 
 export function Design14Page({ data }: { data: StorefrontWebpage }) {
   const sectors = data.design14SectorCards.filter(
@@ -41,7 +41,7 @@ export function Design14Page({ data }: { data: StorefrontWebpage }) {
   const questions = data.design14QuestionCards.filter((c) => c.miniHeading || c.miniDescription);
   const explore = data.design14ExploreCards.filter((c) => c.heading || c.description || c.url);
   return (
-    <main className="min-h-screen overflow-hidden bg-[#fbf8f2] text-[#172d35]">
+    <main className="min-h-screen overflow-hidden bg-[#f8f5ee] text-[#172d35]">
       <section className="relative flex min-h-[620px] items-end overflow-hidden bg-[#102832] px-6 py-20 text-white sm:px-10 md:px-16 lg:px-[9.5%] lg:py-28">
         <div className="absolute inset-0 overflow-hidden">
           {data.design14HeroImage?.url && (
@@ -65,7 +65,7 @@ export function Design14Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#fbf8f2] px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%]">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-10 md:grid-cols-[1fr_.4fr] md:items-end">
             <div>
@@ -107,8 +107,7 @@ export function Design14Page({ data }: { data: StorefrontWebpage }) {
           </div>
         </div>
       </section>
-
-      <section className="bg-[#132b34] px-6 py-24 text-white sm:px-10 md:px-16 lg:px-[9.5%]">
+      <section className="px-6 py-24 text-black sm:px-10 md:px-16 lg:px-[9.5%]">
         <div className="mx-auto grid max-w-7xl gap-14 md:grid-cols-[.9fr_1.1fr] md:items-center">
           <div>
             <Mini light>{data.design14PerspectiveMiniHeading}</Mini>
@@ -134,7 +133,7 @@ export function Design14Page({ data }: { data: StorefrontWebpage }) {
           </div>
         </div>
       </section>
-      <section className="bg-[#f1e0cc] px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%]">
         <div className="mx-auto max-w-7xl">
           <Mini>{data.design14QuestionsMiniHeading}</Mini>
           <h2 className="mt-5 max-w-3xl text-5xl font-medium leading-[.94] tracking-[-.055em] sm:text-7xl">
@@ -164,7 +163,7 @@ export function Design14Page({ data }: { data: StorefrontWebpage }) {
           </div>
         </div>
       </section>
-      <section className="bg-[#fbf8f2] px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%]">
         <div className="mx-auto max-w-6xl rounded-[20px] bg-[#a85131] px-7 py-12 text-white shadow-[0_18px_35px_rgba(101,46,26,.18)] sm:px-12">
           <div className="text-5xl text-white">“</div>
           <Copy html={data.design14Quote} light className="max-w-4xl text-xl sm:text-2xl" />
@@ -173,7 +172,7 @@ export function Design14Page({ data }: { data: StorefrontWebpage }) {
           </p>
         </div>
       </section>
-      <section className="bg-[#f1e0cc] px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%]">
         <div className="mx-auto max-w-7xl">
           <Mini>{data.design14ExploreMiniHeading}</Mini>
           <h2 className="mt-5 max-w-2xl text-5xl font-medium leading-[.94] tracking-[-.055em] sm:text-7xl">
@@ -181,20 +180,20 @@ export function Design14Page({ data }: { data: StorefrontWebpage }) {
           </h2>
           <div className="mt-14 grid gap-3 md:grid-cols-3">
             {explore.map((card, i) => (
-              <Link
-                href={card.url || "#"}
-                key={i}
-                className="group flex min-h-[100px] items-start gap-4 rounded-2xl border border-white bg-[#fcfaf6] p-5 shadow-[0_10px_25px_rgba(74,54,34,.06)] transition hover:-translate-y-1"
-              >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f5e8da] text-[9px] font-bold text-[#bd6d4b]">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <h3 className="text-xl font-semibold">{card.heading}</h3>
-                  <Copy html={card.description} className="mt-1 text-xs" />
-                </span>
-                <ArrowUpRight className="size-6 text-[#bd6d4b] transition group-hover:translate-x-1 group-hover:-translate-y-1" />
-              </Link>
+             <Link
+             href={card.url || "#"}
+             key={i}
+             className="group flex min-h-[125px] items-center gap-4 rounded-2xl border border-white/90 bg-[#fcfaf6] p-5 shadow-[0_12px_26px_rgba(74,54,34,.07)] transition duration-300 hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_34px_rgba(74,54,34,.14)]"
+           >
+             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#f6e9dc] text-[13px] font-bold text-[#bd6d4b] transition group-hover:bg-[#cf754d] group-hover:text-white">
+               {String(i + 1).padStart(2, "0")}
+             </span>
+             <span className="min-w-0 flex-1"> 
+               <h3 className="text-xl font-semibold">{card.heading}</h3>
+               <Copy html={card.description} className="mt-1 text-sm" />
+             </span>
+             <ArrowUpRight className="size-6 text-[#bd6d4b] transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+           </Link>
             ))}
           </div>
         </div>

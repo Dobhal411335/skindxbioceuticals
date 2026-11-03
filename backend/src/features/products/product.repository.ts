@@ -101,25 +101,49 @@ export class ProductRepository {
    */
   async listActiveCatalogCandidates(
     siteId: string,
-    options: { categorySlug?: string; q?: string },
+    options: { categorySlug?: string; subcategorySlug?: string; q?: string },
   ) {
     const q = options.q?.trim();
+    const subcategoryFilter = options.subcategorySlug
+      ? {
+          productType: 'CATEGORY' as const,
+          subcategory: {
+            isActive: true,
+            slug: options.subcategorySlug,
+            ...(options.categorySlug
+              ? {
+                  parent: {
+                    isActive: true,
+                    parentId: null,
+                    slug: options.categorySlug,
+                  },
+                }
+              : {
+                  parent: {
+                    isActive: true,
+                    parentId: null,
+                  },
+                }),
+          },
+        }
+      : options.categorySlug
+        ? {
+            subcategory: {
+              isActive: true,
+              parent: {
+                isActive: true,
+                parentId: null,
+                slug: options.categorySlug,
+              },
+            },
+          }
+        : {};
+
     return prisma.product.findMany({
       where: {
         siteId,
         status: 'ACTIVE',
-        ...(options.categorySlug
-          ? {
-              subcategory: {
-                isActive: true,
-                parent: {
-                  isActive: true,
-                  parentId: null,
-                  slug: options.categorySlug,
-                },
-              },
-            }
-          : {}),
+        ...subcategoryFilter,
         ...(q
           ? {
               OR: [

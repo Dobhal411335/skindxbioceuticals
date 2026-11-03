@@ -168,6 +168,7 @@ export type CatalogViewMode = "list" | 2 | 3 | 4;
 export type CatalogProductQuery = {
   q?: string;
   categorySlug?: string;
+  subcategorySlug?: string;
   priceMin?: number;
   priceMax?: number;
   availability?: CatalogAvailability;

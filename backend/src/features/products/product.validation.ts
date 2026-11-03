@@ -88,6 +88,12 @@ export const publicProductListQuerySchema = z
       .max(200)
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid category slug')
       .optional(),
+    subcategorySlug: z
+      .string()
+      .trim()
+      .max(200)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid subcategory slug')
+      .optional(),
     priceMin: z.coerce.number().min(0).max(1_000_000).optional(),
     priceMax: z.coerce.number().min(0).max(1_000_000).optional(),
     availability: publicProductAvailabilitySchema.optional(),

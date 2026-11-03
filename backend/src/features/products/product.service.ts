@@ -256,6 +256,7 @@ export class ProductService {
     offset?: number;
     q?: string;
     categorySlug?: string;
+    subcategorySlug?: string;
     priceMin?: number;
     priceMax?: number;
     availability?: PublicProductAvailability;
@@ -270,6 +271,7 @@ export class ProductService {
     const hasCatalogFilters =
       Boolean(input.q?.trim()) ||
       Boolean(input.categorySlug) ||
+      Boolean(input.subcategorySlug) ||
       input.priceMin != null ||
       input.priceMax != null ||
       Boolean(input.availability) ||
@@ -296,6 +298,7 @@ export class ProductService {
 
     const rows = await this.repository.listActiveCatalogCandidates(input.siteId, {
       categorySlug: input.categorySlug,
+      subcategorySlug: input.subcategorySlug,
       q: input.q,
     });
 

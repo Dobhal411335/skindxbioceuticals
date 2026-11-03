@@ -203,7 +203,8 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/wishlist` | current customer's wishlist | Customer |
 | `/coupons` | validate coupon eligibility | Public/customer with rate limits; admin management |
 | `/orders` | create/read/cancel where permitted | Customer; admin permissions for management |
-| `/enquiries` | submit and manage enquiries | Public submission with abuse controls; admin read/manage |
+| `/sites/:siteCode/enquiries` | public contact enquiry submit | Rate-limited; honeypot |
+| `/admin/sites/:siteCode/enquiries` | admin contact enquiry list/get/patch | Admin + site access |
 | `/content` | public pages, banners, FAQs, blog content | Public read; admin write |
 | `/media` | signed upload authorization and asset management | Authorized admin/editor |
 | `/admin/sites` | list/manage authorized site workspaces | Admin permission |
@@ -319,6 +320,15 @@ Uploads use existing media APIs with `feature=doctors`: `POST /api/v1/media/imag
 ### Public doctor profiles (storefront)
 
 - `GET /api/v1/sites/:siteCode/doctors` — public read for an active site (no auth). Returns active profiles only (includes `state` + `city`), ordered for the `.in` storefront `/doctors` cards grid.
+
+### Contact page enquiries (implemented)
+
+Site-scoped contact-us form submissions from Design13 / storefront. Uses the existing `Enquiry` model (`name`, `email`, `phone`, optional `subject`, `message`, `source`, `status`).
+
+- `POST /api/v1/sites/:siteCode/enquiries` — public; rate-limited (10 / 15m). Body: `{ name, email, phone, message, subject?, website? }`. Honeypot `website` accepts without persisting. Sets `source` from site (`WEBSITE_IN` / `WEBSITE_COM`), default subject `Contact Us`, status `NEW`. Sends enquiry confirmation email asynchronously.
+- `GET /api/v1/admin/sites/:siteCode/enquiries` — Bearer admin JWT; `requireSiteAccess`. Optional query: `name`, `email`, `phone` (contains, case-insensitive), `from` / `to` (ISO datetimes on `createdAt`), `status`. Newest first.
+- `GET /api/v1/admin/sites/:siteCode/enquiries/:enquiryId` — single enquiry within the site.
+- `PATCH /api/v1/admin/sites/:siteCode/enquiries/:enquiryId` — body `{ status }` with `NEW` | `IN_PROGRESS` | `RESOLVED` | `CLOSED`.
 
 ### Admin order logs (implemented)
 
@@ -511,10 +521,10 @@ Site-scoped categories use the hierarchical `Category` model (`parentId` null = 
 
 **Categories**
 - `GET /api/v1/admin/sites/:siteCode/category` — Bearer admin JWT; `requireSiteAccess`. Lists root categories (including inactive).
-- `POST /api/v1/admin/sites/:siteCode/category` — create root category. Body: `name`, optional `active`/`order`/`description`. No banner on roots. `siteId` from authenticated site context only. Slug is server-generated and unique per site.
-- `PUT /api/v1/admin/sites/:siteCode/category/:categoryId` — full update of a root category (name/active/order/description).
+- `POST /api/v1/admin/sites/:siteCode/category` — create root category. Body: `name`, `bannerUrl`, `bannerPublicId`, optional `active`/`order`/`description`. Prefer HTTPS image URLs. `siteId` from authenticated site context only. Slug is server-generated and unique per site.
+- `PUT /api/v1/admin/sites/:siteCode/category/:categoryId` — full update of a root category (name/image/active/order/description). Replacing `bannerPublicId` deletes the previous Cloudinary asset best-effort.
 - `PATCH /api/v1/admin/sites/:siteCode/category/:categoryId` — `{ active }` and/or `{ order }`.
-- `DELETE /api/v1/admin/sites/:siteCode/category/:categoryId` — delete root category (blocked if subcategories remain).
+- `DELETE /api/v1/admin/sites/:siteCode/category/:categoryId` — delete root category (blocked if subcategories remain; deletes Cloudinary image when present).
 
 **Subcategories**
 - `GET /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories`
@@ -605,15 +615,15 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 
 ### Public categories (storefront)
 
-- `GET /api/v1/sites/:siteCode/category` — public read; active root categories only (name/slug/order) for `/category` grid.
-- `GET /api/v1/sites/:siteCode/category/:categorySlug` — public read by slug or name; returns category with active subcategories (including subcategory `bannerUrl`) and their active products for `/category/[categoryName]`.
+- `GET /api/v1/sites/:siteCode/category` — public read; active root categories only (`id`, `name`, `slug`, `order`, `bannerUrl`) for the `/category` main-category grid.
+- `GET /api/v1/sites/:siteCode/category/:categorySlug` — public read by slug or name; returns category (`bannerUrl` included) with active subcategories (including subcategory `bannerUrl` and nested active product summaries). Storefront uses this for `/category/[mainSlug]` (subcategory cards) and to resolve `/category/[mainSlug]/[subSlug]` product PLPs.
 
 ### Public products (storefront)
 
-- `GET /api/v1/sites/:siteCode/products` — public list of ACTIVE products for an active site (no auth). Includes both **DIRECT** and **CATEGORY** products (no `productType` filter). Response `data` is an array of product cards; pagination/filter metadata is returned in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
-  - Query (allowlisted): `q` (max 120), `categorySlug` (root category slug; products under that root’s active subcategories — **DIRECT** products have no subcategory and are excluded when this filter is set), `priceMin` / `priceMax` (first active variant price in INR rupees), `availability` (`in_stock` | `out_of_stock`), `sort` (`default` | `rating` | `price_asc` | `price_desc`), `page` (1-based, default 1), optional `offset` (preferred for infinite scroll with varying page sizes; when set, overrides `(page-1)*limit`), `limit` (default `15`, max `48`).
+- `GET /api/v1/sites/:siteCode/products` — public list of ACTIVE products for an active site (no auth). Includes both **DIRECT** and **CATEGORY** products when no category/subcategory filter is set. Response `data` is an array of product cards; pagination/filter metadata is returned in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
+  - Query (allowlisted): `q` (max 120), `categorySlug` (root category slug; products under that root’s active subcategories — **DIRECT** products have no subcategory and are excluded when this filter is set), `subcategorySlug` (subcategory slug; returns only **CATEGORY** products under that active subcategory; when combined with `categorySlug`, the subcategory must belong to that root), `priceMin` / `priceMax` (first active variant price in INR rupees), `availability` (`in_stock` | `out_of_stock`), `sort` (`default` | `rating` | `price_asc` | `price_desc`), `page` (1-based, default 1), optional `offset` (preferred for infinite scroll with varying page sizes; when set, overrides `(page-1)*limit`), `limit` (default `15`, max `48`).
   - Card fields: `id`, `slug`, `name`, `categoryName` (null for DIRECT), optional `description` (HTML overview; null when empty), `price`, optional `compareAtPrice` (null when unset), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount`, `defaultVariantId`, `quantity`, and landing flags.
-  - Landing rail may call with only `limit`; shop PLP uses filters + pagination.
+  - Landing rail may call with only `limit`; `/shop` uses filters + pagination; `/category/[main]/[sub]` locks `subcategorySlug` (and usually `categorySlug`).
 - `GET /api/v1/sites/:siteCode/products/facets` — public read for shop filters: `{ categories: [{ id, name, slug, productCount, imageUrl }], price: { min, max } }`. Category image is the first ACTIVE product primary gallery image under that root (else null). Price min/max use each product’s first active variant by `createdAt` (same rule as cards). DIRECT products contribute to price min/max but not category product counts.
 - `GET /api/v1/sites/:siteCode/products/highlights` — public read returning `{ recent, featured, bestSellers }` ACTIVE products flagged `isRecent` / `isFeatured` / `isBestSeller` (caps 4 / 8 / 4), including DIRECT. Same card shape as the list endpoint.
 - `GET /api/v1/sites/:siteCode/products/:slug` — public read for an active site (no auth). Returns one ACTIVE product by site-scoped slug for the storefront PDP (`/products/[slug]`), including DIRECT. Draft/archived products return `404`. Prefer HTTPS Cloudinary image URLs. Static paths `/highlights` and `/facets` are registered before `/:slug`.

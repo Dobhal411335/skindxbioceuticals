@@ -37,6 +37,12 @@ const INITIAL_LIMIT = 16;
 
 type CategoryShopProps = {
   facets: PublicProductFacets;
+  /** When set, products are locked to this subcategory (leaf PLP). */
+  lockedSubcategorySlug?: string;
+  /** Optional parent root slug used with lockedSubcategorySlug for stricter filtering. */
+  lockedCategorySlug?: string;
+  hideCarousel?: boolean;
+  hideCategoryFilter?: boolean;
 };
 
 function parseSort(value: string | null): CatalogSort {
@@ -64,11 +70,18 @@ function skeletonCount(viewMode: CatalogViewMode): number {
   return viewMode === "list" ? 4 : viewMode;
 }
 
-export function CategoryShop({ facets }: CategoryShopProps) {
+export function CategoryShop({
+  facets,
+  lockedSubcategorySlug,
+  lockedCategorySlug,
+  hideCarousel = false,
+  hideCategoryFilter = false,
+}: CategoryShopProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isVendor = useIsVendor();
+  const isSubcategoryScoped = Boolean(lockedSubcategorySlug);
 
   const priceBounds = useMemo(() => {
     const min = Math.max(0, Math.floor(facets.price.min || 0));
@@ -84,14 +97,15 @@ export function CategoryShop({ facets }: CategoryShopProps) {
   );
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 
-  // Keep in sync when arriving from header search (`/category?q=…`).
+  // Keep in sync when arriving from header search (`/shop?q=…`).
   useEffect(() => {
     const next = searchParams.get("q") ?? "";
     setSearchInput((current) => (current === next ? current : next));
   }, [searchParams]);
-  const [categorySlug, setCategorySlug] = useState<string | null>(
-    () => searchParams.get("category") ?? null,
-  );
+  const [categorySlug, setCategorySlug] = useState<string | null>(() => {
+    if (isSubcategoryScoped) return lockedCategorySlug ?? null;
+    return searchParams.get("category") ?? null;
+  });
   const [priceRange, setPriceRange] = useState<[number, number]>(() => {
     const minRaw = searchParams.get("priceMin");
     const maxRaw = searchParams.get("priceMax");
@@ -161,7 +175,9 @@ export function CategoryShop({ facets }: CategoryShopProps) {
   useEffect(() => {
     const params = new URLSearchParams();
     if (debouncedSearch.trim()) params.set("q", debouncedSearch.trim());
-    if (categorySlug) params.set("category", categorySlug);
+    if (!isSubcategoryScoped && categorySlug) {
+      params.set("category", categorySlug);
+    }
     if (availability) params.set("availability", availability);
     if (sort !== "default") params.set("sort", sort);
     if (priceFilterActive) {
@@ -175,6 +191,7 @@ export function CategoryShop({ facets }: CategoryShopProps) {
     categorySlug,
     debouncedPriceRange,
     debouncedSearch,
+    isSubcategoryScoped,
     pathname,
     priceFilterActive,
     router,
@@ -205,7 +222,10 @@ export function CategoryShop({ facets }: CategoryShopProps) {
       try {
         const result = await fetchCatalogProducts({
           q: debouncedSearch.trim() || undefined,
-          categorySlug: categorySlug || undefined,
+          categorySlug: isSubcategoryScoped
+            ? lockedCategorySlug || undefined
+            : categorySlug || undefined,
+          subcategorySlug: lockedSubcategorySlug || undefined,
           priceMin: priceFilterActive ? debouncedPriceRange[0] : undefined,
           priceMax: priceFilterActive ? debouncedPriceRange[1] : undefined,
           availability: availability || undefined,
@@ -249,6 +269,9 @@ export function CategoryShop({ facets }: CategoryShopProps) {
       categorySlug,
       debouncedPriceRange,
       debouncedSearch,
+      isSubcategoryScoped,
+      lockedCategorySlug,
+      lockedSubcategorySlug,
       priceFilterActive,
       sort,
       isVendor,
@@ -283,9 +306,10 @@ export function CategoryShop({ facets }: CategoryShopProps) {
 
   const filters = (
     <ShopFiltersSidebar
-      categories={facets.categories}
-      selectedCategorySlug={categorySlug}
-      onCategoryChange={setCategorySlug}
+      categories={hideCategoryFilter ? [] : facets.categories}
+      selectedCategorySlug={hideCategoryFilter ? null : categorySlug}
+      onCategoryChange={hideCategoryFilter ? () => undefined : setCategorySlug}
+      hideCategoryFilter={hideCategoryFilter}
       priceBounds={priceBounds}
       priceRange={priceRange}
       onPriceRangeChange={setPriceRange}
@@ -296,9 +320,7 @@ export function CategoryShop({ facets }: CategoryShopProps) {
 
   return (
     <div className="space-y-8">
-      <CategoryCarousel
-        categories={facets.categories}
-      />
+      {!hideCarousel ? <CategoryCarousel categories={facets.categories} /> : null}
 
       <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
         <div className="hidden lg:block">{filters}</div>

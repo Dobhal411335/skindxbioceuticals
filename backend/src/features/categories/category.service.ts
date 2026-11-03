@@ -91,6 +91,7 @@ export class CategoryService {
       name: row.name,
       slug: row.slug,
       order: row.sortOrder,
+      bannerUrl: preferHttpsUrl(row.bannerUrl),
     }));
   }
 
@@ -135,6 +136,7 @@ export class CategoryService {
       name: category.name,
       slug: category.slug,
       order: category.sortOrder,
+      bannerUrl: preferHttpsUrl(category.bannerUrl),
       description: category.description,
       subcategories: withProducts,
     };
@@ -154,8 +156,8 @@ export class CategoryService {
       slug,
       description: input.body.description ?? null,
       parentId: null,
-      bannerUrl: null,
-      bannerPublicId: null,
+      bannerUrl: preferHttpsUrl(input.body.bannerUrl),
+      bannerPublicId: input.body.bannerPublicId ?? '',
       isActive: input.body.active,
       sortOrder: order,
     };
@@ -192,13 +194,16 @@ export class CategoryService {
         ? existing.slug
         : await this.uniqueSlug(input.siteId, input.body.name, existing.id);
 
+    const nextBannerUrl = preferHttpsUrl(input.body.bannerUrl);
+    const nextBannerPublicId = input.body.bannerPublicId ?? '';
+
     const data: CategoryWrite = {
       name: input.body.name,
       slug,
       description: input.body.description ?? existing.description,
       parentId: null,
-      bannerUrl: null,
-      bannerPublicId: null,
+      bannerUrl: nextBannerUrl,
+      bannerPublicId: nextBannerPublicId,
       isActive: input.body.active,
       sortOrder: input.body.order ?? existing.sortOrder,
     };
@@ -208,9 +213,9 @@ export class CategoryService {
       throw new NotFoundError('Category not found');
     }
 
-    // Clear any legacy root-category banner left from earlier phases.
     const previousPublicId = (existing.bannerPublicId ?? '').trim();
-    if (previousPublicId) {
+    const nextPublicId = nextBannerPublicId.trim();
+    if (previousPublicId && previousPublicId !== nextPublicId) {
       await deleteStoredCloudinaryAssetBestEffort(previousPublicId);
     }
 

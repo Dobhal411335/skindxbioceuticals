@@ -31,7 +31,7 @@ export function ProductRecommendations({ products }: ProductRecommendationsProps
           </h2>
           <div className="mt-2 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
           <Button asChild className="mt-8 rounded-full p-6" size="lg">
-            <Link href="/category" className="flex items-center justify-center gap-2">
+            <Link href="/shop" className="flex items-center justify-center gap-2">
               <span>Browse categories</span>
               <ArrowUpRight className="size-4" />
             </Link>

@@ -9,7 +9,7 @@ import type {
   SubcategoryPayload,
 } from "@/types/catalog";
 
-export type CategoryFormErrors = Partial<Record<"name", string>>;
+export type CategoryFormErrors = Partial<Record<"name" | "bannerUrl", string>>;
 export type SubcategoryFormErrors = Partial<Record<"name" | "bannerUrl", string>>;
 export type CatalogProductFormErrors = Partial<
   Record<"productCode" | "name", string>
@@ -17,6 +17,12 @@ export type CatalogProductFormErrors = Partial<
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, "Category name is required").max(160),
+  bannerUrl: z
+    .string()
+    .trim()
+    .min(1, "Category image is required")
+    .url("Category image URL must be valid"),
+  bannerPublicId: z.string().trim().max(500).default(""),
   active: z.boolean(),
 });
 
@@ -53,10 +59,12 @@ export function validateCategoryForm(
 ): { ok: true; data: CategoryPayload } | { ok: false; errors: CategoryFormErrors } {
   const result = categorySchema.safeParse(values);
   if (!result.success) {
+    const fieldErrors = result.error.flatten().fieldErrors;
     return {
       ok: false,
       errors: {
-        name: result.error.flatten().fieldErrors.name?.[0],
+        name: fieldErrors.name?.[0],
+        bannerUrl: fieldErrors.bannerUrl?.[0],
       },
     };
   }
@@ -64,6 +72,8 @@ export function validateCategoryForm(
     ok: true,
     data: {
       name: result.data.name,
+      bannerUrl: result.data.bannerUrl,
+      bannerPublicId: result.data.bannerPublicId,
       active: result.data.active,
     },
   };

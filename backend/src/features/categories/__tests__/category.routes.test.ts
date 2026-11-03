@@ -71,9 +71,25 @@ describe('Category API routes', () => {
     (categoryService.createRoot as jest.Mock).mockResolvedValue({
       id: 'cat-1',
       name: 'Serums',
-      bannerUrl: null,
+      bannerUrl: 'https://cdn.example.com/category.jpg',
+      bannerPublicId: 'categories/root',
     });
 
+    const response = await request(app)
+      .post('/api/v1/admin/sites/IN/category')
+      .set('Authorization', 'Bearer token')
+      .send({
+        name: 'Serums',
+        bannerUrl: 'https://cdn.example.com/category.jpg',
+        bannerPublicId: 'categories/root',
+        active: true,
+      });
+
+    expect(response.status).toBe(201);
+    expect(categoryService.createRoot).toHaveBeenCalled();
+  });
+
+  it('rejects creating a category without an image', async () => {
     const response = await request(app)
       .post('/api/v1/admin/sites/IN/category')
       .set('Authorization', 'Bearer token')
@@ -82,18 +98,26 @@ describe('Category API routes', () => {
         active: true,
       });
 
-    expect(response.status).toBe(201);
-    expect(categoryService.createRoot).toHaveBeenCalled();
+    expect(response.status).toBe(422);
+    expect(categoryService.createRoot).not.toHaveBeenCalled();
   });
 
   it('lists public categories without auth', async () => {
     (categoryService.listActiveRoots as jest.Mock).mockResolvedValue([
-      { id: 'cat-1', name: 'Serums', slug: 'serums' },
+      {
+        id: 'cat-1',
+        name: 'Serums',
+        slug: 'serums',
+        bannerUrl: 'https://cdn.example.com/category.jpg',
+      },
     ]);
 
     const response = await request(app).get('/api/v1/sites/IN/category');
     expect(response.status).toBe(200);
     expect(response.body.data[0].slug).toBe('serums');
+    expect(response.body.data[0].bannerUrl).toBe(
+      'https://cdn.example.com/category.jpg',
+    );
   });
 
   it('returns public category detail by slug', async () => {

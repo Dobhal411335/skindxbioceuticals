@@ -6,31 +6,50 @@ import {
 } from '../category.validation';
 
 describe('category validation', () => {
-  it('accepts a valid root category body without banner', () => {
+  it('accepts a valid root category body with image', () => {
     const parsed = categoryBodySchema.parse({
       name: 'Serums',
+      bannerUrl: 'https://cdn.example.com/category.jpg',
+      bannerPublicId: 'categories/root',
       active: true,
     });
     expect(parsed.name).toBe('Serums');
     expect(parsed.active).toBe(true);
+    expect(parsed.bannerUrl).toBe('https://cdn.example.com/category.jpg');
+  });
+
+  it('rejects root category missing image URL', () => {
+    expect(() =>
+      categoryBodySchema.parse({
+        name: 'Serums',
+        active: true,
+      }),
+    ).toThrow();
   });
 
   it('rejects empty root category name', () => {
     expect(() =>
       categoryBodySchema.parse({
         name: '   ',
+        bannerUrl: 'https://cdn.example.com/category.jpg',
         active: true,
       }),
     ).toThrow();
   });
 
-  it('normalizes root category name input', () => {
+  it('normalizes root category name and banner input', () => {
     const normalized = normalizeCategoryInput({
       name: '  Serums  ',
+      banner: {
+        url: 'https://cdn.example.com/category.jpg',
+        publicId: 'categories/root',
+      },
       active: true,
     });
     expect(normalized).toMatchObject({
       name: 'Serums',
+      bannerUrl: 'https://cdn.example.com/category.jpg',
+      bannerPublicId: 'categories/root',
       active: true,
     });
   });

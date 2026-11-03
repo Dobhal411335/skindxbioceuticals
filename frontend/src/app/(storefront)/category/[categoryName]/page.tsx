@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { CategoryDetail } from "@/components/catalog/category-detail";
+import { SubcategoryGrid } from "@/components/catalog/subcategory-grid";
 import {
   getCategories,
   getCategoryBySlugOrName,
@@ -27,7 +27,7 @@ export async function generateMetadata({
 
   return {
     title: `${category.name} | SkinDx Bioceuticals`,
-    description: category.description || `Shop ${category.name} from SkinDx Bioc.`,
+    description: category.description || `Browse ${category.name} subcategories from SkinDx Bioc.`,
   };
 }
 
@@ -60,11 +60,16 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
         <span className="mx-2">/</span>
         <span className="text-foreground">{category.name}</span>
       </nav>
-      <h1 className="font-display text-3xl font-semibold tracking-tight">
+      <h1 className="mt-5 max-w-5xl text-4xl leading-[0.98] font-semibold tracking-[-0.045em] text-foreground sm:text-5xl">
         {category.name}
       </h1>
+      <div className="mt-3 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
       <div className="mt-8">
-        <CategoryDetail category={category} />
+        <SubcategoryGrid
+          mainSlug={category.slug}
+          mainName={category.name}
+          subcategories={category.subcategories}
+        />
       </div>
     </div>
   );

@@ -44,7 +44,7 @@
 - `MediaAsset`: provider, provider asset/public ID, URL, file type, dimensions, alt text, ownership/creation metadata.
 
 ### Catalog
-- `Category` (phase 1 implemented): site-scoped hierarchical categories. Fields: `siteId`, `name`, `slug` (unique per site), optional `description`, `parentId` (null = main category; set = subcategory), optional `bannerUrl`/`bannerPublicId` (**subcategories only**; roots keep these null), `isActive`, `sortOrder`. Cascade delete with `Site` and parent category. Indexed by `(siteId)`, `(siteId, parentId)`, `(siteId, isActive, sortOrder)`.
+- `Category` (phase 1 implemented): site-scoped hierarchical categories. Fields: `siteId`, `name`, `slug` (unique per site), optional `description`, `parentId` (null = main category; set = subcategory), optional `bannerUrl`/`bannerPublicId` (main category image and subcategory banner), `isActive`, `sortOrder`. Cascade delete with `Site` and parent category. Indexed by `(siteId)`, `(siteId, parentId)`, `(siteId, isActive, sortOrder)`.
 - `Product` (phase 1 + edit details): site-scoped. Fields: `productCode` (unique per site), optional `subcategoryId` FK to `Category` (Restrict on delete), `productType` (`DIRECT` | `CATEGORY`, default `CATEGORY`), `description` (overview HTML/text), optional `sizeChartUrl`/`sizeChartPublicId`, optional `bannerUrl`/`bannerPublicId` (logo/banner for Product Gallery admin section), `status` (`DRAFT`/`ACTIVE`/`ARCHIVED`), landing flags `isFeatured` / `isRecent` / `isBestSeller` (booleans, default false). Slug unique per site. Indexed by `(subcategoryId)`, `(siteId, productType)`, `(siteId, status)`, and `(siteId, status, isFeatured|isRecent|isBestSeller)`. Migrations: `20261013143000_product_landing_flags`, `20261019100000_product_type_direct_category` (backfill: rows with `subcategory_id` → `CATEGORY`, else `DIRECT`).
   - **CATEGORY**: requires `subcategoryId`; created under Manage Products & Category (subcategory product APIs).
   - **DIRECT**: `subcategoryId` null; created via Admin Add Direct Product (`/products/direct`). Still editable via product edit / stock / prices; PDP by slug unchanged. ACTIVE DIRECT products appear in public landing rail/highlights/list alongside CATEGORY products.
@@ -90,7 +90,7 @@ Do not use a user-supplied email as the only permanent external identity key. St
 - `Shipment` / `Fulfilment`: carrier reference, shipping state, and timestamps if fulfilment tracking is in scope.
 
 ### Enquiries and communication
-- `Enquiry`: originating site, contact details, subject/message, status, timestamps, and assigned staff if needed.
+- `Enquiry` (implemented for Contact Page): site-scoped contact form rows (`name`, `email`, optional `phone`, optional `subject`, `message`, `source` enum `WEBSITE_IN` | `WEBSITE_COM` | `ADMIN` | `OTHER`, `status` enum `NEW` | `IN_PROGRESS` | `RESOLVED` | `CLOSED`, optional `userId`, optional `meta` Json). Indexed by `siteId`, `status`, `source`. Public create + admin list/get/status patch.
 - `EmailDelivery` or notification/outbox records if reliable delivery tracking/retries are required.
 - `Review`: customer/order/product association and moderation status if reviews are in scope.
 

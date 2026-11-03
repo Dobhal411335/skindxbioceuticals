@@ -144,6 +144,16 @@ export function getSharedNav(siteCode: SiteCode): SidebarSection {
           leaf(siteCode, "manage-footer", "Manage Footer", "manage-footer", PanelBottom, {
             status: "active",
           }),
+          leaf(
+            siteCode,
+            "contact-page-enquiry",
+            "Contact Page Enquiry",
+            "contact-page-enquiry",
+            MessageSquare,
+            {
+              status: "active",
+            },
+          ),
         ],
       },
       {

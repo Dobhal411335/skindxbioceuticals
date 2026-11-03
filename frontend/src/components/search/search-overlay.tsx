@@ -93,8 +93,8 @@ export function SearchOverlay() {
             closeSearch();
             router.push(
               nextQuery
-                ? `/category?q=${encodeURIComponent(nextQuery)}`
-                : "/category",
+                ? `/shop?q=${encodeURIComponent(nextQuery)}`
+                : "/shop",
             );
           }}
         >

@@ -7,6 +7,16 @@ const siteCodeSchema = z
 const bannerUrlSchema = z
   .string()
   .trim()
+  .min(1, 'Category image URL is required')
+  .max(2000)
+  .url('Category image URL must be a valid absolute URL')
+  .refine((value) => value.startsWith('https://') || value.startsWith('http://'), {
+    message: 'Category image URL must use http or https',
+  });
+
+const subcategoryBannerUrlSchema = z
+  .string()
+  .trim()
   .min(1, 'Subcategory banner URL is required')
   .max(2000)
   .url('Subcategory banner URL must be a valid absolute URL')
@@ -14,9 +24,11 @@ const bannerUrlSchema = z
     message: 'Subcategory banner URL must use http or https',
   });
 
-/** Main categories: name + active only (no banner). */
+/** Main categories: name + required image + active. */
 export const categoryBodySchema = z.object({
   name: z.string().trim().min(1, 'Category name is required').max(160),
+  bannerUrl: bannerUrlSchema,
+  bannerPublicId: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).optional(),
   description: z.string().trim().max(2000).optional().nullable(),
@@ -34,7 +46,7 @@ export const categoryPatchSchema = z
 /** Subcategories: name + required banner + active. */
 export const subcategoryBodySchema = z.object({
   name: z.string().trim().min(1, 'Subcategory name is required').max(160),
-  bannerUrl: bannerUrlSchema,
+  bannerUrl: subcategoryBannerUrlSchema,
   bannerPublicId: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).optional(),
@@ -45,7 +57,7 @@ export const subcategoryPatchSchema = z
     active: z.boolean().optional(),
     order: z.coerce.number().int().min(0).max(10_000).optional(),
     name: z.string().trim().min(1).max(160).optional(),
-    bannerUrl: bannerUrlSchema.optional(),
+    bannerUrl: subcategoryBannerUrlSchema.optional(),
     bannerPublicId: z.string().trim().max(500).optional(),
   })
   .refine(
@@ -90,10 +102,36 @@ export function normalizeCategoryInput(raw: unknown): unknown {
   }
 
   const payload = raw as Record<string, unknown>;
+  const banner =
+    payload.banner && typeof payload.banner === 'object'
+      ? (payload.banner as Record<string, unknown>)
+      : null;
+
+  const bannerUrl =
+    typeof payload.bannerUrl === 'string'
+      ? payload.bannerUrl.trim()
+      : typeof payload.url === 'string'
+        ? payload.url.trim()
+        : typeof banner?.url === 'string'
+          ? banner.url.trim()
+          : typeof banner?.secureUrl === 'string'
+            ? banner.secureUrl.trim()
+            : payload.bannerUrl;
+
+  const bannerPublicId =
+    typeof payload.bannerPublicId === 'string'
+      ? payload.bannerPublicId.trim()
+      : typeof payload.publicId === 'string'
+        ? payload.publicId.trim()
+        : typeof banner?.publicId === 'string'
+          ? banner.publicId.trim()
+          : (payload.bannerPublicId ?? '');
 
   return {
     ...payload,
     name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
+    bannerUrl,
+    bannerPublicId,
     active: payload.active ?? true,
     order:
       payload.order === '' || payload.order === undefined || payload.order === null

@@ -110,4 +110,7 @@ export const API_ENDPOINTS = {
     APPOINTMENTS: (siteCode: string) =>
       `/sites/${siteCode}/doctor-appointments`,
   },
+  ENQUIRIES: {
+    PUBLIC: (siteCode: string) => `/sites/${siteCode}/enquiries`,
+  },
 } as const;

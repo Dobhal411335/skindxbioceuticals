@@ -145,6 +145,7 @@ function buildCatalogQueryString(query: CatalogProductQuery): string {
   const params = new URLSearchParams();
   if (query.q?.trim()) params.set("q", query.q.trim());
   if (query.categorySlug) params.set("categorySlug", query.categorySlug);
+  if (query.subcategorySlug) params.set("subcategorySlug", query.subcategorySlug);
   if (query.priceMin != null) params.set("priceMin", String(query.priceMin));
   if (query.priceMax != null) params.set("priceMax", String(query.priceMax));
   if (query.availability) params.set("availability", query.availability);

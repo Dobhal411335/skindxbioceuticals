@@ -38,7 +38,7 @@ export function Design15Page({ data }: { data: StorefrontWebpage }) {
     (item) => item.heading || item.description || item.url,
   );
   return (
-    <main className="min-h-screen overflow-hidden bg-[#fbf8f2] text-[#172d35]">
+    <div className="min-h-screen bg-[#f8f5ee] text-[#172d35]">
       <section className="relative overflow-hidden bg-[#0c252e] px-6 py-28 text-white sm:px-10 md:px-16 lg:px-[9.5%] lg:py-36">
         <div className="pointer-events-none absolute -right-24 -top-28 size-[430px] rounded-full border border-white/[.06] shadow-[0_0_0_58px_rgba(255,255,255,.025),0_0_0_116px_rgba(255,255,255,.018)]" />
         <div className="relative mx-auto max-w-7xl">
@@ -49,16 +49,16 @@ export function Design15Page({ data }: { data: StorefrontWebpage }) {
           <Copy html={data.design15HeroDescription} light className="mt-10 max-w-2xl text-base" />
         </div>
       </section>
-      <section className="bg-[#fbf8f2] px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%] lg:py-28">
-        <div className="mx-auto grid max-w-7xl gap-14 md:grid-cols-[.9fr_1.1fr] md:gap-20">
-          <div>
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%] lg:py-28">
+        <div className="mx-auto flex max-w-7xl flex-col gap-14 md:flex-row md:items-start md:gap-20">
+          <div className="w-full md:sticky md:top-28 md:w-[42%] md:shrink-0 md:self-start">
             <Mini>{data.design15NoticeMiniHeading}</Mini>
             <h2 className="mt-6 max-w-xl text-5xl font-medium leading-[.94] tracking-[-.055em] sm:text-7xl">
               {data.design15NoticeMainHeading}
             </h2>
             <Copy html={data.design15NoticeDescription} className="mt-8 max-w-md text-sm" />
           </div>
-          <div className="divide-y divide-[#e4ddd4] border-t border-[#e4ddd4]">
+          <div className="min-w-0 flex-1 divide-y divide-[#e4ddd4] border-t border-[#e4ddd4]">
             {faqs.map((item, i) => {
               const open = openFaq === i;
               return (
@@ -68,7 +68,9 @@ export function Design15Page({ data }: { data: StorefrontWebpage }) {
                     className="flex w-full items-center justify-between gap-6 py-5 text-left text-base font-semibold"
                     onClick={() => setOpenFaq(open ? null : i)}
                   >
-                    <span className="text-lg font-medium hover:text-[#cf754d] hover:ml-2 transition-all duration-300">{item.question}</span>
+                    <span className="text-lg font-medium transition-all duration-300 hover:ml-2 hover:text-[#cf754d]">
+                      {item.question}
+                    </span>
                     <Plus
                       className={`size-4 shrink-0 text-[#cf754d] transition duration-300 ${open ? "rotate-45" : ""}`}
                     />
@@ -86,7 +88,7 @@ export function Design15Page({ data }: { data: StorefrontWebpage }) {
           </div>
         </div>
       </section>
-      <section className="bg-[#f1e0cc] px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%] lg:py-28">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[9.5%] lg:py-28">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-4 md:grid-cols-3">
             {cards.map((card, i) => (
@@ -108,7 +110,7 @@ export function Design15Page({ data }: { data: StorefrontWebpage }) {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

@@ -14,21 +14,21 @@ const Mini = ({ children, light = false }: { children?: string; light?: boolean 
       {children}
     </p>
   ) : null;
-const Copy = ({
-  html,
-  light = false,
-  className = "",
-}: {
-  html?: string;
-  light?: boolean;
-  className?: string;
-}) =>
-  isFilledText(html) ? (
-    <HtmlBlock
-      html={html!}
-      className={`${light ? "!text-white [&_p]:!text-white" : "text-[#637179]"} [&_p]:leading-7 ${className}`}
-    />
-  ) : null;
+  const Copy = ({
+    html,
+    light = false,
+    className = "",
+  }: {
+    html?: string;
+    light?: boolean;
+    className?: string;
+  }) =>
+    isFilledText(html) ? (
+      <HtmlBlock
+        html={html!}
+        className={`${light ? "!text-white [&_p]:!text-white" : "text-[#637179]"} [&_p]:leading-7 ${className}`}
+      />
+    ) : null;
 
 export function Design11Page({ data }: { data: StorefrontWebpage }) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -42,7 +42,7 @@ export function Design11Page({ data }: { data: StorefrontWebpage }) {
   const faqs = data.design11FaqItems.filter((c) => c.question || c.answer);
   const explore = data.design11ExploreCards.filter((c) => c.heading || c.subHeading);
   return (
-    <main className="min-h-screen overflow-hidden bg-[#fbf8f2] text-[#172d35]">
+    <main className="min-h-screen overflow-hidden bg-[#f8f5ee] text-[#172d35]">
       <section className="relative flex min-h-[610px] items-end overflow-hidden bg-[#102832] px-6 py-20 text-white sm:px-10 md:px-16 lg:px-[10%] lg:py-28">
         {data.design11HeroImage?.url && (
           <div
@@ -60,7 +60,7 @@ export function Design11Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#f1e0cc] px-6 py-24 sm:px-10 md:px-16">
+      <section className="px-6 py-24 sm:px-10 md:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-5 md:grid-cols-[1.1fr_.4fr] md:items-end">
             <div>
@@ -105,7 +105,7 @@ export function Design11Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#fcfaf6] px-6 py-24 sm:px-10 md:px-16">
+      <section className="px-6 py-24 sm:px-10 md:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-10 md:grid-cols-[1.1fr_.4fr] md:items-end">
             <div>
@@ -133,7 +133,7 @@ export function Design11Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#142b34] px-6 py-24 text-white sm:px-10 md:px-16">
+      <section className="px-6 py-24 text-white sm:px-10 md:px-16">
         <div className="mx-auto max-w-7xl">
           <Mini light>{data.design11EngagementMiniHeading}</Mini>
           <h2 className="mt-5 max-w-3xl text-5xl font-medium leading-[.94] tracking-[-.04em] sm:text-7xl">
@@ -159,7 +159,7 @@ export function Design11Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#fbf8f2] px-6 py-28 sm:px-10 md:px-16">
+      <section className="px-6 py-28 sm:px-10 md:px-16">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[.9fr_0.8fr] md:items-start">
           <div>
             <Mini>{data.design11FaqMiniHeading}</Mini>
@@ -195,7 +195,7 @@ export function Design11Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#f1e0cc] px-6 py-24 sm:px-10 md:px-16">
+      <section className="px-6 py-24 sm:px-10 md:px-16">
         <div className="mx-auto max-w-7xl">
           <Mini>{data.design11ExploreMiniHeading}</Mini>
           <h2 className="mt-5 max-w-2xl text-5xl font-medium leading-[.94] tracking-[-.04em] sm:text-7xl">
@@ -203,20 +203,20 @@ export function Design11Page({ data }: { data: StorefrontWebpage }) {
           </h2>
           <div className="mt-14 grid gap-4 md:grid-cols-3">
             {explore.map((card, i) => (
-              <Link
-                href="#"
-                key={i}
-                className="group flex min-h-[120px] items-center gap-4 rounded-[18px] border border-white/80 hover:bg-white bg-[#fcfaf8] p-5 shadow-[0_12px_26px_rgba(74,54,100,.06)] transition hover:-translate-y-1"
-              >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f6e9dc] text-[12px] font-bold text-[#bd6d4b]">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <h3 className="text-xl font-semibold">{card.heading}</h3>
-                  <p className="mt-1 text-xs text-[#637179]">{card.subHeading}</p>
-                </span>
-                <ArrowUpRight className="size-6 text-[#bd6d4b] transition group-hover:translate-x-1 group-hover:-translate-y-1" />
-              </Link>
+           <Link
+           href={"#"}
+           key={i}
+           className="group flex min-h-[125px] items-center gap-4 rounded-2xl border border-white/90 bg-[#fcfaf6] p-5 shadow-[0_12px_26px_rgba(74,54,34,.07)] transition duration-300 hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_34px_rgba(74,54,34,.14)]"
+         >
+           <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#f6e9dc] text-[13px] font-bold text-[#bd6d4b] transition group-hover:bg-[#cf754d] group-hover:text-white">
+             {String(i + 1).padStart(2, "0")}
+           </span>
+           <span className="min-w-0 flex-1"> 
+             <h3 className="text-xl font-semibold">{card.heading}</h3>
+             <Copy html={card.subHeading} className="mt-1 text-sm" />
+           </span>
+           <ArrowUpRight className="size-6 text-[#bd6d4b] transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+         </Link>  
             ))}
           </div>
         </div>

@@ -4,6 +4,7 @@ export type PublicCategory = {
   name: string;
   slug: string;
   order: number;
+  bannerUrl?: string | null;
 };
 
 export type PublicCatalogProduct = {

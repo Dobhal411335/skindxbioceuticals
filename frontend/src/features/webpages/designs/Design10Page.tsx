@@ -10,27 +10,27 @@ import type { StorefrontWebpage } from "@/features/webpages/webpage.types";
 const Mini = ({ children, light = false }: { children?: string; light?: boolean }) =>
   children ? (
     <p
-      className={`inline-flex items-center gap-3 border-b pb-2 font-ui text-[10px] font-bold uppercase tracking-[.2em] ${light ? "border-[#e6a276] text-[#e6a276]" : "border-[#c96e42] text-[#c96e42]"}`}
+      className={`inline-flex items-center gap-3 border-b pb-2 font-ui text-[15px] font-bold uppercase tracking-[.2em] ${light ? "border-[#e6a276] text-[#e6a276]" : "border-[#c96e42] text-[#c96e42]"}`}
     >
       <span className="h-px w-9 bg-current" aria-hidden="true" />
       {children}
     </p>
   ) : null;
-const Copy = ({
-  html,
-  light = false,
-  className = "",
-}: {
-  html?: string;
-  light?: boolean;
-  className?: string;
-}) =>
-  isFilledText(html) ? (
-    <HtmlBlock
-      html={html!}
-      className={`${light ? "!text-white [&_p]:!text-white" : "text-[#68757d]"} [&_p]:leading-7 ${className}`}
-    />
-  ) : null;
+  const Copy = ({
+    html,
+    light = false,
+    className = "",
+  }: {
+    html?: string;
+    light?: boolean;
+    className?: string;
+  }) =>
+    isFilledText(html) ? (
+      <HtmlBlock
+        html={html!}
+        className={`${light ? "!text-white [&_p]:!text-white" : "text-[#637179]"} [&_p]:leading-7 ${className}`}
+      />
+    ) : null;
 
 export function Design10Page({ data }: { data: StorefrontWebpage }) {
   const leaders = data.design10LeadershipCards.filter((card) => card.name || card.image?.url);
@@ -41,7 +41,7 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
   const maxLeaderIndex = Math.max(0, leaders.length - 4);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#fbf8f2] text-[#172d35]">
+    <div className="min-h-screen bg-[#f8f5ee] text-[#172d35]">
       <section className="relative flex min-h-screen items-end overflow-hidden bg-[#102a33] px-6 py-20 text-white sm:px-10 md:px-16 lg:px-[10%] lg:py-28">
         {data.design10HeroImage?.url && (
           <div
@@ -63,11 +63,11 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#fcf8f2] px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
         <div className="mx-auto grid max-w-8xl gap-10 md:grid-cols-[.9fr_1.1fr]">
           <div>
             <Mini>Our Story</Mini>
-            <h2 className="mt-5 max-w-5xl text-3xl font-semibold leading-[.96] tracking-[-.04em] sm:text-7xl">
+            <h2 className="mt-5 max-w-5xl text-3xl font-semibold leading-[.96] tracking-[-.04em] sm:text-6xl">
               {data.design10StoryMiniHeading}
             </h2>
             <Copy html={data.design10StorySmallParagraph} className="mt-9 max-w-md text-md " />
@@ -82,10 +82,10 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="w-full bg-[#f1e2cf] px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
+      <section className="w-full px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
         <div className="mx-auto max-w-8xl">
           <Mini>What defines us</Mini>
-          <h2 className="mt-5 max-w-5xl text-5xl font-medium leading-[.94] tracking-[-.045em] sm:text-7xl">
+          <h2 className="mt-5 max-w-5xl text-5xl font-medium leading-[.94] tracking-[-.045em] sm:text-6xl">
             {data.design10DefineMiniHeading}
           </h2>
           <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -106,32 +106,39 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
                     html={card.description}
                     className="relative z-10 mt-5 max-w-[290px] text-md text-[#567185] transition-colors duration-300 [&_p]:leading-8 group-hover:[&_p]:!text-white"
                   />
-                  <span
+                  <svg
                     aria-hidden="true"
-                    className="pointer-events-none absolute -bottom-28 -right-24 size-64 rounded-full border border-[#e8e6e1] bg-[#f7f5f2]/80 transition-colors duration-300 group-hover:border-white/20 group-hover:bg-white/10"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -bottom-40 -right-36 size-72 rounded-full border border-[#e8e6e1]/70 transition-colors duration-300 group-hover:border-white/15"
-                  />
+                    viewBox="0 0 220 180"
+                    className="pointer-events-none absolute -bottom-8 -right-10 h-48 w-40 opacity-80 transition duration-500 group-hover:scale-120"
+                  >
+                    <circle cx="132" cy="128" r="92" fill="#f8ede7" />
+                    <circle
+                      cx="132"
+                      cy="128"
+                      r="68"
+                      fill="none"
+                      stroke="#efd8ca"
+                      strokeWidth="1.2"
+                    />
+                  </svg>
                 </article>
               ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-[#fbf8f2] px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
-        <div className="mx-auto grid max-w-7xl gap-12 md:min-h-screen md:grid-cols-[1.08fr_.92fr] md:items-start md:gap-14">
-          <div className="md:sticky md:top-8">
-            <div className="relative aspect-[3/3] rounded-2xl border-2 border-white">
-              <div className="relative h-full overflow-hidden rounded-xl">
+      <section className="px-6 py-24 sm:px-10 md:px-16">
+        <div className="mx-auto flex max-w-7xl flex-col gap-12 md:flex-row md:items-start md:gap-20">
+          <div className="w-full md:sticky md:top-28 md:w-[50%] md:shrink-0 md:self-start">
+            <div className="relative aspect-[4/5] w-full max-h-[calc(100vh-8.5rem)] overflow-hidden rounded-2xl border-2 border-white">
+              <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-xl">
                 {data.design10JourneyImage?.url && (
                   <Image
                     src={data.design10JourneyImage.url}
                     alt="Our journey"
                     fill
-                    sizes="(max-width: 768px) 100vw, 58vw"
-                    className="rounded-xl object-cover hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, 57vw"
+                    className="rounded-xl object-cover transition-transform duration-500 hover:scale-105"
                   />
                 )}
                 <span
@@ -141,7 +148,7 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
               </div>
             </div>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <Mini>{data.design10JourneyMiniHeading}</Mini>
             <h2 className="mt-5 max-w-xl text-6xl font-semibold leading-[.93] tracking-[-.045em]">
               {data.design10JourneyMainHeading}
@@ -171,12 +178,12 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#142d35] px-6 py-24 text-white sm:px-10 md:px-16 lg:px-[10%]">
+      <section className="px-6 py-24 text-white sm:px-10 md:px-16 lg:px-[10%]">
         <div className="mx-auto max-w-7xl">
           <div className="flex items-end justify-between gap-6">
             <div>
               <Mini light>{data.design10LeadershipMiniHeading}</Mini>
-              <h2 className="mt-5 max-w-3xl text-5xl font-semibold leading-[.94] tracking-[-.045em] sm:text-7xl">
+              <h2 className="mt-5 max-w-3xl text-5xl font-semibold leading-[.94] tracking-[-.045em] text-black sm:text-6xl">
                 {data.design10LeadershipMainHeading}
               </h2>
             </div>
@@ -241,11 +248,11 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#fcf8f2] px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
         <div className="mx-auto grid max-w-7xl gap-16 md:grid-cols-[1.05fr_.95fr] md:items-start">
           <div>
             <Mini>{data.design10GlobalMiniHeading}</Mini>
-            <h2 className="mt-5 max-w-2xl text-5xl font-medium leading-[.94] tracking-[-.045em] sm:text-7xl">
+            <h2 className="mt-5 max-w-2xl text-5xl font-medium leading-[.94] tracking-[-.045em] sm:text-6xl">
               {data.design10GlobalMainHeading}
             </h2>
             <Copy html={data.design10GlobalDescription} className="mt-8 max-w-xl text-sm" />
@@ -257,18 +264,30 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
                     key={i}
                     className="group relative min-h-[250px] overflow-hidden rounded-[26px] border border-[#e8e4df] bg-[#fdfcfa] p-8 shadow-[0_15px_30px_rgba(67,53,37,.05)] transition duration-300 hover:-translate-y-2 hover:shadow-[0_22px_40px_rgba(67,53,37,.14)]"
                   >
-                    <span className="relative z-10 text-xl font-medium text-[#b45d3e]">{card.miniHeading}</span>
+                    <span className="relative z-10 text-xl font-medium text-[#b45d3e]">
+                      {card.miniHeading}
+                    </span>
                     <h3 className="relative z-10 mt-1 text-3xl font-semibold leading-tight tracking-[-.035em]">
                       {card.heading}
                     </h3>
-                    <Copy html={card.description} className="relative z-10 mt-7 max-w-[280px] text-lg [&_p]:leading-8" />
+                    <Copy
+                      html={card.description}
+                      className="relative z-10 mt-7 max-w-[280px] text-lg [&_p]:leading-8"
+                    />
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 220 180"
-                      className="pointer-events-none absolute -bottom-12 -right-14 h-52 w-64"
+                      className="pointer-events-none absolute -bottom-8 -right-10 h-48 w-40 opacity-80 transition duration-500 group-hover:scale-120"
                     >
                       <circle cx="132" cy="128" r="92" fill="#f6f2ee" />
-                      <circle cx="132" cy="128" r="68" fill="none" stroke="#efd8ca" strokeWidth="1.2" />
+                      <circle
+                        cx="132"
+                        cy="128"
+                        r="68"
+                        fill="none"
+                        stroke="#efd8ca"
+                        strokeWidth="1.2"
+                      />
                     </svg>
                   </article>
                 ))}
@@ -296,39 +315,34 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#f1e2cf] px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
         <div className="mx-auto max-w-7xl">
           <Mini>{data.design10ExploreMiniHeading}</Mini>
-          <h2 className="mt-5 max-w-3xl text-5xl font-medium leading-[.94] tracking-[-.045em] sm:text-7xl">
+          <h2 className="mt-5 max-w-3xl text-5xl font-medium leading-[.94] tracking-[-.045em] sm:text-6xl">
             {data.design10ExploreMainHeading || ""}
           </h2>
-          <div className="mt-14 grid gap-4">
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.design10ExploreCards
               .filter((c) => c.heading || c.description)
               .map((card, i) => (
                 <Link
-                  key={i}
-                  href={card.link || "#"}
-                  className="group flex min-h-[156px] w-fit items-center gap-5 rounded-[26px] border border-white/80 bg-[#fbfaf8] px-6 py-4 shadow-[0_14px_30px_rgba(74,54,34,.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_36px_rgba(74,54,34,.12)] sm:gap-7 sm:px-7"
-                >
-                  <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-[16px] border border-[#f0d7c9] bg-[#f8ede7] text-sm font-semibold text-[#a84f31] transition-colors duration-300 group-hover:border-[#c96e42] group-hover:bg-[#c96e42] group-hover:text-white">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <h3 className="text-xl font-semibold leading-tight tracking-[-.025em] text-[#071c2b]">
-                      {card.heading}
-                    </h3>
-                    <Copy
-                      html={card.description}
-                      className="mt-2 max-w-2xl line-clamp-2 text-sm text-[#567185] [&_p]:leading-7"
-                    />
-                  </span>
-                  <ArrowUpRight className="size-5 shrink-0 text-[#d89470] transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
-                </Link>
+                href={card.link || "#"}
+                key={i}
+                className="group flex min-h-[125px] items-center gap-4 rounded-2xl border border-white/90 bg-[#fcfaf6] p-5 shadow-[0_12px_26px_rgba(74,54,34,.07)] transition duration-300 hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_34px_rgba(74,54,34,.14)]"
+              >
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#f6e9dc] text-[13px] font-bold text-[#bd6d4b] transition group-hover:bg-[#cf754d] group-hover:text-white">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0 flex-1"> 
+                  <h3 className="text-xl font-semibold">{card.heading}</h3>
+                  <Copy html={card.description} className="mt-1 text-sm" />
+                </span>
+                <ArrowUpRight className="size-6 text-[#bd6d4b] transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+              </Link>
               ))}
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

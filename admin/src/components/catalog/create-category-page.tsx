@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { FolderOpen, Pencil, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { FolderOpen, ImagePlus, Pencil, Trash2, Upload } from "lucide-react";
 
 import { AdminAppShell } from "@/components/layout/admin-app-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -43,6 +43,7 @@ import {
   deleteCategory,
   fetchCategories,
   updateCategory,
+  uploadCategoryBanner,
 } from "@/services/api/catalog";
 import { ApiError } from "@/services/api/errors";
 import { showError, showSuccess } from "@/lib/toast";
@@ -52,6 +53,8 @@ import type { CategoryDto, CategoryFormValues } from "@/types/catalog";
 function createEmptyValues(): CategoryFormValues {
   return {
     name: "",
+    bannerUrl: "",
+    bannerPublicId: "",
     active: true,
   };
 }
@@ -59,11 +62,14 @@ function createEmptyValues(): CategoryFormValues {
 function toFormValues(category: CategoryDto): CategoryFormValues {
   return {
     name: category.name,
+    bannerUrl: category.bannerUrl ?? "",
+    bannerPublicId: category.bannerPublicId ?? "",
     active: category.active,
   };
 }
 
 export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [values, setValues] = useState<CategoryFormValues>(createEmptyValues);
   const [errors, setErrors] = useState<CategoryFormErrors>({});
@@ -72,6 +78,7 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadCategories = useCallback(async () => {
@@ -99,6 +106,28 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
     setValues(createEmptyValues());
     setEditingId(null);
     setErrors({});
+  };
+
+  const handleUpload = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const uploaded = await uploadCategoryBanner(siteCode, file, editingId);
+      if (!uploaded.url) {
+        throw new Error("Upload succeeded but no image URL was returned");
+      }
+      setValues((prev) => ({
+        ...prev,
+        bannerUrl: uploaded.url,
+        bannerPublicId: uploaded.publicId,
+      }));
+      setErrors((prev) => ({ ...prev, bannerUrl: undefined }));
+      showSuccess("Category image uploaded successfully");
+    } catch (error) {
+      showError(error instanceof ApiError ? error.message : "Cloudinary upload failed");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -164,7 +193,7 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
     <AdminAppShell
       siteCode={siteCode}
       title="Create Category"
-      description="Add main product category names for this site."
+      description="Add main product category names and images for this site."
     >
       <div className="mx-auto max-w-3xl space-y-6">
         {loadError ? (
@@ -185,8 +214,8 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
               </div>
               <CardDescription>
                 {editingId
-                  ? "Update the category name or active status."
-                  : "Main categories appear on the storefront `/category` grid. Add banners on Manage Products & Category for each subcategory."}
+                  ? "Update the category name, image, or active status."
+                  : "Main categories appear on the storefront `/category` grid with their image. Add subcategory banners on Manage Products & Category."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 pt-6">
@@ -203,6 +232,70 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 {errors.name ? (
                   <p className="text-sm text-destructive">{errors.name}</p>
                 ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Category image</Label>
+                {values.bannerUrl ? (
+                  <div className="w-full overflow-hidden rounded-lg border border-border bg-muted/20">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- admin Cloudinary preview */}
+                    <img
+                      src={values.bannerUrl}
+                      alt=""
+                      className="h-80 w-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-44 w-full items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 text-muted-foreground">
+                    <ImagePlus className="h-6 w-6" />
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    disabled={uploading}
+                    onClick={() => fileRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4" />
+                    {uploading ? "Uploading…" : "Upload image"}
+                  </Button>
+                  {values.bannerUrl ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setValues((prev) => ({
+                          ...prev,
+                          bannerUrl: "",
+                          bannerPublicId: "",
+                        }))
+                      }
+                    >
+                      Remove
+                    </Button>
+                  ) : null}
+                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  onChange={(event) => {
+                    void handleUpload(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
+                {errors.bannerUrl ? (
+                  <p className="text-sm text-destructive">{errors.bannerUrl}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Required. Shown on the storefront category grid.
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
@@ -227,7 +320,7 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 Cancel
               </Button>
             ) : null}
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || uploading}>
               {isSubmitting
                 ? "Saving…"
                 : editingId
@@ -241,7 +334,7 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
           <CardHeader className="border-b border-border/70">
             <CardTitle className="text-lg font-semibold">Existing categories</CardTitle>
             <CardDescription>
-              Edit a category name or delete a category that has no subcategories.
+              Edit a category name or image, or delete a category that has no subcategories.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
@@ -254,10 +347,11 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 No categories yet. Create one above.
               </p>
             ) : (
-              <Table className="min-w-[520px]">
+              <Table className="min-w-[560px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-16">S.No</TableHead>
+                    <TableHead className="w-20">Image</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -268,6 +362,18 @@ export function CreateCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                     <TableRow key={category.id}>
                       <TableCell className="text-muted-foreground">
                         {index + 1}
+                      </TableCell>
+                      <TableCell>
+                        {category.bannerUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- admin Cloudinary thumb
+                          <img
+                            src={category.bannerUrl}
+                            alt=""
+                            className="h-10 w-14 rounded-md object-cover"
+                          />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="font-medium">{category.name}</TableCell>
                       <TableCell>

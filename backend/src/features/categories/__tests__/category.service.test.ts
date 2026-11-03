@@ -104,8 +104,11 @@ describe('CategoryService', () => {
     expect(result[0]?.name).toBe('Serums');
   });
 
-  it('creates a root category with generated slug and no banner', async () => {
-    const record = makeCategory({ bannerUrl: null, bannerPublicId: null });
+  it('creates a root category with generated slug and image', async () => {
+    const record = makeCategory({
+      bannerUrl: 'https://cdn.example.com/category.jpg',
+      bannerPublicId: 'categories/root',
+    });
     nextRootOrder.mockResolvedValue(1);
     create.mockResolvedValue(record);
 
@@ -115,6 +118,8 @@ describe('CategoryService', () => {
       userId: 'user-1',
       body: {
         name: 'Serums',
+        bannerUrl: 'https://cdn.example.com/category.jpg',
+        bannerPublicId: 'categories/root',
         active: true,
       },
     });
@@ -125,11 +130,27 @@ describe('CategoryService', () => {
         name: 'Serums',
         slug: 'serums',
         parentId: null,
-        bannerUrl: null,
-        bannerPublicId: null,
+        bannerUrl: 'https://cdn.example.com/category.jpg',
+        bannerPublicId: 'categories/root',
       }),
     );
     expect(result.id).toBe(record.id);
+  });
+
+  it('lists active roots with category image', async () => {
+    const record = makeCategory({
+      bannerUrl: 'http://res.cloudinary.com/demo/image/upload/v1/cat.jpg',
+      bannerPublicId: 'categories/root',
+    });
+    listActiveRootsBySiteId.mockResolvedValue([record]);
+
+    const result = await service.listActiveRoots(record.siteId, 'IN');
+
+    expect(result[0]).toMatchObject({
+      id: record.id,
+      slug: 'serums',
+      bannerUrl: 'https://res.cloudinary.com/demo/image/upload/v1/cat.jpg',
+    });
   });
 
   it('creates a subcategory under a root category with banner', async () => {
@@ -288,9 +309,15 @@ describe('CategoryService', () => {
     expect(deleteStoredCloudinaryAsset).toHaveBeenCalledWith('categories/banner');
   });
 
-  it('best-effort deletes legacy root banner on update', async () => {
-    const existing = makeCategory({ bannerPublicId: 'categories/old' });
-    const updated = makeCategory({ bannerUrl: null, bannerPublicId: null });
+  it('best-effort deletes previous root image when replaced on update', async () => {
+    const existing = makeCategory({
+      bannerUrl: 'https://cdn.example.com/old.jpg',
+      bannerPublicId: 'categories/old',
+    });
+    const updated = makeCategory({
+      bannerUrl: 'https://cdn.example.com/new.jpg',
+      bannerPublicId: 'categories/new',
+    });
     findByIdForSite.mockResolvedValue(existing);
     update.mockResolvedValue(updated);
 
@@ -301,10 +328,20 @@ describe('CategoryService', () => {
       categoryId: existing.id,
       body: {
         name: 'Serums',
+        bannerUrl: 'https://cdn.example.com/new.jpg',
+        bannerPublicId: 'categories/new',
         active: true,
       },
     });
 
+    expect(update).toHaveBeenCalledWith(
+      existing.siteId,
+      existing.id,
+      expect.objectContaining({
+        bannerUrl: 'https://cdn.example.com/new.jpg',
+        bannerPublicId: 'categories/new',
+      }),
+    );
     expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('categories/old');
   });
 });

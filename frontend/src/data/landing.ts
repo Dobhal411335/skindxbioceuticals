@@ -58,7 +58,7 @@ export const announcement =
   "Complimentary shipping on orders over ₹999 · SkinDx Bioc India";
 
 export const navLinks = [
-  { label: "Shop", href: "/category" },
+  { label: "Shop", href: "/shop" },
   { label: "Categories", href: "/category" },
   { label: "About", href: "/about" },
   { label: "Blog", href: "/blog" },
@@ -101,7 +101,7 @@ export const hero = {
   eyebrow: "Clinical calm for everyday skin",
   title: "SkinDx Bioc",
   body: "Thoughtfully formulated skincare and biomedical essentials for the Indian storefront — clear information, calm design, and products you can evaluate with confidence.",
-  primaryCta: { label: "Shop products", href: "/category" },
+  primaryCta: { label: "Shop products", href: "/shop" },
   secondaryCta: { label: "Explore range", href: "/category" },
   leftImage: {
     src: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?auto=format&fit=crop&w=900&q=80",
@@ -130,7 +130,7 @@ export const specials = {
   label: "Featured offers",
   title: "Curated selections worth a closer look",
   subtitle: "Explore seasonal highlights while stocks last. Offers update as inventory changes.",
-  cta: { label: "Shop now", href: "/category" },
+  cta: { label: "Shop now", href: "/shop" },
 };
 
 export const about = {
@@ -404,7 +404,7 @@ export const galleryItems: GalleryItem[] = [
 export const galleryFeaturedProduct = {
   name: "Hydra Soft Cream & Serum Set",
   priceLabel: "From ₹1,999",
-  href: "/category",
+  href: "/shop",
   image:
     "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=200&q=80",
   alt: "Hydra Soft Cream jar",
@@ -480,8 +480,8 @@ export const footer = {
       links: [
         { label: "FAQs", href: "/faq" },
         { label: "Gift cards", href: "/gift-cards" },
-        { label: "New arrivals", href: "/category?sort=new" },
-        { label: "Bestsellers", href: "/category?sort=bestsellers" },
+        { label: "New arrivals", href: "/shop?sort=default" },
+        { label: "Bestsellers", href: "/shop" },
       ],
     },
     {
@@ -499,7 +499,7 @@ export const footer = {
 export const productRail = {
   title: "Discover what customers browse right now",
   body: "Browse active catalogue picks — prices and stock come from live inventory.",
-  cta: { label: "Shop all collection", href: "/category" },
+  cta: { label: "Shop all collection", href: "/shop" },
 };
 
 export const blogIntro = {

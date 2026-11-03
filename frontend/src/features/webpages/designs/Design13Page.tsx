@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { useState } from "react";
+import { Design13ContactSection } from "@/features/webpages/designs/Design13ContactSection";
 import { HtmlBlock, isFilledText } from "@/features/webpages/webpage-shared";
 import type { StorefrontWebpage } from "@/features/webpages/webpage.types";
 
@@ -39,7 +40,7 @@ export function Design13Page({ data }: { data: StorefrontWebpage }) {
     (item) => item.heading || item.description || item.url,
   );
   return (
-    <main className="min-h-screen overflow-hidden bg-[#fbf8f2] text-[#172d35]">
+    <main className="min-h-screen bg-[#f8f5ee] text-[#172d35]">
       <section className="relative flex min-h-[600px] items-end overflow-hidden bg-[#102832] px-6 py-20 text-white sm:px-10 md:px-16 lg:px-[10%] lg:py-28">
         <div className="absolute inset-0 overflow-hidden">
           {data.design13HeroImage?.url && (
@@ -63,7 +64,7 @@ export function Design13Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#f1e0cc] px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
         <div className="mx-auto max-w-7xl">
           <div>
             <Mini>{data.design13ProcessMiniHeading}</Mini>
@@ -92,6 +93,8 @@ export function Design13Page({ data }: { data: StorefrontWebpage }) {
           </div>
         </div>
       </section>
+
+      <Design13ContactSection />
 
       <section className="bg-[#fcfaf6] px-6 py-28 sm:px-10 md:px-16 lg:px-[9%] lg:py-36">
         <div className="mx-auto grid max-w-7xl gap-16 md:grid-cols-[.9fr_1.1fr] md:items-start lg:gap-24">
@@ -128,7 +131,7 @@ export function Design13Page({ data }: { data: StorefrontWebpage }) {
         </div>
       </section>
 
-      <section className="bg-[#f1e0cc] px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
+      <section className="px-6 py-24 sm:px-10 md:px-16 lg:px-[10%]">
         <div className="mx-auto max-w-7xl">
           <Mini>{data.design13ExploreMiniHeading}</Mini>
           <h2 className="mt-5 max-w-2xl text-5xl font-semibold leading-[.94] tracking-[-.05em] sm:text-7xl">
@@ -139,16 +142,16 @@ export function Design13Page({ data }: { data: StorefrontWebpage }) {
               <Link
                 href={card.url || "#"}
                 key={i}
-                className="group flex min-h-[120px] items-center gap-4 rounded-[18px] border border-white/80 bg-[#fcfaf8] p-5 shadow-[0_12px_26px_rgba(74,54,34,.06)] transition hover:-translate-y-1"
+                className="group flex min-h-[125px] items-center gap-4 rounded-2xl border border-white/90 bg-[#fcfaf6] p-5 shadow-[0_12px_26px_rgba(74,54,34,.07)] transition duration-300 hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_34px_rgba(74,54,34,.14)]"
               >
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#f6e9dc] text-[12px] font-bold text-[#bd6d4b]">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#f6e9dc] text-[13px] font-bold text-[#bd6d4b] transition group-hover:bg-[#cf754d] group-hover:text-white">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <h3 className="text-base font-semibold">{card.heading}</h3>
-                  <Copy html={card.description} className="text-xs" />
+                  <h3 className="text-xl font-semibold">{card.heading}</h3>
+                  <Copy html={card.description} className="mt-1 text-sm" />
                 </span>
-                <ArrowUpRight className="size-6 text-[#bd6d4b] transition group-hover:translate-x-1 group-hover:-translate-y-1" />
+                <ArrowUpRight className="size-6 text-[#bd6d4b] transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
             ))}
           </div>

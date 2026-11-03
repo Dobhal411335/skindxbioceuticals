@@ -605,6 +605,24 @@ describe('ProductService', () => {
     expect(result.items[0]?.slug).toBe('mid');
   });
 
+  it('passes subcategorySlug to catalog candidate query', async () => {
+    listActiveCatalogCandidates.mockResolvedValue([]);
+
+    await service.listPublic({
+      siteId: 'site',
+      siteCode: 'IN',
+      limit: 16,
+      categorySlug: 'creams',
+      subcategorySlug: 'face-cream',
+    });
+
+    expect(listActiveCatalogCandidates).toHaveBeenCalledWith('site', {
+      categorySlug: 'creams',
+      subcategorySlug: 'face-cream',
+      q: undefined,
+    });
+  });
+
   it('returns public facets with category counts and price range', async () => {
     listPublicFacets.mockResolvedValue({
       roots: [

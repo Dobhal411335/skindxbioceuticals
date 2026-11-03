@@ -290,7 +290,7 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
               ))}
             </ul>
             <Link
-              href="/category"
+              href="/shop"
               className="mt-auto inline-flex items-center gap-1 pt-6 text-md font-semibold text-primary hover:underline"
             >
               See new arrivals <span aria-hidden>›</span>
@@ -341,7 +341,7 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
               ))}
             </ul>
             <Link
-              href="/category"
+              href="/shop"
               className="mt-auto inline-flex items-center gap-1 pt-6 text-md font-semibold text-primary hover:underline"
             >
               See all top sellers <span aria-hidden>›</span>

@@ -45,6 +45,7 @@ export class ProductController {
       offset: query.offset,
       q: query.q,
       categorySlug: query.categorySlug,
+      subcategorySlug: query.subcategorySlug,
       priceMin: query.priceMin,
       priceMax: query.priceMax,
       availability: query.availability,
