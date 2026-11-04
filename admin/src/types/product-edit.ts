@@ -67,14 +67,6 @@ export type ProductPdfDto = {
   sortOrder: number;
 };
 
-export type ProductPdfDto = {
-  id: string;
-  name: string;
-  pdfUrl: string;
-  pdfPublicId: string;
-  sortOrder: number;
-};
-
 export type ProductInfoSectionDto = {
   id: string;
   title: string;
