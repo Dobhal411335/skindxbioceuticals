@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Download } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import type { SitemapGroup } from "@/features/sitemap/storefront-sitemap";
 
 type SitemapPageViewProps = {
@@ -9,7 +11,7 @@ type SitemapPageViewProps = {
 export function SitemapPageView({ groups }: SitemapPageViewProps) {
   return (
     <section className="bg-white" aria-labelledby="sitemap-heading">
-      <div className="container-page section-space py-12 sm:py-16 lg:py-20">
+      <div className="container-page section-space sm:py-16 lg:py-20">
         <nav className="mb-8 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-foreground">
             Home
@@ -32,6 +34,12 @@ export function SitemapPageView({ groups }: SitemapPageViewProps) {
           <p className="mt-5 text-base leading-relaxed text-[#34475c]">
             Public pages on SkinDx Bioceuticals, including the shop, articles, and company information.
           </p>
+          <Button className="mt-6 py-5" asChild>
+            <a href="/sitemap.xml" download="sitemap.xml">
+              <Download aria-hidden />
+              Download sitemap.xml
+            </a>
+          </Button>
         </div>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-2">
