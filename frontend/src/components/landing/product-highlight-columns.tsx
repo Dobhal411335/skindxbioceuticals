@@ -276,7 +276,7 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
     >
       <div className="container-page section-space">
         <h2 id="highlights-heading" className="sr-only">
-          Product highlights
+          Product FAQ
         </h2>
         <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12">
           <div className="flex min-h-[33.25rem] flex-col rounded-xl bg-card p-5 shadow-sm lg:col-span-4">
@@ -290,7 +290,7 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
               ))}
             </ul>
             <Link
-              href="/shop"
+              href="/category"
               className="mt-auto inline-flex items-center gap-1 pt-6 text-md font-semibold text-primary hover:underline"
             >
               See new arrivals <span aria-hidden>›</span>
@@ -341,7 +341,7 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
               ))}
             </ul>
             <Link
-              href="/shop"
+              href="/category"
               className="mt-auto inline-flex items-center gap-1 pt-6 text-md font-semibold text-primary hover:underline"
             >
               See all top sellers <span aria-hidden>›</span>

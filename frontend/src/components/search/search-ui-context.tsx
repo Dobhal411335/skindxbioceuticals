@@ -11,11 +11,18 @@ import {
   type ReactNode,
 } from "react";
 
+import {
+  fetchSearchCatalogIndex,
+  filterSearchCatalogEntries,
+  resolveSearchDestination,
+  type SearchCatalogEntry,
+} from "@/features/catalog/catalog.service";
 import { fetchCatalogProducts } from "@/features/products/product.service";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_RESULT_LIMIT = 8;
+const CATEGORY_RESULT_LIMIT = 6;
 
 export type SearchResultItem = {
   id: string;
@@ -32,9 +39,12 @@ type SearchUiContextValue = {
   query: string;
   setQuery: (value: string) => void;
   results: SearchResultItem[];
+  categoryResults: SearchCatalogEntry[];
+  catalogIndex: SearchCatalogEntry[];
   isSearching: boolean;
   /** True after a non-empty debounced query has finished loading. */
   hasCompletedSearch: boolean;
+  resolveDestination: (query: string) => string;
 };
 
 const SearchUiContext = createContext<SearchUiContextValue | null>(null);
@@ -43,15 +53,19 @@ export function SearchUiProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQueryState] = useState("");
   const [results, setResults] = useState<SearchResultItem[]>([]);
+  const [categoryResults, setCategoryResults] = useState<SearchCatalogEntry[]>([]);
+  const [catalogIndex, setCatalogIndex] = useState<SearchCatalogEntry[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasCompletedSearch, setHasCompletedSearch] = useState(false);
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const fetchGenerationRef = useRef(0);
+  const catalogLoadedRef = useRef(false);
 
   const resetSearchState = useCallback(() => {
     fetchGenerationRef.current += 1;
     setQueryState("");
     setResults([]);
+    setCategoryResults([]);
     setIsSearching(false);
     setHasCompletedSearch(false);
   }, []);
@@ -75,6 +89,27 @@ export function SearchUiProvider({ children }: { children: ReactNode }) {
     setQueryState(value);
   }, []);
 
+  const resolveDestination = useCallback(
+    (value: string) => resolveSearchDestination(value, catalogIndex),
+    [catalogIndex],
+  );
+
+  useEffect(() => {
+    if (!isOpen || catalogLoadedRef.current) return;
+
+    let cancelled = false;
+    void (async () => {
+      const index = await fetchSearchCatalogIndex();
+      if (cancelled) return;
+      catalogLoadedRef.current = true;
+      setCatalogIndex(index);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -82,6 +117,7 @@ export function SearchUiProvider({ children }: { children: ReactNode }) {
     if (!trimmed) {
       fetchGenerationRef.current += 1;
       setResults([]);
+      setCategoryResults([]);
       setIsSearching(false);
       setHasCompletedSearch(false);
       return;
@@ -90,6 +126,9 @@ export function SearchUiProvider({ children }: { children: ReactNode }) {
     const generation = ++fetchGenerationRef.current;
     setIsSearching(true);
     setHasCompletedSearch(false);
+    setCategoryResults(
+      filterSearchCatalogEntries(catalogIndex, trimmed, CATEGORY_RESULT_LIMIT),
+    );
 
     void (async () => {
       const result = await fetchCatalogProducts({
@@ -111,7 +150,7 @@ export function SearchUiProvider({ children }: { children: ReactNode }) {
       setIsSearching(false);
       setHasCompletedSearch(true);
     })();
-  }, [debouncedQuery, isOpen]);
+  }, [debouncedQuery, isOpen, catalogIndex]);
 
   // Show skeleton immediately while the user types before debounce settles.
   useEffect(() => {
@@ -119,13 +158,17 @@ export function SearchUiProvider({ children }: { children: ReactNode }) {
     const trimmed = query.trim();
     if (!trimmed) {
       setIsSearching(false);
+      setCategoryResults([]);
       return;
     }
     if (trimmed !== debouncedQuery.trim()) {
       setIsSearching(true);
       setHasCompletedSearch(false);
+      setCategoryResults(
+        filterSearchCatalogEntries(catalogIndex, trimmed, CATEGORY_RESULT_LIMIT),
+      );
     }
-  }, [query, debouncedQuery, isOpen]);
+  }, [query, debouncedQuery, isOpen, catalogIndex]);
 
   const value = useMemo(
     () => ({
@@ -136,8 +179,11 @@ export function SearchUiProvider({ children }: { children: ReactNode }) {
       query,
       setQuery,
       results,
+      categoryResults,
+      catalogIndex,
       isSearching,
       hasCompletedSearch,
+      resolveDestination,
     }),
     [
       isOpen,
@@ -147,8 +193,11 @@ export function SearchUiProvider({ children }: { children: ReactNode }) {
       query,
       setQuery,
       results,
+      categoryResults,
+      catalogIndex,
       isSearching,
       hasCompletedSearch,
+      resolveDestination,
     ],
   );
 

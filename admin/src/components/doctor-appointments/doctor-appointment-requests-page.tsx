@@ -360,7 +360,7 @@ export function DoctorAppointmentRequestsPage({
           if (!open) setSelected(null);
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Appointment details</DialogTitle>
             <DialogDescription>
@@ -416,6 +416,35 @@ export function DoctorAppointmentRequestsPage({
                 <p className="whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3 text-foreground">
                   {selected.problem}
                 </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Medical history
+                </p>
+                {selected.medicalHistoryImageUrl ? (
+                  <div className="overflow-hidden rounded-lg border border-border bg-muted/20">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- Cloudinary attachment URL */}
+                    <img
+                      src={selected.medicalHistoryImageUrl}
+                      alt="Previous medical history attachment"
+                      className="max-h-64 w-full object-contain bg-background"
+                    />
+                    <div className="border-t border-border px-3 py-2">
+                      <a
+                        href={selected.medicalHistoryImageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm font-medium text-primary hover:underline"
+                      >
+                        Open attachment
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground">
+                    No medical history attachment provided.
+                  </p>
+                )}
               </div>
             </div>
           ) : null}

@@ -377,6 +377,13 @@ export const ADMIN_MODULES: readonly AdminModuleDefinition[] = [
     "Contact form enquiries submitted from the storefront Contact Us page.",
     ["IN", "COM"],
   ),
+  live(
+    "career-applications",
+    "career-applications",
+    "Career Applications",
+    "Job applications submitted from the careers page, including résumé review.",
+    ["IN", "COM"],
+  ),
   shell(
     "product-information",
     "product-information",

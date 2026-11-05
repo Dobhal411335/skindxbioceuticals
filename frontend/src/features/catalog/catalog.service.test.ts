@@ -1,4 +1,33 @@
-import { getCategories, getCategoryBySlugOrName } from "./catalog.service";
+import {
+  filterSearchCatalogEntries,
+  getCategories,
+  getCategoryBySlugOrName,
+  resolveSearchDestination,
+  type SearchCatalogEntry,
+} from "./catalog.service";
+
+const catalogIndex: SearchCatalogEntry[] = [
+  {
+    id: "c1",
+    kind: "category",
+    name: "Creams",
+    slug: "creams",
+    mainSlug: "creams",
+    mainName: "Creams",
+    href: "/category/creams",
+    imageUrl: null,
+  },
+  {
+    id: "s1",
+    kind: "subcategory",
+    name: "Face Cream",
+    slug: "face-cream",
+    mainSlug: "creams",
+    mainName: "Creams",
+    href: "/category/creams/face-cream",
+    imageUrl: null,
+  },
+];
 
 describe("catalog.service", () => {
   const originalEnv = process.env.NEXT_PUBLIC_API_URL;
@@ -46,5 +75,24 @@ describe("catalog.service", () => {
     }) as unknown as typeof fetch;
 
     await expect(getCategoryBySlugOrName("missing")).resolves.toBeNull();
+  });
+
+  it("filters matching categories and subcategories", () => {
+    const matches = filterSearchCatalogEntries(catalogIndex, "face");
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.href).toBe("/category/creams/face-cream");
+  });
+
+  it("resolves Enter destination to subcategory when query matches", () => {
+    expect(resolveSearchDestination("Face Cream", catalogIndex)).toBe(
+      "/category/creams/face-cream",
+    );
+    expect(resolveSearchDestination("creams", catalogIndex)).toBe("/category/creams");
+  });
+
+  it("falls back to category index when no category matches", () => {
+    expect(resolveSearchDestination("vitamin c serum", catalogIndex)).toBe(
+      "/category",
+    );
   });
 });

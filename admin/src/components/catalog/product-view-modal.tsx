@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { env } from "@/config/env";
 import { ApiError } from "@/services/api/errors";
 import { fetchProductEdit } from "@/services/api/product-edit";
 import { showError } from "@/lib/toast";
@@ -383,7 +384,7 @@ export function ProductViewModal({
                     {payload.pdfs.map((pdf) => (
                       <li key={pdf.id}>
                         <a
-                          href={pdf.pdfUrl}
+                          href={`${env.apiUrl.replace(/\/+$/, "")}/sites/${siteCode}/products/${encodeURIComponent(payload.product.slug)}/pdfs/${pdf.id}/file`}
                           target="_blank"
                           rel="noreferrer"
                           className="text-primary underline-offset-2 hover:underline"

@@ -1,4 +1,9 @@
-import { ProductService, toCatalogProductDto } from '../product.service';
+import {
+  ProductService,
+  PUBLIC_RELATED_PRODUCT_LIMIT,
+  shuffleWithSeed,
+  toCatalogProductDto,
+} from '../product.service';
 import type { ProductRepository } from '../product.repository';
 import type { ProductRecord } from '../product.types';
 import type { CategoryService } from '@/features/categories/category.service';
@@ -424,6 +429,9 @@ describe('ProductService', () => {
     expect(result.variants[0]?.price).toBe(1499);
     expect(result.variants[0]?.weightGrams).toBe(200);
     expect(result.infoSections[0]?.title).toBe('Ingredients');
+    expect(listRelatedActive).toHaveBeenCalledWith(product.siteId, {
+      excludeProductId: product.id,
+    });
     expect(result.relatedProducts).toHaveLength(1);
     expect(result.relatedProducts[0]?.slug).toBe('hydra-cream');
     expect(result.relatedProducts[0]?.categoryName).toBe('Serums');
@@ -435,6 +443,127 @@ describe('ProductService', () => {
     expect(result.relatedProducts[0]?.tax).toBeNull();
     expect(result.averageRating).toBe(4);
     expect(result.reviewCount).toBe(2);
+  });
+
+  it('shuffles related products with a stable seed that changes per product', () => {
+    const items = ['a', 'b', 'c', 'd', 'e', 'f'];
+    expect(shuffleWithSeed(items, 'product-1')).toEqual(shuffleWithSeed(items, 'product-1'));
+    expect(shuffleWithSeed(items, 'product-1')).not.toEqual(shuffleWithSeed(items, 'product-2'));
+    expect([...shuffleWithSeed(items, 'product-1')].sort()).toEqual([...items].sort());
+  });
+
+  it('caps cross-catalog suggestions and keeps a different mix per product page', async () => {
+    const product = makeProduct();
+    findActivePublicBySlug.mockImplementation(async (_siteId: string, slug: string) => ({
+      ...product,
+      id:
+        slug === 'other-serum'
+          ? 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+          : product.id,
+      slug,
+      bannerUrl: null,
+      bannerPublicId: null,
+      sizeChartUrl: null,
+      sizeChartPublicId: null,
+      sizes: [],
+      colors: [],
+      galleryImages: [],
+      videos: [],
+      pdfs: [],
+      infoSections: [],
+      editorialReviews: [],
+      reviews: [],
+      highlights: [],
+      tax: null,
+      coupon: null,
+      tags: [],
+      variants: [],
+    }));
+
+    listRelatedActive.mockResolvedValue(
+      Array.from({ length: PUBLIC_RELATED_PRODUCT_LIMIT + 1 }, (_, index) => ({
+        id: `related-${String(index).padStart(2, '0')}`,
+        slug: `product-${index}`,
+        name: `Product ${index}`,
+        subcategory: { name: index % 2 === 0 ? 'Serums' : 'Creams' },
+        galleryImages: [],
+        variants: [
+          {
+            id: `rv-${index}`,
+            price: { toString: () => '100' },
+            inventory: { quantityOnHand: 1 },
+          },
+        ],
+        editorialReviews: [],
+        reviews: [],
+        coupon: null,
+        tax: null,
+      })),
+    );
+
+    const first = await service.getPublicBySlug({
+      siteId: product.siteId,
+      siteCode: 'IN',
+      slug: product.slug,
+    });
+    const again = await service.getPublicBySlug({
+      siteId: product.siteId,
+      siteCode: 'IN',
+      slug: product.slug,
+    });
+    const other = await service.getPublicBySlug({
+      siteId: product.siteId,
+      siteCode: 'IN',
+      slug: 'other-serum',
+    });
+
+    const firstIds = first.relatedProducts.map((item) => item.id);
+    expect(listRelatedActive).toHaveBeenCalledWith(product.siteId, {
+      excludeProductId: product.id,
+    });
+    expect(firstIds).toHaveLength(PUBLIC_RELATED_PRODUCT_LIMIT);
+    expect(new Set(firstIds).size).toBe(PUBLIC_RELATED_PRODUCT_LIMIT);
+    expect(firstIds).toEqual(again.relatedProducts.map((item) => item.id));
+    expect(firstIds).not.toEqual(other.relatedProducts.map((item) => item.id));
+    expect(first.relatedProducts[0]?.categoryName).toBeTruthy();
+  });
+
+  it('returns a signed raw download for a public product PDF', async () => {
+    const product = makeProduct();
+    findActivePublicBySlug.mockResolvedValue({
+      ...product,
+      pdfs: [
+        {
+          id: '77777777-7777-7777-7777-777777777777',
+          name: 'Ingredient sheet',
+          pdfUrl: 'https://res.cloudinary.com/demo/raw/upload/v1/skindx/in/products/sheet.pdf',
+          pdfPublicId: 'skindx/in/products/sheet.pdf',
+        },
+      ],
+    });
+
+    const result = await service.getPublicPdfDelivery({
+      siteId: product.siteId,
+      slug: product.slug,
+      pdfId: '77777777-7777-7777-7777-777777777777',
+    });
+
+    expect(result.name).toBe('Ingredient sheet');
+    expect(result.downloadUrl).toContain('/raw/download');
+    expect(result.downloadUrl).not.toContain('res.cloudinary.com');
+  });
+
+  it('rejects a PDF that does not belong to the active product', async () => {
+    const product = makeProduct();
+    findActivePublicBySlug.mockResolvedValue({ ...product, pdfs: [] });
+
+    await expect(
+      service.getPublicPdfDelivery({
+        siteId: product.siteId,
+        slug: product.slug,
+        pdfId: '77777777-7777-7777-7777-777777777777',
+      }),
+    ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('lists public product cards for the landing rail including DIRECT products', async () => {

@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImageIcon, Stethoscope, UploadCloud } from "lucide-react";
+import { ImageIcon, Plus, Stethoscope, UploadCloud, X } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -57,6 +58,24 @@ export function DoctorProfileForm({
 }: DoctorProfileFormProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [specializationDraft, setSpecializationDraft] = useState("");
+
+  const addSpecialization = () => {
+    const next = specializationDraft.trim();
+    if (!next) return;
+    const exists = values.specializations.some(
+      (item) => item.toLowerCase() === next.toLowerCase(),
+    );
+    if (exists) {
+      setSpecializationDraft("");
+      return;
+    }
+    onChange({
+      ...values,
+      specializations: [...values.specializations, next],
+    });
+    setSpecializationDraft("");
+  };
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -139,9 +158,9 @@ export function DoctorProfileForm({
                   <img
                     src={values.photoUrl}
                     alt=""
-                    className="h-60 w-full object-cover"
+                    className="h-80 w-full object-contain"
                   />
-                  <div className="absolute inset-x-0 bottom-0 flex gap-2 bg-black/50 p-3">
+                  <div className="absolute inset-x-0 bottom-0 flex gap-2 bg-black/10 p-3">
                     <Button
                       type="button"
                       size="sm"
@@ -221,16 +240,55 @@ export function DoctorProfileForm({
                 <Label htmlFor="doctor-specialization">
                   Specialization <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="doctor-specialization"
-                  value={values.specialization}
-                  placeholder="Dermatology"
-                  onChange={(event) =>
-                    onChange({ ...values, specialization: event.target.value })
-                  }
-                />
-                {errors.specialization ? (
-                  <p className="text-sm text-destructive">{errors.specialization}</p>
+                <div className="flex gap-2">
+                  <Input
+                    id="doctor-specialization"
+                    value={specializationDraft}
+                    placeholder="Dermatology"
+                    onChange={(event) => setSpecializationDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        addSpecialization();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label="Add specialization"
+                    onClick={addSpecialization}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                </div>
+                {values.specializations.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {values.specializations.map((item) => (
+                      <Badge key={item} variant="secondary" className="gap-1 pr-1">
+                        {item}
+                        <button
+                          type="button"
+                          aria-label={`Remove ${item}`}
+                          className="rounded-full p-0.5 hover:bg-muted"
+                          onClick={() =>
+                            onChange({
+                              ...values,
+                              specializations: values.specializations.filter(
+                                (current) => current !== item,
+                              ),
+                            })
+                          }
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
+                {errors.specializations ? (
+                  <p className="text-sm text-destructive">{errors.specializations}</p>
                 ) : null}
               </div>
 
@@ -302,6 +360,70 @@ export function DoctorProfileForm({
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="doctor-phone">
+                  Phone <span className="text-destructive">*</span>
+                </Label>
+                <div className="flex overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring">
+                  <span className="flex select-none items-center border-r border-input bg-muted/60 px-3 text-sm font-medium text-muted-foreground">
+                    +91
+                  </span>
+                  <Input
+                    id="doctor-phone"
+                    type="tel"
+                    inputMode="numeric"
+                    value={values.phone}
+                    placeholder="9876543210"
+                    className="border-0 shadow-none focus-visible:ring-0"
+                    onChange={(event) =>
+                      onChange({
+                        ...values,
+                        phone: event.target.value.replace(/\D/g, "").slice(0, 10),
+                      })
+                    }
+                  />
+                </div>
+                {errors.phone ? (
+                  <p className="text-sm text-destructive">{errors.phone}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="doctor-email">
+                  Email <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="doctor-email"
+                  type="email"
+                  value={values.email}
+                  placeholder="doctor@example.com"
+                  onChange={(event) =>
+                    onChange({ ...values, email: event.target.value })
+                  }
+                />
+                {errors.email ? (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="doctor-location">
+                  Location <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="doctor-location"
+                  rows={3}
+                  value={values.location}
+                  placeholder="Clinic address or practice location"
+                  onChange={(event) =>
+                    onChange({ ...values, location: event.target.value })
+                  }
+                />
+                {errors.location ? (
+                  <p className="text-sm text-destructive">{errors.location}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="doctor-about">
                   About <span className="text-destructive">*</span>
                 </Label>
@@ -329,6 +451,65 @@ export function DoctorProfileForm({
                   checked={values.active}
                   onCheckedChange={(checked) =>
                     onChange({ ...values, active: checked })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4 rounded-xl border border-border p-4">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Qualification</h3>
+              <p className="text-xs text-muted-foreground">
+                Education, degree, work history, and working days shown on the doctor profile.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="doctor-education">Education</Label>
+                <Textarea
+                  id="doctor-education"
+                  rows={4}
+                  value={values.education}
+                  placeholder="MBBS, internship, fellowships"
+                  onChange={(event) =>
+                    onChange({ ...values, education: event.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="doctor-degree">Degree</Label>
+                <Textarea
+                  id="doctor-degree"
+                  rows={4}
+                  value={values.degree}
+                  placeholder="MD Dermatology"
+                  onChange={(event) =>
+                    onChange({ ...values, degree: event.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="doctor-work-history">Work history</Label>
+                <Textarea
+                  id="doctor-work-history"
+                  rows={4}
+                  value={values.workHistory}
+                  placeholder="Hospitals, clinics, and roles"
+                  onChange={(event) =>
+                    onChange({ ...values, workHistory: event.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="doctor-work-days">Work days</Label>
+                <Textarea
+                  id="doctor-work-days"
+                  rows={4}
+                  value={values.workDays}
+                  placeholder="Mon–Sat, 10:00 AM – 6:00 PM"
+                  onChange={(event) =>
+                    onChange({ ...values, workDays: event.target.value })
                   }
                 />
               </div>

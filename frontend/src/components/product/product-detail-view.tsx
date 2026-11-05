@@ -21,6 +21,11 @@ import {
 import { useIsVendor } from "@/hooks/useIsVendor";
 import type { PublicProductDetail } from "@/types/product";
 
+/** First slice of the PDP related sample (API returns up to 15, shuffled per product). */
+const FREQUENTLY_BOUGHT_LIMIT = 6;
+/** Remaining related products after frequently bought, capped at 9. */
+const RECOMMENDATION_LIMIT = 9;
+
 type ProductDetailViewProps = {
   product: PublicProductDetail;
 };
@@ -54,6 +59,18 @@ export function ProductDetailView({ product: initialProduct }: ProductDetailView
     };
   }, [isVendor, initialProduct.slug]);
 
+  const frequentlyBought = product.relatedProducts.slice(0, FREQUENTLY_BOUGHT_LIMIT);
+  const remaining = product.relatedProducts.slice(
+    FREQUENTLY_BOUGHT_LIMIT,
+    FREQUENTLY_BOUGHT_LIMIT + RECOMMENDATION_LIMIT,
+  );
+  // When the catalog is smaller than both limits, still fill recommendations
+  // from the same shuffled set instead of leaving that section out.
+  const recommendations =
+    remaining.length > 0
+      ? remaining
+      : product.relatedProducts.slice(0, RECOMMENDATION_LIMIT);
+
   return (
     <div className="">
       <div className="container-page section-space">
@@ -80,9 +97,9 @@ export function ProductDetailView({ product: initialProduct }: ProductDetailView
       <ProductVideosSection videos={product.videos ?? []} />
       <ProductHighlights highlights={product.highlights} />
       <ProductInfoTabs product={product} />
-      <FrequentlyBought product={product} />
+      <FrequentlyBought products={frequentlyBought} />
       <ProductReviewsSection product={product} />
-      <ProductRecommendations products={product.relatedProducts} />
+      <ProductRecommendations products={recommendations} />
       <ProductStickyBar
         product={product}
         sizeId={sizeId}

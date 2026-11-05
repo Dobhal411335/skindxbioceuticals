@@ -34,7 +34,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   return (
     <>
-      <div className="bg-[#f4ebe1]">
+      <div className="bg-[#f8f5ee]">
         <div className="container-page section-space py-12 sm:py-16 lg:py-20">
           <div className="mb-10 max-w-2xl">
             <nav className="text-sm font-medium text-[#7a858b]" aria-label="Breadcrumb">

@@ -355,7 +355,7 @@ export function CollectionBannerTab({
                           }),
                         )
                       }
-                      placeholder="/shop or https://… (optional)"
+                      placeholder="/category or https://… (optional)"
                       className="h-11"
                     />
                   </div>
@@ -412,7 +412,7 @@ export function CollectionBannerTab({
                         onChange={(event) =>
                           onChange(updateItem(values, index, { button2Url: event.target.value }))
                         }
-                        placeholder="/shop"
+                        placeholder="/category"
                         className="h-11"
                       />
                     </div>

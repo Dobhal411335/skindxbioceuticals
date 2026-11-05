@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { env } from "@/config/env";
 import { stripHtmlToText } from "@/lib/tiptap/extensions";
 import type {
   ProductEditDto,
@@ -20,6 +21,11 @@ import type {
   ProductPdfDto,
   ProductVideoDto,
 } from "@/types/product-edit";
+
+function publicProductPdfFileUrl(siteCode: string, slug: string, pdfId: string): string {
+  const base = env.apiUrl.replace(/\/+$/, "");
+  return `${base}/sites/${siteCode}/products/${encodeURIComponent(slug)}/pdfs/${pdfId}/file`;
+}
 
 function StatusBadge({ active }: { active: boolean }) {
   return (
@@ -56,6 +62,113 @@ function SectionTableShell({
         {children}
       </div>
     </div>
+  );
+}
+
+export const STANDARD_SIZE_LABELS = ["S", "M", "L", "XL", "XXL"] as const;
+
+function isStandardSizeLabel(label: string): boolean {
+  return (STANDARD_SIZE_LABELS as readonly string[]).includes(label);
+}
+
+export function SizesCurrentTable({
+  data,
+  mode,
+  onEdit,
+  onDelete,
+  editingLabel,
+  deletingLabel,
+}: {
+  data: ProductEditDto;
+  mode: "standard" | "custom";
+  onEdit?: (label: string) => void;
+  onDelete?: (label: string) => void;
+  editingLabel?: string | null;
+  deletingLabel?: string | null;
+}) {
+  const rows = [...data.sizes]
+    .filter((size) =>
+      mode === "standard"
+        ? isStandardSizeLabel(size.label)
+        : !isStandardSizeLabel(size.label),
+    )
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label));
+  const showActions = Boolean(onEdit || onDelete);
+  const title = mode === "standard" ? "Current fixed sizes" : "Current custom sizes";
+  const emptyLabel =
+    mode === "standard"
+      ? "No fixed sizes saved for this product yet."
+      : "No custom sizes saved for this product yet.";
+
+  return (
+    <SectionTableShell title={title}>
+      <Table className="min-w-[640px]">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12">#</TableHead>
+            <TableHead>Size</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Sort</TableHead>
+            {showActions ? <TableHead className="w-[110px]">Actions</TableHead> : null}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.length === 0 ? (
+            <EmptyRow colSpan={showActions ? 6 : 5} label={emptyLabel} />
+          ) : (
+            rows.map((row, index) => (
+              <TableRow
+                key={row.id}
+                data-state={editingLabel === row.label ? "selected" : undefined}
+              >
+                <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                <TableCell className="font-medium">{row.label}</TableCell>
+                <TableCell>
+                  <Badge variant="outline">
+                    {isStandardSizeLabel(row.label) ? "Fixed" : "Custom"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <StatusBadge active={row.active} />
+                </TableCell>
+                <TableCell>{row.sortOrder}</TableCell>
+                {showActions ? (
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      {onEdit ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Update ${row.label}`}
+                          disabled={deletingLabel === row.label}
+                          onClick={() => onEdit(row.label)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+                      {onDelete ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Delete ${row.label}`}
+                          disabled={deletingLabel === row.label}
+                          onClick={() => onDelete(row.label)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                ) : null}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </SectionTableShell>
   );
 }
 
@@ -438,12 +551,14 @@ export function VideosCurrentTable({
 }
 
 export function PdfsCurrentTable({
+  siteCode,
   data,
   onEdit,
   onDelete,
   deletingId,
   editingId,
 }: {
+  siteCode: string;
   data: ProductEditDto;
   onEdit?: (pdf: ProductPdfDto) => void;
   onDelete?: (pdfId: string) => void;
@@ -478,13 +593,13 @@ export function PdfsCurrentTable({
                 </TableCell>
                 <TableCell className="max-w-[280px]">
                   <a
-                    href={row.pdfUrl}
+                    href={publicProductPdfFileUrl(siteCode, data.product.slug, row.id)}
                     target="_blank"
                     rel="noreferrer"
                     className="block truncate text-primary underline-offset-2 hover:underline"
-                    title={row.pdfUrl}
+                    title={row.name}
                   >
-                    {truncate(row.pdfUrl, 48)}
+                    {row.name}
                   </a>
                 </TableCell>
                 <TableCell>{row.sortOrder}</TableCell>

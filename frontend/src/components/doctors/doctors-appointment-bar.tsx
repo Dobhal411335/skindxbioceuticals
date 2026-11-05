@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, RotateCcw, UserRound } from "lucide-react";
+import { Search } from "lucide-react";
 
 import {
   Select,
@@ -9,144 +9,201 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { INDIA_STATES } from "@/utils/state";
+import type { DoctorProfileFacets } from "@/types/doctors";
+
+export const DOCTOR_FILTER_ALL = "__all__";
+
+/** Keep name input and select triggers visually aligned. */
+const FILTER_CONTROL_CLASS =
+  "h-11 min-h-11 rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm shadow-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 data-[size=default]:h-11 data-[size=default]:min-h-11";
 
 export type DoctorSearchFilters = {
   name: string;
-  city: string;
+  speciality: string;
   state: string;
+  city: string;
 };
 
 type DoctorsAppointmentBarProps = {
   filters: DoctorSearchFilters;
+  facets: DoctorProfileFacets;
+  resultCount: number;
   onFiltersChange: (filters: DoctorSearchFilters) => void;
-  onSearch: (filters: DoctorSearchFilters) => void;
   onReset: () => void;
   hasActiveFilter: boolean;
   isSearching: boolean;
-  stateSelectKey: number;
+  selectKey: number;
 };
 
 /**
- * Doctor search bar — name, city, and Indian state filters.
+ * Doctor search bar — name, specialization, state, and city filters.
+ * Options come from the doctor profiles currently shown on the page.
  */
 export function DoctorsAppointmentBar({
   filters,
+  facets,
+  resultCount,
   onFiltersChange,
-  onSearch,
   onReset,
   hasActiveFilter,
   isSearching,
-  stateSelectKey,
+  selectKey,
 }: DoctorsAppointmentBarProps) {
+  const cityOptions = filters.state
+    ? (facets.citiesByState[filters.state] ?? [])
+    : [];
+  const cityDisabled = !filters.state;
+
   const patch = (partial: Partial<DoctorSearchFilters>) => {
     onFiltersChange({ ...filters, ...partial });
   };
 
   return (
-    <section className="container-page py-10 md:py-14" aria-labelledby="find-doctor-heading">
-      <div className="rounded-2xl border border-border/70 bg-background p-5 shadow-[var(--shadow-card)] md:p-7">
-        <h2
-          id="find-doctor-heading"
-          className="mb-5 text-xl font-bold tracking-tight text-foreground md:text-2xl"
-        >
+    <section
+      className="bg-[#f8f5ee] py-10 md:py-14"
+      aria-labelledby="find-doctor-heading"
+    >
+      <div className="container-page">
+        <div className="rounded-2xl border border-border/60 bg-background/80 p-4 shadow-[var(--shadow-card)] md:p-5">
+        <h2 id="find-doctor-heading" className="sr-only">
           Find a Doctor
         </h2>
 
         <form
-          className="space-y-3"
+          className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-            onSearch(filters);
           }}
         >
-          <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
-            <label className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5">
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs text-muted-foreground">Doctor name</span>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <label className="block space-y-1.5">
+              <span className="text-sm font-semibold text-foreground">Doctor Name</span>
+              <span className="relative block">
                 <input
                   type="search"
                   name="doctor-name"
                   value={filters.name}
                   onChange={(event) => patch({ name: event.target.value })}
-                  placeholder="e.g. Daisy Bins"
+                  placeholder="Search name, specialization, or location"
                   autoComplete="off"
-                  className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
+                  className={`${FILTER_CONTROL_CLASS} w-full pl-3.5 pr-10 text-foreground outline-none placeholder:text-muted-foreground`}
                 />
-              </span>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <UserRound className="size-4" aria-hidden />
+                <Search
+                  className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-primary"
+                  aria-hidden
+                />
               </span>
             </label>
 
-            <label className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5">
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs text-muted-foreground">City</span>
-                <input
-                  type="search"
-                  name="doctor-city"
-                  value={filters.city}
-                  onChange={(event) => patch({ city: event.target.value })}
-                  placeholder="e.g. Mumbai"
-                  autoComplete="off"
-                  className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground"
-                />
-              </span>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <MapPin className="size-4" aria-hidden />
-              </span>
-            </label>
-
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground">State</p>
-                <Select
-                  key={stateSelectKey}
-                  value={filters.state || undefined}
-                  onValueChange={(value) => patch({ state: value })}
+            <div className="space-y-1.5">
+              <p className="text-sm font-semibold text-foreground">Specialization</p>
+              <Select
+                key={`speciality-${selectKey}`}
+                value={filters.speciality || DOCTOR_FILTER_ALL}
+                onValueChange={(value) =>
+                  patch({
+                    speciality: value === DOCTOR_FILTER_ALL ? "" : value,
+                  })
+                }
+              >
+                <SelectTrigger
+                  id="doctor-speciality"
+                  aria-label="Specialization"
+                  className={`${FILTER_CONTROL_CLASS} w-full`}
                 >
-                  <SelectTrigger
-                    id="doctor-state"
-                    aria-label="State"
-                    className="h-auto w-full border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 data-[size=default]:h-auto"
-                  >
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INDIA_STATES.map((state) => (
-                      <SelectItem key={state} value={state}>
-                        {state}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <MapPin className="size-4" aria-hidden />
-              </span>
+                  <SelectValue placeholder="All specializations" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={DOCTOR_FILTER_ALL}>All specializations</SelectItem>
+                  {facets.specialities.map((speciality) => (
+                    <SelectItem key={speciality} value={speciality}>
+                      {speciality}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSearching}
-              className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70 md:min-w-[8.5rem]"
-            >
-              {isSearching ? "Searching…" : "Search"}
-            </button>
+            <div className="space-y-1.5">
+              <p className="text-sm font-semibold text-foreground">State</p>
+              <Select
+                key={`state-${selectKey}`}
+                value={filters.state || DOCTOR_FILTER_ALL}
+                onValueChange={(value) => {
+                  const nextState = value === DOCTOR_FILTER_ALL ? "" : value;
+                  patch({ state: nextState, city: "" });
+                }}
+              >
+                <SelectTrigger
+                  id="doctor-state"
+                  aria-label="State"
+                  className={`${FILTER_CONTROL_CLASS} w-full`}
+                >
+                  <SelectValue placeholder="All states" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={DOCTOR_FILTER_ALL}>All states</SelectItem>
+                  {facets.states.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="text-sm font-semibold text-foreground">City</p>
+              <Select
+                key={`city-${selectKey}-${filters.state || "none"}`}
+                value={filters.city || DOCTOR_FILTER_ALL}
+                onValueChange={(value) =>
+                  patch({ city: value === DOCTOR_FILTER_ALL ? "" : value })
+                }
+                disabled={cityDisabled}
+              >
+                <SelectTrigger
+                  id="doctor-city"
+                  aria-label="City"
+                  className={`${FILTER_CONTROL_CLASS} w-full disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  <SelectValue
+                    placeholder={cityDisabled ? "Select a state first" : "All cities"}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={DOCTOR_FILTER_ALL}>
+                    {cityDisabled ? "Select a state first" : "All cities"}
+                  </SelectItem>
+                  {cityOptions.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {hasActiveFilter ? (
-            <button
-              type="button"
-              onClick={onReset}
-              disabled={isSearching}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <RotateCcw className="size-4" aria-hidden />
-              Reset filter
-            </button>
-          ) : null}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-3">
+            <p className="text-sm text-muted-foreground" aria-live="polite">
+              {isSearching
+                ? "Searching…"
+                : `${resultCount} doctor${resultCount === 1 ? "" : "s"} found`}
+            </p>
+            {hasActiveFilter ? (
+              <button
+                type="button"
+                onClick={onReset}
+                disabled={isSearching}
+                className="text-sm font-semibold text-primary transition-colors hover:text-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                Reset filters
+              </button>
+            ) : null}
+          </div>
         </form>
+        </div>
       </div>
     </section>
   );

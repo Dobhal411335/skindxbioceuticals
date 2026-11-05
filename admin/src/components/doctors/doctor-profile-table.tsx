@@ -96,7 +96,7 @@ export function DoctorProfileTable({
                       </p>
                     </td>
                     <td className="px-3 py-4 text-muted-foreground">
-                      {doctor.specialization}
+                      {doctor.specializations.join(", ") || "—"}
                     </td>
                     <td className="px-3 py-4 text-center">
                       {doctor.experienceYears} yrs

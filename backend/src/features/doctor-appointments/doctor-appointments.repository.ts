@@ -8,11 +8,21 @@ import type {
 
 const doctorSelect = {
   name: true,
-  specialization: true,
+  specializations: true,
 } as const;
 
-function mapRow(row: DoctorAppointmentRecord): DoctorAppointmentRecord {
-  return row;
+type AppointmentRow = Omit<DoctorAppointmentRecord, 'doctor'> & {
+  doctor: { name: string; specializations: string[] };
+};
+
+function mapRow(row: AppointmentRow): DoctorAppointmentRecord {
+  return {
+    ...row,
+    doctor: {
+      name: row.doctor.name,
+      specialization: row.doctor.specializations.filter(Boolean).join(', '),
+    },
+  };
 }
 
 export class DoctorAppointmentsRepository {
@@ -26,6 +36,8 @@ export class DoctorAppointmentsRepository {
         phone: data.phone,
         scheduledAt: data.scheduledAt,
         problem: data.problem,
+        medicalHistoryImageUrl: data.medicalHistoryImageUrl,
+        medicalHistoryImagePublicId: data.medicalHistoryImagePublicId,
       },
       include: { doctor: { select: doctorSelect } },
     });

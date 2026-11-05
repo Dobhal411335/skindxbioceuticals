@@ -63,7 +63,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
   return (
     <>
-      <article className="bg-[#f4ebe1]">
+      <article className="bg-[#f8f5ee]">
         <div className="container-page section-space py-12 sm:py-16 lg:py-20">
           <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.55fr)] lg:gap-10">
             <div className="lg:sticky lg:top-28 lg:self-start">

@@ -15,6 +15,7 @@ jest.mock('../product.service', () => ({
     listPublicFacets: jest.fn(),
     getPublicFacets: jest.fn(),
     listPublicHighlights: jest.fn(),
+    getPublicPdfDelivery: jest.fn(),
     listForSubcategory: jest.fn(),
     createForSubcategory: jest.fn(),
     patchForSubcategory: jest.fn(),
@@ -222,6 +223,39 @@ describe('Public product API routes', () => {
       slug: 'vitamin-c-serum',
       includeVendorPrice: false,
     });
+  });
+
+  it('streams a product PDF without exposing the Cloudinary download URL', async () => {
+    (productService.getPublicPdfDelivery as jest.Mock).mockResolvedValue({
+      name: 'Ingredient sheet',
+      downloadUrl: 'https://api.cloudinary.com/v1_1/demo/raw/download?signed=1',
+    });
+    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => Uint8Array.from(Buffer.from('%PDF-1.4')).buffer,
+    } as Response);
+
+    try {
+      const response = await request(app).get(
+        '/api/v1/sites/IN/products/vitamin-c-serum/pdfs/77777777-7777-7777-7777-777777777777/file',
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toMatch(/application\/pdf/);
+      expect(response.headers['content-disposition']).toContain('Ingredient sheet.pdf');
+      expect(response.headers['cross-origin-resource-policy']).toBe('cross-origin');
+      expect(response.body.toString('utf8')).toContain('%PDF');
+      expect(productService.getPublicPdfDelivery).toHaveBeenCalledWith({
+        siteId: site.id,
+        slug: 'vitamin-c-serum',
+        pdfId: '77777777-7777-7777-7777-777777777777',
+      });
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://api.cloudinary.com/v1_1/demo/raw/download?signed=1',
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it('rejects invalid product slugs', async () => {

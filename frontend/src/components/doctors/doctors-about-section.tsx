@@ -22,8 +22,11 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
   const buttonHref = config.aboutButtonUrl?.trim() || "#";
 
   return (
-    <section className="container-page py-14" aria-labelledby="doctors-about-heading">
-      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+    <section
+      className="bg-[#f8f5ee] py-14"
+      aria-labelledby="doctors-about-heading"
+    >
+      <div className="container-page grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
         <div>
           <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <span className="inline-block size-2 rounded-full bg-[#565CEB]" aria-hidden />
@@ -110,7 +113,7 @@ export function DoctorsAboutSection({ config }: DoctorsAboutSectionProps) {
 
               {/* Experience badge: overlaps both images */}
               {config.experienceYears != null && config.experienceYears > 0 && (
-                <div className="absolute top-[2%] left-[4%] z-20 flex items-center gap-3 whitespace-nowrap rounded-xl bg-[#565CEB] px-4 py-3 text-white shadow-lg sm:-top-5 sm:left-[1%] sm:gap-3.5 sm:rounded-2xl sm:px-6 sm:py-4">
+                <div className="absolute top-[1%] left-[4%] z-20 flex items-center gap-3 whitespace-nowrap rounded-xl bg-[#565CEB] px-4 py-3 text-white shadow-lg sm:top-1 sm:left-[1%] sm:gap-3.5 sm:rounded-2xl sm:px-6 sm:py-4">
                   <span className="text-3xl font-extrabold leading-none sm:text-4xl">
                     {config.experienceYears}
                   </span>

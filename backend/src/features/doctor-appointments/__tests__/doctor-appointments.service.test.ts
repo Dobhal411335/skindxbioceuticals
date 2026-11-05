@@ -19,6 +19,8 @@ function makeRecord(
     phone: '+91 9876543210',
     scheduledAt: new Date('2026-10-20T10:00:00.000Z'),
     problem: 'Persistent dryness on cheeks',
+    medicalHistoryImageUrl: '',
+    medicalHistoryImagePublicId: '',
     status: 'NEW',
     createdAt: new Date('2026-10-14T08:00:00.000Z'),
     updatedAt: new Date('2026-10-14T08:00:00.000Z'),
@@ -74,6 +76,8 @@ describe('DoctorAppointmentsService', () => {
       phone: '+91 9876543210',
       scheduledAt: '2026-10-20T10:00:00.000Z',
       problem: 'Persistent dryness on cheeks',
+      medicalHistoryImageUrl: '',
+      medicalHistoryImagePublicId: '',
       status: 'NEW',
       createdAt: '2026-10-14T08:00:00.000Z',
       updatedAt: '2026-10-14T08:00:00.000Z',
@@ -81,7 +85,10 @@ describe('DoctorAppointmentsService', () => {
   });
 
   it('creates a public appointment for an active doctor', async () => {
-    const record = makeRecord();
+    const record = makeRecord({
+      medicalHistoryImageUrl: 'https://res.cloudinary.com/demo/image/upload/history.jpg',
+      medicalHistoryImagePublicId: 'doctors/medical-history/history',
+    });
     findActiveDoctorForSite.mockResolvedValue({ id: record.doctorId, active: true });
     create.mockResolvedValue(record);
 
@@ -96,6 +103,9 @@ describe('DoctorAppointmentsService', () => {
         phone: '+91 9876543210',
         scheduledAt: future,
         problem: 'Persistent dryness on cheeks',
+        medicalHistoryImageUrl:
+          'https://res.cloudinary.com/demo/image/upload/history.jpg',
+        medicalHistoryImagePublicId: 'doctors/medical-history/history',
         website: '',
       },
     });
@@ -106,9 +116,13 @@ describe('DoctorAppointmentsService', () => {
         doctorId: record.doctorId,
         patientName: 'Jane Doe',
         email: 'jane@example.com',
+        medicalHistoryImageUrl:
+          'https://res.cloudinary.com/demo/image/upload/history.jpg',
+        medicalHistoryImagePublicId: 'doctors/medical-history/history',
       }),
     );
     expect(dto?.id).toBe(record.id);
+    expect(dto?.medicalHistoryImageUrl).toContain('history.jpg');
   });
 
   it('rejects appointments for inactive or missing doctors', async () => {
@@ -125,6 +139,8 @@ describe('DoctorAppointmentsService', () => {
           phone: '+91 9876543210',
           scheduledAt: new Date(Date.now() + 86_400_000),
           problem: 'Issue',
+          medicalHistoryImageUrl: '',
+          medicalHistoryImagePublicId: '',
           website: '',
         },
       }),
@@ -144,6 +160,8 @@ describe('DoctorAppointmentsService', () => {
         phone: '+91 9876543210',
         scheduledAt: new Date(Date.now() + 86_400_000),
         problem: 'Spam',
+        medicalHistoryImageUrl: '',
+        medicalHistoryImagePublicId: '',
         website: 'http://spam.example',
       },
     });

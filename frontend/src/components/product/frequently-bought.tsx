@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Eye, Heart, ShoppingCart } from "lucide-react";
 
 import {
@@ -31,15 +31,15 @@ import { useIsVendor } from "@/hooks/useIsVendor";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
 import { showError, showSuccess } from "@/lib/toast";
 import { cn, formatInr } from "@/lib/utils";
-import type { PublicProductDetail, PublicRelatedProduct } from "@/types/product";
+import type { PublicRelatedProduct } from "@/types/product";
 
 type FrequentlyBoughtProps = {
-  product: PublicProductDetail;
+  products: PublicRelatedProduct[];
 };
 
-export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
-  // Same subcategory only; current product is already excluded by the API.
-  const bundle = product.relatedProducts.slice(0, 6);
+export function FrequentlyBought({ products }: FrequentlyBoughtProps) {
+  const bundle = products.slice(0, 6);
+  const bundleKey = bundle.map((item) => item.id).join(",");
 
   const { add: addToCartAction } = useCartActions();
   const { openCart } = useCartUi();
@@ -58,6 +58,11 @@ export function FrequentlyBought({ product }: FrequentlyBoughtProps) {
   const [selected, setSelected] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(bundle.map((item) => [item.id, true])),
   );
+
+  useEffect(() => {
+    const ids = bundleKey.split(",").filter(Boolean);
+    setSelected(Object.fromEntries(ids.map((id) => [id, true])));
+  }, [bundleKey]);
 
   const selectedItems = useMemo(
     () => bundle.filter((item) => selected[item.id]),

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ImagePlus, Plus, Trash2, Upload } from "lucide-react";
 
 import { AppointmentDateTimePicker } from "@/components/doctors/appointment-datetime-picker";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createDoctorAppointment } from "@/features/doctors/create-doctor-appointment";
+import {
+  createDoctorAppointment,
+  uploadDoctorMedicalHistoryImage,
+} from "@/features/doctors/create-doctor-appointment";
 import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
 import { formatDoctorDisplayName, type DoctorProfile } from "@/types/doctors";
@@ -41,10 +44,14 @@ type FormErrors = Partial<
     | "phone"
     | "doctorId"
     | "scheduledAt"
-    | "problem",
+    | "problem"
+    | "medicalHistory",
     string
   >
 >;
+
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 export function DoctorAppointmentModal({
   open,
@@ -59,6 +66,16 @@ export function DoctorAppointmentModal({
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const [problem, setProblem] = useState("");
   const [website, setWebsite] = useState("");
+  const [medicalHistoryPreview, setMedicalHistoryPreview] = useState<string | null>(
+    null,
+  );
+  const [medicalHistoryUrl, setMedicalHistoryUrl] = useState("");
+  const [medicalHistoryPublicId, setMedicalHistoryPublicId] = useState("");
+  const [medicalHistoryFileName, setMedicalHistoryFileName] = useState<string | null>(
+    null,
+  );
+  const [medicalHistoryUploading, setMedicalHistoryUploading] = useState(false);
+  const medicalHistoryInputRef = useRef<HTMLInputElement | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -71,13 +88,86 @@ export function DoctorAppointmentModal({
     setScheduledAt(null);
     setProblem("");
     setWebsite("");
+    setMedicalHistoryPreview(null);
+    setMedicalHistoryUrl("");
+    setMedicalHistoryPublicId("");
+    setMedicalHistoryFileName(null);
+    setMedicalHistoryUploading(false);
     setErrors({});
+    if (medicalHistoryInputRef.current) {
+      medicalHistoryInputRef.current.value = "";
+    }
   }, [open, initialDoctorId, doctors]);
 
   const selectedDoctor = useMemo(
     () => doctors.find((doctor) => doctor.id === doctorId) ?? null,
     [doctors, doctorId],
   );
+
+  const clearMedicalHistory = () => {
+    setMedicalHistoryPreview(null);
+    setMedicalHistoryUrl("");
+    setMedicalHistoryPublicId("");
+    setMedicalHistoryFileName(null);
+    setErrors((current) => {
+      const next = { ...current };
+      delete next.medicalHistory;
+      return next;
+    });
+    if (medicalHistoryInputRef.current) {
+      medicalHistoryInputRef.current.value = "";
+    }
+  };
+
+  const handleMedicalHistoryChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
+      setErrors((current) => ({
+        ...current,
+        medicalHistory: "Upload a JPG, PNG, or WebP image",
+      }));
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      setErrors((current) => ({
+        ...current,
+        medicalHistory: "Image must be 10MB or smaller",
+      }));
+      event.target.value = "";
+      return;
+    }
+
+    const localPreview = URL.createObjectURL(file);
+    setMedicalHistoryPreview(localPreview);
+    setMedicalHistoryFileName(file.name);
+    setMedicalHistoryUploading(true);
+    setErrors((current) => {
+      const next = { ...current };
+      delete next.medicalHistory;
+      return next;
+    });
+
+    try {
+      const uploaded = await uploadDoctorMedicalHistoryImage(file);
+      setMedicalHistoryUrl(uploaded.url);
+      setMedicalHistoryPublicId(uploaded.publicId);
+      setMedicalHistoryPreview(uploaded.url);
+      URL.revokeObjectURL(localPreview);
+    } catch (error) {
+      URL.revokeObjectURL(localPreview);
+      clearMedicalHistory();
+      const apiErr = toApiError(error);
+      showError(apiErr.message || "Failed to upload medical history image");
+    } finally {
+      setMedicalHistoryUploading(false);
+    }
+  };
 
   const validate = (): boolean => {
     const next: FormErrors = {};
@@ -97,6 +187,9 @@ export function DoctorAppointmentModal({
     if (!doctorId) next.doctorId = "Choose a doctor";
     if (!scheduledAt) next.scheduledAt = "Choose date and time";
     if (!problem.trim()) next.problem = "Please describe your problem";
+    if (medicalHistoryUploading) {
+      next.medicalHistory = "Wait for the image upload to finish";
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -116,6 +209,12 @@ export function DoctorAppointmentModal({
         phone: fullPhone,
         scheduledAt: scheduledAt.toISOString(),
         problem: problem.trim(),
+        ...(medicalHistoryUrl && medicalHistoryPublicId
+          ? {
+              medicalHistoryImageUrl: medicalHistoryUrl,
+              medicalHistoryImagePublicId: medicalHistoryPublicId,
+            }
+          : {}),
         website: website || undefined,
       });
       showSuccess(
@@ -170,7 +269,7 @@ export function DoctorAppointmentModal({
               <div className="absolute inset-x-0 bottom-0 p-6 text-white">
                 <p className="text-lg font-semibold">{selectedDoctor.name}</p>
                 <p className="text-sm text-white/85">
-                  {selectedDoctor.specialization}
+                  {selectedDoctor.specializations.join(", ")}
                 </p>
               </div>
             ) : null}
@@ -299,9 +398,85 @@ export function DoctorAppointmentModal({
                 ) : null}
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="appointment-medical-history">
+                  Previous medical history{" "}
+                  <span className="font-normal text-muted-foreground">(optional)</span>
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Upload a clear photo of any previous reports or medical history (JPG,
+                  PNG, or WebP).
+                </p>
+                <input
+                  ref={medicalHistoryInputRef}
+                  id="appointment-medical-history"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  disabled={submitting || medicalHistoryUploading}
+                  onChange={(event) => void handleMedicalHistoryChange(event)}
+                />
+                {!medicalHistoryPreview ? (
+                  <button
+                    type="button"
+                    disabled={submitting || medicalHistoryUploading}
+                    onClick={() => medicalHistoryInputRef.current?.click()}
+                    className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <ImagePlus className="size-5 text-primary" aria-hidden />
+                    <span className="font-medium text-foreground">
+                      Upload medical history image
+                    </span>
+                  </button>
+                ) : (
+                  <div className="overflow-hidden rounded-xl border border-border bg-muted/20">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- local blob / Cloudinary preview */}
+                    <img
+                      src={medicalHistoryPreview}
+                      alt="Medical history preview"
+                      className="max-h-48 w-full object-contain bg-background"
+                    />
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-2">
+                      <p className="truncate text-xs text-muted-foreground">
+                        {medicalHistoryUploading
+                          ? "Uploading…"
+                          : medicalHistoryFileName || "Medical history attached"}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={submitting || medicalHistoryUploading}
+                          onClick={() => medicalHistoryInputRef.current?.click()}
+                        >
+                          <Upload className="size-3.5" aria-hidden />
+                          Replace
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={submitting || medicalHistoryUploading}
+                          onClick={clearMedicalHistory}
+                        >
+                          <Trash2 className="size-3.5" aria-hidden />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {errors.medicalHistory ? (
+                  <p className="text-sm text-destructive">{errors.medicalHistory}</p>
+                ) : null}
+              </div>
+
               <Button
                 type="submit"
-                disabled={submitting || doctors.length === 0}
+                disabled={
+                  submitting || medicalHistoryUploading || doctors.length === 0
+                }
                 className="h-12 w-full rounded-full text-base"
               >
                 {submitting ? "Submitting…" : "Make an Appointment"}

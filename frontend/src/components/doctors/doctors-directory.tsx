@@ -1,73 +1,149 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import {
   DoctorsAppointmentBar,
   type DoctorSearchFilters,
 } from "@/components/doctors/doctors-appointment-bar";
 import { DoctorsGridSection } from "@/components/doctors/doctors-grid-section";
-import { formatDoctorDisplayName, type DoctorProfile } from "@/types/doctors";
+import {
+  formatDoctorDisplayName,
+  type DoctorProfile,
+  type DoctorProfileFacets,
+} from "@/types/doctors";
 
 type DoctorsDirectoryProps = {
   doctors: DoctorProfile[];
+  facets: DoctorProfileFacets;
 };
 
 const EMPTY_FILTERS: DoctorSearchFilters = {
   name: "",
-  city: "",
+  speciality: "",
   state: "",
+  city: "",
 };
 
 function normalizeFilters(filters: DoctorSearchFilters): DoctorSearchFilters {
   return {
     name: filters.name.trim(),
-    city: filters.city.trim(),
+    speciality: filters.speciality.trim(),
     state: filters.state.trim(),
+    city: filters.city.trim(),
   };
 }
 
 function hasFilters(filters: DoctorSearchFilters): boolean {
   const normalized = normalizeFilters(filters);
-  return Boolean(normalized.name || normalized.city || normalized.state);
+  return Boolean(
+    normalized.name ||
+      normalized.speciality ||
+      normalized.state ||
+      normalized.city,
+  );
 }
 
 function matchesDoctor(
   doctor: DoctorProfile,
   filters: DoctorSearchFilters,
 ): boolean {
-  const { name, city, state } = normalizeFilters(filters);
+  const { name, speciality, city, state } = normalizeFilters(filters);
 
+  if (name && !profileSearchText(doctor).includes(name.toLowerCase())) {
+    return false;
+  }
   if (
-    name &&
-    !doctor.name.toLowerCase().includes(name.toLowerCase()) &&
-    !formatDoctorDisplayName(doctor.name).toLowerCase().includes(name.toLowerCase())
+    speciality &&
+    !doctor.specializations.some(
+      (item) => item.toLowerCase() === speciality.toLowerCase(),
+    )
   ) {
     return false;
   }
-  if (city && !doctor.city.toLowerCase().includes(city.toLowerCase())) {
+  if (state && doctor.state.toLowerCase() !== state.toLowerCase()) {
     return false;
   }
-  if (state && doctor.state.toLowerCase() !== state.toLowerCase()) {
+  if (city && doctor.city.toLowerCase() !== city.toLowerCase()) {
     return false;
   }
 
   return true;
 }
 
+function uniqueSorted(values: Iterable<string>): string[] {
+  const seen = new Map<string, string>();
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (!seen.has(key)) seen.set(key, trimmed);
+  }
+  return [...seen.values()].sort((a, b) => a.localeCompare(b));
+}
+
+/** Filter options from the same doctor records shown in the profile modal. */
+function facetsFromDoctors(doctors: DoctorProfile[]): DoctorProfileFacets {
+  const stateLabels = new Map<string, string>();
+  const citiesByState = new Map<string, string[]>();
+
+  for (const doctor of doctors) {
+    const state = doctor.state.trim();
+    const city = doctor.city.trim();
+    if (!state) continue;
+    const stateKey = state.toLowerCase();
+    if (!stateLabels.has(stateKey)) stateLabels.set(stateKey, state);
+    const cities = citiesByState.get(stateKey) ?? [];
+    if (city) cities.push(city);
+    citiesByState.set(stateKey, cities);
+  }
+
+  const states = uniqueSorted(stateLabels.values());
+  return {
+    specialities: uniqueSorted(doctors.flatMap((doctor) => doctor.specializations)),
+    states,
+    citiesByState: Object.fromEntries(
+      states.map((state) => [
+        state,
+        uniqueSorted(citiesByState.get(state.toLowerCase()) ?? []),
+      ]),
+    ),
+  };
+}
+
+function profileSearchText(doctor: DoctorProfile): string {
+  return [
+    doctor.name,
+    formatDoctorDisplayName(doctor.name),
+    ...doctor.specializations,
+    doctor.location,
+    doctor.city,
+    doctor.state,
+    doctor.education,
+    doctor.degree,
+    doctor.workHistory,
+    doctor.workDays,
+    doctor.about,
+    doctor.experienceYears > 0 ? `${doctor.experienceYears}` : "",
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
 function formatFilterSummary(filters: DoctorSearchFilters): string {
   const parts = [
     filters.name.trim() || null,
+    filters.speciality.trim() || null,
     filters.city.trim() || null,
     filters.state.trim() || null,
   ].filter(Boolean);
   return parts.join(" · ");
 }
 
-export function DoctorsDirectory({ doctors }: DoctorsDirectoryProps) {
+export function DoctorsDirectory({ doctors, facets }: DoctorsDirectoryProps) {
   const [draft, setDraft] = useState<DoctorSearchFilters>(EMPTY_FILTERS);
   const [applied, setApplied] = useState<DoctorSearchFilters>(EMPTY_FILTERS);
-  const [stateSelectKey, setStateSelectKey] = useState(0);
+  const [selectKey, setSelectKey] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
   const [isPending, startTransition] = useTransition();
   const searchTimeoutRef = useRef<number | null>(null);
@@ -80,6 +156,7 @@ export function DoctorsDirectory({ doctors }: DoctorsDirectoryProps) {
     };
   }, []);
 
+  const liveFacets = useMemo(() => facetsFromDoctors(doctors), [doctors]);
   const filteredDoctors = doctors.filter((doctor) =>
     matchesDoctor(doctor, applied),
   );
@@ -90,8 +167,9 @@ export function DoctorsDirectory({ doctors }: DoctorsDirectoryProps) {
     const normalized = normalizeFilters(nextFilters);
     setDraft({
       name: nextFilters.name,
-      city: nextFilters.city,
+      speciality: normalized.speciality,
       state: normalized.state,
+      city: normalized.city,
     });
 
     if (searchTimeoutRef.current != null) {
@@ -104,12 +182,16 @@ export function DoctorsDirectory({ doctors }: DoctorsDirectoryProps) {
         setApplied(normalized);
         setIsSearching(false);
       });
-    }, 280);
+    }, 220);
+  };
+
+  const handleFiltersChange = (nextFilters: DoctorSearchFilters) => {
+    runSearch(nextFilters);
   };
 
   const handleReset = () => {
     setDraft(EMPTY_FILTERS);
-    setStateSelectKey((key) => key + 1);
+    setSelectKey((key) => key + 1);
     runSearch(EMPTY_FILTERS);
   };
 
@@ -117,12 +199,17 @@ export function DoctorsDirectory({ doctors }: DoctorsDirectoryProps) {
     <>
       <DoctorsAppointmentBar
         filters={draft}
-        onFiltersChange={setDraft}
-        onSearch={runSearch}
+        facets={
+          liveFacets.specialities.length > 0 || liveFacets.states.length > 0
+            ? liveFacets
+            : facets
+        }
+        resultCount={filteredDoctors.length}
+        onFiltersChange={handleFiltersChange}
         onReset={handleReset}
         hasActiveFilter={hasActiveFilter || hasFilters(draft)}
         isSearching={showSkeleton}
-        stateSelectKey={stateSelectKey}
+        selectKey={selectKey}
       />
       <DoctorsGridSection
         doctors={filteredDoctors}
@@ -131,6 +218,28 @@ export function DoctorsDirectory({ doctors }: DoctorsDirectoryProps) {
         hasActiveFilter={hasActiveFilter}
         searchQuery={formatFilterSummary(applied)}
         onResetFilter={handleReset}
+        onApplyProfileFilter={(partial) => {
+          const next = { ...draft, ...partial };
+          if (partial.speciality) {
+            next.speciality =
+              liveFacets.specialities.find(
+                (item) => item.toLowerCase() === partial.speciality?.toLowerCase(),
+              ) ?? partial.speciality;
+          }
+          if (partial.state) {
+            next.state =
+              liveFacets.states.find(
+                (item) => item.toLowerCase() === partial.state?.toLowerCase(),
+              ) ?? partial.state;
+          }
+          if (partial.city) {
+            const cities = liveFacets.citiesByState[next.state] ?? [];
+            next.city =
+              cities.find((item) => item.toLowerCase() === partial.city?.toLowerCase()) ??
+              partial.city;
+          }
+          runSearch(next);
+        }}
       />
     </>
   );

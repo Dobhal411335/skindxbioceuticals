@@ -105,6 +105,12 @@ export const endpoints = {
       `/admin/sites/${siteCode}/doctor-appointments`,
     doctorAppointment: (siteCode: string, appointmentId: string) =>
       `/admin/sites/${siteCode}/doctor-appointments/${appointmentId}`,
+    careerApplications: (siteCode: string) =>
+      `/admin/sites/${siteCode}/career-applications`,
+    careerApplication: (siteCode: string, applicationId: string) =>
+      `/admin/sites/${siteCode}/career-applications/${applicationId}`,
+    careerApplicationResume: (siteCode: string, applicationId: string) =>
+      `/admin/sites/${siteCode}/career-applications/${applicationId}/resume-access`,
     enquiries: (siteCode: string) => `/admin/sites/${siteCode}/enquiries`,
     enquiry: (siteCode: string, enquiryId: string) =>
       `/admin/sites/${siteCode}/enquiries/${enquiryId}`,

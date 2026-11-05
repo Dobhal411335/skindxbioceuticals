@@ -141,7 +141,7 @@ function ThankYouContent() {
           {error ?? "Order not found."}
         </p>
         <Button asChild className="mt-6">
-          <Link href="/shop">Continue shopping</Link>
+          <Link href="/category">Continue shopping</Link>
         </Button>
       </div>
     );
@@ -446,7 +446,7 @@ function ThankYouContent() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/shop" className="inline-flex items-center gap-1.5">
+              <Link href="/category" className="inline-flex items-center gap-1.5">
                 Continue shopping
                 <ArrowRight className="size-4" />
               </Link>
@@ -485,7 +485,7 @@ function ThankYouContent() {
               </Link>
             </Button>
             <Button asChild variant="ghost" size="lg">
-              <Link href="/shop" className="inline-flex items-center gap-1.5">
+              <Link href="/category" className="inline-flex items-center gap-1.5">
                 Continue shopping
                 <ArrowRight className="size-4" />
               </Link>

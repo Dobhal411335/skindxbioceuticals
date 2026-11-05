@@ -26,8 +26,8 @@ function pdfDownloadName(name: string): string {
 }
 
 /**
- * Cloudinary raw URLs often omit Content-Type / `.pdf`, so iframes download
- * instead of previewing. Force an application/pdf blob for inline display.
+ * The PDF URL is our API file route. Load it as a blob so the preview iframe
+ * stays inline even when the upstream file has no PDF content type.
  */
 async function fetchPdfBlob(url: string): Promise<Blob> {
   const response = await fetch(url, { mode: "cors" });

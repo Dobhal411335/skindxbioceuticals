@@ -70,7 +70,7 @@ describe("ManageNavbarPage", () => {
       id: "sec-1",
       siteCode: "IN",
       title: "Shop",
-      url: "/shop",
+      url: "/category",
       active: true,
       order: 1,
       subSections: [],
@@ -83,7 +83,7 @@ describe("ManageNavbarPage", () => {
 
     await user.type(screen.getByLabelText(/section title/i), "Shop");
     await user.clear(screen.getByLabelText(/section url/i));
-    await user.type(screen.getByLabelText(/section url/i), "/shop");
+    await user.type(screen.getByLabelText(/section url/i), "/category");
     await user.click(screen.getByRole("button", { name: /create section/i }));
 
     await waitFor(() => expect(createMock).toHaveBeenCalled());
@@ -91,7 +91,7 @@ describe("ManageNavbarPage", () => {
       "IN",
       expect.objectContaining({
         title: "Shop",
-        url: "/shop",
+        url: "/category",
       }),
     );
     expect(showSuccessMock).toHaveBeenCalledWith("Navbar section created");

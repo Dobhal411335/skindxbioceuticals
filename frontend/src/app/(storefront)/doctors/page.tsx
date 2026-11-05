@@ -6,6 +6,7 @@ import { DoctorsDirectory } from "@/components/doctors/doctors-directory";
 import { DoctorsServicesSection } from "@/components/doctors/doctors-services-section";
 import {
   getDoctorPageConfig,
+  getDoctorProfileFacets,
   getDoctorProfiles,
 } from "@/features/doctors/doctors.service";
 
@@ -16,9 +17,10 @@ export const metadata: Metadata = {
 };
 
 export default async function DoctorsPage() {
-  const [pageConfig, doctors] = await Promise.all([
+  const [pageConfig, doctors, facets] = await Promise.all([
     getDoctorPageConfig(),
     getDoctorProfiles(),
+    getDoctorProfileFacets(),
   ]);
 
   const hasAbout =
@@ -33,8 +35,8 @@ export default async function DoctorsPage() {
   const emptyPage = !hasAbout && !hasServices && doctors.length === 0;
 
   return (
-    <>
-      <div className="container-page pt-6">
+    <div className="bg-[#f8f5ee]">
+      <div className="container-page pt-10">
         <nav className="text-md text-muted-foreground" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-foreground">
             Home
@@ -56,9 +58,9 @@ export default async function DoctorsPage() {
         <>
           <DoctorsAboutSection config={pageConfig} />
           <DoctorsServicesSection config={pageConfig} />
-          <DoctorsDirectory doctors={doctors} />
+          <DoctorsDirectory doctors={doctors} facets={facets} />
         </>
       )}
-    </>
+    </div>
   );
 }

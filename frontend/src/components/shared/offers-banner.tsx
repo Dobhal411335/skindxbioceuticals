@@ -18,7 +18,7 @@ export function OffersBanner() {
           </p>
         </div>
         <Link
-          href="/shop"
+          href="/category"
           className="inline-flex items-center gap-1 text-sm font-semibold underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Shop now

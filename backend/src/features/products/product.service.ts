@@ -2,6 +2,10 @@ import { logger } from '@/lib/logger';
 import type { SiteCode } from '@/types/common';
 import { ConflictError, NotFoundError } from '@/utils/AppError';
 import { categoryService, slugifyName } from '@/features/categories/category.service';
+import {
+  buildRawPdfDownloadUrl,
+  rawPublicIdFromDeliveryUrl,
+} from '@/lib/cloudinary/utils/raw-pdf-download-url';
 import { productRepository } from './product.repository';
 import type {
   AdminProductListQuery,
@@ -45,6 +49,32 @@ export function toCatalogProductDto(
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };
+}
+
+/** Frequently bought (6) plus recommendations (9) on the product detail page. */
+export const PUBLIC_RELATED_PRODUCT_LIMIT = 15;
+
+function hashSeed(seed: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+/** Stable per seed so each product page gets its own mix without reshuffling on refresh. */
+export function shuffleWithSeed<T>(items: readonly T[], seed: string): T[] {
+  const copy = [...items];
+  let state = hashSeed(seed) || 1;
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    const swapIndex = state % (index + 1);
+    const current = copy[index]!;
+    copy[index] = copy[swapIndex]!;
+    copy[swapIndex] = current;
+  }
+  return copy;
 }
 
 function preferHttpsUrl(url: string): string {
@@ -401,12 +431,14 @@ export class ProductService {
       throw new NotFoundError('Product not found');
     }
 
-    // All ACTIVE products in the same subcategory; current product is excluded.
-    const relatedRows = await this.repository.listRelatedActive(input.siteId, {
-      excludeProductId: record.id,
-      subcategoryId: record.subcategoryId,
-      limit: 6,
-    });
+    // Other ACTIVE products on this site. Seeded by product id so each PDP
+    // shows a different mix, capped for frequently bought (6) + recommendations (9).
+    const relatedRows = shuffleWithSeed(
+      await this.repository.listRelatedActive(input.siteId, {
+        excludeProductId: record.id,
+      }),
+      record.id,
+    ).slice(0, PUBLIC_RELATED_PRODUCT_LIMIT);
 
     const relatedProducts: PublicRelatedProductDto[] = relatedRows.map((row) => {
       const primaryImage = row.galleryImages[0];
@@ -557,6 +589,36 @@ export class ProductService {
     );
 
     return dto;
+  }
+
+  /**
+   * Cloudinary blocks public raw PDF delivery (401 deny or ACL failure).
+   * Return a short-lived signed download URL for the API to stream.
+   */
+  async getPublicPdfDelivery(input: {
+    siteId: string;
+    slug: string;
+    pdfId: string;
+  }): Promise<{ name: string; downloadUrl: string }> {
+    const record = await this.repository.findActivePublicBySlug(input.siteId, input.slug);
+    if (!record) {
+      throw new NotFoundError('Product not found');
+    }
+
+    const pdf = record.pdfs.find((row) => row.id === input.pdfId);
+    if (!pdf) {
+      throw new NotFoundError('PDF not found');
+    }
+
+    const publicId = pdf.pdfPublicId.trim() || rawPublicIdFromDeliveryUrl(pdf.pdfUrl);
+    if (!publicId) {
+      throw new NotFoundError('PDF not found');
+    }
+
+    return {
+      name: pdf.name,
+      downloadUrl: buildRawPdfDownloadUrl(publicId),
+    };
   }
 
   async listForSubcategory(input: {

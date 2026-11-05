@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import type { SiteCode } from '@/types/common';
 import { sendSuccess } from '@/utils/apiResponse';
@@ -10,6 +11,13 @@ import type {
   CatalogProductPatchBody,
   PublicProductListQuery,
 } from './product.validation';
+
+function pdfContentDisposition(name: string): string {
+  const trimmed = name.trim() || 'document';
+  const withExt = trimmed.toLowerCase().endsWith('.pdf') ? trimmed : `${trimmed}.pdf`;
+  const ascii = withExt.replace(/[^\x20-\x7E]/g, '_').replace(/["\\]/g, '');
+  return `inline; filename="${ascii}"`;
+}
 
 const SITE_CODES = new Set<SiteCode>(['IN', 'COM']);
 
@@ -85,7 +93,7 @@ export class ProductController {
       siteCode,
       includeVendorPrice: req.user?.role === 'VENDOR',
     });
-    sendSuccess(res, data, 'Product highlights');
+    sendSuccess(res, data, 'Product FAQ');
   };
 
   getPublicBySlug = async (req: Request, res: Response): Promise<void> => {
@@ -104,6 +112,46 @@ export class ProductController {
       includeVendorPrice: req.user?.role === 'VENDOR',
     });
     sendSuccess(res, data, 'Product');
+  };
+
+  getPublicPdfFile = async (req: Request, res: Response): Promise<void> => {
+    const siteCode = normalizeSiteCode(req.params.siteCode);
+    const site = await prisma.site.findFirst({
+      where: { code: siteCode, isActive: true },
+    });
+    if (!site) {
+      throw new NotFoundError('Site not found');
+    }
+
+    const delivery = await this.service.getPublicPdfDelivery({
+      siteId: site.id,
+      slug: String(req.params.slug),
+      pdfId: String(req.params.pdfId),
+    });
+
+    const upstream = await fetch(delivery.downloadUrl);
+    if (!upstream.ok) {
+      logger.warn(
+        {
+          event: 'public_product.pdf.delivery_failed',
+          siteCode,
+          slug: String(req.params.slug),
+          pdfId: String(req.params.pdfId),
+          statusCode: upstream.status,
+        },
+        'Public product PDF delivery failed',
+      );
+      throw new NotFoundError('PDF not found');
+    }
+
+    const bytes = Buffer.from(await upstream.arrayBuffer());
+    const filename = pdfContentDisposition(delivery.name);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', filename);
+    res.setHeader('Content-Length', String(bytes.length));
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.status(200).send(bytes);
   };
 
   listForSubcategory = async (req: Request, res: Response): Promise<void> => {

@@ -43,7 +43,7 @@ const sampleDto = {
   promoHeading: "Curated selections",
   promoSubheading: "While stocks last",
   promoButtonLabel: "Shop now",
-  promoButtonUrl: "/shop",
+  promoButtonUrl: "/category",
   aboutCards: [],
   highlightItems: [],
   textSlides: [],

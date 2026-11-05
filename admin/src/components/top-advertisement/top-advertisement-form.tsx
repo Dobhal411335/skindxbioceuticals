@@ -170,7 +170,7 @@ export function TopAdvertisementForm({
                       }),
                     )
                   }
-                  placeholder="/shop or https://..."
+                  placeholder="/category or https://..."
                   className="h-11"
                 />
               </div>

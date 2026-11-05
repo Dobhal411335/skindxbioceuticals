@@ -105,10 +105,15 @@ export const API_ENDPOINTS = {
     PUBLIC_DETAIL: (siteCode: string, categorySlug: string) =>
       `/sites/${siteCode}/category/${encodeURIComponent(categorySlug)}`,
   },
+  CAREERS: {
+    APPLICATIONS: (siteCode: string) => `/sites/${siteCode}/career-applications`,
+  },
   DOCTORS: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/doctors`,
     APPOINTMENTS: (siteCode: string) =>
       `/sites/${siteCode}/doctor-appointments`,
+    MEDICAL_HISTORY_UPLOAD: (siteCode: string) =>
+      `/sites/${siteCode}/doctor-appointments/medical-history`,
   },
   ENQUIRIES: {
     PUBLIC: (siteCode: string) => `/sites/${siteCode}/enquiries`,

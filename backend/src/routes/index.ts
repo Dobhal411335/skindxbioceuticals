@@ -17,6 +17,7 @@ import { couponRoutes } from '@/features/coupons/coupon.routes';
 import { reviewRoutes } from '@/features/reviews/review.routes';
 import { inventoryRoutes } from '@/features/inventory/inventory.routes';
 import { enquiryPublicRoutes } from '@/features/enquiries/enquiry.public.routes';
+import { careerApplicationPublicRoutes } from '@/features/career-applications/career-applications.public.routes';
 import { adminRoutes } from '@/features/admin/admin.routes';
 import { companyBasicInfoPublicRoutes } from '@/features/company-basic-info/company-basic-info.public.routes';
 import { navbarSectionsPublicRoutes } from '@/features/navbar-sections/navbar-sections.public.routes';
@@ -88,6 +89,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/sites/:siteCode/doctor-page', doctorPagePublicRoutes);
   v1.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsPublicRoutes);
   v1.use('/sites/:siteCode/enquiries', enquiryPublicRoutes);
+  v1.use('/sites/:siteCode/career-applications', careerApplicationPublicRoutes);
   v1.use('/sites/:siteCode/vendors', vendorsPublicRoutes);
   v1.use('/sites/:siteCode/categories', categoryPublicRoutes);
   v1.use('/sites/:siteCode/category', categoryPublicRoutes);

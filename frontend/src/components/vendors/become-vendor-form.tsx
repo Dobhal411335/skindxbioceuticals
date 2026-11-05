@@ -469,10 +469,10 @@ export function BecomeVendorForm() {
           email you once it is approved.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Button asChild variant="outline" className="bg-primary text-white p-6">
+          <Button asChild variant="outline" className="bg-red-500 text-white p-6">
             <Link href="/"><HomeIcon className="size-4 mr-2" />Home</Link>
           </Button>
-          <Button asChild className="bg-[#f3a827] text-white hover:bg-[#e0981f] p-6">
+          <Button asChild className="bg-primary text-white hover:bg-[#e0981f] p-6">
             <Link href="/vendor/login"><LogInIcon className="size-4 mr-2" />Vendor Login</Link>
           </Button>
         </div>

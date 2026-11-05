@@ -1,6 +1,7 @@
 "use client";
 
-import { Pause, Play, Star } from "lucide-react";
+import { ArrowUpRight, Pause, Play, Star } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +17,8 @@ import {
 import { useCarouselAutoplay } from "@/hooks/useCarouselAutoplay";
 import { cn } from "@/lib/utils";
 import type { CustomerReview } from "@/types/customer-reviews";
+
+const HOME_TESTIMONIAL_LIMIT = 10;
 
 type TestimonialsGridProps = {
   reviews?: CustomerReview[];
@@ -95,16 +98,17 @@ function ReviewCard({ review }: { review: CustomerReview }) {
 }
 
 export function TestimonialsGrid({ reviews = [] }: TestimonialsGridProps) {
+  const visibleReviews = reviews.slice(0, HOME_TESTIMONIAL_LIMIT);
   const [api, setApi] = useState<CarouselApi>();
   const [isPaused, setIsPaused] = useState(false);
 
   useCarouselAutoplay(api, {
-    enabled: reviews.length > 1,
+    enabled: visibleReviews.length > 1,
     paused: isPaused,
     intervalMs: 5000,
   });
 
-  if (reviews.length === 0) {
+  if (visibleReviews.length === 0) {
     return null;
   }
 
@@ -129,7 +133,7 @@ export function TestimonialsGrid({ reviews = [] }: TestimonialsGridProps) {
               <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#ef6a24] to-[#f0d8c9]" />
             </div>
 
-            {reviews.length > 4 ? (
+            {visibleReviews.length > 4 ? (
               <div className="z-10 flex shrink-0 items-center gap-2">
                 <CarouselPrevious className="static inset-auto size-10 translate-y-0 border-[#dedbd5] bg-white text-[#17283d] shadow-sm" />
                 <Button
@@ -154,7 +158,7 @@ export function TestimonialsGrid({ reviews = [] }: TestimonialsGridProps) {
           </div>
 
           <CarouselContent className="-ml-5 py-2">
-            {reviews.map((review) => (
+            {visibleReviews.map((review) => (
               <CarouselItem
                 key={review.id}
                 className="flex basis-full pl-5 sm:basis-1/2 lg:basis-1/3"
@@ -164,6 +168,16 @@ export function TestimonialsGrid({ reviews = [] }: TestimonialsGridProps) {
             ))}
           </CarouselContent>
         </Carousel>
+
+        <div className="mt-10 flex justify-center">
+          <Link
+            href="/testimonials"
+            className="inline-flex w-fit items-center gap-1 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-primary/90"
+          >
+            View all testimonials
+            <ArrowUpRight className="size-4" aria-hidden />
+          </Link>
+        </div>
       </div>
     </section>
   );

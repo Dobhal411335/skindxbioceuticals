@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Plus, Star, Trash2, UploadCloud } from "lucide-react";
+import { Loader2, Plus, Star, Trash2, UploadCloud, X } from "lucide-react";
 
 import { ColorManagementSection } from "@/components/catalog/edit-product-colors";
 import {
   CouponCurrentTable,
   PdfsCurrentTable,
   ReviewsCurrentTable,
+  STANDARD_SIZE_LABELS,
+  SizesCurrentTable,
   TagsCurrentTable,
   VariantsCurrentTable,
   VideosCurrentTable,
@@ -23,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -118,8 +121,6 @@ type PendingUpload = {
 
 export { ColorManagementSection };
 
-const STANDARD_SIZE_LABELS = ["S", "M", "L","XL","XXL"] as const;
-
 type SizeTab = "standard" | "custom";
 
 type SectionProps = {
@@ -179,6 +180,8 @@ export function SizeManagementSection({
     initial.customSelected,
   );
   const [customInput, setCustomInput] = useState("");
+  const [editingLabel, setEditingLabel] = useState<string | null>(null);
+  const [deletingLabel, setDeletingLabel] = useState<string | null>(null);
   const [chartUrl, setChartUrl] = useState(data.sizeChart?.url ?? "");
   const [chartPublicId, setChartPublicId] = useState(
     data.sizeChart?.publicId ?? "",
@@ -186,6 +189,43 @@ export function SizeManagementSection({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const applySavedSizes = (next: ProductEditDto) => {
+    const split = splitExistingSizes(next);
+    setStandardSelected(split.standardSelected);
+    setCustomLabels(split.customLabels);
+    setCustomSelected(split.customSelected);
+    onUpdated(next);
+  };
+
+  const persistSizes = async (
+    nextStandard: string[],
+    nextCustomLabels: string[],
+    nextCustomSelected: string[],
+    successMessage: string,
+  ) => {
+    const sizes = [
+      ...STANDARD_SIZE_LABELS.filter((label) => nextStandard.includes(label)).map(
+        (label, index) => ({
+          label,
+          active: true,
+          sortOrder: index,
+        }),
+      ),
+      ...nextCustomLabels.map((label, index) => ({
+        label,
+        active: nextCustomSelected.includes(label),
+        sortOrder: nextStandard.length + index,
+      })),
+    ];
+    const next = await updateProductSizes(siteCode, productId, {
+      sizeChartUrl: chartUrl || null,
+      sizeChartPublicId: chartPublicId || null,
+      sizes,
+    });
+    applySavedSizes(next);
+    showSuccess(successMessage);
+  };
 
   const toggleStandard = (label: string) => {
     setStandardSelected((prev) =>
@@ -207,7 +247,44 @@ export function SizeManagementSection({
         prev.includes(trimmed) ? prev : [...prev, trimmed],
       );
       setSizeTab("standard");
+      setEditingLabel(null);
       setCustomInput("");
+      return;
+    }
+    if (
+      trimmed !== editingLabel &&
+      customLabels.some((label) => label.toLowerCase() === trimmed.toLowerCase())
+    ) {
+      showError("That custom size is already added");
+      return;
+    }
+    if (editingLabel) {
+      const nextLabels = customLabels.map((label) =>
+        label === editingLabel ? trimmed : label,
+      );
+      const nextSelected = customSelected.map((label) =>
+        label === editingLabel ? trimmed : label,
+      );
+      const wasSaved = data.sizes.some((size) => size.label === editingLabel);
+      if (!wasSaved) {
+        setCustomLabels(nextLabels);
+        setCustomSelected(nextSelected);
+        setEditingLabel(null);
+        setCustomInput("");
+        return;
+      }
+      setSaving(true);
+      void persistSizes(standardSelected, nextLabels, nextSelected, "Size updated")
+        .then(() => {
+          setEditingLabel(null);
+          setCustomInput("");
+        })
+        .catch((error: unknown) => {
+          showError(
+            error instanceof ApiError ? error.message : "Failed to update size",
+          );
+        })
+        .finally(() => setSaving(false));
       return;
     }
     if (!customLabels.includes(trimmed)) {
@@ -217,6 +294,80 @@ export function SizeManagementSection({
       setCustomSelected((prev) => [...prev, trimmed]);
     }
     setCustomInput("");
+  };
+
+  const removeCustom = (label: string) => {
+    const nextLabels = customLabels.filter((item) => item !== label);
+    const nextSelected = customSelected.filter((item) => item !== label);
+    if (editingLabel === label) {
+      setEditingLabel(null);
+      setCustomInput("");
+    }
+    const wasSaved = data.sizes.some((size) => size.label === label);
+    if (!wasSaved) {
+      setCustomLabels(nextLabels);
+      setCustomSelected(nextSelected);
+      return;
+    }
+    setDeletingLabel(label);
+    setSaving(true);
+    void persistSizes(standardSelected, nextLabels, nextSelected, `${label} deleted`)
+      .catch((error: unknown) => {
+        showError(
+          error instanceof ApiError ? error.message : "Failed to delete size",
+        );
+      })
+      .finally(() => {
+        setSaving(false);
+        setDeletingLabel(null);
+      });
+  };
+
+  const removeStandard = (label: string) => {
+    const nextStandard = standardSelected.filter((item) => item !== label);
+    if (editingLabel === label) {
+      setEditingLabel(null);
+    }
+    const wasSaved = data.sizes.some((size) => size.label === label);
+    if (!wasSaved) {
+      setStandardSelected(nextStandard);
+      return;
+    }
+    setDeletingLabel(label);
+    setSaving(true);
+    void persistSizes(nextStandard, customLabels, customSelected, `${label} deleted`)
+      .catch((error: unknown) => {
+        showError(
+          error instanceof ApiError ? error.message : "Failed to delete size",
+        );
+      })
+      .finally(() => {
+        setSaving(false);
+        setDeletingLabel(null);
+      });
+  };
+
+  const handleDeleteSize = (label: string) => {
+    if ((STANDARD_SIZE_LABELS as readonly string[]).includes(label)) {
+      removeStandard(label);
+      return;
+    }
+    removeCustom(label);
+  };
+
+  const handleEditSize = (label: string) => {
+    if ((STANDARD_SIZE_LABELS as readonly string[]).includes(label)) {
+      setSizeTab("standard");
+      setStandardSelected((prev) =>
+        prev.includes(label) ? prev : [...prev, label],
+      );
+      setEditingLabel(label);
+      setCustomInput("");
+      return;
+    }
+    setSizeTab("custom");
+    setEditingLabel(label);
+    setCustomInput(label);
   };
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,28 +390,14 @@ export function SizeManagementSection({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const sizes = [
-        ...STANDARD_SIZE_LABELS.filter((label) =>
-          standardSelected.includes(label),
-        ).map((label, index) => ({
-          label,
-          active: true,
-          sortOrder: index,
-        })),
-        ...customLabels.map((label, index) => ({
-          label,
-          active: customSelected.includes(label),
-          sortOrder: standardSelected.length + index,
-        })),
-      ];
-
-      const next = await updateProductSizes(siteCode, productId, {
-        sizeChartUrl: chartUrl || null,
-        sizeChartPublicId: chartPublicId || null,
-        sizes,
-      });
-      onUpdated(next);
-      showSuccess("Sizes saved");
+      await persistSizes(
+        standardSelected,
+        customLabels,
+        customSelected,
+        "Sizes saved",
+      );
+      setEditingLabel(null);
+      setCustomInput("");
     } catch (error) {
       showError(
         error instanceof ApiError ? error.message : "Failed to save sizes",
@@ -349,6 +486,12 @@ export function SizeManagementSection({
             <p className="text-sm text-muted-foreground">
               Select the standard sizes available for this product.
             </p>
+            {editingLabel &&
+            (STANDARD_SIZE_LABELS as readonly string[]).includes(editingLabel) ? (
+              <p className="text-sm text-muted-foreground">
+                Updating {editingLabel}. Change the fixed sizes, then save.
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               {STANDARD_SIZE_LABELS.map((label) => (
                 <Button
@@ -374,7 +517,9 @@ export function SizeManagementSection({
               <Input
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
-                placeholder="Custom size (e.g. 30ml)"
+                placeholder={
+                  editingLabel ? `Update ${editingLabel}` : "Custom size (e.g. 30ml)"
+                }
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -382,24 +527,47 @@ export function SizeManagementSection({
                   }
                 }}
               />
-              <Button type="button" variant="secondary" onClick={addCustom}>
-                Add
+              <Button type="button" variant="secondary" disabled={saving} onClick={addCustom}>
+                {editingLabel ? "Update" : "Add"}
               </Button>
+              {editingLabel ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setEditingLabel(null);
+                    setCustomInput("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              ) : null}
             </div>
             {customLabels.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {customLabels.map((label) => (
-                  <Button
-                    key={label}
-                    type="button"
-                    size="sm"
-                    variant={
-                      customSelected.includes(label) ? "default" : "outline"
-                    }
-                    onClick={() => toggleCustom(label)}
-                  >
-                    {label}
-                  </Button>
+                    <Badge
+                      key={label}
+                      variant={customSelected.includes(label) ? "default" : "outline"}
+                      className="h-7 gap-1 px-2.5"
+                    >
+                      <button
+                        type="button"
+                        className="cursor-pointer"
+                        onClick={() => toggleCustom(label)}
+                      >
+                        {label}
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${label}`}
+                        disabled={saving || deletingLabel === label}
+                        className="inline-flex cursor-pointer rounded-full opacity-80 hover:opacity-100 disabled:cursor-not-allowed"
+                        onClick={() => removeCustom(label)}
+                      >
+                        <X aria-hidden />
+                      </button>
+                    </Badge>
                 ))}
               </div>
             ) : (
@@ -421,6 +589,15 @@ export function SizeManagementSection({
       <Button type="button" disabled={saving} onClick={() => void handleSave()}>
         {saving ? "Saving…" : "Save sizes"}
       </Button>
+
+      <SizesCurrentTable
+        data={data}
+        mode={sizeTab}
+        editingLabel={editingLabel}
+        deletingLabel={deletingLabel}
+        onEdit={handleEditSize}
+        onDelete={handleDeleteSize}
+      />
     </div>
   );
 }
@@ -1685,6 +1862,7 @@ export function PdfSection({
       </div>
 
       <PdfsCurrentTable
+        siteCode={siteCode}
         data={data}
         editingId={editingId}
         onEdit={loadPdfIntoForm}

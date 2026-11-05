@@ -28,7 +28,7 @@ export const aboutPage = {
   banner: {
     label: "SkinDx collection",
     title: "Discover your everyday ritual with our curated essentials",
-    href: "/shop",
+    href: "/category",
     image: {
       src: "https://images.unsplash.com/photo-1620916297397-a4a33220b72c?auto=format&fit=crop&w=1600&q=80",
       alt: "Serum bottle and skincare textures in soft light",
@@ -44,7 +44,7 @@ export const aboutPage = {
         title: "Daily essentials",
         description:
           "Cleansers and moisturisers chosen for clear labelling and everyday use.",
-        href: "/shop",
+        href: "/category",
         cta: "See more products",
         image: {
           src: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=900&q=80",
@@ -56,7 +56,7 @@ export const aboutPage = {
         title: "Barrier-focused care",
         description:
           "Serums and treatments presented with pack size and usage notes where available.",
-        href: "/shop",
+        href: "/category",
         cta: "See more products",
         image: {
           src: "https://images.unsplash.com/photo-1620916297397-a4a33220b72c?auto=format&fit=crop&w=900&q=80",
@@ -68,7 +68,7 @@ export const aboutPage = {
         title: "Night routines",
         description:
           "Calming balms and overnight favourites for a quieter evening ritual.",
-        href: "/shop",
+        href: "/category",
         cta: "See more products",
         image: {
           src: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&w=900&q=80",
@@ -80,7 +80,7 @@ export const aboutPage = {
         title: "Gift-ready sets",
         description:
           "Curated selections for sharing thoughtful care — without invented claims.",
-        href: "/shop",
+        href: "/category",
         cta: "See more products",
         image: {
           src: "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=900&q=80",

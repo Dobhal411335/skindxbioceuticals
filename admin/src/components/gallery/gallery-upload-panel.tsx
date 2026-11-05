@@ -328,7 +328,7 @@ export function GalleryUploadPanel({
                     buttonUrl: event.target.value,
                   }))
                 }
-                placeholder="/shop or https://…"
+                placeholder="/category or https://…"
               />
             </div>
           </div>

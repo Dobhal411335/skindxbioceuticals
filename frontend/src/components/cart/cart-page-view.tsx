@@ -78,7 +78,7 @@ export function CartPageView() {
         <div className="mt-10 rounded-lg border border-border p-8 text-center">
           <p className="text-muted-foreground">Your cart is empty.</p>
           <Button asChild className="mt-4 rounded-full py-5">
-            <Link href="/shop">Continue shopping</Link>
+            <Link href="/category">Continue shopping</Link>
           </Button>
         </div>
       ) : (
@@ -324,7 +324,7 @@ export function CartPageView() {
               className="mt-2 w-full rounded-full border border-gray-500 py-5"
               size="lg"
             >
-              <Link href="/shop">Continue shopping</Link>
+              <Link href="/category">Continue shopping</Link>
             </Button>
           </aside>
         </div>

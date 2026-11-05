@@ -5,6 +5,7 @@ import { validate } from '@/middlewares/validate.middleware';
 import { productController } from './product.controller';
 import {
   publicProductListQuerySchema,
+  publicProductPdfParamSchema,
   publicProductSiteParamSchema,
   publicProductSlugParamSchema,
 } from './product.validation';
@@ -37,6 +38,12 @@ productPublicRoutes.get(
   '/facets',
   validate({ params: publicProductSiteParamSchema }),
   asyncHandler(productController.listPublicFacets),
+);
+
+productPublicRoutes.get(
+  '/:slug/pdfs/:pdfId/file',
+  validate({ params: publicProductPdfParamSchema }),
+  asyncHandler(productController.getPublicPdfFile),
 );
 
 productPublicRoutes.get(

@@ -77,7 +77,7 @@ describe("WishlistPageView", () => {
     expect(await screen.findByText(/your wishlist is empty/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /discover products/i })).toHaveAttribute(
       "href",
-      "/shop",
+      "/category",
     );
   });
 

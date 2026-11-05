@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { FolderOpen, Search, X } from "lucide-react";
 
 import { useSearchUi } from "@/components/search/search-ui-context";
 import { Button } from "@/components/ui/button";
@@ -38,8 +38,10 @@ export function SearchOverlay() {
     query,
     setQuery,
     results,
+    categoryResults,
     isSearching,
     hasCompletedSearch,
+    resolveDestination,
   } = useSearchUi();
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -62,10 +64,15 @@ export function SearchOverlay() {
   if (!isOpen) return null;
 
   const trimmedQuery = query.trim();
-  const showSkeleton = Boolean(trimmedQuery) && isSearching;
+  const showSkeleton = Boolean(trimmedQuery) && isSearching && results.length === 0;
   const showNoResults =
-    Boolean(trimmedQuery) && hasCompletedSearch && !isSearching && results.length === 0;
-  const showResults = results.length > 0 && !isSearching;
+    Boolean(trimmedQuery) &&
+    hasCompletedSearch &&
+    !isSearching &&
+    results.length === 0 &&
+    categoryResults.length === 0;
+  const showCategoryResults = categoryResults.length > 0;
+  const showProductResults = results.length > 0 && !isSearching;
 
   return (
     <div
@@ -91,11 +98,7 @@ export function SearchOverlay() {
             event.preventDefault();
             const nextQuery = query.trim();
             closeSearch();
-            router.push(
-              nextQuery
-                ? `/shop?q=${encodeURIComponent(nextQuery)}`
-                : "/shop",
-            );
+            router.push(resolveDestination(nextQuery));
           }}
         >
           <Search className="size-5 shrink-0 text-muted-foreground" aria-hidden />
@@ -105,8 +108,8 @@ export function SearchOverlay() {
             name="q"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search"
-            aria-label="Search products"
+            placeholder="Search categories or products"
+            aria-label="Search categories or products"
             autoComplete="off"
             className="h-12 flex-1 border-0 bg-transparent px-0 text-lg shadow-none focus-visible:ring-0"
           />
@@ -128,52 +131,109 @@ export function SearchOverlay() {
 
           {showNoResults ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No products found for &ldquo;{trimmedQuery}&rdquo;.
+              No categories or products found for &ldquo;{trimmedQuery}&rdquo;.
             </p>
           ) : null}
 
-          {showResults ? (
-            <ul
-              className="divide-y divide-border"
-              role="listbox"
-              aria-label="Product results"
-            >
-              {results.map((product) => {
-                const href = `/products/${encodeURIComponent(product.slug)}`;
-                const imageUrl = product.imageUrl || PLACEHOLDER_IMAGE;
-                return (
-                  <li key={product.id}>
-                    <Link
-                      href={href}
-                      role="option"
-                      className={cn(
-                        "flex items-center gap-4 px-1 py-3 transition-colors",
-                        "hover:bg-surface focus-visible:bg-surface focus-visible:outline-none",
-                      )}
-                      onClick={closeSearch}
-                    >
-                      <span className="relative size-14 shrink-0 overflow-hidden rounded-md bg-surface sm:size-16">
-                        <Image
-                          src={imageUrl}
-                          alt=""
-                          fill
-                          className="object-contain"
-                          sizes="64px"
-                        />
-                      </span>
-                      <span className="min-w-0 flex-1 text-base font-medium text-foreground">
-                        {product.name}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+          {showCategoryResults ? (
+            <div className="mb-4">
+              <p className="mb-2 px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                Categories
+              </p>
+              <ul className="divide-y divide-border" role="listbox" aria-label="Category results">
+                {categoryResults.map((entry) => {
+                  const imageUrl = entry.imageUrl || PLACEHOLDER_IMAGE;
+                  return (
+                    <li key={`${entry.kind}-${entry.id}`}>
+                      <Link
+                        href={entry.href}
+                        role="option"
+                        className={cn(
+                          "flex items-center gap-4 px-1 py-3 transition-colors",
+                          "hover:bg-surface focus-visible:bg-surface focus-visible:outline-none",
+                        )}
+                        onClick={closeSearch}
+                      >
+                        <span className="relative size-14 shrink-0 overflow-hidden rounded-md bg-surface sm:size-16">
+                          {entry.imageUrl ? (
+                            <Image
+                              src={imageUrl}
+                              alt=""
+                              fill
+                              className="object-cover"
+                              sizes="64px"
+                            />
+                          ) : (
+                            <span className="flex size-full items-center justify-center text-muted-foreground">
+                              <FolderOpen className="size-5" aria-hidden />
+                            </span>
+                          )}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-base font-medium text-foreground">
+                            {entry.name}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {entry.kind === "category"
+                              ? "Main category"
+                              : `Subcategory in ${entry.mainName}`}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           ) : null}
 
-          {showResults ? (
+          {showProductResults ? (
+            <>
+              <p className="mb-2 px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                Products
+              </p>
+              <ul
+                className="divide-y divide-border"
+                role="listbox"
+                aria-label="Product results"
+              >
+                {results.map((product) => {
+                  const href = `/products/${encodeURIComponent(product.slug)}`;
+                  const imageUrl = product.imageUrl || PLACEHOLDER_IMAGE;
+                  return (
+                    <li key={product.id}>
+                      <Link
+                        href={href}
+                        role="option"
+                        className={cn(
+                          "flex items-center gap-4 px-1 py-3 transition-colors",
+                          "hover:bg-surface focus-visible:bg-surface focus-visible:outline-none",
+                        )}
+                        onClick={closeSearch}
+                      >
+                        <span className="relative size-14 shrink-0 overflow-hidden rounded-md bg-surface sm:size-16">
+                          <Image
+                            src={imageUrl}
+                            alt=""
+                            fill
+                            className="object-contain"
+                            sizes="64px"
+                          />
+                        </span>
+                        <span className="min-w-0 flex-1 text-base font-medium text-foreground">
+                          {product.name}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          ) : null}
+
+          {showCategoryResults || showProductResults ? (
             <p className="mt-3 text-center text-xs text-muted-foreground">
-              Press Enter to browse all matches on the category page.
+              Press Enter to open a matching category, or browse all categories.
             </p>
           ) : null}
         </div>

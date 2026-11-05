@@ -129,7 +129,7 @@ export function ManageNavbarForm({
                 id="navbar-url"
                 value={values.url}
                 onChange={(event) => updateField("url", event.target.value)}
-                placeholder="/shop"
+                placeholder="/category"
                 className="h-11"
                 aria-invalid={Boolean(errors.url)}
               />
@@ -242,7 +242,7 @@ export function ManageNavbarForm({
                         onChange={(event) =>
                           updateSubSection(index, "url", event.target.value)
                         }
-                        placeholder="/shop/serums"
+                        placeholder="/category/serums"
                         className="h-10"
                       />
                     </div>

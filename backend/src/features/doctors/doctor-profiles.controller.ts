@@ -47,6 +47,19 @@ export class DoctorProfilesController {
     sendSuccess(res, data, 'Doctor profiles');
   };
 
+  listPublicFacets = async (req: Request, res: Response): Promise<void> => {
+    const siteCode = normalizeSiteCode(req.params.siteCode);
+    const site = await prisma.site.findFirst({
+      where: { code: siteCode, isActive: true },
+    });
+    if (!site) {
+      throw new NotFoundError('Site not found');
+    }
+
+    const data = await this.service.getPublicFacets(site.id);
+    sendSuccess(res, data, 'Doctor profile facets');
+  };
+
   create = async (req: Request, res: Response): Promise<void> => {
     if (!req.user || !req.site) {
       throw new UnauthorizedError();

@@ -31,7 +31,7 @@ export function DoctorsServicesSection({ config }: DoctorsServicesSectionProps) 
 
   return (
     <section
-      className="border-t border-border/70 bg-surface/40 py-14 md:py-20"
+      className="border-t border-border/70 bg-[#f8f5ee] py-14 md:py-20"
       aria-labelledby="doctors-services-heading"
     >
       <div className="container-page">

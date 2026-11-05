@@ -25,6 +25,7 @@ import {
   Truck,
   Users,
   UserRoundPlus,
+  Briefcase,
   Building2,
   GalleryHorizontal,
   Handshake,
@@ -153,6 +154,14 @@ export function getSharedNav(siteCode: SiteCode): SidebarSection {
             {
               status: "active",
             },
+          ),
+          leaf(
+            siteCode,
+            "career-applications",
+            "Career Applications",
+            "career-applications",
+            Briefcase,
+            { status: "active" },
           ),
         ],
       },

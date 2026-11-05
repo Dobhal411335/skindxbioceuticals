@@ -205,6 +205,8 @@ These are initial route groups to consider; define exact paths and schemas as fe
 | `/orders` | create/read/cancel where permitted | Customer; admin permissions for management |
 | `/sites/:siteCode/enquiries` | public contact enquiry submit | Rate-limited; honeypot |
 | `/admin/sites/:siteCode/enquiries` | admin contact enquiry list/get/patch | Admin + site access |
+| `/sites/:siteCode/career-applications` | public careers application submit | Rate-limited multipart; PDF/DOC/DOCX ≤ 5 MB |
+| `/admin/sites/:siteCode/career-applications` | admin career application list/get/status/résumé access | Admin + site access |
 | `/content` | public pages, banners, FAQs, blog content | Public read; admin write |
 | `/media` | signed upload authorization and asset management | Authorized admin/editor |
 | `/admin/sites` | list/manage authorized site workspaces | Admin permission |
@@ -307,7 +309,7 @@ Uploads use existing media APIs with `feature=reviews`: `POST /api/v1/media/imag
 
 ### Admin doctor profiles (implemented)
 
-Site-scoped clinician cards for the `/doctors` storefront page. Fields: `name` (normalized to `Dr. …`), `specialization`, `about`, `experienceYears`, `state` (Indian state/UT), `city`, `photoUrl`, `photoPublicId`, optional `active`/`order`.
+Site-scoped clinician cards for the `/doctors` storefront page. Fields: `name` (normalized to `Dr. …`), `specializations` (string array), `about`, `experienceYears`, `state` (Indian state/UT), `city`, `phone` (stored as `+91` plus the mobile number), `email`, `location`, optional qualification text (`education`, `degree`, `workHistory`, `workDays`), `photoUrl`, `photoPublicId`, optional `active`/`order`.
 
 - `GET /api/v1/admin/sites/:siteCode/doctors` — Bearer admin JWT; `requireSiteAccess`. Returns all profiles for the site (including inactive), ordered by `order` asc then `createdAt` desc.
 - `POST /api/v1/admin/sites/:siteCode/doctors` — create. `siteId` from authenticated site context only. Prefer HTTPS photo URLs.
@@ -319,7 +321,8 @@ Uploads use existing media APIs with `feature=doctors`: `POST /api/v1/media/imag
 
 ### Public doctor profiles (storefront)
 
-- `GET /api/v1/sites/:siteCode/doctors` — public read for an active site (no auth). Returns active profiles only (includes `state` + `city`), ordered for the `.in` storefront `/doctors` cards grid.
+- `GET /api/v1/sites/:siteCode/doctors` — public read for an active site (no auth). Returns active profiles only with storefront card fields (`id`, `siteCode`, `name`, `specializations`, `about`, `experienceYears`, `state`, `city`, `phone`, `email`, `location`, `education`, `degree`, `workHistory`, `workDays`, `photoUrl`, `active`, `order`). Omits admin/media internals (`photoPublicId`, timestamps). Ordered for the `.in` storefront `/doctors` cards grid. Facets list each specialization from the array.
+- `GET /api/v1/sites/:siteCode/doctors/facets` — public read for an active site (no auth). Returns distinct filter options from active doctors only: `specialities[]`, `states[]`, and `citiesByState` (`Record<state, city[]>`). Used by the storefront doctor search bar (no gender facet).
 
 ### Contact page enquiries (implemented)
 
@@ -330,6 +333,14 @@ Site-scoped contact-us form submissions from Design13 / storefront. Uses the exi
 - `GET /api/v1/admin/sites/:siteCode/enquiries/:enquiryId` — single enquiry within the site.
 - `PATCH /api/v1/admin/sites/:siteCode/enquiries/:enquiryId` — body `{ status }` with `NEW` | `IN_PROGRESS` | `RESOLVED` | `CLOSED`.
 
+### Career applications (implemented)
+
+- `POST /api/v1/sites/:siteCode/career-applications` — public multipart form; rate-limited (5 / 15 minutes per IP). Fields: `firstName`, optional `middleName`, `lastName`, `birthMonth`, `birthDay`, `birthYear`, `streetAddress`, optional `streetAddressLine2`, `city`, `state`, `postalCode`, `email`, `phone`, optional `linkedIn`, `positionApplied`, `heardAbout`, `availableStartDate` (`YYYY-MM-DD`), résumé file field `resume` (PDF, DOC, or DOCX, max 5 MB), optional honeypot `companyWebsite`. A filled honeypot returns 201 without saving. Default status `PENDING`.
+- `GET /api/v1/admin/sites/:siteCode/career-applications` — Bearer admin JWT and site access. Optional query: `name`, `email`, `phone`, `position`, `status`, `from`, `to`. Newest first.
+- `GET /api/v1/admin/sites/:siteCode/career-applications/:applicationId` — one application. The stored résumé URL is not returned.
+- `GET /api/v1/admin/sites/:siteCode/career-applications/:applicationId/resume-access` — short-lived signed URL plus file name and MIME type.
+- `PATCH /api/v1/admin/sites/:siteCode/career-applications/:applicationId` — body `{ status }` with `PENDING` | `IN_REVIEW` | `SHORTLISTED` | `REJECTED` | `HIRED`.
+
 ### Admin order logs (implemented)
 
 Site-scoped paginated order logs for admin. Dashboard revenue (`GET /admin/sites/:siteCode/dashboard`) sums `grandTotal` only for orders that are not `CANCELLED`/`REFUNDED` and have at least one payment with status `CAPTURED` (completed payment). Recent orders return the latest 10 by `createdAt`.
@@ -339,7 +350,7 @@ Site-scoped paginated order logs for admin. Dashboard revenue (`GET /admin/sites
 
 ### Admin doctor appointments (implemented)
 
-Site-scoped appointment requests submitted from storefront doctor cards. Fields: `doctorId`, `patientName`, `email`, `scheduledAt`, `problem`, `status` (`NEW` | `CONTACTED` | `CLOSED` | `CANCELLED`). List responses include `doctorName` and `doctorSpecialization`.
+Site-scoped appointment requests submitted from storefront doctor cards. Fields: `doctorId`, `patientName`, `email`, `phone`, `scheduledAt`, `problem`, optional `medicalHistoryImageUrl`/`medicalHistoryImagePublicId`, `status` (`NEW` | `CONTACTED` | `CLOSED` | `CANCELLED`). List responses include `doctorName` and `doctorSpecialization`.
 
 - `GET /api/v1/admin/sites/:siteCode/doctor-appointments` — Bearer admin JWT; `requireSiteAccess`. Optional query: `doctorId`, `from`, `to` (ISO datetimes for `scheduledAt` range). Ordered by `scheduledAt` desc then `createdAt` desc.
 - `GET /api/v1/admin/sites/:siteCode/doctor-appointments/:appointmentId` — Bearer admin JWT; `requireSiteAccess`. Single request within the site.
@@ -347,7 +358,8 @@ Site-scoped appointment requests submitted from storefront doctor cards. Fields:
 
 ### Public doctor appointments (storefront)
 
-- `POST /api/v1/sites/:siteCode/doctor-appointments` — public create for an active site (no auth). Body: `doctorId` (active doctor on that site), `patientName`, `email`, `scheduledAt` (future ISO datetime), `problem`. Optional honeypot field `website` (empty for humans). Rate-limited. `siteId` resolved from `siteCode` only.
+- `POST /api/v1/sites/:siteCode/doctor-appointments/medical-history` — public image upload (no auth). Multipart field `file` (JPG/PNG/WebP, max 10MB). Rate-limited. Stores under Cloudinary feature `doctors` / entity `medical-history`. Returns `{ url, publicId }` for the create payload.
+- `POST /api/v1/sites/:siteCode/doctor-appointments` — public create for an active site (no auth). Body: `doctorId` (active doctor on that site), `patientName`, `email`, `phone`, `scheduledAt` (today/future ISO datetime), `problem`. Optional medical history attachment: `medicalHistoryImageUrl` + `medicalHistoryImagePublicId` (both required together when provided). Optional honeypot field `website` (empty for humans). Rate-limited. `siteId` resolved from `siteCode` only.
 
 ### Admin doctor page (implemented)
 
@@ -623,10 +635,11 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 - `GET /api/v1/sites/:siteCode/products` — public list of ACTIVE products for an active site (no auth). Includes both **DIRECT** and **CATEGORY** products when no category/subcategory filter is set. Response `data` is an array of product cards; pagination/filter metadata is returned in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
   - Query (allowlisted): `q` (max 120), `categorySlug` (root category slug; products under that root’s active subcategories — **DIRECT** products have no subcategory and are excluded when this filter is set), `subcategorySlug` (subcategory slug; returns only **CATEGORY** products under that active subcategory; when combined with `categorySlug`, the subcategory must belong to that root), `priceMin` / `priceMax` (first active variant price in INR rupees), `availability` (`in_stock` | `out_of_stock`), `sort` (`default` | `rating` | `price_asc` | `price_desc`), `page` (1-based, default 1), optional `offset` (preferred for infinite scroll with varying page sizes; when set, overrides `(page-1)*limit`), `limit` (default `15`, max `48`).
   - Card fields: `id`, `slug`, `name`, `categoryName` (null for DIRECT), optional `description` (HTML overview; null when empty), `price`, optional `compareAtPrice` (null when unset), `imageUrl` (HTTPS preferred), `averageRating` / `reviewCount`, `defaultVariantId`, `quantity`, and landing flags.
-  - Landing rail may call with only `limit`; `/shop` uses filters + pagination; `/category/[main]/[sub]` locks `subcategorySlug` (and usually `categorySlug`).
+  - Landing rail may call with only `limit`; `/category/[main]/[sub]` product PLPs lock `subcategorySlug` (and usually `categorySlug`).
 - `GET /api/v1/sites/:siteCode/products/facets` — public read for shop filters: `{ categories: [{ id, name, slug, productCount, imageUrl }], price: { min, max } }`. Category image is the first ACTIVE product primary gallery image under that root (else null). Price min/max use each product’s first active variant by `createdAt` (same rule as cards). DIRECT products contribute to price min/max but not category product counts.
 - `GET /api/v1/sites/:siteCode/products/highlights` — public read returning `{ recent, featured, bestSellers }` ACTIVE products flagged `isRecent` / `isFeatured` / `isBestSeller` (caps 4 / 8 / 4), including DIRECT. Same card shape as the list endpoint.
 - `GET /api/v1/sites/:siteCode/products/:slug` — public read for an active site (no auth). Returns one ACTIVE product by site-scoped slug for the storefront PDP (`/products/[slug]`), including DIRECT. Draft/archived products return `404`. Prefer HTTPS Cloudinary image URLs. Static paths `/highlights` and `/facets` are registered before `/:slug`.
+- `GET /api/v1/sites/:siteCode/products/:slug/pdfs/:pdfId/file` — public PDF bytes for an ACTIVE product (`application/pdf`, inline). Cloudinary blocks unsigned raw PDF delivery with `401 deny or ACL failure`, so this route fetches a short-lived signed download on the server and streams the file. The storefront rewrites each `pdfs[].pdfUrl` to this route before preview or download.
 
 Admin catalog create/update/PATCH (subcategory and direct) also accept optional landing flags `isFeatured`, `isRecent`, `isBestSeller` (defaults false on create).
 
@@ -637,7 +650,7 @@ Response joins PDP-related data into one payload:
 - Active `variants[]` with mandatory `price` (INR rupees), `quantity` (inventory on hand), optional nullable `sizeLabel` / `colorLabel` (both null = base/default offer), optional `sku` / `profileImage`
 - `videos[]`, `pdfs[]` (`name`, `pdfUrl`, `sortOrder`), `infoSections[]` (title + HTML body), active `editorialReviews[]`, `tags[]`, `highlights[]`
 - Optional `tax` (`cgst`/`sgst`) and linked `coupon` summary for display
-- `relatedProducts[]` — all other ACTIVE products in the same subcategory (current product excluded), each with `id`, `slug`, `name`, `categoryName`, `price`, `imageUrl`, `averageRating`, `reviewCount`, `defaultVariantId`, `quantity`, optional `coupon`, and optional `tax`
+- `relatedProducts[]` — up to 15 other ACTIVE products on the same site (current product excluded, any category, including DIRECT). Order is a stable shuffle seeded by the current product id, so each product page shows a different mix. The storefront uses the first 6 as frequently bought together and the next 9 as recommendations. Each item has `id`, `slug`, `name`, `categoryName`, `price`, `imageUrl`, `averageRating`, `reviewCount`, `defaultVariantId`, `quantity`, optional `coupon`, and optional `tax`
 
 Do not create every endpoint at scaffold time. Add only endpoints needed for the current feature.
 

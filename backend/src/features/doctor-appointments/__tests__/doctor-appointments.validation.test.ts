@@ -56,6 +56,43 @@ describe('doctor-appointments validation', () => {
     }
   });
 
+  it('accepts optional medical history image fields together', () => {
+    const result = doctorAppointmentCreateBodySchema.safeParse({
+      doctorId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+      patientName: 'Jane Doe',
+      email: 'jane@example.com',
+      phone: '+91 9876543210',
+      scheduledAt: futureIso,
+      problem: 'Skin concern',
+      medicalHistoryImageUrl:
+        'https://res.cloudinary.com/demo/image/upload/history.jpg',
+      medicalHistoryImagePublicId: 'doctors/medical-history/history',
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.medicalHistoryImageUrl).toContain('history.jpg');
+      expect(result.data.medicalHistoryImagePublicId).toBe(
+        'doctors/medical-history/history',
+      );
+    }
+  });
+
+  it('rejects medical history URL without publicId', () => {
+    const result = doctorAppointmentCreateBodySchema.safeParse({
+      doctorId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+      patientName: 'Jane Doe',
+      email: 'jane@example.com',
+      phone: '+91 9876543210',
+      scheduledAt: futureIso,
+      problem: 'Skin concern',
+      medicalHistoryImageUrl:
+        'https://res.cloudinary.com/demo/image/upload/history.jpg',
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it('normalizes name/description aliases and lowercases email', () => {
     const normalized = normalizeDoctorAppointmentCreateInput({
       doctorId: ' cccccccc-cccc-cccc-cccc-cccccccccccc ',

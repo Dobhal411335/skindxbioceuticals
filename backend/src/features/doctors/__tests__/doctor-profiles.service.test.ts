@@ -1,4 +1,9 @@
-import { DoctorProfilesService, toDoctorProfileDto } from '../doctor-profiles.service';
+import {
+  buildDoctorProfileFacets,
+  DoctorProfilesService,
+  toDoctorProfileDto,
+  toDoctorProfilePublicDto,
+} from '../doctor-profiles.service';
 import type { DoctorProfilesRepository } from '../doctor-profiles.repository';
 import type { DoctorProfileRecord } from '../doctor-profiles.types';
 import { NotFoundError } from '@/utils/AppError';
@@ -18,11 +23,18 @@ function makeRecord(overrides: Partial<DoctorProfileRecord> = {}): DoctorProfile
     id: '11111111-1111-1111-1111-111111111111',
     siteId: '22222222-2222-2222-2222-222222222222',
     name: 'Dr. Daisy Bins',
-    specialization: 'Dermatology',
+    specializations: ['Dermatology'],
     about: 'Experienced clinician focused on clear, evidence-led care.',
     experienceYears: 12,
     state: 'Maharashtra',
     city: 'Mumbai',
+    phone: '+91 9876543210',
+    email: 'daisy@example.com',
+    location: 'Bandra West, Mumbai',
+    education: 'MBBS',
+    degree: 'MD Dermatology',
+    workHistory: 'Consultant dermatologist',
+    workDays: 'Mon–Sat',
     photoUrl: 'https://cdn.example.com/doctor.jpg',
     photoPublicId: 'doctors/photo',
     active: true,
@@ -53,9 +65,31 @@ describe('normalizeDoctorName', () => {
   });
 });
 
+describe('buildDoctorProfileFacets', () => {
+  it('returns unique sorted specialities, states, and cities by state', () => {
+    expect(
+      buildDoctorProfileFacets([
+        { specializations: ['Dermatology'], state: 'Maharashtra', city: 'Mumbai' },
+        { specializations: ['dermatology'], state: 'Maharashtra', city: 'Pune' },
+        { specializations: ['Cosmetology'], state: 'Karnataka', city: 'Bengaluru' },
+        { specializations: ['Dermatology', 'Trichology'], state: 'Maharashtra', city: 'Mumbai' },
+        { specializations: ['  '], state: '', city: 'Ignored' },
+      ]),
+    ).toEqual({
+      specialities: ['Cosmetology', 'Dermatology', 'dermatology', 'Trichology'],
+      states: ['Karnataka', 'Maharashtra'],
+      citiesByState: {
+        Karnataka: ['Bengaluru'],
+        Maharashtra: ['Mumbai', 'Pune'],
+      },
+    });
+  });
+});
+
 describe('DoctorProfilesService', () => {
   const listBySiteId = jest.fn();
   const listActiveBySiteId = jest.fn();
+  const listActiveFilterValues = jest.fn();
   const findByIdForSite = jest.fn();
   const nextOrder = jest.fn();
   const create = jest.fn();
@@ -66,6 +100,7 @@ describe('DoctorProfilesService', () => {
   const repository = {
     listBySiteId,
     listActiveBySiteId,
+    listActiveFilterValues,
     findByIdForSite,
     nextOrder,
     create,
@@ -92,16 +127,39 @@ describe('DoctorProfilesService', () => {
     expect(result[0]?.city).toBe('Mumbai');
   });
 
-  it('prefers https Cloudinary URLs when mapping', async () => {
+  it('maps public doctor profiles without admin/media internals', async () => {
     const record = makeRecord({
       photoUrl: 'http://res.cloudinary.com/demo/image/upload/v1/doctor.jpg',
     });
     listActiveBySiteId.mockResolvedValue([record]);
 
     const result = await service.listActiveForSite(record.siteId, 'IN');
+    expect(result).toEqual([toDoctorProfilePublicDto(record, 'IN')]);
     expect(result[0]?.photoUrl).toBe(
       'https://res.cloudinary.com/demo/image/upload/v1/doctor.jpg',
     );
+    expect(result[0]).not.toHaveProperty('photoPublicId');
+    expect(result[0]).not.toHaveProperty('createdAt');
+    expect(result[0]).not.toHaveProperty('updatedAt');
+  });
+
+  it('builds public facets from active filter values', async () => {
+    listActiveFilterValues.mockResolvedValue([
+      { specializations: ['Dermatology'], state: 'Maharashtra', city: 'Mumbai' },
+      { specializations: ['Cosmetology'], state: 'Karnataka', city: 'Bengaluru' },
+    ]);
+
+    const result = await service.getPublicFacets('site-1');
+
+    expect(listActiveFilterValues).toHaveBeenCalledWith('site-1');
+    expect(result).toEqual({
+      specialities: ['Cosmetology', 'Dermatology'],
+      states: ['Karnataka', 'Maharashtra'],
+      citiesByState: {
+        Karnataka: ['Bengaluru'],
+        Maharashtra: ['Mumbai'],
+      },
+    });
   });
 
   it('creates using siteId from context and next order', async () => {
@@ -115,8 +173,15 @@ describe('DoctorProfilesService', () => {
       userId: 'user-1',
       body: {
         name: record.name,
-        specialization: record.specialization,
+        specializations: record.specializations,
         about: record.about,
+        phone: record.phone,
+        email: record.email,
+        location: record.location,
+        education: record.education,
+        degree: record.degree,
+        workHistory: record.workHistory,
+        workDays: record.workDays,
         experienceYears: 12,
         state: 'Maharashtra',
         city: 'Mumbai',
@@ -166,8 +231,15 @@ describe('DoctorProfilesService', () => {
       doctorId: existing.id,
       body: {
         name: updated.name,
-        specialization: updated.specialization,
+        specializations: updated.specializations,
         about: updated.about,
+        phone: updated.phone,
+        email: updated.email,
+        location: updated.location,
+        education: updated.education,
+        degree: updated.degree,
+        workHistory: updated.workHistory,
+        workDays: updated.workDays,
         experienceYears: updated.experienceYears,
         state: 'Maharashtra',
         city: 'Mumbai',
@@ -191,8 +263,15 @@ describe('DoctorProfilesService', () => {
         doctorId: 'missing',
         body: {
           name: 'Dr. Test',
-          specialization: 'Derm',
+          specializations: ['Derm'],
           about: 'About',
+          phone: '+91 9876543210',
+          email: 'test@example.com',
+          location: 'Clinic',
+          education: '',
+          degree: '',
+          workHistory: '',
+          workDays: '',
           experienceYears: 1,
           state: 'Karnataka',
           city: 'Bengaluru',

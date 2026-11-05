@@ -92,7 +92,7 @@ function ImageField({
           <Input
             value={clickUrl ?? ""}
             onChange={(event) => onClickUrlChange(event.target.value)}
-            placeholder="/shop or https://…"
+            placeholder="/category or https://…"
           />
         </div>
       ) : null}
@@ -199,7 +199,7 @@ function CopyFields({
             onChange={(event) =>
               updateSlide(index, { buttonUrl: event.target.value })
             }
-            placeholder="/shop"
+            placeholder="/category"
           />
         </div>
       </div>
@@ -493,7 +493,7 @@ export function HeroBannerForm({
                       onChange={(event) =>
                         updateSlide(index, { buttonUrl: event.target.value })
                       }
-                      placeholder="/shop or https://…"
+                      placeholder="/category or https://…"
                     />
                     <p className="text-xs text-muted-foreground">
                       When customers click the banner image, they go to this URL.
@@ -676,7 +676,7 @@ export function HeroBannerForm({
                                   ),
                                 })
                               }
-                              placeholder="/shop or https://…"
+                              placeholder="/category or https://…"
                             />
                           </div>
                           {slide.gridImages.length > 4 ? (

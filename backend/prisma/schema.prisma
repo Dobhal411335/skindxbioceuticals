@@ -166,6 +166,14 @@ enum DoctorAppointmentStatus {
   CANCELLED
 }
 
+enum CareerApplicationStatus {
+  PENDING
+  IN_REVIEW
+  SHORTLISTED
+  REJECTED
+  HIRED
+}
+
 // =============================================================================
 // Multi-site (.in storefront + .com content/enquiry)
 // =============================================================================
@@ -211,6 +219,7 @@ model Site {
   doctorAppointments       DoctorAppointment[]
   vendorApplications       VendorApplication[]
   newsletterSubscribers    NewsletterSubscriber[]
+  careerApplications       CareerApplication[]
 
   @@map("sites")
 }
@@ -1931,11 +1940,18 @@ model DoctorProfile {
   id               String   @id @default(uuid()) @db.Uuid
   siteId           String   @map("site_id") @db.Uuid
   name             String
-  specialization   String
+  specializations  String[] @default([])
   about            String   @db.Text
   experienceYears  Int      @map("experience_years")
   state            String
   city             String
+  phone            String   @default("")
+  email            String   @default("")
+  location         String   @default("") @db.Text
+  education        String   @default("") @db.Text
+  degree           String   @default("") @db.Text
+  workHistory      String   @default("") @map("work_history") @db.Text
+  workDays         String   @default("") @map("work_days") @db.Text
   photoUrl         String   @map("photo_url")
   photoPublicId    String   @default("") @map("photo_public_id")
   active           Boolean  @default(true)
@@ -1953,17 +1969,19 @@ model DoctorProfile {
 
 /// Public storefront appointment requests linked to a doctor profile.
 model DoctorAppointment {
-  id          String                  @id @default(uuid()) @db.Uuid
-  siteId      String                  @map("site_id") @db.Uuid
-  doctorId    String                  @map("doctor_id") @db.Uuid
-  patientName String                  @map("patient_name")
-  email       String
-  phone       String                  @default("")
-  scheduledAt DateTime                @map("scheduled_at")
-  problem     String                  @db.Text
-  status      DoctorAppointmentStatus @default(NEW)
-  createdAt   DateTime                @default(now()) @map("created_at")
-  updatedAt   DateTime                @updatedAt @map("updated_at")
+  id                          String                  @id @default(uuid()) @db.Uuid
+  siteId                      String                  @map("site_id") @db.Uuid
+  doctorId                    String                  @map("doctor_id") @db.Uuid
+  patientName                 String                  @map("patient_name")
+  email                       String
+  phone                       String                  @default("")
+  scheduledAt                 DateTime                @map("scheduled_at")
+  problem                     String                  @db.Text
+  medicalHistoryImageUrl      String                  @default("") @map("medical_history_image_url")
+  medicalHistoryImagePublicId String                  @default("") @map("medical_history_image_public_id")
+  status                      DoctorAppointmentStatus @default(NEW)
+  createdAt                   DateTime                @default(now()) @map("created_at")
+  updatedAt                   DateTime                @updatedAt @map("updated_at")
 
   site   Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
   doctor DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
@@ -2101,6 +2119,43 @@ model VendorApplication {
   @@index([siteId, isActive])
   @@index([userId])
   @@map("vendor_applications")
+}
+
+/// Public careers-page job applications. Resume files are PDF or Word, max 5 MB.
+model CareerApplication {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  siteId              String                  @map("site_id") @db.Uuid
+  firstName           String                  @map("first_name")
+  middleName          String                  @default("") @map("middle_name")
+  lastName            String                  @map("last_name")
+  birthMonth          Int                     @map("birth_month")
+  birthDay            Int                     @map("birth_day")
+  birthYear           Int                     @map("birth_year")
+  streetAddress       String                  @map("street_address")
+  streetAddressLine2  String                  @default("") @map("street_address_line_2")
+  city                String
+  state               String
+  postalCode          String                  @map("postal_code")
+  email               String
+  phone               String
+  linkedIn            String                  @default("") @map("linked_in")
+  positionApplied     String                  @map("position_applied")
+  heardAbout          String                  @map("heard_about")
+  availableStartDate  DateTime                @map("available_start_date") @db.Date
+  resumeUrl           String                  @map("resume_url")
+  resumePublicId      String                  @map("resume_public_id")
+  resumeFileName      String                  @map("resume_file_name")
+  resumeMimeType      String                  @map("resume_mime_type")
+  status              CareerApplicationStatus @default(PENDING)
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, status])
+  @@index([siteId, createdAt])
+  @@index([siteId, email])
+  @@map("career_applications")
 }
 
 model NewsletterSubscriber {

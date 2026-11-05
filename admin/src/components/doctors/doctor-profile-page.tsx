@@ -32,11 +32,18 @@ function createEmptyFormValues(): DoctorProfileFormValues {
   return {
     prefix: "Dr.",
     name: "",
-    specialization: "",
+    specializations: [],
     about: "",
     experienceYears: "",
     state: "",
     city: "",
+    phone: "",
+    email: "",
+    location: "",
+    education: "",
+    degree: "",
+    workHistory: "",
+    workDays: "",
     photoUrl: "",
     photoPublicId: "",
     active: true,
@@ -44,16 +51,33 @@ function createEmptyFormValues(): DoctorProfileFormValues {
   };
 }
 
+function phoneDigits(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length > 10 && digits.startsWith("91")) {
+    return digits.slice(2, 12);
+  }
+  return digits.slice(0, 10);
+}
+
 function dtoToFormValues(doctor: DoctorProfileDto): DoctorProfileFormValues {
   const { prefix, name } = extractDoctorPrefixAndName(doctor.name);
   return {
     prefix,
     name,
-    specialization: doctor.specialization,
+    specializations: Array.isArray(doctor.specializations)
+      ? doctor.specializations
+      : [],
     about: doctor.about,
     experienceYears: String(doctor.experienceYears ?? ""),
     state: doctor.state ?? "",
     city: doctor.city ?? "",
+    phone: phoneDigits(doctor.phone ?? ""),
+    email: doctor.email ?? "",
+    location: doctor.location ?? "",
+    education: doctor.education ?? "",
+    degree: doctor.degree ?? "",
+    workHistory: doctor.workHistory ?? "",
+    workDays: doctor.workDays ?? "",
     photoUrl: doctor.photoUrl,
     photoPublicId: doctor.photoPublicId,
     active: doctor.active,
@@ -140,6 +164,7 @@ export function DoctorProfilePage({ siteCode }: { siteCode: SiteCode }) {
     setEditingId(doctor.id);
     setValues(dtoToFormValues(doctor));
     setErrors({});
+    setFormKey((key) => key + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 

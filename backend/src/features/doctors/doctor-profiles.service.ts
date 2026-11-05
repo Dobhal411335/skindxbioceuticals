@@ -12,6 +12,8 @@ import type {
 } from './doctor-profiles.validation';
 import type {
   DoctorProfileDto,
+  DoctorProfileFacetsDto,
+  DoctorProfilePublicDto,
   DoctorProfileRecord,
   DoctorProfileWrite,
   SiteCodeDto,
@@ -24,6 +26,16 @@ function preferHttpsUrl(url: string): string {
   return url;
 }
 
+function compareLocale(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { sensitivity: 'base' });
+}
+
+function uniqueSorted(values: Iterable<string>): string[] {
+  return [...new Set([...values].map((value) => value.trim()).filter(Boolean))].sort(
+    compareLocale,
+  );
+}
+
 export function toDoctorProfileDto(
   record: DoctorProfileRecord,
   siteCode: SiteCodeDto,
@@ -32,11 +44,18 @@ export function toDoctorProfileDto(
     id: record.id,
     siteCode,
     name: record.name,
-    specialization: record.specialization,
+    specializations: record.specializations,
     about: record.about,
     experienceYears: record.experienceYears,
     state: record.state,
     city: record.city,
+    phone: record.phone,
+    email: record.email,
+    location: record.location,
+    education: record.education,
+    degree: record.degree,
+    workHistory: record.workHistory,
+    workDays: record.workDays,
     photoUrl: preferHttpsUrl(record.photoUrl),
     photoPublicId: record.photoPublicId,
     active: record.active,
@@ -46,14 +65,72 @@ export function toDoctorProfileDto(
   };
 }
 
+export function toDoctorProfilePublicDto(
+  record: DoctorProfileRecord,
+  siteCode: SiteCodeDto,
+): DoctorProfilePublicDto {
+  return {
+    id: record.id,
+    siteCode,
+    name: record.name,
+    specializations: record.specializations,
+    about: record.about,
+    experienceYears: record.experienceYears,
+    state: record.state,
+    city: record.city,
+    phone: record.phone,
+    email: record.email,
+    location: record.location,
+    education: record.education,
+    degree: record.degree,
+    workHistory: record.workHistory,
+    workDays: record.workDays,
+    photoUrl: preferHttpsUrl(record.photoUrl),
+    active: record.active,
+    order: record.order,
+  };
+}
+
+export function buildDoctorProfileFacets(
+  rows: Array<{ specializations: string[]; state: string; city: string }>,
+): DoctorProfileFacetsDto {
+  const citiesByState: Record<string, Set<string>> = {};
+
+  for (const row of rows) {
+    const state = row.state.trim();
+    const city = row.city.trim();
+    if (!state || !city) continue;
+    if (!citiesByState[state]) {
+      citiesByState[state] = new Set();
+    }
+    citiesByState[state].add(city);
+  }
+
+  const states = uniqueSorted(Object.keys(citiesByState));
+  return {
+    specialities: uniqueSorted(rows.flatMap((row) => row.specializations)),
+    states,
+    citiesByState: Object.fromEntries(
+      states.map((state) => [state, uniqueSorted(citiesByState[state] ?? [])]),
+    ),
+  };
+}
+
 function bodyToWrite(body: DoctorProfileBody, fallbackOrder: number): DoctorProfileWrite {
   return {
     name: body.name,
-    specialization: body.specialization,
+    specializations: body.specializations,
     about: body.about,
     experienceYears: body.experienceYears,
     state: body.state,
     city: body.city,
+    phone: body.phone,
+    email: body.email,
+    location: body.location,
+    education: body.education,
+    degree: body.degree,
+    workHistory: body.workHistory,
+    workDays: body.workDays,
     photoUrl: preferHttpsUrl(body.photoUrl),
     photoPublicId: body.photoPublicId ?? '',
     active: body.active,
@@ -69,9 +146,17 @@ export class DoctorProfilesService {
     return rows.map((row) => toDoctorProfileDto(row, siteCode));
   }
 
-  async listActiveForSite(siteId: string, siteCode: SiteCode): Promise<DoctorProfileDto[]> {
+  async listActiveForSite(
+    siteId: string,
+    siteCode: SiteCode,
+  ): Promise<DoctorProfilePublicDto[]> {
     const rows = await this.repository.listActiveBySiteId(siteId);
-    return rows.map((row) => toDoctorProfileDto(row, siteCode));
+    return rows.map((row) => toDoctorProfilePublicDto(row, siteCode));
+  }
+
+  async getPublicFacets(siteId: string): Promise<DoctorProfileFacetsDto> {
+    const rows = await this.repository.listActiveFilterValues(siteId);
+    return buildDoctorProfileFacets(rows);
   }
 
   async createForSite(input: {

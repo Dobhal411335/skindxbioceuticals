@@ -57,10 +57,32 @@ export function validateDoctorProfileForm(
   const errors: DoctorProfileFormErrors = {};
   const { name: cleanName } = extractDoctorPrefixAndName(values.name);
   if (!cleanName) errors.name = "Doctor name is required";
-  if (!values.specialization.trim()) {
-    errors.specialization = "Specialization is required";
+  const specializations = values.specializations
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (specializations.length === 0) {
+    errors.specializations = "Add at least one specialization";
   }
   if (!values.about.trim()) errors.about = "About is required";
+
+  const phoneDigits = values.phone.replace(/\D/g, "");
+  if (!phoneDigits) {
+    errors.phone = "Phone number is required";
+  } else if (!/^[6-9]\d{9}$/.test(phoneDigits)) {
+    errors.phone = "Enter a valid 10-digit mobile number";
+  }
+
+  if (!values.email.trim()) {
+    errors.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+    errors.email = "Enter a valid email";
+  }
+
+  if (!values.location.trim()) {
+    errors.location = "Location is required";
+  } else if (values.location.trim().length > 2000) {
+    errors.location = "Location must be 2000 characters or fewer";
+  }
 
   const experienceYears = Number(values.experienceYears);
   if (
@@ -103,8 +125,15 @@ export function validateDoctorProfileForm(
       ...values,
       prefix: values.prefix || "Dr.",
       name: cleanName,
-      specialization: values.specialization.trim(),
+      specializations,
       about: values.about.trim(),
+      phone: phoneDigits,
+      email: values.email.trim().toLowerCase(),
+      location: values.location.trim(),
+      education: values.education.trim(),
+      degree: values.degree.trim(),
+      workHistory: values.workHistory.trim(),
+      workDays: values.workDays.trim(),
       state: values.state.trim(),
       city: values.city.trim(),
     },
@@ -121,11 +150,18 @@ export function toDoctorProfilePayload(
 
   return {
     name: fullName,
-    specialization: values.specialization.trim(),
+    specializations: values.specializations.map((item) => item.trim()).filter(Boolean),
     about: values.about.trim(),
     experienceYears: Number(values.experienceYears),
     state: values.state.trim(),
     city: values.city.trim(),
+    phone: `+91 ${values.phone.replace(/\D/g, "")}`,
+    email: values.email.trim().toLowerCase(),
+    location: values.location.trim(),
+    education: values.education.trim(),
+    degree: values.degree.trim(),
+    workHistory: values.workHistory.trim(),
+    workDays: values.workDays.trim(),
     photoUrl: values.photoUrl.trim(),
     photoPublicId: values.photoPublicId.trim(),
     active: values.active,

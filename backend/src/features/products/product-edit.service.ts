@@ -751,7 +751,7 @@ export class ProductEditService {
         userId: input.userId,
         productId: input.productId,
       },
-      'Product highlights updated',
+      'Product FAQ updated',
     );
     return this.loadEditDto(input.siteId, input.siteCode, input.productId);
   }

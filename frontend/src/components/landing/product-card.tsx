@@ -117,7 +117,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     <>
       <article
         className={cn(
-          "group flex h-full flex-col rounded-xl border border-border bg-card p-2 shadow-none transition-[border-color,box-shadow] duration-300 hover:shadow-sm",
+          "group flex h-full flex-col rounded-xl border border-border bg-card p-2 shadow-none transition-[border-color,box-shadow] duration-300 hover:shadow-sm w-[350px]",
           className,
         )}
       >

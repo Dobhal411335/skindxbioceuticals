@@ -43,9 +43,37 @@ export const doctorAppointmentCreateBodySchema = z.object({
       },
     ),
   problem: z.string().trim().min(1, 'Please describe your problem').max(2000),
+  /** Optional previous medical history image (Cloudinary HTTPS URL from the public upload route). */
+  medicalHistoryImageUrl: z
+    .string()
+    .trim()
+    .max(2048)
+    .optional()
+    .transform((value) => value ?? '')
+    .refine(
+      (value) => value === '' || z.string().url().safeParse(value).success,
+      { message: 'Medical history image URL must be a valid URL' },
+    ),
+  medicalHistoryImagePublicId: z
+    .string()
+    .trim()
+    .max(500)
+    .optional()
+    .transform((value) => value ?? ''),
   /** Optional honeypot — non-empty values are accepted by the schema and dropped in the service. */
   website: z.string().max(200).optional(),
-});
+})
+  .refine(
+    (value) => {
+      const hasUrl = value.medicalHistoryImageUrl.length > 0;
+      const hasPublicId = value.medicalHistoryImagePublicId.length > 0;
+      return hasUrl === hasPublicId;
+    },
+    {
+      message: 'Medical history image URL and public ID must be provided together',
+      path: ['medicalHistoryImageUrl'],
+    },
+  );
 
 export const doctorAppointmentListQuerySchema = z
   .object({
@@ -111,6 +139,20 @@ export function normalizeDoctorAppointmentCreateInput(raw: unknown): unknown {
         ? payload.phoneNumber.trim()
         : payload.phone;
 
+  const medicalHistoryImageUrl =
+    typeof payload.medicalHistoryImageUrl === 'string'
+      ? payload.medicalHistoryImageUrl.trim()
+      : typeof payload.attachmentUrl === 'string'
+        ? payload.attachmentUrl.trim()
+        : payload.medicalHistoryImageUrl;
+
+  const medicalHistoryImagePublicId =
+    typeof payload.medicalHistoryImagePublicId === 'string'
+      ? payload.medicalHistoryImagePublicId.trim()
+      : typeof payload.attachmentPublicId === 'string'
+        ? payload.attachmentPublicId.trim()
+        : payload.medicalHistoryImagePublicId;
+
   return {
     ...payload,
     doctorId: typeof payload.doctorId === 'string' ? payload.doctorId.trim() : payload.doctorId,
@@ -122,6 +164,8 @@ export function normalizeDoctorAppointmentCreateInput(raw: unknown): unknown {
         ? payload.scheduledAt.trim()
         : payload.scheduledAt,
     problem,
+    medicalHistoryImageUrl,
+    medicalHistoryImagePublicId,
     website: typeof payload.website === 'string' ? payload.website : payload.website,
   };
 }

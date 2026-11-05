@@ -2,15 +2,28 @@ export type DoctorProfile = {
   id: string;
   siteCode: "IN" | "COM";
   name: string;
-  specialization: string;
+  specializations: string[];
   about: string;
   experienceYears: number;
   state: string;
   city: string;
+  phone: string;
+  email: string;
+  location: string;
+  education: string;
+  degree: string;
+  workHistory: string;
+  workDays: string;
   photoUrl: string;
-  photoPublicId: string;
   active: boolean;
   order: number;
+};
+
+/** Distinct filter options from active doctors on the site. */
+export type DoctorProfileFacets = {
+  specialities: string[];
+  states: string[];
+  citiesByState: Record<string, string[]>;
 };
 
 export type DoctorServiceItem = {
@@ -48,6 +61,8 @@ export type DoctorAppointmentCreatePayload = {
   phone: string;
   scheduledAt: string;
   problem: string;
+  medicalHistoryImageUrl?: string;
+  medicalHistoryImagePublicId?: string;
   website?: string;
 };
 

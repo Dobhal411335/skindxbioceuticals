@@ -26,6 +26,8 @@ export type DoctorAppointmentDto = {
   phone: string;
   scheduledAt: string;
   problem: string;
+  medicalHistoryImageUrl: string;
+  medicalHistoryImagePublicId: string;
   status: DoctorAppointmentStatusValue;
   createdAt: string;
   updatedAt: string;
@@ -40,6 +42,8 @@ export type DoctorAppointmentRecord = {
   phone: string;
   scheduledAt: Date;
   problem: string;
+  medicalHistoryImageUrl: string;
+  medicalHistoryImagePublicId: string;
   status: DoctorAppointmentStatusValue;
   createdAt: Date;
   updatedAt: Date;
@@ -56,6 +60,8 @@ export type DoctorAppointmentWrite = {
   phone: string;
   scheduledAt: Date;
   problem: string;
+  medicalHistoryImageUrl: string;
+  medicalHistoryImagePublicId: string;
 };
 
 export type DoctorAppointmentListFilters = {

@@ -14,6 +14,13 @@ import type {
   SiteCodeDto,
 } from './doctor-appointments.types';
 
+function preferHttpsUrl(url: string): string {
+  if (url.startsWith('http://res.cloudinary.com/')) {
+    return `https://${url.slice('http://'.length)}`;
+  }
+  return url;
+}
+
 export function toDoctorAppointmentDto(
   record: DoctorAppointmentRecord,
   siteCode: SiteCodeDto,
@@ -29,6 +36,8 @@ export function toDoctorAppointmentDto(
     phone: record.phone,
     scheduledAt: record.scheduledAt.toISOString(),
     problem: record.problem,
+    medicalHistoryImageUrl: preferHttpsUrl(record.medicalHistoryImageUrl),
+    medicalHistoryImagePublicId: record.medicalHistoryImagePublicId,
     status: record.status,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
@@ -66,6 +75,13 @@ export class DoctorAppointmentsService {
       throw new ValidationError('Selected doctor is not available');
     }
 
+    const medicalHistoryImageUrl = preferHttpsUrl(
+      (input.body.medicalHistoryImageUrl ?? '').trim(),
+    );
+    const medicalHistoryImagePublicId = (
+      input.body.medicalHistoryImagePublicId ?? ''
+    ).trim();
+
     const record = await this.repository.create(input.siteId, {
       doctorId: input.body.doctorId,
       patientName: input.body.patientName,
@@ -73,6 +89,8 @@ export class DoctorAppointmentsService {
       phone: input.body.phone,
       scheduledAt: input.body.scheduledAt,
       problem: input.body.problem,
+      medicalHistoryImageUrl,
+      medicalHistoryImagePublicId,
     });
 
     logger.info(
@@ -82,6 +100,7 @@ export class DoctorAppointmentsService {
         appointmentId: record.id,
         doctorId: record.doctorId,
         scheduledAt: record.scheduledAt.toISOString(),
+        hasMedicalHistoryAttachment: Boolean(medicalHistoryImageUrl),
       },
       'Doctor appointment request created',
     );

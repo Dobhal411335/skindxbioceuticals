@@ -2,6 +2,15 @@ import { z } from 'zod';
 import { INDIA_STATES } from '@/lib/india-states';
 import { normalizeDoctorName } from './doctors.constants';
 
+const optionalText = (max: number) => z.string().trim().max(max).default('');
+
+function normalizeDoctorPhone(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  const local =
+    digits.length > 10 && digits.startsWith('91') ? digits.slice(2) : digits;
+  return `+91 ${local}`;
+}
+
 const siteCodeSchema = z
   .enum(['IN', 'COM', 'in', 'com'])
   .transform((value) => value.toUpperCase() as 'IN' | 'COM');
@@ -23,11 +32,40 @@ export const doctorProfileBodySchema = z.object({
     .min(1, 'Doctor name is required')
     .max(160)
     .transform(normalizeDoctorName),
-  specialization: z.string().trim().min(1, 'Specialization is required').max(160),
+  specializations: z
+    .array(z.string().trim().min(1).max(160))
+    .min(1, 'At least one specialization is required')
+    .max(12, 'Add at most 12 specializations')
+    .transform((items) => {
+      const seen = new Set<string>();
+      const unique: string[] = [];
+      for (const item of items) {
+        const key = item.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        unique.push(item);
+      }
+      return unique;
+    }),
   about: z.string().trim().min(1, 'About is required').max(2000),
   experienceYears: z.coerce.number().int().min(0).max(80),
   state: z.enum(INDIA_STATES, { message: 'Select a valid Indian state' }),
   city: z.string().trim().min(1, 'City is required').max(120),
+  phone: z
+    .string()
+    .trim()
+    .min(1, 'Phone number is required')
+    .max(30)
+    .transform(normalizeDoctorPhone)
+    .refine((value) => /^\+91 [6-9]\d{9}$/.test(value), {
+      message: 'Enter a valid 10-digit Indian mobile number',
+    }),
+  email: z.string().trim().email('Enter a valid email').max(254).transform((value) => value.toLowerCase()),
+  location: z.string().trim().min(1, 'Location is required').max(2000),
+  education: optionalText(4000),
+  degree: optionalText(4000),
+  workHistory: optionalText(4000),
+  workDays: optionalText(4000),
   photoUrl: photoUrlSchema,
   photoPublicId: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
@@ -86,16 +124,31 @@ export function normalizeDoctorProfileInput(raw: unknown): unknown {
             ? photo.publicId.trim()
             : (payload.photoPublicId ?? '');
 
+  const specializations = Array.isArray(payload.specializations)
+    ? payload.specializations
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : typeof payload.specialization === 'string' && payload.specialization.trim()
+      ? [payload.specialization.trim()]
+      : payload.specializations;
+
+  const text = (value: unknown) => (typeof value === 'string' ? value.trim() : value);
+
   return {
     ...payload,
     name: typeof payload.name === 'string' ? payload.name.trim() : payload.name,
-    specialization:
-      typeof payload.specialization === 'string'
-        ? payload.specialization.trim()
-        : payload.specialization,
-    about: typeof payload.about === 'string' ? payload.about.trim() : payload.about,
-    state: typeof payload.state === 'string' ? payload.state.trim() : payload.state,
-    city: typeof payload.city === 'string' ? payload.city.trim() : payload.city,
+    specializations,
+    about: text(payload.about),
+    state: text(payload.state),
+    city: text(payload.city),
+    phone: text(payload.phone),
+    email: typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : payload.email,
+    location: text(payload.location),
+    education: text(payload.education),
+    degree: text(payload.degree),
+    workHistory: text(payload.workHistory),
+    workDays: text(payload.workDays),
     photoUrl,
     photoPublicId,
     active: payload.active ?? true,

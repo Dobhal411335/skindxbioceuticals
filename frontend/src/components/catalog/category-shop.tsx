@@ -97,7 +97,7 @@ export function CategoryShop({
   );
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 
-  // Keep in sync when arriving from header search (`/shop?q=…`).
+  // Keep in sync when arriving with `?q=` on a scoped category product list.
   useEffect(() => {
     const next = searchParams.get("q") ?? "";
     setSearchInput((current) => (current === next ? current : next));

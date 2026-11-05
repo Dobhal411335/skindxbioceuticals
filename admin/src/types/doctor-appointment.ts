@@ -19,6 +19,8 @@ export type DoctorAppointmentDto = {
   phone: string;
   scheduledAt: string;
   problem: string;
+  medicalHistoryImageUrl: string;
+  medicalHistoryImagePublicId: string;
   status: DoctorAppointmentStatus;
   createdAt: string;
   updatedAt: string;

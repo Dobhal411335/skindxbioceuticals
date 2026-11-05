@@ -23,7 +23,7 @@ export const FALLBACK_CLINICAL_CONFIDENCE: StorefrontClinicalConfidence = {
   description:
     "Scientifically validated dermatological formulations and medical-grade solutions engineered specifically for barrier repair, photoprotection, and clinical efficacy in daily regimens.",
   button1Label: "Shop Skincare",
-  button1Url: "/shop",
+  button1Url: "/category",
   button2Label: "Explore Products",
   button2Url: "/products",
   backgroundImageUrl: "",

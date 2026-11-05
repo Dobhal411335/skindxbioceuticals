@@ -258,29 +258,20 @@ export class ProductRepository {
     });
   }
 
+  /** Every other ACTIVE product on the site. The service shuffles and caps the PDP sample. */
   async listRelatedActive(
     siteId: string,
     options: {
       excludeProductId: string;
-      subcategoryId: string | null;
-      /** When omitted, returns every ACTIVE product in the subcategory except the current. */
-      limit?: number;
     },
   ) {
-    if (!options.subcategoryId) {
-      return [];
-    }
-
     return prisma.product.findMany({
       where: {
         siteId,
         status: 'ACTIVE',
-        subcategoryId: options.subcategoryId,
         id: { not: options.excludeProductId },
       },
-      orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
-      ...(options.limit != null ? { take: options.limit } : {}),
-      // Same card payload as rail/PLP so FBT cards can show category, ratings, coupon.
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
       include: this.publicCardInclude,
     });
   }

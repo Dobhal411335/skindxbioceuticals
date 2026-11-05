@@ -173,7 +173,7 @@ export const PRODUCT_EDIT_SECTIONS: ProductEditSection[] = [
   { key: "info", label: "Product Information" },
   { key: "review", label: "Create Review" },
   { key: "tag", label: "Category Tag" },
-  { key: "highlights", label: "Product Highlights" },
+  { key: "highlights", label: "Product FAQ" },
 ];
 
 export type SiteScoped = { siteCode: SiteCode };

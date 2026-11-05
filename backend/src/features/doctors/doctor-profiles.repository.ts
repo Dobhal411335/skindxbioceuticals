@@ -22,6 +22,19 @@ export class DoctorProfilesRepository {
     return rows.map(mapRow);
   }
 
+  /**
+   * Specialization / state / city values from active profiles only.
+   */
+  async listActiveFilterValues(
+    siteId: string,
+  ): Promise<Array<{ specializations: string[]; state: string; city: string }>> {
+    return prisma.doctorProfile.findMany({
+      where: { siteId, active: true },
+      select: { specializations: true, state: true, city: true },
+      orderBy: [{ state: 'asc' }, { city: 'asc' }],
+    });
+  }
+
   async findByIdForSite(siteId: string, doctorId: string): Promise<DoctorProfileRecord | null> {
     const row = await prisma.doctorProfile.findFirst({
       where: { id: doctorId, siteId },

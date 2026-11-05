@@ -56,6 +56,17 @@ export const catalogProductIdParamSchema = z.object({
   productId: z.string().uuid(),
 });
 
+export const publicProductPdfParamSchema = z.object({
+  siteCode: siteCodeSchema,
+  slug: z
+    .string()
+    .trim()
+    .min(1, 'Product slug is required')
+    .max(200)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid product slug'),
+  pdfId: z.string().uuid(),
+});
+
 export const publicProductSlugParamSchema = z.object({
   siteCode: siteCodeSchema,
   slug: z

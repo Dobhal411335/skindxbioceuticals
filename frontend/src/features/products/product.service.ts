@@ -57,7 +57,7 @@ export const getProductBySlug = cache(
         return null;
       }
 
-      return payload.data;
+      return withStorefrontPdfUrls(payload.data);
     } catch {
       return null;
     }
@@ -277,8 +277,27 @@ export async function fetchProductBySlugClient(
     if (!payload?.success || !payload.data?.id || !payload.data?.slug) {
       return null;
     }
-    return payload.data;
+    return withStorefrontPdfUrls(payload.data);
   } catch {
     return null;
   }
+}
+
+/**
+ * Cloudinary blocks public raw PDF URLs (401 deny or ACL failure).
+ * Preview and download go through the API, which streams a signed download.
+ */
+function withStorefrontPdfUrls(product: PublicProductDetail): PublicProductDetail {
+  const base = apiBaseUrl();
+  if (!base) {
+    return product;
+  }
+  const pdfs = Array.isArray(product.pdfs) ? product.pdfs : [];
+  return {
+    ...product,
+    pdfs: pdfs.map((pdf) => ({
+      ...pdf,
+      pdfUrl: `${base}/sites/${STOREFRONT_SITE_CODE}/products/${encodeURIComponent(product.slug)}/pdfs/${encodeURIComponent(pdf.id)}/file`,
+    })),
+  };
 }

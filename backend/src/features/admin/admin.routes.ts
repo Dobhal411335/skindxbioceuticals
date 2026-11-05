@@ -31,6 +31,7 @@ import { doctorProfilesRoutes } from '@/features/doctors/doctor-profiles.routes'
 import { doctorPageRoutes } from '@/features/doctors/doctor-page.routes';
 import { doctorAppointmentsRoutes } from '@/features/doctor-appointments/doctor-appointments.routes';
 import { enquiryAdminRoutes } from '@/features/enquiries/enquiry.routes';
+import { careerApplicationAdminRoutes } from '@/features/career-applications/career-applications.routes';
 import { adminOrdersRoutes } from '@/features/admin-orders/admin-orders.routes';
 import { inventoryAdminRoutes } from '@/features/inventory/inventory.admin.routes';
 import { productPricesAdminRoutes } from '@/features/product-prices/product-prices.admin.routes';
@@ -86,6 +87,7 @@ router.use('/sites/:siteCode/doctors', doctorProfilesRoutes);
 router.use('/sites/:siteCode/doctor-page', doctorPageRoutes);
 router.use('/sites/:siteCode/doctor-appointments', doctorAppointmentsRoutes);
 router.use('/sites/:siteCode/enquiries', enquiryAdminRoutes);
+router.use('/sites/:siteCode/career-applications', careerApplicationAdminRoutes);
 router.use('/sites/:siteCode/vendors', vendorsAdminRoutes);
 router.use('/sites/:siteCode/orders', adminOrdersRoutes);
 router.use('/sites/:siteCode/stock', inventoryAdminRoutes);

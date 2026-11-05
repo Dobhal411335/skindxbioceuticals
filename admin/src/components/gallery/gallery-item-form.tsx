@@ -188,7 +188,7 @@ export function GalleryItemForm({
                     onChange={(event) =>
                       onChange({ ...values, buttonUrl: event.target.value })
                     }
-                    placeholder="/shop or https://…"
+                    placeholder="/category or https://…"
                   />
                   {errors.buttonUrl ? (
                     <p className="text-sm text-destructive">{errors.buttonUrl}</p>
