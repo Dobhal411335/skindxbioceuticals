@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import { FALLBACK_COMPANY_BASIC_INFO } from "@/features/company-basic-info/company-basic-info.defaults";
@@ -9,7 +11,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -31,10 +32,10 @@ export const getCompanyBasicInfo = cache(async (): Promise<CompanyBasicInfo> => 
 
   try {
     const response = await fetch(
-      `${base}/sites/${STOREFRONT_SITE_CODE}/company-basic-info`,
+      `${base}/sites/${storefrontSiteCode}/company-basic-info`,
       {
-        next: { revalidate: 60, tags: ["company-basic-info", "IN"] },
-        headers: { Accept: "application/json" },
+        next: { revalidate: 60, tags: ["company-basic-info", storefrontSiteCode] },
+        headers: publicSiteHeaders(),
       },
     );
 

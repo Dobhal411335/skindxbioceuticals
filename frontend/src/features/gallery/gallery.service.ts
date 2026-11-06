@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import type { GalleryItem } from "@/types/gallery";
@@ -8,7 +10,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -40,10 +41,10 @@ export const getGalleryItems = cache(async (): Promise<GalleryItem[]> => {
 
   try {
     const response = await fetch(
-      `${base}/sites/${STOREFRONT_SITE_CODE}/gallery`,
+      `${base}/sites/${storefrontSiteCode}/gallery`,
       {
-        next: { revalidate: 60, tags: ["gallery", "IN"] },
-        headers: { Accept: "application/json" },
+        next: { revalidate: 60, tags: ["gallery", storefrontSiteCode] },
+        headers: publicSiteHeaders(),
       },
     );
 

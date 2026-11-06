@@ -4,8 +4,10 @@ import type {
   StorefrontClinicalConfidence,
 } from "@/types/clinical-confidence";
 
+import { storefrontSiteCode } from "@/config/site";
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+
 type ApiSuccess<T> = { success: true; message: string; data: T };
-const siteCode = "IN" as const;
 
 function apiBaseUrl() {
   return process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "") || "";
@@ -17,7 +19,7 @@ function preferHttps(url: string) {
 
 export const FALLBACK_CLINICAL_CONFIDENCE: StorefrontClinicalConfidence = {
   id: null,
-  siteCode,
+  siteCode: storefrontSiteCode,
   badgeText: "Science-inspired skincare",
   heading: "Care for Your Skin. Confidence in Every Day.",
   description:
@@ -78,9 +80,9 @@ export const getClinicalConfidence = cache(async (): Promise<StorefrontClinicalC
   const base = apiBaseUrl();
   if (!base) return FALLBACK_CLINICAL_CONFIDENCE;
   try {
-    const response = await fetch(`${base}/sites/${siteCode}/clinical-confidence`, {
-      next: { revalidate: 60, tags: ["clinical-confidence", siteCode] },
-      headers: { Accept: "application/json" },
+    const response = await fetch(`${base}/sites/${storefrontSiteCode}/clinical-confidence`, {
+      next: { revalidate: 60, tags: ["clinical-confidence", storefrontSiteCode] },
+      headers: publicSiteHeaders(),
     });
     if (!response.ok) return FALLBACK_CLINICAL_CONFIDENCE;
     const payload = (await response.json()) as ApiSuccess<ClinicalConfidenceConfig>;

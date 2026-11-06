@@ -93,6 +93,7 @@ describe('sensitive-data redaction', () => {
       password: 'super-secret',
       otp: '123456',
       accessToken: 'tok_abc',
+      'x-site-fetch-secret': 'site-fetch-secret-value',
       nested: { refreshToken: 'ref_xyz', note: 'ok' },
     }) as Record<string, unknown>;
 
@@ -100,6 +101,7 @@ describe('sensitive-data redaction', () => {
     expect(redacted.password).toBe(REDACTED);
     expect(redacted.otp).toBe(REDACTED);
     expect(redacted.accessToken).toBe(REDACTED);
+    expect(redacted['x-site-fetch-secret']).toBe(REDACTED);
     expect((redacted.nested as Record<string, unknown>).refreshToken).toBe(REDACTED);
     expect((redacted.nested as Record<string, unknown>).note).toBe('ok');
   });

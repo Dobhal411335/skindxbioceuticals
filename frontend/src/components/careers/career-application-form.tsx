@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { storefrontSiteCode } from "@/config/site";
 import { careerHeardAbout, careerPositions } from "@/data/careers";
 import { showError, showSuccess } from "@/lib/toast";
 import { apiClient } from "@/services/api/axios";
@@ -162,7 +163,7 @@ export function CareerApplicationForm() {
 
     setSubmitting(true);
     try {
-      await apiClient.post(API_ENDPOINTS.CAREERS.APPLICATIONS("IN"), formData, {
+      await apiClient.post(API_ENDPOINTS.CAREERS.APPLICATIONS(storefrontSiteCode), formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       showSuccess("Application received. We will review your résumé.");

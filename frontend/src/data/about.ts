@@ -162,7 +162,7 @@ export const aboutPage = {
         id: "af12",
         question: "How do I contact customer care?",
         answer:
-          "Write to hello@skindxbioceuticals.example or use the Contact page. Support hours are Monday to Saturday, 10:00–18:00 IST.",
+          "Use the Contact page for order support. Support hours are Monday to Saturday, 10:00–18:00 IST. We do not provide medical advice through support channels.",
       },
     ],
   },

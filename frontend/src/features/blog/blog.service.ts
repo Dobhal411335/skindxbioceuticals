@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import {
@@ -70,7 +72,6 @@ type ApiBlogList = {
   categories: string[];
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -211,10 +212,10 @@ async function fetchBlogList(options?: {
 
   try {
     const response = await fetch(
-      `${base}/sites/${STOREFRONT_SITE_CODE}/blogs${query}`,
+      `${base}/sites/${storefrontSiteCode}/blogs${query}`,
       {
-        next: { revalidate: 60, tags: ["blogs", "IN"] },
-        headers: { Accept: "application/json" },
+        next: { revalidate: 60, tags: ["blogs", storefrontSiteCode] },
+        headers: publicSiteHeaders(),
       },
     );
 
@@ -323,10 +324,10 @@ export const getBlogBySlug = cache(
 
     try {
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/blogs/${encodeURIComponent(slug)}`,
+        `${base}/sites/${storefrontSiteCode}/blogs/${encodeURIComponent(slug)}`,
         {
-          next: { revalidate: 60, tags: ["blogs", "IN", `blog:${slug}`] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["blogs", storefrontSiteCode, `blog:${slug}`] },
+          headers: publicSiteHeaders(),
         },
       );
 

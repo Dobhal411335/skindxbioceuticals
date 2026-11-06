@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import { API_ENDPOINTS } from "@/services/api/endpoints";
@@ -18,7 +20,6 @@ type ApiSuccess<T> = {
   meta?: PublicProductListMeta;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -41,10 +42,10 @@ export const getProductBySlug = cache(
     try {
       const encoded = encodeURIComponent(slug.trim());
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/products/${encoded}`,
+        `${base}/sites/${storefrontSiteCode}/products/${encoded}`,
         {
-          next: { revalidate: 60, tags: ["products", "IN", slug] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["products", storefrontSiteCode, slug] },
+          headers: publicSiteHeaders(),
         },
       );
 
@@ -77,10 +78,10 @@ export const getLandingProducts = cache(
 
     try {
       const response = await fetch(
-        `${base}${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(STOREFRONT_SITE_CODE)}?limit=${limit}`,
+        `${base}${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(storefrontSiteCode)}?limit=${limit}`,
         {
-          next: { revalidate: 60, tags: ["products", "IN", "landing-rail"] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["products", storefrontSiteCode, "landing-rail"] },
+          headers: publicSiteHeaders(),
         },
       );
 
@@ -113,10 +114,10 @@ export const getProductFacets = cache(
 
     try {
       const response = await fetch(
-        `${base}${API_ENDPOINTS.PRODUCTS.PUBLIC_FACETS(STOREFRONT_SITE_CODE)}`,
+        `${base}${API_ENDPOINTS.PRODUCTS.PUBLIC_FACETS(storefrontSiteCode)}`,
         {
-          next: { revalidate: 60, tags: ["products", "IN", "product-facets"] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["products", storefrontSiteCode, "product-facets"] },
+          headers: publicSiteHeaders(),
         },
       );
       if (!response.ok) {
@@ -169,7 +170,7 @@ export async function fetchCatalogProducts(
   try {
     const { apiClient } = await import("@/services/api/axios");
     const response = await apiClient.get<ApiSuccess<PublicProductCard[]>>(
-      `${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(STOREFRONT_SITE_CODE)}${buildCatalogQueryString(query)}`,
+      `${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(storefrontSiteCode)}${buildCatalogQueryString(query)}`,
     );
     const payload = response.data;
     if (!payload?.success || !Array.isArray(payload.data)) {
@@ -196,7 +197,7 @@ export async function fetchLandingProductsClient(
   try {
     const { apiClient } = await import("@/services/api/axios");
     const response = await apiClient.get<ApiSuccess<PublicProductCard[]>>(
-      `${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(STOREFRONT_SITE_CODE)}?limit=${limit}`,
+      `${API_ENDPOINTS.PRODUCTS.PUBLIC_LIST(storefrontSiteCode)}?limit=${limit}`,
     );
     const payload = response.data;
     if (!payload?.success || !Array.isArray(payload.data)) {
@@ -225,13 +226,13 @@ export const getLandingProductHighlights = cache(
 
     try {
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/products/highlights`,
+        `${base}/sites/${storefrontSiteCode}/products/highlights`,
         {
           next: {
             revalidate: 60,
-            tags: ["products", "IN", "landing-highlights"],
+            tags: ["products", storefrontSiteCode, "landing-highlights"],
           },
-          headers: { Accept: "application/json" },
+          headers: publicSiteHeaders(),
         },
       );
 
@@ -271,7 +272,7 @@ export async function fetchProductBySlugClient(
     const { apiClient } = await import("@/services/api/axios");
     const encoded = encodeURIComponent(slug.trim());
     const response = await apiClient.get<ApiSuccess<PublicProductDetail>>(
-      `/sites/${STOREFRONT_SITE_CODE}/products/${encoded}`,
+      `/sites/${storefrontSiteCode}/products/${encoded}`,
     );
     const payload = response.data;
     if (!payload?.success || !payload.data?.id || !payload.data?.slug) {
@@ -297,7 +298,7 @@ function withStorefrontPdfUrls(product: PublicProductDetail): PublicProductDetai
     ...product,
     pdfs: pdfs.map((pdf) => ({
       ...pdf,
-      pdfUrl: `${base}/sites/${STOREFRONT_SITE_CODE}/products/${encodeURIComponent(product.slug)}/pdfs/${encodeURIComponent(pdf.id)}/file`,
+      pdfUrl: `${base}/sites/${storefrontSiteCode}/products/${encodeURIComponent(product.slug)}/pdfs/${encodeURIComponent(pdf.id)}/file`,
     })),
   };
 }

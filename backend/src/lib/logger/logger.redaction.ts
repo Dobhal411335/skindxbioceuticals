@@ -1,5 +1,5 @@
 const SENSITIVE_KEY_PATTERN =
-  /^(password|confirmPassword|currentPassword|newPassword|otp|verificationCode|resetToken|accessToken|refreshToken|credential|authorization|cookie|set-cookie|apiKey|api_key|clientSecret|client_secret|token|bootstrapSecret|secret|jwt|cardNumber|cvv|cvc|pan)$/i;
+  /^(password|confirmPassword|currentPassword|newPassword|otp|verificationCode|resetToken|accessToken|refreshToken|credential|authorization|cookie|set-cookie|apiKey|api_key|clientSecret|client_secret|token|bootstrapSecret|secret|jwt|cardNumber|cvv|cvc|pan|x-site-fetch-secret|site-fetch-secret)$/i;
 
 const SENSITIVE_QUERY_KEYS = new Set([
   'password',

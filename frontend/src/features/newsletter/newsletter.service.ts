@@ -1,3 +1,4 @@
+import { storefrontSiteCode } from "@/config/site";
 import { apiClient } from "@/services/api/axios";
 
 export interface NewsletterSubscribeResult {
@@ -11,7 +12,7 @@ export interface NewsletterSubscribeResult {
 
 export async function subscribeNewsletter(
   email: string,
-  siteCode = "IN",
+  siteCode = storefrontSiteCode,
 ): Promise<NewsletterSubscribeResult> {
   const { data } = await apiClient.post<NewsletterSubscribeResult>(
     `/sites/${siteCode}/newsletter/subscribe`,

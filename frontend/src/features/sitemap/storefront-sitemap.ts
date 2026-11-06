@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import {
@@ -35,7 +37,6 @@ export type SitemapSources = {
   pages: Array<{ title: string; slug: string }>;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 const PRODUCT_PAGE_SIZE = 48;
 const MAX_PRODUCT_PAGES = 40;
 
@@ -52,6 +53,7 @@ const RESERVED_PAGE_SLUGS = new Set([
   "category",
   "checkout",
   "contact",
+  "contact-with-us",
   "doctors",
   "faq",
   "products",
@@ -62,16 +64,18 @@ const RESERVED_PAGE_SLUGS = new Set([
   "wishlist",
 ]);
 
+const ABOUT_HREF = "https://skindxbioceuticals.com/about-skindx-bioceuticals";
+
 const COMPANY_LINKS: SitemapLink[] = [
   { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
+  { label: "About", href: ABOUT_HREF },
   { label: "Doctors", href: "/doctors" },
   { label: "Careers", href: "/careers" },
   { label: "Become a vendor", href: "/become-vendor" },
 ];
 
 const SUPPORT_LINKS: SitemapLink[] = [
-  { label: "Contact", href: "/contact" },
+  { label: "Contact", href: "/contact-with-us" },
   { label: "FAQ", href: "/faq" },
 ];
 
@@ -103,7 +107,7 @@ function pageLabel(title: string, titleLine: string, slug: string): string {
 
 export function storefrontOrigin(domainName: string | null | undefined): string {
   const value = String(domainName || "").trim();
-  if (!value) return "https://skindxbioceuticals.in";
+  if (!value) return "";
   if (/^https?:\/\//i.test(value)) return value.replace(/\/$/, "");
   return `https://${value.replace(/\/$/, "")}`;
 }
@@ -208,7 +212,7 @@ export function toSitemapEntries(origin: string, groups: SitemapGroup[]): Sitema
   hrefs.add("/sitemap");
 
   return [...hrefs].map((href) => ({
-    url: `${base}${href === "/" ? "" : href}`,
+    url: /^https?:\/\//i.test(href) ? href : `${base}${href === "/" ? "" : href}`,
     changeFrequency:
       href === "/" ||
       href === "/blog" ||
@@ -236,8 +240,8 @@ async function fetchJson<T>(path: string): Promise<ApiSuccess<T> | null> {
   if (!base) return null;
   try {
     const response = await fetch(`${base}${path}`, {
-      next: { revalidate: 3600, tags: ["sitemap", "IN"] },
-      headers: { Accept: "application/json" },
+      next: { revalidate: 3600, tags: ["sitemap", storefrontSiteCode] },
+      headers: publicSiteHeaders(),
     });
     if (!response.ok) return null;
     return (await response.json()) as ApiSuccess<T>;
@@ -267,7 +271,7 @@ async function loadProducts(): Promise<Array<{ name: string; slug: string }>> {
 
   while (page <= totalPages && page <= MAX_PRODUCT_PAGES) {
     const payload = await fetchJson<Array<{ name?: string; slug?: string }>>(
-      `/sites/${STOREFRONT_SITE_CODE}/products?limit=${PRODUCT_PAGE_SIZE}&page=${page}`,
+      `/sites/${storefrontSiteCode}/products?limit=${PRODUCT_PAGE_SIZE}&page=${page}`,
     );
     const rows = Array.isArray(payload?.data) ? payload.data : [];
     for (const row of rows) {
@@ -284,7 +288,7 @@ async function loadProducts(): Promise<Array<{ name: string; slug: string }>> {
 
 async function loadBlogs(): Promise<Array<{ title: string; slug: string }>> {
   const payload = await fetchJson<{ blogs?: Array<{ title?: string; name?: string; slug?: string }> }>(
-    `/sites/${STOREFRONT_SITE_CODE}/blogs`,
+    `/sites/${storefrontSiteCode}/blogs`,
   );
   const rows = Array.isArray(payload?.data?.blogs) ? payload.data.blogs : [];
   return rows
@@ -297,7 +301,7 @@ async function loadBlogs(): Promise<Array<{ title: string; slug: string }>> {
 
 async function loadPages(): Promise<Array<{ title: string; slug: string }>> {
   const payload = await fetchJson<Array<{ title?: string; titleLine?: string; slug?: string }>>(
-    `/sites/${STOREFRONT_SITE_CODE}/webpages`,
+    `/sites/${storefrontSiteCode}/webpages`,
   );
   const rows = Array.isArray(payload?.data) ? payload.data : [];
   return rows

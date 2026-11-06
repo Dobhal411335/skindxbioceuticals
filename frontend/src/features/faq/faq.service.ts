@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import {
@@ -16,7 +18,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -69,9 +70,9 @@ async function fetchFaqConfig(landingOnly: boolean): Promise<FaqConfig | null> {
 
   const query = landingOnly ? "?landing=true" : "";
   try {
-    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/faq${query}`, {
-      next: { revalidate: 60, tags: ["faq", "IN"] },
-      headers: { Accept: "application/json" },
+    const response = await fetch(`${base}/sites/${storefrontSiteCode}/faq${query}`, {
+      next: { revalidate: 60, tags: ["faq", storefrontSiteCode] },
+      headers: publicSiteHeaders(),
     });
 
     if (!response.ok) {

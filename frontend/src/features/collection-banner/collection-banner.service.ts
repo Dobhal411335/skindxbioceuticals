@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import { FALLBACK_COLLECTION_BANNER } from "@/features/collection-banner/collection-banner.defaults";
@@ -12,7 +14,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -71,10 +72,10 @@ export const getCollectionBanner = cache(
 
     try {
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/collection-banners`,
+        `${base}/sites/${storefrontSiteCode}/collection-banners`,
         {
-          next: { revalidate: 60, tags: ["collection-banners", "IN"] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["collection-banners", storefrontSiteCode] },
+          headers: publicSiteHeaders(),
         },
       );
 

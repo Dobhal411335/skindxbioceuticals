@@ -1,7 +1,7 @@
+import { storefrontSiteCode } from "@/config/site";
 import { apiClient } from "@/services/api/axios";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 type Envelope<T> = {
   success: boolean;
@@ -62,7 +62,7 @@ export const vendorService = {
     const formData = new FormData();
     formData.append("file", file);
     const response = await apiClient.post<Envelope<VendorDocumentRef>>(
-      API_ENDPOINTS.VENDORS.DOCUMENTS(STOREFRONT_SITE_CODE),
+      API_ENDPOINTS.VENDORS.DOCUMENTS(storefrontSiteCode),
       formData,
       { headers: { "Content-Type": "multipart/form-data" } },
     );
@@ -71,7 +71,7 @@ export const vendorService = {
 
   async submitApplication(payload: VendorApplicationPayload): Promise<void> {
     await apiClient.post(
-      API_ENDPOINTS.VENDORS.APPLICATIONS(STOREFRONT_SITE_CODE),
+      API_ENDPOINTS.VENDORS.APPLICATIONS(storefrontSiteCode),
       payload,
     );
   },

@@ -451,9 +451,6 @@ export const footer = {
   description:
     "SkinDx Bioceuticals — a calm ecommerce storefront for skincare and biomedical essentials in India.",
   contact: [
-    { label: "Mumbai, India", icon: "map" as const },
-    { label: "+91 00000 00000", icon: "phone" as const },
-    { label: "hello@skindxbioceuticals.example", icon: "mail" as const },
     { label: "Mon–Sat · 10:00–18:00 IST", icon: "clock" as const },
   ],
   columns: [

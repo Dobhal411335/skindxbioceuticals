@@ -53,6 +53,9 @@ const envSchema = z.object({
   ),
   SITE_IN_URL: z.string().url('SITE_IN_URL must be a valid URL'),
   SITE_COM_URL: z.string().url('SITE_COM_URL must be a valid URL'),
+  SITE_FETCH_SECRET: z
+    .string()
+    .min(32, 'SITE_FETCH_SECRET must be at least 32 characters'),
   PRIVACY_POLICY_URL: z.preprocess(
     (value) => (value === '' || value === undefined ? undefined : value),
     z.string().url().optional(),

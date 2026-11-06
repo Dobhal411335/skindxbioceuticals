@@ -5,7 +5,11 @@ import { uploadSingleImage } from '@/lib/cloudinary/uploads/upload-single-image'
 import { createRateLimiter } from '@/middlewares/rate-limit.middleware';
 import { asyncHandler } from '@/utils/asyncHandler';
 import { sendCreated } from '@/utils/apiResponse';
-import { ValidationError } from '@/utils/AppError';
+import {
+  normalizePublicSiteCode,
+  requirePublicSiteAccess,
+} from '@/middlewares/public-site-origin.middleware';
+import { ForbiddenError, ValidationError } from '@/utils/AppError';
 
 const router = Router();
 
@@ -26,6 +30,7 @@ const prescriptionUploadRateLimiter = createRateLimiter({
  */
 router.post(
   '/prescription',
+  requirePublicSiteAccess,
   prescriptionUploadRateLimiter,
   upload.single('file'),
   asyncHandler(async (req: Request, res: Response) => {
@@ -39,8 +44,14 @@ router.post(
       throw new ValidationError('Only image files (JPG, PNG, WebP) are allowed for prescriptions');
     }
 
-    const rawSiteCode = String(req.query.siteCode || 'IN').toUpperCase();
-    const siteCode: 'IN' | 'COM' = rawSiteCode === 'COM' ? 'COM' : 'IN';
+    const rawSiteCode = req.query.siteCode;
+    const siteCode =
+      rawSiteCode == null || rawSiteCode === ''
+        ? 'IN'
+        : normalizePublicSiteCode(String(rawSiteCode));
+    if (!siteCode) {
+      throw new ForbiddenError('Invalid site code');
+    }
 
     const result = await uploadSingleImage(file, {
       siteCode,

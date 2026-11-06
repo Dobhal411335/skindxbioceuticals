@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import type { StorefrontWebpage } from "@/features/webpages/webpage.types";
@@ -8,7 +10,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -54,7 +55,7 @@ function mapImage(
 function mapWebpage(row: Record<string, unknown>): StorefrontWebpage {
   return {
     id: String(row.id || ""),
-    siteCode: "IN",
+    siteCode: storefrontSiteCode,
     title: String(row.title || ""),
     slug: String(row.slug || ""),
     active: true,
@@ -189,10 +190,10 @@ export const getWebpageBySlug = cache(
 
     try {
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/webpages/by-slug/${encodeURIComponent(slug)}`,
+        `${base}/sites/${storefrontSiteCode}/webpages/by-slug/${encodeURIComponent(slug)}`,
         {
-          next: { revalidate: 60, tags: ["webpages", "IN", `webpage:${slug}`] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["webpages", storefrontSiteCode, `webpage:${slug}`] },
+          headers: publicSiteHeaders(),
         },
       );
 

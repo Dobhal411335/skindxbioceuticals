@@ -48,7 +48,7 @@ export function CookieConsentBanner() {
 
         <div className="mt-6 flex flex-wrap items-center justify-end gap-5 font-sans text-xs font-semibold tracking-wider uppercase sm:text-sm">
           <Link
-            href="/policies/privacy"
+            href="/our-privacy-policy-website-https-skindxbioceuticals-in"
             className="text-zinc-300 transition-colors hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#287F79]"
           >
             PRIVACY POLICY

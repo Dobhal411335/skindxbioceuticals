@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import { FALLBACK_ABOUT_US_BANNER } from "@/features/about-us-banner/about-us-banner.defaults";
@@ -9,7 +11,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -146,9 +147,9 @@ export const getAboutUsBanner = cache(async (): Promise<StorefrontAboutUsBanner>
   }
 
   try {
-    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/about-us-banner`, {
-      next: { revalidate: 60, tags: ["about-us-banner", "IN"] },
-      headers: { Accept: "application/json" },
+    const response = await fetch(`${base}/sites/${storefrontSiteCode}/about-us-banner`, {
+      next: { revalidate: 60, tags: ["about-us-banner", storefrontSiteCode] },
+      headers: publicSiteHeaders(),
     });
 
     if (!response.ok) {

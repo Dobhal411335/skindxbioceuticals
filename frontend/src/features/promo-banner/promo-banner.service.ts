@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import { FALLBACK_PROMO_BANNERS } from "@/features/promo-banner/promo-banner.defaults";
@@ -9,7 +11,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -51,9 +52,9 @@ export const getPromoBanners = cache(async (): Promise<StorefrontPromoBanner[]> 
   }
 
   try {
-    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/promo-banners`, {
-      next: { revalidate: 60, tags: ["promo-banners", "IN"] },
-      headers: { Accept: "application/json" },
+    const response = await fetch(`${base}/sites/${storefrontSiteCode}/promo-banners`, {
+      next: { revalidate: 60, tags: ["promo-banners", storefrontSiteCode] },
+      headers: publicSiteHeaders(),
     });
 
     if (!response.ok) {

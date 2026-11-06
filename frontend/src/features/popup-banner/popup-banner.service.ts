@@ -1,3 +1,4 @@
+import { storefrontSiteCode } from "@/config/site";
 import { apiClient } from "@/services/api/axios";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import type {
@@ -11,7 +12,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 export function popupBannerDismissStorageKey(siteCode: string): string {
   return `skindx.popupBanner.dismissed.${siteCode.toUpperCase()}`;
@@ -63,7 +63,7 @@ export function mapPopupBannerConfigToStorefront(
 
 /** Client-side fetch of the active popup for the .in storefront. */
 export async function fetchActivePopupBanner(
-  siteCode: string = STOREFRONT_SITE_CODE,
+  siteCode: string = storefrontSiteCode,
 ): Promise<StorefrontPopupBanner | null> {
   try {
     const { data } = await apiClient.get<ApiSuccess<PopupBannerConfig>>(

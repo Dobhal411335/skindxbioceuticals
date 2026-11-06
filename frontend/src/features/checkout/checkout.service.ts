@@ -1,3 +1,4 @@
+import { storefrontSiteCode } from "@/config/site";
 import { apiClient } from "@/services/api/axios";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import type {
@@ -48,7 +49,7 @@ export const checkoutService = {
 
   async uploadPrescription(
     file: File,
-    siteCode = "IN",
+    siteCode = storefrontSiteCode,
   ): Promise<{ url: string; publicId: string }> {
     const formData = new FormData();
     formData.append("file", file);

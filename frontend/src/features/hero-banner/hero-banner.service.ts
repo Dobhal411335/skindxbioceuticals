@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import { FALLBACK_HERO_SLIDES } from "@/features/hero-banner/hero-banner.defaults";
@@ -9,7 +11,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -93,9 +94,9 @@ export const getHeroBanners = cache(async (): Promise<StorefrontHeroSlide[]> => 
   }
 
   try {
-    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/hero-banners`, {
-      next: { revalidate: 60, tags: ["hero-banners", "IN"] },
-      headers: { Accept: "application/json" },
+    const response = await fetch(`${base}/sites/${storefrontSiteCode}/hero-banners`, {
+      next: { revalidate: 60, tags: ["hero-banners", storefrontSiteCode] },
+      headers: publicSiteHeaders(),
     });
 
     if (!response.ok) {

@@ -25,7 +25,6 @@ export const faqTopics: { value: FaqTopic; label: string }[] = [
 export const faqIntro = {
   title: "FAQs",
   body: "Find clear answers about shopping on SkinDx Bioc India. For anything not covered here, write to us — we do not provide medical advice through support channels.",
-  email: "hello@skindxbioceuticals.example",
 };
 
 export const faqCategories: FaqCategory[] = [

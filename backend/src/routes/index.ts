@@ -44,6 +44,7 @@ import { mediaRoutes } from '@/features/media/media.routes';
 import { settingsRoutes } from '@/features/settings/settings.routes';
 import { shippingRoutes } from '@/features/shipping/shipping.routes';
 import { newsletterPublicRoutes } from '@/features/newsletter/newsletter.public.routes';
+import { requirePublicSiteAccess } from '@/middlewares/public-site-origin.middleware';
 
 /**
  * Mounts all feature routers under `/api/v1` (configurable via API_PREFIX).
@@ -68,6 +69,7 @@ export function registerRoutes(app: Application): void {
   v1.use('/media', mediaRoutes);
   v1.use('/settings', settingsRoutes);
   v1.use('/shipping', shippingRoutes);
+  v1.use('/sites/:siteCode', requirePublicSiteAccess);
   v1.use('/sites/:siteCode/company-basic-info', companyBasicInfoPublicRoutes);
   v1.use('/sites/:siteCode/navbar-sections', navbarSectionsPublicRoutes);
   v1.use('/sites/:siteCode/social-posts', socialPostsPublicRoutes);

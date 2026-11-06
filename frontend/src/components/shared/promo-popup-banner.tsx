@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { storefrontSiteCode } from "@/config/site";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,7 +21,6 @@ import {
 } from "@/features/popup-banner/popup-banner.service";
 import type { StorefrontPopupBanner } from "@/types/popup-banner";
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 type PromoPopupBannerProps = {
   /** Delay before opening so the page can paint first. */
@@ -30,7 +30,7 @@ type PromoPopupBannerProps = {
 
 export function PromoPopupBanner({
   delayMs = 800,
-  siteCode = STOREFRONT_SITE_CODE,
+  siteCode = storefrontSiteCode,
 }: PromoPopupBannerProps) {
   const pathname = usePathname();
   const isLandingPage = pathname === "/";

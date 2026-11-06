@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import { API_ENDPOINTS } from "@/services/api/endpoints";
@@ -9,7 +11,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 /** Flat search index entry for main categories and subcategories. */
 export type SearchCatalogEntry = {
@@ -41,9 +42,9 @@ export const getCategories = cache(async (): Promise<PublicCategory[]> => {
   }
 
   try {
-    const response = await fetch(`${base}/sites/${STOREFRONT_SITE_CODE}/category`, {
-      next: { revalidate: 60, tags: ["categories", "IN"] },
-      headers: { Accept: "application/json" },
+    const response = await fetch(`${base}/sites/${storefrontSiteCode}/category`, {
+      next: { revalidate: 60, tags: ["categories", storefrontSiteCode] },
+      headers: publicSiteHeaders(),
     });
 
     if (!response.ok) {
@@ -74,10 +75,10 @@ export const getCategoryBySlugOrName = cache(
     try {
       const encoded = encodeURIComponent(categoryName.trim());
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/category/${encoded}`,
+        `${base}/sites/${storefrontSiteCode}/category/${encoded}`,
         {
-          next: { revalidate: 60, tags: ["categories", "IN", categoryName] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["categories", storefrontSiteCode, categoryName] },
+          headers: publicSiteHeaders(),
         },
       );
 
@@ -102,7 +103,7 @@ export async function fetchPublicCategoriesClient(): Promise<PublicCategory[]> {
   try {
     const { apiClient } = await import("@/services/api/axios");
     const response = await apiClient.get<ApiSuccess<PublicCategory[]>>(
-      API_ENDPOINTS.CATEGORIES.PUBLIC(STOREFRONT_SITE_CODE),
+      API_ENDPOINTS.CATEGORIES.PUBLIC(storefrontSiteCode),
     );
     const payload = response.data;
     if (!payload?.success || !Array.isArray(payload.data)) {
@@ -122,7 +123,7 @@ export async function fetchPublicCategoryDetailClient(
   try {
     const { apiClient } = await import("@/services/api/axios");
     const response = await apiClient.get<ApiSuccess<PublicCategoryDetail>>(
-      API_ENDPOINTS.CATEGORIES.PUBLIC_DETAIL(STOREFRONT_SITE_CODE, slugOrName.trim()),
+      API_ENDPOINTS.CATEGORIES.PUBLIC_DETAIL(storefrontSiteCode, slugOrName.trim()),
     );
     const payload = response.data;
     if (!payload?.success || !payload.data?.id || !payload.data?.slug) {

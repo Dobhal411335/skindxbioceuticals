@@ -36,6 +36,12 @@ apiClient.interceptors.request.use(
     if (token) {
       next.headers.Authorization = `Bearer ${token}`;
     }
+    if (typeof window === "undefined") {
+      const siteFetchSecret = process.env.SITE_FETCH_SECRET?.trim();
+      if (siteFetchSecret) {
+        next.headers["x-site-fetch-secret"] = siteFetchSecret;
+      }
+    }
     return next;
   },
   (error: AxiosError): Promise<never> => {

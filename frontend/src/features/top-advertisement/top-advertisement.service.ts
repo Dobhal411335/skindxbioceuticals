@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import { FALLBACK_TOP_ADVERTISEMENT } from "@/features/top-advertisement/top-advertisement.defaults";
@@ -12,7 +14,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -77,10 +78,10 @@ export const getTopAdvertisement = cache(
 
     try {
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/top-advertisement`,
+        `${base}/sites/${storefrontSiteCode}/top-advertisement`,
         {
-          next: { revalidate: 60, tags: ["top-advertisement", "IN"] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["top-advertisement", storefrontSiteCode] },
+          headers: publicSiteHeaders(),
         },
       );
 

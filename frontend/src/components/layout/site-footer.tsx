@@ -135,26 +135,9 @@ export function SiteFooter() {
     company.mainLogo?.url?.trim() ||
     "";
 
-  const addresses =
-    company.officeAddresses?.length > 0
-      ? company.officeAddresses
-      : footer.contact
-        .filter((item) => item.icon === "map")
-        .map((item) => item.label);
-
-  const phones =
-    company.contactNumbers?.length > 0
-      ? company.contactNumbers
-      : footer.contact
-        .filter((item) => item.icon === "phone")
-        .map((item) => item.label);
-
-  const emails =
-    company.emails?.length > 0
-      ? company.emails
-      : footer.contact
-        .filter((item) => item.icon === "mail")
-        .map((item) => item.label);
+  const addresses = (company.officeAddresses ?? []).map((item) => item.trim()).filter(Boolean);
+  const phones = (company.contactNumbers ?? []).map((item) => item.trim()).filter(Boolean);
+  const emails = (company.emails ?? []).map((item) => item.trim()).filter(Boolean);
 
   const googleHref =
     company.googleLink?.trim() ||

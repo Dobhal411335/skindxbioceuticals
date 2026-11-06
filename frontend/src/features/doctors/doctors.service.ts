@@ -1,3 +1,5 @@
+import { publicSiteHeaders } from "@/lib/public-site-fetch";
+import { storefrontSiteCode } from "@/config/site";
 import { cache } from "react";
 
 import type {
@@ -12,7 +14,6 @@ type ApiSuccess<T> = {
   data: T;
 };
 
-const STOREFRONT_SITE_CODE = "IN" as const;
 
 export const emptyDoctorProfileFacets = (): DoctorProfileFacets => ({
   specialities: [],
@@ -30,7 +31,7 @@ function apiBaseUrl(): string {
 
 export const emptyDoctorPageConfig = (): DoctorPageConfig => ({
   id: null,
-  siteCode: STOREFRONT_SITE_CODE,
+  siteCode: storefrontSiteCode,
   aboutHeading: "",
   aboutDescription: "",
   aboutHighlights: [],
@@ -57,10 +58,10 @@ export const getDoctorProfiles = cache(async (): Promise<DoctorProfile[]> => {
 
   try {
     const response = await fetch(
-      `${base}/sites/${STOREFRONT_SITE_CODE}/doctors`,
+      `${base}/sites/${storefrontSiteCode}/doctors`,
       {
-        next: { revalidate: 60, tags: ["doctors", "IN"] },
-        headers: { Accept: "application/json" },
+        next: { revalidate: 60, tags: ["doctors", storefrontSiteCode] },
+        headers: publicSiteHeaders(),
       },
     );
 
@@ -108,10 +109,10 @@ export const getDoctorProfileFacets = cache(
 
     try {
       const response = await fetch(
-        `${base}/sites/${STOREFRONT_SITE_CODE}/doctors/facets`,
+        `${base}/sites/${storefrontSiteCode}/doctors/facets`,
         {
-          next: { revalidate: 60, tags: ["doctors", "doctors-facets", "IN"] },
-          headers: { Accept: "application/json" },
+          next: { revalidate: 60, tags: ["doctors", "doctors-facets", storefrontSiteCode] },
+          headers: publicSiteHeaders(),
         },
       );
 
@@ -161,10 +162,10 @@ export const getDoctorPageConfig = cache(async (): Promise<DoctorPageConfig> => 
 
   try {
     const response = await fetch(
-      `${base}/sites/${STOREFRONT_SITE_CODE}/doctor-page`,
+      `${base}/sites/${storefrontSiteCode}/doctor-page`,
       {
-        next: { revalidate: 60, tags: ["doctor-page", "IN"] },
-        headers: { Accept: "application/json" },
+        next: { revalidate: 60, tags: ["doctor-page", storefrontSiteCode] },
+        headers: publicSiteHeaders(),
       },
     );
 

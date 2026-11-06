@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import supertest from 'supertest';
 
 /**
  * Jest setupFiles — runs before any test module imports.
@@ -29,6 +30,7 @@ process.env.COMPANY_NAME = process.env.COMPANY_NAME ?? 'SkinDx Bioc';
 process.env.SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'support@test.example.com';
 process.env.SITE_IN_URL = process.env.SITE_IN_URL ?? 'http://localhost:3000';
 process.env.SITE_COM_URL = process.env.SITE_COM_URL ?? 'http://localhost:3001';
+process.env.SITE_FETCH_SECRET = 'test-site-fetch-secret-min-32-characters';
 
 process.env.CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME ?? 'test-cloud';
 process.env.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY ?? 'test-cloudinary-key';
@@ -77,3 +79,24 @@ if (process.env.DATABASE_URL_TEST) {
   process.env.DATABASE_URL =
     'postgresql://postgres:postgres@localhost:5432/skindxbioceuticals_test?schema=public';
 }
+
+const testAgent = supertest as unknown as {
+  Test: {
+    prototype: {
+      end: (fn?: (error: unknown, response: unknown) => void) => unknown;
+      set: (field: string, value: string) => unknown;
+      header: Record<string, string> | undefined;
+    };
+  };
+};
+const originalSupertestEnd = testAgent.Test.prototype.end;
+testAgent.Test.prototype.end = function patchedEnd(
+  this: (typeof testAgent.Test.prototype),
+  fn?: (error: unknown, response: unknown) => void,
+) {
+  const headers = this.header ?? {};
+  if (!Object.prototype.hasOwnProperty.call(headers, 'x-site-fetch-secret')) {
+    this.set('x-site-fetch-secret', process.env.SITE_FETCH_SECRET ?? '');
+  }
+  return originalSupertestEnd.call(this, fn);
+};
