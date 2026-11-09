@@ -36,6 +36,12 @@ import { clearCredentials } from "@/store/slices/authSlice";
 import { clearCart } from "@/store/slices/cartSlice";
 import { clearWishlist } from "@/store/slices/wishlistSlice";
 
+const GUEST_AUTH_ROUTES = [
+  "/account/login",
+  "/account/register",
+  "/vendor/login",
+] as const;
+
 export function HeaderAccountMenu() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const dispatch = useAppDispatch();
@@ -51,6 +57,13 @@ export function HeaderAccountMenu() {
     media.addEventListener("change", sync);
     return () => media.removeEventListener("change", sync);
   }, []);
+
+  const prefetchGuestAuthRoutes = () => {
+    if (typeof router.prefetch !== "function") return;
+    for (const href of GUEST_AUTH_ROUTES) {
+      router.prefetch(href);
+    }
+  };
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -87,25 +100,52 @@ export function HeaderAccountMenu() {
             size="sm"
             className="gap-1.5 px-2"
             aria-label="Sign in"
-            onClick={() => setMobileOpen(true)}
+            onClick={() => {
+              prefetchGuestAuthRoutes();
+              setMobileOpen(true);
+            }}
           >
             <User className="size-5" />
             <span className="text-sm font-medium">Sign in</span>
           </Button>
-          <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
+          <Dialog
+            open={mobileOpen}
+            onOpenChange={(open) => {
+              if (open) prefetchGuestAuthRoutes();
+              setMobileOpen(open);
+            }}
+          >
             <DialogContent className="sm:max-w-sm">
               <DialogHeader>
                 <DialogTitle>Sign in</DialogTitle>
               </DialogHeader>
               <div className="mt-2 flex flex-col gap-1">
                 <Button variant="ghost" className="justify-start gap-2" asChild>
-                  <Link href="/account/login" onClick={() => setMobileOpen(false)}>
+                  <Link
+                    href="/account/login"
+                    prefetch
+                    onClick={() => setMobileOpen(false)}
+                  >
                     <User className="size-4" />
                     Sign in
                   </Link>
                 </Button>
                 <Button variant="ghost" className="justify-start gap-2" asChild>
-                  <Link href="/vendor/login" onClick={() => setMobileOpen(false)}>
+                  <Link
+                    href="/account/register"
+                    prefetch
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <User className="size-4" />
+                    Create account
+                  </Link>
+                </Button>
+                <Button variant="ghost" className="justify-start gap-2" asChild>
+                  <Link
+                    href="/vendor/login"
+                    prefetch
+                    onClick={() => setMobileOpen(false)}
+                  >
                     <Handshake className="size-4" />
                     Vendor login
                   </Link>
@@ -118,13 +158,19 @@ export function HeaderAccountMenu() {
     }
 
     return (
-      <DropdownMenu>
+      <DropdownMenu
+        onOpenChange={(open) => {
+          if (open) prefetchGuestAuthRoutes();
+        }}
+      >
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
             className="gap-1.5 px-2"
             aria-label="Sign in"
+            onPointerEnter={prefetchGuestAuthRoutes}
+            onFocus={prefetchGuestAuthRoutes}
           >
             <User className="size-5" />
             <span className="text-sm font-medium">Sign in</span>
@@ -132,13 +178,19 @@ export function HeaderAccountMenu() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuItem asChild>
-            <Link href="/account/login">
+            <Link href="/account/login" prefetch>
               <User className="size-4" />
               Sign in
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/vendor/login">
+            <Link href="/account/register" prefetch>
+              <User className="size-4" />
+              Create account
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/vendor/login" prefetch>
               <Handshake className="size-4" />
               Vendor login
             </Link>

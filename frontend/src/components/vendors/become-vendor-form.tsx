@@ -1,8 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CheckCircle2, FileText, HomeIcon,LogInIcon,  Loader2, Upload, X } from "lucide-react";
+import {
+  CheckCircle2,
+  FileText,
+  HomeIcon,
+  LogInIcon,
+  Loader2,
+  Upload,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,8 +31,8 @@ import {
 } from "@/features/vendors/vendor.service";
 import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
-import { cn } from "@/lib/utils";
 import { INDIA_STATES } from "@/utils/state";
+
 const TOTAL_SECTIONS = 6;
 
 type FormState = {
@@ -206,8 +215,8 @@ function DocumentUploadField({
           ) : null}
         </div>
       ) : (
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-black px-3 py-3 text-sm text-black hover:bg-muted/40">
-          <Upload className="size-4" />
+        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5">
+          <Upload className="size-4 text-primary" />
           Choose file
           <input
             type="file"
@@ -445,21 +454,21 @@ export function BecomeVendorForm() {
 
   if (showThankYou) {
     return (
-      <div className="mx-auto max-w-xl rounded-xl border border-border bg-background p-8 text-center shadow-sm motion-safe:animate-[fade-up_0.55s_ease-out_both] motion-reduce:animate-none">
+      <div className="mx-auto max-w-xl rounded-xl border border-border bg-background p-8 text-center shadow-[var(--shadow-card)] motion-safe:animate-[fade-up_0.55s_ease-out_both] motion-reduce:animate-none">
         <div className="relative mx-auto mb-5 flex size-24 items-center justify-center">
           <span
-            className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500/25 opacity-75 duration-1000 motion-reduce:animate-none"
+            className="absolute inline-flex size-full animate-ping rounded-full bg-primary/25 opacity-75 duration-1000 motion-reduce:animate-none"
             aria-hidden
           />
           <span
-            className="absolute inline-flex size-20 animate-pulse rounded-full bg-emerald-500/20 duration-700 motion-reduce:animate-none"
+            className="absolute inline-flex size-20 animate-pulse rounded-full bg-primary/20 duration-700 motion-reduce:animate-none"
             aria-hidden
           />
           <span
-            className="absolute inline-flex size-28 animate-pulse rounded-full border border-emerald-500/25 motion-reduce:animate-none"
+            className="absolute inline-flex size-28 animate-pulse rounded-full border border-primary/25 motion-reduce:animate-none"
             aria-hidden
           />
-          <div className="relative flex size-16 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-600 to-green-500 text-white shadow-xl shadow-emerald-500/30 ring-4 ring-emerald-50 motion-safe:animate-[vendor-thank-you-heartbeat_1.2s_ease-in-out_infinite] motion-reduce:animate-none">
+          <div className="relative flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 ring-4 ring-primary/10 motion-safe:animate-[vendor-thank-you-heartbeat_1.2s_ease-in-out_infinite] motion-reduce:animate-none">
             <CheckCircle2 className="size-9 stroke-[2.4]" aria-hidden />
           </div>
         </div>
@@ -469,11 +478,20 @@ export function BecomeVendorForm() {
           email you once it is approved.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Button asChild variant="outline" className="bg-red-500 text-white p-6">
-            <Link href="/"><HomeIcon className="size-4 mr-2" />Home</Link>
+          <Button asChild variant="outline" className="h-11 px-6">
+            <Link href="/">
+              <HomeIcon className="mr-2 size-4" />
+              Home
+            </Link>
           </Button>
-          <Button asChild className="bg-primary text-white hover:bg-[#e0981f] p-6">
-            <Link href="/vendor/login"><LogInIcon className="size-4 mr-2" />Vendor Login</Link>
+          <Button
+            asChild
+            className="h-11 bg-primary px-6 text-primary-foreground hover:bg-primary-hover"
+          >
+            <Link href="/vendor/login">
+              <LogInIcon className="mr-2 size-4" />
+              Vendor Login
+            </Link>
           </Button>
         </div>
       </div>
@@ -481,25 +499,63 @@ export function BecomeVendorForm() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl rounded-xl border border-border bg-background p-6 shadow-sm sm:p-8">
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-semibold">Become a Vendor</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Apply for a SkinDx Bioceuticals vendor partner account.
-        </p>
-      </div>
-
-      <div className="mb-8 h-2.5 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-[#f3a827] transition-all"
-          style={{ width: `${(currentSection / TOTAL_SECTIONS) * 100}%` }}
+    <div className="mx-auto grid max-w-6xl overflow-hidden rounded-xl border border-border bg-background shadow-[var(--shadow-card)] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)]">
+      <aside className="relative hidden min-h-[36rem] self-stretch bg-surface lg:block">
+        <Image
+          src="/person/vendor.webp"
+          alt="SkinDx Bioceuticals vendor partnership"
+          fill
+          priority
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          className="object-cover object-center"
         />
-      </div>
-      <p className="mb-6 text-center text-xs text-muted-foreground">
-        Step {currentSection} of {TOTAL_SECTIONS}
-      </p>
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-[#17191c]/55 via-[#17191c]/15 to-transparent"
+          aria-hidden
+        />
+        <div className="absolute inset-x-0 bottom-0 p-8 text-white">
+          <p className="text-sm font-semibold tracking-[0.16em] text-white/80 uppercase">
+            Partner with us
+          </p>
+          <p className="mt-2 max-w-sm text-2xl leading-snug font-semibold tracking-tight">
+            Grow with SkinDx Bioceuticals as a trusted vendor.
+          </p>
+        </div>
+      </aside>
 
-      <div className="space-y-6">
+      <div className="p-6 sm:p-8 lg:p-10">
+        <div className="relative mb-6 overflow-hidden rounded-lg lg:hidden">
+          <div className="relative aspect-[16/9]">
+            <Image
+              src="/person/vendor.webp"
+              alt="SkinDx Bioceuticals vendor partnership"
+              fill
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Become a Vendor
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Apply for a SkinDx Bioceuticals vendor partner account.
+          </p>
+        </div>
+
+        <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-300"
+            style={{ width: `${(currentSection / TOTAL_SECTIONS) * 100}%` }}
+          />
+        </div>
+        <p className="mb-6 text-xs text-muted-foreground">
+          Step {currentSection} of {TOTAL_SECTIONS}
+        </p>
+
+        <div className="space-y-6">
         {currentSection === 1 ? (
           <section className="space-y-4">
             <h2 className="text-lg font-medium">Business Information</h2>
@@ -895,7 +951,7 @@ export function BecomeVendorForm() {
                 onChange={(e) => patch({ additionalNotes: e.target.value })}
               />
             </div>
-            <div className="space-y-3 rounded-lg border border-border p-4">
+            <div className="space-y-3 rounded-lg border border-border bg-surface/60 p-4">
               <div className="flex items-start gap-2">
                 <Checkbox
                   id="terms"
@@ -921,11 +977,11 @@ export function BecomeVendorForm() {
           </section>
         ) : null}
 
-        <div className="flex flex-wrap justify-between gap-3 pt-2">
+        <div className="flex flex-wrap justify-between gap-3 border-t border-border pt-6">
           <Button
             type="button"
             variant="outline"
-            className="px-5 py-5 border border-black"
+            className="h-11 min-w-[7.5rem] px-5"
             disabled={currentSection === 1 || isSubmitting}
             onClick={() => setCurrentSection((prev) => Math.max(1, prev - 1))}
           >
@@ -934,7 +990,7 @@ export function BecomeVendorForm() {
           {currentSection < TOTAL_SECTIONS ? (
             <Button
               type="button"
-              className={cn("bg-[#f3a827] px-5 py-5 border text-md text-white hover:bg-[#e0981f]")}
+              className="h-11 min-w-[7.5rem] bg-primary px-5 text-primary-foreground hover:bg-primary-hover"
               onClick={nextSection}
             >
               Next
@@ -942,7 +998,7 @@ export function BecomeVendorForm() {
           ) : (
             <Button
               type="button"
-              className="bg-[#f3a827] text-white hover:bg-[#e0981f]"
+              className="h-11 bg-primary px-5 text-primary-foreground hover:bg-primary-hover"
               disabled={isSubmitting}
               onClick={() => void handleSubmit()}
             >
@@ -953,10 +1009,14 @@ export function BecomeVendorForm() {
 
         <p className="text-center text-sm text-muted-foreground">
           Already approved?{" "}
-          <Link href="/vendor/login" className="text-[#f3a827] hover:underline">
+          <Link
+            href="/vendor/login"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
             Vendor login
           </Link>
         </p>
+        </div>
       </div>
     </div>
   );

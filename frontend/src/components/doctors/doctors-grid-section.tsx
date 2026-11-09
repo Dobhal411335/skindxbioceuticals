@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 
 import type { DoctorSearchFilters } from "@/components/doctors/doctors-appointment-bar";
 import { DoctorAppointmentModal } from "@/components/doctors/doctor-appointment-modal";
 import { DoctorProfileModal } from "@/components/doctors/doctor-profile-modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDoctorDisplayName, type DoctorProfile } from "@/types/doctors";
-import Image from "next/image";
 
 type DoctorsGridSectionProps = {
   doctors: DoctorProfile[];
@@ -20,21 +20,26 @@ type DoctorsGridSectionProps = {
   onApplyProfileFilter?: (filters: Partial<DoctorSearchFilters>) => void;
 };
 
-function locationLine(doctor: DoctorProfile): string {
+function doctorSubtitle(doctor: DoctorProfile): string {
+  if (doctor.degree.trim()) return doctor.degree.trim();
+  if (doctor.specializations.length > 1) {
+    return doctor.specializations.slice(1).join(" · ");
+  }
+  if (doctor.about.trim()) return doctor.about.trim();
   return [doctor.city, doctor.state].filter(Boolean).join(", ");
 }
 
 function DoctorCardSkeleton() {
   return (
-    <article className="relative rounded-2xl border border-border/60 bg-background px-5 pb-6 pt-14 text-center shadow-[var(--shadow-card)]">
-      <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-        <Skeleton className="size-30 rounded-full border-4 border-background" />
+    <article className="overflow-hidden rounded-2xl border border-border/60 bg-background shadow-[var(--shadow-card)]">
+      <Skeleton className="aspect-[4/3] w-full rounded-none" />
+      <div className="space-y-3 p-5">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-px w-full" />
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="mt-4 h-10 w-36" />
       </div>
-      <Skeleton className="mx-auto h-5 w-36" />
-      <Skeleton className="mx-auto mt-3 h-3 w-44" />
-      <Skeleton className="mx-auto mt-4 h-3 w-full max-w-[14rem]" />
-      <Skeleton className="mx-auto mt-2 h-3 w-full max-w-[12rem]" />
-      <Skeleton className="mx-auto mt-5 h-4 w-24" />
     </article>
   );
 }
@@ -64,7 +69,7 @@ export function DoctorsGridSection({
       aria-busy={isLoading}
     >
       <div className="container-page">
-        <div className="mb-20 text-center md:mb-24">
+        <div className="mb-10 text-center md:mb-12">
           <h2
             id="doctors-grid-heading"
             className="text-3xl font-bold tracking-tight text-foreground md:text-4xl"
@@ -82,7 +87,7 @@ export function DoctorsGridSection({
 
         {isLoading ? (
           <div
-            className="grid gap-x-5 gap-y-20 sm:grid-cols-2 sm:gap-y-24 lg:grid-cols-3 xl:grid-cols-4"
+            className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             aria-label="Loading doctors"
           >
             {Array.from({ length: 4 }, (_, index) => (
@@ -113,81 +118,75 @@ export function DoctorsGridSection({
             ) : null}
           </div>
         ) : (
-          <div className="grid gap-x-5 gap-y-20 sm:grid-cols-2 sm:gap-y-24 lg:grid-cols-3 xl:grid-cols-4">
-            {doctors.map((doctor) => (
-              <article
-                key={doctor.id}
-                className="group relative rounded-2xl border border-border/60 bg-background px-5 pb-6 pt-14 text-center transition-colors duration-500 hover:border-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-                  <div className="size-30 overflow-hidden rounded-full border-4 border-background bg-muted shadow-md transition-colors group-hover:border-primary">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {doctors.map((doctor) => {
+              const specialty = doctor.specializations[0] ?? "";
+              const subtitle = doctorSubtitle(doctor);
+
+              return (
+                <article
+                  key={doctor.id}
+                  className="flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-background shadow-[var(--shadow-card)] transition-shadow hover:shadow-md"
+                >
+                  <div className="relative aspect-[4/4] overflow-hidden bg-muted">
                     <Image
-                    width={100}
-                    height={100}
-                    quality={100}
-                    loading="lazy"
-                    src={doctor.photoUrl}
+                      src={doctor.photoUrl}
                       alt=""
-                      className="size-full object-cover"
+                      fill
+                      sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      quality={90}
+                      loading="lazy"
+                      className="object-cover object-top hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                </div>
 
-                <h3 className="text-lg font-semibold text-foreground transition-colors group-hover:text-primary-foreground">
-                  {formatDoctorDisplayName(doctor.name)}
-                </h3>
-                {doctor.specializations.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-                    {doctor.specializations.map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold leading-none text-primary transition-colors group-hover:bg-background group-hover:text-primary"
+                  <div className="flex flex-1 flex-col p-3 text-left">
+                    {specialty ? (
+                      <p className="text-[11px] font-bold tracking-[0.14em] text-primary uppercase">
+                        {specialty}
+                      </p>
+                    ) : null}
+
+                    <h3 className="mt-1 text-xl font-bold tracking-tight text-foreground">
+                      {formatDoctorDisplayName(doctor.name)}
+                    </h3>
+
+                    <div className="mt-2 h-px w-full bg-border" aria-hidden />
+
+                    {subtitle ? (
+                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                        {subtitle}
+                      </p>
+                    ) : null}
+
+                    <div className="mt-auto flex flex-col gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileDoctorId(doctor.id);
+                          setProfileOpen(true);
+                        }}
+                        className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
                       >
-                        {item}
-                      </span>
-                    ))}
+                        View Profile
+                        <ArrowUpRight className="size-4" aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDoctorId(doctor.id);
+                          setOpen(true);
+                        }}
+                        className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary"
+                      >
+                        Book Appointment
+                        <ArrowUpRight className="size-4" aria-hidden />
+                      </button>
+                    </div>
                   </div>
-                ) : null}
-                {doctor.experienceYears > 0 || locationLine(doctor) ? (
-                  <p className="mt-2 text-xs text-muted-foreground transition-colors group-hover:text-primary-foreground/80">
-                    {[
-                      doctor.experienceYears > 0 ? `${doctor.experienceYears} yrs` : "",
-                      locationLine(doctor),
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                ) : null}
-                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground transition-colors group-hover:text-primary-foreground/90">
-                  {doctor.about}
-                </p>
-                <div className="mt-5 flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileDoctorId(doctor.id);
-                      setProfileOpen(true);
-                    }}
-                    className="inline-flex w-full cursor-pointer items-center justify-center rounded-lg border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors"
-                  >
-                    View profile
-                    <ArrowUpRight className="size-4" aria-hidden />
-
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedDoctorId(doctor.id);
-                      setOpen(true);
-                    }}
-                    className="inline-flex w-full cursor-pointer items-center justify-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-                  >
-                    Appointment
-                    <ArrowUpRight className="size-4" aria-hidden />
-                  </button>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
@@ -207,6 +206,12 @@ export function DoctorsGridSection({
         onSelectLocation={({ state, city }) => {
           setProfileOpen(false);
           onApplyProfileFilter?.({ state, city });
+        }}
+        onBookAppointment={(doctor) => {
+          setProfileOpen(false);
+          setSelectedDoctorId(doctor.id);
+          // Open booking after profile dialog starts closing so both don't fight focus.
+          window.setTimeout(() => setOpen(true), 150);
         }}
       />
       <DoctorAppointmentModal

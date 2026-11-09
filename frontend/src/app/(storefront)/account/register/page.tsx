@@ -9,8 +9,9 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="container-page flex justify-center py-12 sm:py-16">
+    <div className="container-page py-12 sm:py-16">
       <SignupForm />
     </div>
   );
 }
+ 

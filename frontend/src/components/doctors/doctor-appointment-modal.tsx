@@ -29,6 +29,7 @@ import {
 import { showError, showSuccess } from "@/lib/toast";
 import { toApiError } from "@/services/api/errors";
 import { formatDoctorDisplayName, type DoctorProfile } from "@/types/doctors";
+import Image from "next/image";
 
 type DoctorAppointmentModalProps = {
   open: boolean;
@@ -250,33 +251,36 @@ export function DoctorAppointmentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-4xl"
+        className="h-[90vh] max-h-[90vh] overflow-hidden p-0 sm:max-w-4xl"
       >
-        <div className="grid md:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative hidden min-h-[420px] overflow-hidden md:block">
+        <div className="grid h-full min-h-0 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
+          <aside className="relative hidden h-full min-h-0 overflow-hidden bg-muted md:block">
             {selectedDoctor?.photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- CMS Cloudinary URL
-              <img
+              <Image
+              fill
                 src={selectedDoctor.photoUrl}
                 alt=""
-                className="absolute inset-0 size-full object-cover"
+                className="absolute inset-0 size-full object-cover object-top"
               />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-muted to-background" />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
             {selectedDoctor ? (
-              <div className="absolute inset-x-0 bottom-0 p-6 text-white">
-                <p className="text-lg font-semibold">{selectedDoctor.name}</p>
+              <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+                <p className="text-lg font-semibold">
+                  {formatDoctorDisplayName(selectedDoctor.name)}
+                </p>
                 <p className="text-sm text-white/85">
                   {selectedDoctor.specializations.join(", ")}
                 </p>
               </div>
             ) : null}
-          </div>
+          </aside>
 
-          <div className="p-6 md:p-8">
-            <DialogHeader className="mb-5 space-y-1 text-left">
+          <div className="h-full min-h-0 overflow-y-auto overscroll-contain p-6">
+            <DialogHeader className="mb-6 text-left">
               <p className="text-sm font-medium text-primary">Make an appointment</p>
               <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">
                 Book a consultation with SkinDx clinicians
@@ -354,7 +358,7 @@ export function DoctorAppointmentModal({
                   <Select value={doctorId} onValueChange={setDoctorId}>
                     <SelectTrigger
                       id="appointment-doctor"
-                      className="h-15 w-full rounded"
+                      className="h-15 py-5 w-full"
                     >
                       <SelectValue placeholder="Choose Doctor..." />
                     </SelectTrigger>

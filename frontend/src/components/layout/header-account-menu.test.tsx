@@ -16,7 +16,7 @@ const logoutMock = jest.fn();
 const showSuccessMock = jest.fn();
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: pushMock, replace: jest.fn() }),
+  useRouter: () => ({ push: pushMock, replace: jest.fn(), prefetch: jest.fn() }),
 }));
 
 jest.mock("@/features/auth/auth.service", () => ({
@@ -101,6 +101,10 @@ describe("HeaderAccountMenu", () => {
     expect(await screen.findByRole("menuitem", { name: /^sign in$/i })).toHaveAttribute(
       "href",
       "/account/login",
+    );
+    expect(screen.getByRole("menuitem", { name: /create account/i })).toHaveAttribute(
+      "href",
+      "/account/register",
     );
     expect(screen.getByRole("menuitem", { name: /vendor login/i })).toHaveAttribute(
       "href",
