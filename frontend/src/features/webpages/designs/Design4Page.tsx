@@ -11,11 +11,13 @@ import {
 } from "lucide-react";
 import {
   AuthorCard,
+  ContentImageFrame,
   GetInTouchCard,
   HtmlBlock,
   ImageDotsCarousel,
   ShareCard,
   StaticSidebarCard,
+  WebpageHero,
   cleanObjectArray,
   cleanTextArray,
   formatDate,
@@ -56,31 +58,14 @@ export function Design4Page({ data }: { data: StorefrontWebpage }) {
     [data.highlights],
   );
 return (
-      <div className="min-h-screen bg-background font-geist text-gray-900">
-        {/* Top Banner */}
-        <div className="relative h-[500px] md:h-[600px] w-full flex items-end pb-10 pl-6 md:pl-20">
-          {designHeaderMobile ? (
-            <div
-              className="absolute inset-0 bg-contain bg-no-repeat bg-center md:hidden"
-              style={{ backgroundImage: `url(${designHeaderMobile})` }}
-            />
-          ) : null}
-          {designHeaderDesktop ? (
-            <div
-              className="absolute inset-0 hidden bg-cover bg-center md:block"
-              style={{ backgroundImage: `url(${designHeaderDesktop})` }}
-            />
-          ) : null}
-          <div className="absolute inset-0 bg-black/5"></div>
-          <div className="relative z-10 text-white">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-              {data.firstTitle || ""}
-            </h1>
-            <p className="text-md md:text-lg font-semibold text-white">
-              {data.secondTitle || ""}
-            </p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-[#f8f5ee] text-[#172d35]">
+        <WebpageHero
+          miniHeading={data.heroMiniHeading}
+          mainHeading={data.heroMainHeading}
+          description={data.heroDescription}
+          desktopImageUrl={designHeaderDesktop}
+          mobileImageUrl={designHeaderMobile}
+        />
 
         {/* Main Content Area */}
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
@@ -134,22 +119,22 @@ return (
                       }`}
                     >
                       {paraImages.map((imgUrl, idx) => (
-                        <div
+                        <ContentImageFrame
                           key={idx}
-                          className={`overflow-hidden rounded-xl shadow-md ${
+                          className={
                             paraImages.length > 1
                               ? "aspect-square"
                               : "h-[280px] sm:h-[320px] md:h-[360px]"
-                          }`}
+                          }
                         >
                           <Image
                             width={1200}
                             height={800}
                             src={imgUrl}
                             alt={`${para.title || "Paragraph"} ${idx + 1}`}
-                            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                            className="h-full w-full object-cover"
                           />
-                        </div>
+                        </ContentImageFrame>
                       ))}
                     </div>
                   )}

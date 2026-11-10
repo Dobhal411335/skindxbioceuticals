@@ -68,11 +68,10 @@ export function MobileNav() {
           ))}
           <Link
             href="/doctors"
-            className="mt-5 flex items-center justify-center gap-4 rounded-full border border-primary bg-primary px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-white hover:text-primary focus:bg-white focus:text-primary focus-visible:bg-white focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:bg-white active:text-primary"
+            className="group mt-5 flex items-center justify-center gap-3 rounded-full border border-primary bg-primary px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-primary hover:shadow-md focus:bg-white focus:text-primary focus-visible:bg-white focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0 active:bg-white active:text-primary"
           >
-            <Hospital/>
+            <Hospital className="size-4 shrink-0 transition-transform duration-300 group-hover:scale-110" />
             Appointment your doctor
-            <ArrowUpRight/>
           </Link>
         </nav>
       </SheetContent>

@@ -1093,6 +1093,10 @@ model Webpage {
   firstTitle  String @default("") @map("first_title")
   secondTitle String @default("") @map("second_title")
 
+  heroMiniHeading String @default("") @map("hero_mini_heading")
+  heroMainHeading String @default("") @map("hero_main_heading")
+  heroDescription String @default("") @db.Text @map("hero_description")
+
   imageFirst         Json? @map("image_first")
   imageFirstMobile   Json? @map("image_first_mobile")
   bannerImage        Json? @map("banner_image")

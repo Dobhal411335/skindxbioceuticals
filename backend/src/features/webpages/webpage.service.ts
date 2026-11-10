@@ -226,6 +226,9 @@ export function toWebpageDto(record: WebpageRecord, siteCode: SiteCode): Webpage
     keywords: record.keywords ?? [],
     firstTitle: record.firstTitle,
     secondTitle: record.secondTitle,
+    heroMiniHeading: record.heroMiniHeading,
+    heroMainHeading: record.heroMainHeading,
+    heroDescription: record.heroDescription,
     imageFirst: asImageAsset(record.imageFirst) ?? emptyImage(),
     imageFirstMobile: asImageAsset(record.imageFirstMobile) ?? emptyImage(),
     bannerImage: asImageAsset(record.bannerImage) ?? emptyImage(),
@@ -480,6 +483,9 @@ export class WebpageService {
     assign('keywords');
     assign('firstTitle');
     assign('secondTitle');
+    assign('heroMiniHeading');
+    assign('heroMainHeading');
+    assign('heroDescription');
     assign('tableTitle');
     assign('blockquoteMainTitle');
     assign('blockquoteLeftTitle');

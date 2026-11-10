@@ -11,11 +11,13 @@ import {
 } from "lucide-react";
 import {
   AuthorCard,
+  ContentImageFrame,
   GetInTouchCard,
   HtmlBlock,
   ImageDotsCarousel,
   ShareCard,
   StaticSidebarCard,
+  WebpageHero,
   cleanObjectArray,
   cleanTextArray,
   formatDate,
@@ -41,7 +43,6 @@ function ClassicWebpageLayout({
   data: StorefrontWebpage;
   variant: ClassicVariant;
 }) {
-  console.log("data22", data)
   const [openAccordion, setOpenAccordion] = useState(0);
   const isDesignOne = variant === "design1";
   const isDesignTwo = variant === "design2";
@@ -83,33 +84,18 @@ function ClassicWebpageLayout({
     ].filter(Boolean);
     return sectionImages.length > 0 ? sectionImages : paragraphImages;
   };
-  const hasTopMetaContent =
-    isFilledText(data.firstTitle) ||
-    isFilledText(data.secondTitle) ||
-    tags.length > 0;
+  const hasHeroCopy =
+    isFilledText(data.heroMiniHeading) ||
+    isFilledText(data.heroMainHeading) ||
+    isFilledText(data.heroDescription);
   const hasMainTopImage = !!data.imageFirst?.url || !!data.imageFirstMobile?.url;
-  const hasTopHeaderContent = hasTopMetaContent || hasMainTopImage;
-  const isBannerOnlyTop =
-    !isDesignThree &&
-    (!!data.bannerImage?.url || !!data.bannerImageMobile?.url) &&
-    !hasTopHeaderContent;
-  const headerImage =
-    data.imageFirst?.url || paragraphImages[0];
-  const headerImageMobile =
-    data.imageFirstMobile?.url ||
-    data.imageFirst?.url ||
-    paragraphImages[0];
-  const bannerImageDesktop = data.bannerImage?.url || data.bannerImageMobile?.url;
+  const bannerImageDesktop =
+    data.bannerImage?.url || data.bannerImageMobile?.url || "";
   const bannerImageMobile =
-    data.bannerImageMobile?.url || data.bannerImage?.url;
-  const designThreeHeroImages = [
-    data.imageFirst?.url,
-    data.mainProfileImage?.url,
-    data.bannerImage?.url,
-    ...(data.imageGallery || []).map((item) => item?.url).filter(Boolean),
-  ]
-    .filter(Boolean)
-    .slice(0, 3);
+    data.bannerImageMobile?.url || data.bannerImage?.url || "";
+  const hasBannerImage = Boolean(bannerImageDesktop || bannerImageMobile);
+  // Banner-only mode: banner images present, no hero copy and no all-inputs image.
+  const isBannerOnlyTop = hasBannerImage && !hasHeroCopy && !hasMainTopImage;
   const introHighlight = isDesignThree ? highlights[0] : null;
   const remainingHighlights = isDesignThree ? highlights.slice(1) : highlights;
 
@@ -130,159 +116,47 @@ function ClassicWebpageLayout({
   // Alias for JSX that still references Hotel's isDesignTwo (design1 layout)
   const hotelIsDesignTwo = isDesignOne;
 
+  const heroDesktopUrl =
+    data.imageFirst?.url ||
+    data.bannerImage?.url ||
+    data.imageFirstMobile?.url ||
+    data.bannerImageMobile?.url ||
+    "";
+  const heroMobileUrl =
+    data.imageFirstMobile?.url ||
+    data.bannerImageMobile?.url ||
+    data.imageFirst?.url ||
+    data.bannerImage?.url ||
+    "";
+
   return (
-    <div className="min-h-screen bg-background font-geist font-semibold text-gray-900">
-      <div
-        className={`w-full border-b border-gray-900 bg-background`}
-      >
-        <div
-          className={`w-full ${!isDesignThree && !isDesignOne && !isBannerOnlyTop ? "md:px-4 sm:px-6" : ""
-            }`}
-        >
-          <div
-            className={`grid gap-2 ${isDesignThree || isDesignOne || isBannerOnlyTop ? "grid-cols-1" : "lg:grid-cols-[520px_minmax(0,1fr)] lg:items-center"}`}
-          >
-            {isDesignThree ? (
-              <div className="overflow-hidden">
-                {(data.imageFirstMobile?.url ||
-                  data.imageFirst?.url ||
-                  designThreeHeroImages[0]) && (
-                    <>
-                      <Image
-                        width={800}
-                        height={500}
-                        src={
-                          data.imageFirstMobile?.url ||
-                          data.imageFirst?.url ||
-                          designThreeHeroImages[0]
-                        }
-                        alt={data.title}
-                        className="h-[240px] w-full object-cover md:hidden"
-                      />
-                      {(data.imageFirst?.url || designThreeHeroImages[0]) && (
-                        <Image
-                          width={1920}
-                          height={600}
-                          src={data.imageFirst?.url || designThreeHeroImages[0]}
-                          alt={data.title}
-                          className="hidden h-[350px] w-full object-cover md:block"
-                        />
-                      )}
-                    </>
-                  )}
-              </div>
-            ) : isBannerOnlyTop ? (
-              <div className="overflow-hidden">
-                {bannerImageMobile ? (
-                  <Image
-                    width={800}
-                    height={1000}
-                    src={bannerImageMobile}
-                    alt={data.title}
-                    className="h-[500px] w-full object-cover md:hidden"
-                  />
-                ) : null}
-                {bannerImageDesktop ? (
-                  <Image
-                    width={1920}
-                    height={800}
-                    src={bannerImageDesktop}
-                    alt={data.title}
-                    className="hidden h-[600px] w-full object-cover md:block"
-                  />
-                ) : null}
-              </div>
-            ) : isDesignOne ? (
-              <div className="overflow-hidden">
-                {headerImageMobile ? (
-                  <Image
-                    width={800}
-                    height={600}
-                    src={headerImageMobile}
-                    alt={data.title}
-                    className="h-[220px] sm:h-[300px] w-full object-cover md:hidden"
-                  />
-                ) : null}
-                {headerImage ? (
-                  <Image
-                    width={1920}
-                    height={800}
-                    src={headerImage}
-                    alt={data.title}
-                    className="hidden h-[280px] sm:h-[360px] md:h-[450px] w-full object-cover md:block"
-                  />
-                ) : null}
-              </div>
-            ) : (
-              <div className="overflow-hidden">
-                {headerImageMobile ? (
-                  <Image
-                    width={800}
-                    height={600}
-                    src={headerImageMobile}
-                    alt={data.title}
-                    className="h-[220px] w-full object-contain md:hidden"
-                  />
-                ) : null}
-                {headerImage ? (
-                  <Image
-                    width={1200}
-                    height={800}
-                    src={headerImage}
-                    alt={data.title}
-                    className="hidden h-[250px] w-full object-contain md:block"
-                  />
-                ) : null}
-              </div>
-            )}
-            {/* {!isDesignThree && (
-              <div className="px-5 md:px-10 py-5 ">
-                {/* {isFilledText(data.firstTitle) && (
-                  <span className="hidden text-md my-3 font-medium text-gray-600 md:block">
-                    {data.firstTitle}
-                  </span>
-                )}
-                <h1 className="max-w-4xl text-2xl font-geist font-semibold leading-[1.05] tracking-tight text-black sm:text-5xl">
-                  {data.title}
-                </h1>
-                {isFilledText(data.secondTitle) && (
-                  <p className="mt-2 max-w-3xl text-md leading-8 text-gray-700">
-                    {data.secondTitle}
-                  </p>
-                )} 
-                {tags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {tags.map((tag, idx) => (
-                      <span
-                        key={tag + idx}
-                        className="rounded-md border border-[#d4d4d4] bg-[#efefef] px-2 py-1 text-sm font-medium text-black"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {/* <div className="mt-7 flex flex-wrap items-center gap-4 text-md text-black">
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e8e4ff] text-sm font-bold text-[#4f46e5]">
-                      {(data.sideThumbName || "E").charAt(0)}
-                    </span>
-                    <span className="text-sm">
-                      {data.sideThumbName || "Editorial Team"}
-                    </span>
-                  </div>
-                  <span className="h-6 w-px bg-gray-400" />
-                  <span className="text-sm">
-                    {formatDate(data.updatedAt || data.createdAt) || ""}
-                  </span>
-                </div>
-              </div>
-            )} */}
-          </div>
+    <div className="min-h-screen bg-[#f8f5ee] text-[#172d35]">
+      {isBannerOnlyTop ? (
+        <div className="relative w-full overflow-hidden">
+          {bannerImageMobile ? (
+            <div
+              className="h-[250px] w-full bg-cover bg-center md:hidden sm:h-[400px]"
+              style={{ backgroundImage: `url(${bannerImageMobile})` }}
+            />
+          ) : null}
+          {bannerImageDesktop ? (
+            <div
+              className="hidden h-[500px] w-full bg-cover bg-center md:block"
+              style={{ backgroundImage: `url(${bannerImageDesktop})` }}
+            />
+          ) : null}
         </div>
-      </div>
+      ) : (
+        <WebpageHero
+          miniHeading={data.heroMiniHeading}
+          mainHeading={data.heroMainHeading}
+          description={data.heroDescription}
+          desktopImageUrl={heroDesktopUrl}
+          mobileImageUrl={heroMobileUrl}
+        />
+      )}
       <div className="mx-auto w-full md:max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-        <div className=" bg-background">
+        <div>
           {isDesignThree && (
             <section className="grid gap-6 py-4 md:px-5 md:py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
               <div>
@@ -403,18 +277,20 @@ function ClassicWebpageLayout({
                               {sectionImages.map((image, imgIndex) => (
                                 <div
                                   key={`${image}-${imgIndex}`}
-                                  className="h-[280px] mt-2 overflow-hidden rounded-image bg-[#f8f5ef] sm:h-[320px] md:h-[360px]"
+                                  className="mt-2"
                                 >
-                                  <Image
-                                    width={1200}
-                                    height={800}
-                                    src={image}
-                                    alt={
-                                      section.title ||
-                                      `Section image ${imgIndex + 1}`
-                                    }
-                                    className="h-full w-full object-cover"
-                                  />
+                                  <ContentImageFrame className="h-[280px] bg-[#f8f5ef] sm:h-[320px] md:h-[360px]">
+                                    <Image
+                                      width={1200}
+                                      height={800}
+                                      src={image}
+                                      alt={
+                                        section.title ||
+                                        `Section image ${imgIndex + 1}`
+                                      }
+                                      className="h-full w-full object-cover"
+                                    />
+                                  </ContentImageFrame>
                                 </div>
                               ))}
                             </div>
@@ -608,18 +484,19 @@ function ClassicWebpageLayout({
                           {leadParagraphImages.map((image, index) => (
                             <div
                               key={`${image}-${index}`}
-                              className="overflow-hidden rounded-md bg-[#f8f5ef]"
                             >
-                              <Image
-                                width={1200}
-                                height={800}
-                                src={image}
-                                alt={
-                                  leadParagraph.title ||
-                                  `Lead image ${index + 1}`
-                                }
-                                className="md:h-[500px] w-full object-cover sm:h-[200px]"
-                              />
+                              <ContentImageFrame className="bg-[#f8f5ef]">
+                                <Image
+                                  width={1200}
+                                  height={800}
+                                  src={image}
+                                  alt={
+                                    leadParagraph.title ||
+                                    `Lead image ${index + 1}`
+                                  }
+                                  className="md:h-[500px] w-full object-cover sm:h-[200px]"
+                                />
+                              </ContentImageFrame>
                             </div>
                           ))}
                         </div>
@@ -656,18 +533,19 @@ function ClassicWebpageLayout({
                               {sectionImages.map((image, imageIndex) => (
                                 <div
                                   key={`${image}-${imageIndex}`}
-                                  className="overflow-hidden rounded-md bg-[#f8f5ef]"
                                 >
-                                  <Image
-                                    width={1200}
-                                    height={800}
-                                    src={image}
-                                    alt={
-                                      section.title ||
-                                      `Section image ${imageIndex + 1}`
-                                    }
-                                    className="md:h-[250px] w-full object-cover sm:h-[200px]"
-                                  />
+                                  <ContentImageFrame className="bg-[#f8f5ef]">
+                                    <Image
+                                      width={1200}
+                                      height={800}
+                                      src={image}
+                                      alt={
+                                        section.title ||
+                                        `Section image ${imageIndex + 1}`
+                                      }
+                                      className="md:h-[250px] w-full object-cover sm:h-[200px]"
+                                    />
+                                  </ContentImageFrame>
                                 </div>
                               ))}
                             </div>

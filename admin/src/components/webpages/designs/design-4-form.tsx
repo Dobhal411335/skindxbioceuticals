@@ -56,6 +56,45 @@ export function Design4Form({
           onTitleLineChange={(v) => patch("titleLine", v)}
           onKeywordsChange={(v) => patch("keywords", v)}
         />
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold">Hero section</h3>
+          <div className="space-y-2">
+            <Label>Mini heading</Label>
+            <Input
+              value={values.heroMiniHeading}
+              onChange={(e) => patch("heroMiniHeading", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Main heading</Label>
+            <Input
+              value={values.heroMainHeading}
+              onChange={(e) => patch("heroMainHeading", e.target.value)}
+            />
+          </div>
+          <RichHtmlField
+            label="Description"
+            value={values.heroDescription}
+            onChange={(html) => patch("heroDescription", html)}
+            onUploadImage={uploadInline}
+          />
+          <ImageAssetField
+            siteCode={siteCode}
+            webpageId={webpageId}
+            inputId="d4-hero-banner"
+            label="Full-width background image (laptop)"
+            value={values.bannerImage || emptyImage()}
+            onChange={(v) => patch("bannerImage", v)}
+          />
+          <ImageAssetField
+            siteCode={siteCode}
+            webpageId={webpageId}
+            inputId="d4-hero-banner-mobile"
+            label="Full-width background image (mobile)"
+            value={values.bannerImageMobile || emptyImage()}
+            onChange={(v) => patch("bannerImageMobile", v)}
+          />
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label>Main top tag line</Label>
@@ -72,22 +111,6 @@ export function Design4Form({
             />
           </div>
         </div>
-        <ImageAssetField
-          siteCode={siteCode}
-          webpageId={webpageId}
-          inputId="d4-image-first"
-          label="Main top image (laptop)"
-          value={values.imageFirst}
-          onChange={(v) => patch("imageFirst", v)}
-        />
-        <ImageAssetField
-          siteCode={siteCode}
-          webpageId={webpageId}
-          inputId="d4-image-first-mobile"
-          label="Main top image (mobile)"
-          value={values.imageFirstMobile}
-          onChange={(v) => patch("imageFirstMobile", v)}
-        />
       </SectionCard>
       <SectionCard title="Page notices" icon={<Info className="size-4" />}>
         <div className="space-y-4">

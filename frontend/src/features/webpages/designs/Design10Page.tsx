@@ -10,7 +10,7 @@ import type { StorefrontWebpage } from "@/features/webpages/webpage.types";
 const Mini = ({ children, light = false }: { children?: string; light?: boolean }) =>
   children ? (
     <p
-      className={`inline-flex items-center gap-3 border-b pb-2 font-ui text-[15px] font-bold uppercase tracking-[.2em] ${light ? "border-[#e6a276] text-[#e6a276]" : "border-[#c96e42] text-[#c96e42]"}`}
+      className={`inline-flex items-center gap-3 border-b pb-2 font-ui text-[12px] font-bold uppercase tracking-[.2em] ${light ? "border-[#e6a276] text-[#e6a276]" : "border-[#c96e42] text-[#c96e42]"}`}
     >
       <span className="h-px w-9 bg-current" aria-hidden="true" />
       {children}
@@ -49,7 +49,7 @@ export function Design10Page({ data }: { data: StorefrontWebpage }) {
             style={{ backgroundImage: `url(${data.design10HeroImage.url})` }}
           />
         )}
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,35,44,.96)_0%,rgba(10,35,44,.72)_45%,rgba(10,35,44,.2)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,35,44,.96)_0%,rgba(10,35,44,.72)_15%,rgba(10,35,44,.2)_100%)]" />
         <div className="relative max-w-4xl pb-2 lg:pb-8">
           <Mini light>{data.design10HeroMiniHeading}</Mini>
           <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[.94] tracking-[-.045em] lg:text-[clamp(4.5rem,7vw,6rem)]">

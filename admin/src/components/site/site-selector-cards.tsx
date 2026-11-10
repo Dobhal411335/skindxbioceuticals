@@ -96,8 +96,8 @@ export function SiteSelectorCards({ sites }: SiteSelectorCardsProps) {
             <CardContent>
               {canAccess ? (
                 <Button
-                  className="w-full"
-                  size="lg"
+                  className="w-full py-5 text-base"
+                  size="icon-lg"
                   disabled={navigating !== null}
                   onClick={() => {
                     setNavigating(code);

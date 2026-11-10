@@ -38,18 +38,13 @@ function SelectSiteContent() {
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
               Select a website
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              Choose a workspace to manage. SkinDx.in covers ecommerce operations; SkinDx.com covers
-              company information, content, banners, and enquiries. Access is verified by the API
-              using your assigned permissions.
-            </p>
             {user ? (
               <p className="mt-3 text-sm text-muted-foreground">
                 Signed in as <span className="font-medium text-foreground">{user.email}</span>
               </p>
             ) : null}
           </div>
-          <Button variant="outline" disabled={isSigningOut} onClick={() => void handleSignOut()}>
+          <Button variant="outline" className="w-full py-5 border border-border sm:w-auto" disabled={isSigningOut} onClick={() => void handleSignOut()}>
             {isSigningOut ? "Signing out…" : "Sign out"}
           </Button>
         </div>

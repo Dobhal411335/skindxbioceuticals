@@ -8,6 +8,7 @@ import {
   ImageAssetField,
   Input,
   Label,
+  RichHtmlField,
   SectionCard,
   SeoKeywordsField,
   Textarea,
@@ -38,6 +39,10 @@ export function Design7Form({
     key: K,
     value: WebpageEditFormValues[K],
   ) => setValues((prev) => ({ ...prev, [key]: value }));
+  const uploadInline = async (file: File) => {
+    const uploaded = await uploadWebpageImage(siteCode, file, webpageId);
+    return uploaded.url;
+  };
 
   const slugify = (value: string) =>
     value
@@ -84,6 +89,45 @@ export function Design7Form({
           onTitleLineChange={(v) => patch("titleLine", v)}
           onKeywordsChange={(v) => patch("keywords", v)}
         />
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold">Hero section</h3>
+          <div className="space-y-2">
+            <Label>Mini heading</Label>
+            <Input
+              value={values.heroMiniHeading}
+              onChange={(e) => patch("heroMiniHeading", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Main heading</Label>
+            <Input
+              value={values.heroMainHeading}
+              onChange={(e) => patch("heroMainHeading", e.target.value)}
+            />
+          </div>
+          <RichHtmlField
+            label="Description"
+            value={values.heroDescription}
+            onChange={(html) => patch("heroDescription", html)}
+            onUploadImage={uploadInline}
+          />
+          <ImageAssetField
+            siteCode={siteCode}
+            webpageId={webpageId}
+            inputId="d7-hero-banner"
+            label="Full-width background image (laptop)"
+            value={values.bannerImage || emptyImage()}
+            onChange={(v) => patch("bannerImage", v)}
+          />
+          <ImageAssetField
+            siteCode={siteCode}
+            webpageId={webpageId}
+            inputId="d7-hero-banner-mobile"
+            label="Full-width background image (mobile)"
+            value={values.bannerImageMobile || emptyImage()}
+            onChange={(v) => patch("bannerImageMobile", v)}
+          />
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label>Main top tag line</Label>
@@ -100,22 +144,6 @@ export function Design7Form({
             />
           </div>
         </div>
-        <ImageAssetField
-          siteCode={siteCode}
-          webpageId={webpageId}
-          inputId="d7-banner"
-          label="Banner image (laptop)"
-          value={values.bannerImage}
-          onChange={(v) => patch("bannerImage", v)}
-        />
-        <ImageAssetField
-          siteCode={siteCode}
-          webpageId={webpageId}
-          inputId="d7-banner-mobile"
-          label="Banner image (mobile)"
-          value={values.bannerImageMobile}
-          onChange={(v) => patch("bannerImageMobile", v)}
-        />
       </SectionCard>
 
       <SectionCard

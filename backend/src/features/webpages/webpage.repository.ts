@@ -18,6 +18,9 @@ function mapWebpage(row: {
   keywords: string[];
   firstTitle: string;
   secondTitle: string;
+  heroMiniHeading: string;
+  heroMainHeading: string;
+  heroDescription: string;
   imageFirst: Prisma.JsonValue | null;
   imageFirstMobile: Prisma.JsonValue | null;
   bannerImage: Prisma.JsonValue | null;

@@ -86,46 +86,48 @@ export function Design9Form({
         onKeywordsChange={(v) => patch("keywords", v)}
       />
 
-      <ImageAssetField
-        siteCode={siteCode}
-        webpageId={webpageId}
-        inputId="d9-banner"
-        label="Header banner image (laptop)"
-        value={values.bannerImage || emptyImage()}
-        onChange={(v) => patch("bannerImage", v)}
-      />
-      <ImageAssetField
-        siteCode={siteCode}
-        webpageId={webpageId}
-        inputId="d9-banner-mobile"
-        label="Header banner image (mobile)"
-        value={values.bannerImageMobile || emptyImage()}
-        onChange={(v) => patch("bannerImageMobile", v)}
-      />
-
-      <div className="space-y-2">
-        <Label>Mini heading</Label>
-        <Input
-          value={values.design9MiniHeading}
-          onChange={(e) => patch("design9MiniHeading", e.target.value)}
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold">Hero section</h3>
+        <div className="space-y-2">
+          <Label>Mini heading</Label>
+          <Input
+            value={values.design9MiniHeading}
+            onChange={(e) => patch("design9MiniHeading", e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Main heading</Label>
+          <Input
+            value={values.design9MainHeading}
+            onChange={(e) => patch("design9MainHeading", e.target.value)}
+          />
+        </div>
+        <RichHtmlField
+          label="Description"
+          value={values.design9Description}
+          onChange={(html) => patch("design9Description", html)}
+          onUploadImage={uploadInline}
+        />
+        <ImageAssetField
+          siteCode={siteCode}
+          webpageId={webpageId}
+          inputId="d9-hero"
+          label="Full-width background image (laptop)"
+          value={values.bannerImage || emptyImage()}
+          onChange={(v) => patch("bannerImage", v)}
+        />
+        <ImageAssetField
+          siteCode={siteCode}
+          webpageId={webpageId}
+          inputId="d9-hero-mobile"
+          label="Full-width background image (mobile)"
+          value={values.bannerImageMobile || emptyImage()}
+          onChange={(v) => patch("bannerImageMobile", v)}
         />
       </div>
-      <div className="space-y-2">
-        <Label>Main heading</Label>
-        <Input
-          value={values.design9MainHeading}
-          onChange={(e) => patch("design9MainHeading", e.target.value)}
-        />
-      </div>
-      <RichHtmlField
-        label="Description"
-        value={values.design9Description}
-        onChange={(html) => patch("design9Description", html)}
-        onUploadImage={uploadInline}
-      />
 
-      <div className="space-y-4 pt-2">
-        <Label>Content cards</Label>
+      <div className="space-y-4 border-t pt-6">
+        <h3 className="text-base font-semibold">Content cards</h3>
         {values.design9Cards.map((card, index) => (
           <div
             key={index}

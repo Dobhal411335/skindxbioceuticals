@@ -123,6 +123,9 @@ export type WebpageDto = WebpageListDto & {
   keywords: string[];
   firstTitle: string;
   secondTitle: string;
+  heroMiniHeading: string;
+  heroMainHeading: string;
+  heroDescription: string;
   imageFirst: WebpageImageAsset | null;
   imageFirstMobile: WebpageImageAsset | null;
   bannerImage: WebpageImageAsset | null;
@@ -235,6 +238,9 @@ export type WebpageEditFormValues = {
   keywords: string[];
   firstTitle: string;
   secondTitle: string;
+  heroMiniHeading: string;
+  heroMainHeading: string;
+  heroDescription: string;
   imageFirst: WebpageImageAsset;
   imageFirstMobile: WebpageImageAsset;
   bannerImage: WebpageImageAsset;

@@ -43,6 +43,9 @@ export type WebpageDto = WebpageListDto & {
   keywords: string[];
   firstTitle: string;
   secondTitle: string;
+  heroMiniHeading: string;
+  heroMainHeading: string;
+  heroDescription: string;
   imageFirst: WebpageImageAsset | null;
   imageFirstMobile: WebpageImageAsset | null;
   bannerImage: WebpageImageAsset | null;
@@ -143,6 +146,9 @@ export type WebpageRecord = {
   keywords: string[];
   firstTitle: string;
   secondTitle: string;
+  heroMiniHeading: string;
+  heroMainHeading: string;
+  heroDescription: string;
   imageFirst: Prisma.JsonValue | null;
   imageFirstMobile: Prisma.JsonValue | null;
   bannerImage: Prisma.JsonValue | null;

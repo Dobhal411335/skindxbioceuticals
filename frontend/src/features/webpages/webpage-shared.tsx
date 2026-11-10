@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ChevronDown,
@@ -135,6 +136,116 @@ const HtmlBlock = ({ html, className = "" }) => {
   );
 };
 
+const WebpageHeroMini = ({
+  children,
+  light = false,
+}: {
+  children?: string;
+  light?: boolean;
+}) =>
+  children ? (
+    <p
+      className={`inline-flex items-center gap-3 border-b pb-2 font-ui text-[15px] font-bold uppercase tracking-[.2em] ${light ? "border-[#e6a276] text-[#e6a276]" : "border-[#c96e42] text-[#c96e42]"}`}
+    >
+      <span className="h-px w-9 bg-current" aria-hidden="true" />
+      {children}
+    </p>
+  ) : null;
+
+const WebpageHeroCopy = ({
+  html,
+  light = false,
+  className = "",
+}: {
+  html?: string;
+  light?: boolean;
+  className?: string;
+}) =>
+  isFilledText(html) ? (
+    <HtmlBlock
+      html={html!}
+      className={`${light ? "!text-white [&_p]:!text-white" : "text-[#637179]"} [&_p]:leading-7 ${className}`}
+    />
+  ) : null;
+
+type WebpageHeroProps = {
+  miniHeading?: string;
+  mainHeading?: string;
+  description?: string;
+  desktopImageUrl?: string | null;
+  mobileImageUrl?: string | null;
+};
+
+const WebpageHero = ({
+  miniHeading = "",
+  mainHeading = "",
+  description = "",
+  desktopImageUrl = "",
+  mobileImageUrl = "",
+}: WebpageHeroProps) => {
+  const bannerImageDesktop = desktopImageUrl || mobileImageUrl || "";
+  const bannerImageMobile = mobileImageUrl || desktopImageUrl || "";
+  const hasHeroImage = Boolean(bannerImageDesktop || bannerImageMobile);
+
+  return (
+    <section className="relative flex min-h-screen items-end overflow-hidden bg-[#102a33] px-6 py-20 text-white sm:px-10 md:px-16 lg:px-[10%] lg:py-28">
+      {hasHeroImage ? (
+        <>
+          {bannerImageMobile ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-80 md:hidden"
+              style={{ backgroundImage: `url(${bannerImageMobile})` }}
+            />
+          ) : null}
+          {bannerImageDesktop ? (
+            <div
+              className="absolute inset-0 hidden bg-cover bg-center opacity-80 md:block"
+              style={{ backgroundImage: `url(${bannerImageDesktop})` }}
+            />
+          ) : null}
+        </>
+      ) : null}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,35,44,.96)_0%,rgba(10,35,44,.72)_45%,rgba(10,35,44,.2)_100%)]" />
+      <div className="relative max-w-4xl pb-2 lg:pb-8">
+        <WebpageHeroMini light>{miniHeading}</WebpageHeroMini>
+        {isFilledText(mainHeading) ? (
+          <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[.94] tracking-[-.045em] lg:text-[clamp(4.5rem,7vw,5rem)]">
+            {mainHeading}
+          </h1>
+        ) : null}
+        <WebpageHeroCopy
+          html={description}
+          light
+          className="mt-8 max-w-xl text-md text-white"
+        />
+      </div>
+    </section>
+  );
+};
+
+const ContentImageFrame = ({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) => (
+  <div
+    className={cn(
+      "group relative overflow-hidden rounded-2xl shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(23,45,53,.18)]",
+      className,
+    )}
+  >
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-3 z-20 rounded-xl border-2 border-white/95 transition-opacity duration-500 group-hover:border-white"
+    />
+    <div className="[&_img]:transition-transform [&_img]:duration-500 group-hover:[&_img]:scale-105">
+      {children}
+    </div>
+  </div>
+);
+
 const ImageDotsCarousel = ({ images = [], alt = "" }) => {
   const [api, setApi] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -156,37 +267,47 @@ const ImageDotsCarousel = ({ images = [], alt = "" }) => {
 
   if (slides.length === 1) {
     return (
-      <div className="overflow-hidden bg-surface rounded-image">
-        <img
-          src={slides[0].url}
-          alt={alt}
-          className="h-[300px] w-full object-cover md:h-[400px]"
-        />
-      </div>
+      <ContentImageFrame>
+        <div className="relative h-[300px] w-full overflow-hidden bg-surface md:h-[400px]">
+          <Image
+            src={slides[0].url}
+            alt={alt}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover"
+          />
+        </div>
+      </ContentImageFrame>
     );
   }
 
   return (
     <div>
       <Carousel className="w-full" opts={{ loop: true }} setApi={setApi}>
-        <div className="relative overflow-hidden bg-surface rounded-image">
-          <CarouselContent className="-ml-0">
-            {slides.map((img, idx) => (
-              <CarouselItem
-                key={img.key || `${img.url}-${idx}`}
-                className="pl-0"
-              >
-                <img
-                  src={img.url}
-                  alt={`${alt} ${idx + 1}`}
-                  className="h-[300px] w-full object-cover md:h-[400px]"
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="left-3 z-10 size-9 border-0 bg-card/90 text-heading shadow-sm hover:bg-card disabled:hidden" />
-          <CarouselNext className="right-3 z-10 size-9 border-0 bg-card/90 text-heading shadow-sm hover:bg-card disabled:hidden" />
-        </div>
+        <ContentImageFrame>
+          <div className="relative overflow-hidden bg-surface">
+            <CarouselContent className="-ml-0">
+              {slides.map((img, idx) => (
+                <CarouselItem
+                  key={img.key || `${img.url}-${idx}`}
+                  className="pl-0"
+                >
+                  <div className="relative h-[300px] w-full md:h-[400px]">
+                    <Image
+                      src={img.url}
+                      alt={`${alt} ${idx + 1}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover"
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-3 z-10 size-9 border-0 bg-card/90 text-heading shadow-sm hover:bg-card disabled:hidden" />
+            <CarouselNext className="right-3 z-10 size-9 border-0 bg-card/90 text-heading shadow-sm hover:bg-card disabled:hidden" />
+          </div>
+        </ContentImageFrame>
       </Carousel>
       <div className="mt-3 flex items-center justify-center gap-2">
         {slides.map((_, idx) => (
@@ -217,11 +338,15 @@ const StaticSidebarCard = ({ data }) => {
 
   const card = (
     <div className="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
-      <img
-        src={adImage}
-        alt={data.title || "Advertisement"}
-        className="h-full w-full object-contain hover:scale-105 transition-all duration-300"
-      />
+      <div className="relative aspect-[4/5] w-full">
+        <Image
+          src={adImage}
+          alt={data.title || "Advertisement"}
+          fill
+          sizes="(max-width: 768px) 100vw, 320px"
+          className="object-contain transition-all duration-300 hover:scale-105"
+        />
+      </div>
     </div>
   );
 
@@ -337,9 +462,11 @@ const AuthorCard = ({ data }) => {
       </p>
       <div className="mt-4 flex items-start gap-3">
         {authorImage ? (
-          <img
+          <Image
             src={authorImage}
             alt={authorName}
+            width={48}
+            height={48}
             className="h-12 w-12 rounded-full object-cover"
           />
         ) : (
@@ -454,6 +581,10 @@ export {
   cleanObjectArray,
   formatDate,
   HtmlBlock,
+  WebpageHero,
+  WebpageHeroMini,
+  WebpageHeroCopy,
+  ContentImageFrame,
   ImageDotsCarousel,
   StaticSidebarCard,
   GetInTouchCard,

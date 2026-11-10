@@ -11,17 +11,20 @@ import {
 } from "lucide-react";
 import {
   AuthorCard,
+  ContentImageFrame,
   GetInTouchCard,
   HtmlBlock,
   ImageDotsCarousel,
   ShareCard,
   StaticSidebarCard,
+  WebpageHero,
   cleanObjectArray,
   cleanTextArray,
   formatDate,
   isFilledText,
 } from "@/features/webpages/webpage-shared";
 import type { StorefrontWebpage } from "@/features/webpages/webpage.types";
+import Image from "next/image";
 
 
 
@@ -38,35 +41,16 @@ export function Design7Page({ data }: { data: StorefrontWebpage }) {
     data.bannerImage?.url ||
     data.imageFirst?.url ||
     "";
-  const bannerImageDesktop = data.bannerImage?.url || data.bannerImageMobile?.url;
-  const bannerImageMobile = data.bannerImageMobile?.url || data.bannerImage?.url;
 
 return (
-      <div className="min-h-screen bg-background font-geist text-gray-900">
-        {/* Top Banner */}
-        <div className="relative h-[500px] md:h-[600px] w-full flex items-end pb-10 pl-6 md:pl-20">
-          {designHeaderMobile ? (
-            <div
-              className="absolute inset-0 bg-contain bg-no-repeat bg-center md:hidden"
-              style={{ backgroundImage: `url(${designHeaderMobile})` }}
-            />
-          ) : null}
-          {designHeaderDesktop ? (
-            <div
-              className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat md:block"
-              style={{ backgroundImage: `url(${designHeaderDesktop})` }}
-            />
-          ) : null}
-          {/* <div className="absolute inset-0 bg-black/40"></div> */}
-          <div className="relative z-10 text-white">
-            <h1 className="text-4xl md:text-5xl font-bold mb-2 text-white">
-              {data.secondTitle || ""}
-            </h1>
-            <p className="text-md md:text-lg font-semibold text-white">
-              {data.firstTitle || ""}
-            </p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-[#f8f5ee] text-[#172d35]">
+        <WebpageHero
+          miniHeading={data.heroMiniHeading}
+          mainHeading={data.heroMainHeading}
+          description={data.heroDescription}
+          desktopImageUrl={designHeaderDesktop}
+          mobileImageUrl={designHeaderMobile}
+        />
 
         {/* Main Content Area */}
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -116,22 +100,26 @@ return (
               {data.gridCards.map((card, idx) => (
                 <div
                   key={idx}
-                  className="relative group overflow-hidden bg-gray-100 aspect-3/4"
+                  className="group relative aspect-3/4 bg-gray-100"
                 >
                   {card.image?.url ? (
-                    <img
-                      src={card.image.url}
-                      alt={card.title}
-                      className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
-                    />
+                    <ContentImageFrame className="absolute inset-0 h-full">
+                      <Image
+                        src={card.image.url}
+                        alt={card.title || "Gallery image"}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        className="object-cover"
+                      />
+                    </ContentImageFrame>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <div className="flex h-full w-full items-center justify-center text-gray-400">
                       No Image
                     </div>
                   )}
 
                   {/* Hover Overlay Box */}
-                  <div className="absolute bottom-0 left-0 w-[90%] bg-white p-5 transform translate-y-full transition-transform duration-500 ease-in-out group-hover:translate-y-0 shadow-lg">
+                  <div className="absolute bottom-0 left-0 z-30 w-[90%] bg-white p-5 transform translate-y-full transition-transform duration-500 ease-in-out group-hover:translate-y-0 shadow-lg">
                     {isFilledText(card.chipName) && (
                       <div className="inline-block border border-gray-400 rounded px-3 py-0.5 text-xs font-medium text-gray-600 mb-2">
                         {card.chipName}

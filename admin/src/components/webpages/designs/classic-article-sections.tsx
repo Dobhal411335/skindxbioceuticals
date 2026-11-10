@@ -25,7 +25,10 @@ import {
   StringListField,
   Textarea,
 } from "@/components/webpages/webpage-form-fields";
-import { createEmptyParagraphSection } from "@/components/webpages/webpage-form-state";
+import {
+  createEmptyParagraphSection,
+  emptyImage,
+} from "@/components/webpages/webpage-form-state";
 import { uploadWebpageImage } from "@/services/api/webpages";
 import type { SiteCode } from "@/types/auth";
 import type { WebpageEditFormValues } from "@/types/webpages";
@@ -104,71 +107,48 @@ export function ClassicArticleSections({
         </div>
 
         {topSectionView === "all" ? (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-4">
+            <h3 className="text-base font-semibold">Hero section</h3>
             <div className="space-y-2">
-              <Label htmlFor="firstTitle">Main top tag line</Label>
+              <Label>Mini heading</Label>
               <Input
-                id="firstTitle"
-                value={values.firstTitle}
-                onChange={(e) => patch("firstTitle", e.target.value)}
-                placeholder="Enter main tagline…"
+                value={values.heroMiniHeading}
+                onChange={(e) => patch("heroMiniHeading", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="secondTitle">Main short tag line</Label>
+              <Label>Main heading</Label>
               <Input
-                id="secondTitle"
-                value={values.secondTitle}
-                onChange={(e) => patch("secondTitle", e.target.value)}
-                placeholder="Enter subtitle tagline…"
+                value={values.heroMainHeading}
+                onChange={(e) => patch("heroMainHeading", e.target.value)}
               />
             </div>
-          </div>
-        ) : null}
-
-        {topSectionView === "all" && !isDesign3 ? (
-          <>
+            <RichHtmlField
+              label="Description"
+              value={values.heroDescription}
+              onChange={(html) => patch("heroDescription", html)}
+              onUploadImage={uploadInline}
+            />
             <ImageAssetField
               siteCode={siteCode}
               webpageId={webpageId}
               inputId="image-first"
-              label="Main top image (laptop)"
+              label="Full-width background image (laptop)"
               hint="Supports PNG, JPG, JPEG"
-              value={values.imageFirst}
+              value={values.imageFirst || emptyImage()}
               onChange={(v) => patch("imageFirst", v)}
             />
             <ImageAssetField
               siteCode={siteCode}
               webpageId={webpageId}
               inputId="image-first-mobile"
-              label="Main top image (mobile)"
+              label="Full-width background image (mobile)"
               hint="Recommended size: 800x1000 px"
-              value={values.imageFirstMobile}
+              value={values.imageFirstMobile || emptyImage()}
               onChange={(v) => patch("imageFirstMobile", v)}
             />
-          </>
+          </div>
         ) : null}
-
-        {/* {topSectionView === "all" && !isDesign3 ? (
-          <>
-            <ImageAssetField
-              siteCode={siteCode}
-              webpageId={webpageId}
-              inputId="image-first-d3"
-              label="Hero image"
-              value={values.imageFirst}
-              onChange={(v) => patch("imageFirst", v)}
-            />
-            <ImageAssetField
-              siteCode={siteCode}
-              webpageId={webpageId}
-              inputId="main-profile-d3"
-              label="Main profile image"
-              value={values.mainProfileImage}
-              onChange={(v) => patch("mainProfileImage", v)}
-            />
-          </>
-        ) : null} */}
 
         {topSectionView === "bannerOnly" ? (
           <>
@@ -178,7 +158,7 @@ export function ClassicArticleSections({
               inputId="banner-image"
               label="Main top banner image (laptop)"
               hint="Recommended size: 1200x400 px"
-              value={values.bannerImage}
+              value={values.bannerImage || emptyImage()}
               onChange={(v) => patch("bannerImage", v)}
             />
             <ImageAssetField
@@ -187,7 +167,7 @@ export function ClassicArticleSections({
               inputId="banner-image-mobile"
               label="Main top banner image (mobile)"
               hint="Recommended size: 800x1000 px"
-              value={values.bannerImageMobile}
+              value={values.bannerImageMobile || emptyImage()}
               onChange={(v) => patch("bannerImageMobile", v)}
             />
           </>

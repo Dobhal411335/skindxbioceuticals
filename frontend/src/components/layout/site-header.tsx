@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, Hospital, Mail, MapPin, MessageCircle, Phone, type LucideIcon } from "lucide-react";
 
 import { HeaderAccountMenu } from "@/components/layout/header-account-menu";
 import { HeaderCartButton } from "@/components/layout/header-cart-button";
@@ -187,12 +187,12 @@ export function SiteHeader() {
                               <p className="text-md font-bold uppercase text-[#f28b5b]">
                                 {link.menuHeading || link.label}
                               </p>
-                              <h3 className="mt-2 text-md line-clamp-2 font-semibold leading-tight tracking-tight">
+                              <h3 className="mt-2 text-md font-semibold leading-tight tracking-tight">
                                 {link.description ||
                                   link.menuDescription ||
                                   "Explore our collection."}
                               </h3>
-                            <p className="text-sm line-clamp-2 leading-6 text-white/65">
+                            <p className="text-sm  leading-5 text-white/65">
                               {link.menuDescription ||
                                 "Choose the direction that best fits your needs."}
                             </p>
@@ -276,9 +276,11 @@ export function SiteHeader() {
 
           <Link
             href="/doctors"
-            className="hidden shrink-0 rounded-full bg-white px-5 py-3 text-xs font-semibold tracking-wide text-[#132128] transition-colors hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 lg:inline-flex"
+            className="group hidden shrink-0 items-center gap-2 rounded-full bg-white px-5 py-3 text-xs font-semibold tracking-wide text-[#132128] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:translate-y-0 lg:inline-flex"
           >
+            <Hospital className="size-3.5 shrink-0 transition-transform duration-300 group-hover:scale-110" />
             Appointment your doctor
+            {/* <ArrowUpRight className="size-3.5 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /> */}
           </Link>
 
           <div className="ml-1 flex items-center gap-1 text-white/90 [&_button:hover]:bg-white/10 [&_button:hover]:text-white [&_button]:text-white/90">

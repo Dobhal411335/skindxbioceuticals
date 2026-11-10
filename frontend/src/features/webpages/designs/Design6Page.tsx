@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import {
   AuthorCard,
+  ContentImageFrame,
   Facebook,
   GetInTouchCard,
   HtmlBlock,
@@ -12,6 +13,7 @@ import {
   Instagram,
   ShareCard,
   StaticSidebarCard,
+  WebpageHero,
   Youtube,
   cleanObjectArray,
   cleanTextArray,
@@ -35,35 +37,16 @@ export function Design6Page({ data }: { data: StorefrontWebpage }) {
     data.bannerImage?.url ||
     data.imageFirst?.url ||
     "";
-  const bannerImageDesktop = data.bannerImage?.url || data.bannerImageMobile?.url;
-  const bannerImageMobile = data.bannerImageMobile?.url || data.bannerImage?.url;
 
 return (
-      <div className="min-h-screen bg-background font-geist text-gray-900">
-        {/* Top Banner */}
-        <div className="relative h-[500px] md:h-[600px] w-full flex items-end pb-10 pl-6 md:pl-20">
-          {designHeaderMobile ? (
-            <div
-              className="absolute inset-0 bg-contain bg-no-repeat bg-center md:hidden"
-              style={{ backgroundImage: `url(${designHeaderMobile})` }}
-            />
-          ) : null}
-          {designHeaderDesktop ? (
-            <div
-              className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat md:block"
-              style={{ backgroundImage: `url(${designHeaderDesktop})` }}
-            />
-          ) : null}
-          <div className="absolute inset-0 bg-black/5"></div>
-          <div className="relative z-10 text-white">
-            <h1 className="text-4xl md:text-5xl font-bold mb-2 text-white">
-              {data.firstTitle || ""}
-            </h1>
-            <p className="text-md md:text-lg font-semibold text-white">
-              {data.secondTitle || ""}
-            </p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-[#f8f5ee] text-[#172d35]">
+        <WebpageHero
+          miniHeading={data.heroMiniHeading}
+          mainHeading={data.heroMainHeading}
+          description={data.heroDescription}
+          desktopImageUrl={designHeaderDesktop}
+          mobileImageUrl={designHeaderMobile}
+        />
 
         {/* Main Content Area */}
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -139,18 +122,20 @@ return (
                 }`}
               >
                 {/* Image */}
-                <div className="overflow-hidden rounded-2xl bg-gray-100 md:w-[42%]">
+                <div className="md:w-[42%]">
                   {card.image?.url ? (
-                    <Image
-                      src={card.image.url}
-                      quality={90}
-                      width={500}
-                      height={400}
-                      alt={card.name || "Team member"}
-                      className="h-[320px] w-full object-cover md:h-[500px]"
-                    />
+                    <ContentImageFrame className="bg-gray-100">
+                      <Image
+                        src={card.image.url}
+                        quality={90}
+                        width={500}
+                        height={400}
+                        alt={card.name || "Team member"}
+                        className="h-[320px] w-full object-cover md:h-[500px]"
+                      />
+                    </ContentImageFrame>
                   ) : (
-                    <div className="flex h-[320px] items-center justify-center text-gray-400">
+                    <div className="flex h-[320px] items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
                       No Image
                     </div>
                   )}
