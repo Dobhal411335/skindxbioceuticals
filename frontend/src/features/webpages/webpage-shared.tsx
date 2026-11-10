@@ -183,6 +183,7 @@ const WebpageHero = ({
   desktopImageUrl = "",
   mobileImageUrl = "",
 }: WebpageHeroProps) => {
+  // Prefer the viewport-specific asset; fall back so a single upload still shows.
   const bannerImageDesktop = desktopImageUrl || mobileImageUrl || "";
   const bannerImageMobile = mobileImageUrl || desktopImageUrl || "";
   const hasHeroImage = Boolean(bannerImageDesktop || bannerImageMobile);

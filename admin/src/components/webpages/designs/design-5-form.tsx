@@ -75,7 +75,11 @@ export function Design5Form({
             webpageId={webpageId}
             inputId="d5-hero-banner"
             label="Full-width background image (laptop)"
-            value={values.bannerImage || emptyImage()}
+            value={
+              values.bannerImage?.url
+                ? values.bannerImage
+                : values.imageFirst || emptyImage()
+            }
             onChange={(v) => patch("bannerImage", v)}
           />
           <ImageAssetField
@@ -83,7 +87,11 @@ export function Design5Form({
             webpageId={webpageId}
             inputId="d5-hero-banner-mobile"
             label="Full-width background image (mobile)"
-            value={values.bannerImageMobile || emptyImage()}
+            value={
+              values.bannerImageMobile?.url
+                ? values.bannerImageMobile
+                : values.imageFirstMobile || emptyImage()
+            }
             onChange={(v) => patch("bannerImageMobile", v)}
           />
         </div>

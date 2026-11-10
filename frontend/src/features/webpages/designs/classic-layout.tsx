@@ -89,13 +89,16 @@ function ClassicWebpageLayout({
     isFilledText(data.heroMainHeading) ||
     isFilledText(data.heroDescription);
   const hasMainTopImage = !!data.imageFirst?.url || !!data.imageFirstMobile?.url;
+  const hasTopHeaderContent = hasHeroCopy || hasMainTopImage;
+  // Prefer viewport-specific banner; fall back so a single upload still shows.
   const bannerImageDesktop =
     data.bannerImage?.url || data.bannerImageMobile?.url || "";
   const bannerImageMobile =
     data.bannerImageMobile?.url || data.bannerImage?.url || "";
   const hasBannerImage = Boolean(bannerImageDesktop || bannerImageMobile);
-  // Banner-only mode: banner images present, no hero copy and no all-inputs image.
-  const isBannerOnlyTop = hasBannerImage && !hasHeroCopy && !hasMainTopImage;
+  // Banner-only mode: design1/2 only (classic-layout); design3 never uses this path.
+  const isBannerOnlyTop =
+    (isDesignOne || isDesignTwo) && hasBannerImage && !hasTopHeaderContent;
   const introHighlight = isDesignThree ? highlights[0] : null;
   const remainingHighlights = isDesignThree ? highlights.slice(1) : highlights;
 

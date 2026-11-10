@@ -23,8 +23,10 @@ export function Design9Page({ data }: { data: StorefrontWebpage }) {
         miniHeading={data.design9MiniHeading}
         mainHeading={data.design9MainHeading}
         description={data.design9Description}
-        desktopImageUrl={data.bannerImage?.url}
-        mobileImageUrl={data.bannerImageMobile?.url}
+        desktopImageUrl={data.bannerImage?.url || data.imageFirst?.url || ""}
+        mobileImageUrl={
+          data.bannerImageMobile?.url || data.imageFirstMobile?.url || ""
+        }
       />
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
