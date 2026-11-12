@@ -29,6 +29,9 @@ export function mapStaticPostToStorefront(
     description: post.content.map((paragraph) => `<p>${paragraph}</p>`).join(""),
     blockquote: "",
     accordionItems: [],
+    galleryImages: [],
+    videos: [],
+    extraDescription: "",
     createdAt: post.date,
   };
 }

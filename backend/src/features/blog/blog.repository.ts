@@ -6,7 +6,11 @@ import type {
   BlogRecord,
   BlogUpdateWrite,
 } from './blog.types';
-import { parseBlogAccordionItems } from './blog.types';
+import {
+  parseBlogAccordionItems,
+  parseBlogGalleryImages,
+  parseBlogVideos,
+} from './blog.types';
 
 function mapBlog(row: {
   id: string;
@@ -29,6 +33,9 @@ function mapBlog(row: {
   description: string;
   blockquote: string;
   accordionItems: Prisma.JsonValue;
+  galleryImages: Prisma.JsonValue;
+  videos: Prisma.JsonValue;
+  extraDescription: string;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -54,6 +61,9 @@ function mapBlog(row: {
     description: row.description,
     blockquote: row.blockquote,
     accordionItems: parseBlogAccordionItems(row.accordionItems),
+    galleryImages: parseBlogGalleryImages(row.galleryImages),
+    videos: parseBlogVideos(row.videos),
+    extraDescription: row.extraDescription,
     active: row.active,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -165,6 +175,9 @@ export class BlogRepository {
         description: data.description,
         blockquote: data.blockquote,
         accordionItems: data.accordionItems as Prisma.InputJsonValue,
+        galleryImages: data.galleryImages as Prisma.InputJsonValue,
+        videos: data.videos as Prisma.InputJsonValue,
+        extraDescription: data.extraDescription,
         active: data.active,
       },
     });
@@ -205,6 +218,9 @@ export class BlogRepository {
         description: data.description,
         blockquote: data.blockquote,
         accordionItems: data.accordionItems as Prisma.InputJsonValue,
+        galleryImages: data.galleryImages as Prisma.InputJsonValue,
+        videos: data.videos as Prisma.InputJsonValue,
+        extraDescription: data.extraDescription,
         active: data.active,
       },
     });

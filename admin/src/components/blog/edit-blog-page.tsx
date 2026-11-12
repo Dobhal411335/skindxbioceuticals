@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ExternalLink,
+  Loader2,
   Newspaper,
   Plus,
   Trash2,
@@ -29,7 +30,10 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { storefrontBaseUrl } from "@/config/env";
 import {
+  BLOG_GALLERY_MAX_IMAGES,
   normalizeAccordionItems,
+  normalizeGalleryImages,
+  normalizeVideoItems,
   toDateInputValue,
   validateBlogEditForm,
   type BlogEditFormErrors,
@@ -38,7 +42,18 @@ import { fetchBlog, updateBlog, uploadBlogImage } from "@/services/api/blog";
 import { ApiError } from "@/services/api/errors";
 import { showError, showSuccess } from "@/lib/toast";
 import type { SiteCode } from "@/types/auth";
-import type { BlogDto, BlogEditFormValues } from "@/types/blog";
+import type {
+  BlogDto,
+  BlogEditFormValues,
+  BlogGalleryPendingUpload,
+} from "@/types/blog";
+
+function createPendingId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `pending-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 function createEmptyEditValues(): BlogEditFormValues {
   return {
@@ -57,6 +72,9 @@ function createEmptyEditValues(): BlogEditFormValues {
     description: "",
     blockquote: "",
     accordionItems: [{ question: "", description: "" }],
+    galleryImages: [],
+    videos: [{ name: "", url: "" }],
+    extraDescription: "",
     active: true,
   };
 }
@@ -78,6 +96,9 @@ function dtoToEditValues(blog: BlogDto): BlogEditFormValues {
     description: blog.description,
     blockquote: blog.blockquote,
     accordionItems: normalizeAccordionItems(blog.accordionItems),
+    galleryImages: normalizeGalleryImages(blog.galleryImages),
+    videos: normalizeVideoItems(blog.videos),
+    extraDescription: blog.extraDescription || "",
     active: blog.active,
   };
 }
@@ -95,12 +116,16 @@ export function EditBlogPage({
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [blog, setBlog] = useState<BlogDto | null>(null);
   const [values, setValues] = useState<BlogEditFormValues>(createEmptyEditValues);
   const [errors, setErrors] = useState<BlogEditFormErrors>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [galleryPending, setGalleryPending] = useState<BlogGalleryPendingUpload[]>(
+    [],
+  );
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -151,6 +176,92 @@ export function EditBlogPage({
   const handleInlineImageUpload = async (file: File): Promise<string> => {
     const uploaded = await uploadBlogImage(siteCode, file, blogId);
     return uploaded.url;
+  };
+
+  const handleGalleryUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    const remainingSlots =
+      BLOG_GALLERY_MAX_IMAGES - values.galleryImages.length - galleryPending.length;
+    if (remainingSlots <= 0) {
+      showError(`You can upload up to ${BLOG_GALLERY_MAX_IMAGES} gallery images`);
+      event.target.value = "";
+      return;
+    }
+
+    const selected = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      showError(
+        `Only ${remainingSlots} more image${remainingSlots === 1 ? "" : "s"} can be added`,
+      );
+    }
+
+    const queued = selected.map((file) => ({
+      file,
+      pending: {
+        id: createPendingId(),
+        fileName: file.name,
+        previewUrl: URL.createObjectURL(file),
+      } satisfies BlogGalleryPendingUpload,
+    }));
+
+    setGalleryPending((prev) => [...prev, ...queued.map((entry) => entry.pending)]);
+
+    let uploadedCount = 0;
+    let failedCount = 0;
+
+    for (const entry of queued) {
+      try {
+        const uploaded = await uploadBlogImage(siteCode, entry.file, blogId);
+        setValues((prev) => {
+          if (prev.galleryImages.length >= BLOG_GALLERY_MAX_IMAGES) {
+            return prev;
+          }
+          return {
+            ...prev,
+            galleryImages: [
+              ...prev.galleryImages,
+              { url: uploaded.url, publicId: uploaded.publicId },
+            ],
+          };
+        });
+        uploadedCount += 1;
+      } catch {
+        failedCount += 1;
+      } finally {
+        URL.revokeObjectURL(entry.pending.previewUrl);
+        setGalleryPending((prev) =>
+          prev.filter((item) => item.id !== entry.pending.id),
+        );
+      }
+    }
+
+    if (uploadedCount > 0) {
+      showSuccess(
+        uploadedCount === 1
+          ? "Gallery image uploaded"
+          : `${uploadedCount} gallery images uploaded`,
+      );
+    }
+    if (failedCount > 0) {
+      showError(
+        failedCount === 1
+          ? "One gallery image failed to upload"
+          : `${failedCount} gallery images failed to upload`,
+      );
+    }
+
+    event.target.value = "";
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setValues((prev) => ({
+      ...prev,
+      galleryImages: prev.galleryImages.filter((_, itemIndex) => itemIndex !== index),
+    }));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -597,6 +708,215 @@ export function EditBlogPage({
                     </div>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card shadow-sm">
+              <CardHeader className="border-b border-border/70">
+                <CardTitle className="text-lg font-semibold">
+                  Gallery images
+                </CardTitle>
+                <CardDescription>
+                  Optional multi-image gallery for the article page (max{" "}
+                  {BLOG_GALLERY_MAX_IMAGES}). Images upload to Cloudinary as you
+                  select them.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  onChange={(event) => void handleGalleryUpload(event)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    values.galleryImages.length + galleryPending.length >=
+                    BLOG_GALLERY_MAX_IMAGES
+                  }
+                  onClick={() => galleryInputRef.current?.click()}
+                >
+                  <UploadCloud className="mr-1.5 size-4" aria-hidden />
+                  Upload gallery images
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  {values.galleryImages.length}/{BLOG_GALLERY_MAX_IMAGES} uploaded
+                  {galleryPending.length > 0
+                    ? ` · ${galleryPending.length} uploading`
+                    : ""}
+                </p>
+
+                {values.galleryImages.length === 0 &&
+                galleryPending.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No gallery images yet.
+                  </p>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                    {values.galleryImages.map((image, index) => (
+                      <div
+                        key={`${image.publicId || image.url}-${index}`}
+                        className="group relative overflow-hidden rounded-xl border border-border bg-muted/30"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary previews */}
+                        <img
+                          src={image.url}
+                          alt={`Gallery image ${index + 1}`}
+                          className="aspect-[4/3] h-full w-full object-cover"
+                        />
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          className="absolute top-2 right-2 size-8 border-rose-200 bg-background/90 text-rose-600 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                          onClick={() => removeGalleryImage(index)}
+                          aria-label={`Remove gallery image ${index + 1}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {galleryPending.map((pending) => (
+                      <div
+                        key={pending.id}
+                        className="relative overflow-hidden rounded-xl border border-border bg-muted/30"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview */}
+                        <img
+                          src={pending.previewUrl}
+                          alt={`Uploading ${pending.fileName}`}
+                          className="aspect-[4/3] h-full w-full object-cover opacity-60"
+                        />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/55">
+                          <Loader2 className="size-6 animate-spin text-primary" />
+                          <p className="px-2 text-center text-xs font-medium text-muted-foreground">
+                            Uploading…
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card shadow-sm">
+              <CardHeader className="border-b border-border/70">
+                <CardTitle className="text-lg font-semibold">Videos</CardTitle>
+                <CardDescription>
+                  Optional YouTube watch URLs or direct `.mp4` links, each with a
+                  display name.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-6">
+                {values.videos.map((item, index) => (
+                  <div
+                    key={index}
+                    className="grid items-start gap-3 rounded-xl border border-border/60 bg-muted/20 p-3 md:grid-cols-[1fr_1.4fr_auto]"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor={`blog-video-name-${index}`}>
+                        Video name
+                      </Label>
+                      <Input
+                        id={`blog-video-name-${index}`}
+                        value={item.name}
+                        onChange={(event) =>
+                          setValues((prev) => {
+                            const next = [...prev.videos];
+                            next[index] = {
+                              ...next[index],
+                              name: event.target.value,
+                            };
+                            return { ...prev, videos: next };
+                          })
+                        }
+                        placeholder="e.g. Formulation walkthrough"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`blog-video-url-${index}`}>
+                        YouTube or video URL
+                      </Label>
+                      <Input
+                        id={`blog-video-url-${index}`}
+                        value={item.url}
+                        onChange={(event) =>
+                          setValues((prev) => {
+                            const next = [...prev.videos];
+                            next[index] = {
+                              ...next[index],
+                              url: event.target.value,
+                            };
+                            return { ...prev, videos: next };
+                          })
+                        }
+                        placeholder="https://www.youtube.com/watch?v=… or .mp4 URL"
+                      />
+                    </div>
+                    <div className="flex gap-1.5 md:pt-7">
+                      <Button
+                        type="button"
+                        size="icon"
+                        onClick={() =>
+                          setValues((prev) => ({
+                            ...prev,
+                            videos: [...prev.videos, { name: "", url: "" }],
+                          }))
+                        }
+                        aria-label="Add video"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                      {values.videos.length > 1 ? (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          className="border-rose-200 text-rose-600"
+                          onClick={() =>
+                            setValues((prev) => ({
+                              ...prev,
+                              videos: prev.videos.filter(
+                                (_, itemIndex) => itemIndex !== index,
+                              ),
+                            }))
+                          }
+                          aria-label={`Remove video ${index + 1}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card shadow-sm">
+              <CardHeader className="border-b border-border/70">
+                <CardTitle className="text-lg font-semibold">
+                  Extra description
+                </CardTitle>
+                <CardDescription>
+                  Optional second rich-text block shown after gallery and videos
+                  on the public article page.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <RichTextEditor
+                  value={values.extraDescription}
+                  onChange={(html) =>
+                    setValues((prev) => ({ ...prev, extraDescription: html }))
+                  }
+                  onUploadImage={handleInlineImageUpload}
+                  placeholder="Write additional article content…"
+                  minHeightClassName="min-h-[220px]"
+                />
               </CardContent>
             </Card>
 

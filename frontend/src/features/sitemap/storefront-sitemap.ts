@@ -53,7 +53,7 @@ const RESERVED_PAGE_SLUGS = new Set([
   "category",
   "checkout",
   "contact",
-  "contact-with-us",
+  "contact-us",
   "doctors",
   "faq",
   "products",
@@ -75,7 +75,7 @@ const COMPANY_LINKS: SitemapLink[] = [
 ];
 
 const SUPPORT_LINKS: SitemapLink[] = [
-  { label: "Contact", href: "/contact-with-us" },
+  { label: "Contact", href: "/contact-us" },
   { label: "FAQ", href: "/faq" },
 ];
 

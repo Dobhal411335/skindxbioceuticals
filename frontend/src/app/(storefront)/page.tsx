@@ -8,7 +8,7 @@ import { FeaturedProductRail } from "@/components/landing/featured-product-rail"
 import { HeroSection } from "@/components/landing/hero-section";
 import { InsightsGrid } from "@/components/landing/insights-grid";
 import { InsightsQaSection } from "@/components/landing/insights-qa-section";
-import { HowWeWorkSection } from "@/components/landing/how-we-work-section";
+// import { HowWeWorkSection } from "@/components/landing/how-we-work-section";
 import { MarqueeBanner } from "@/components/landing/marquee-banner";
 import { ProductHighlightColumns } from "@/components/landing/product-highlight-columns";
 import { CollectionBannerSection } from "@/components/landing/collection-banner-section";
@@ -69,7 +69,6 @@ export default async function HomePage() {
       <TrustBenefitsBar />
       <ClinicalConfidenceSection config={clinicalConfidence} />
       <SpecialsHeader promo={aboutUsBanner.promo} />
-      <AboutSplit cards={aboutUsBanner.aboutCards} />
       <OurServices
         servicesHeading={
           aboutUsBanner.servicesHeading ?? "Caring for your child, every step of the way"
@@ -82,11 +81,12 @@ export default async function HomePage() {
       <FeaturedProductRail products={landingProducts} />
       <PromoBannerRow items={promoBanners} />
       <ProductHighlightColumns highlights={productHighlights} />
+      <AboutSplit cards={aboutUsBanner.aboutCards} />
       <TestimonialsGrid reviews={customerReviews} />
       <BlogGrid />
       <InsightsGrid insights={landingInsights} />
       <FeatureBenefitsBar />
-      <HowWeWorkSection />
+      {/* <HowWeWorkSection /> */}
       <StyleGallery items={galleryItems} />
       <CollectionBannerSection banner={collectionBanner} />
       <FaqSection items={landingFaqs} />

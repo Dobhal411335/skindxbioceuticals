@@ -70,7 +70,7 @@ export function OurServices({ servicesHeading, servicesViewAll, services }: OurS
             </div>
             <Link
               href={servicesViewAll.href}
-              className="mt-7 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              className="mt-7 inline-flex items-center gap-2 text-md font-medium text-primary hover:underline"
             >
               {servicesViewAll.label}
               <ArrowUpRight className="size-4" />

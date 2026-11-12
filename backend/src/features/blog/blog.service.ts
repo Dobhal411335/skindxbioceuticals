@@ -58,6 +58,12 @@ export function toBlogDto(record: BlogRecord, siteCode: SiteCode): BlogDto {
     description: record.description,
     blockquote: record.blockquote,
     accordionItems: record.accordionItems,
+    galleryImages: record.galleryImages.map((item) => ({
+      url: preferHttpsUrl(item.url),
+      publicId: item.publicId,
+    })),
+    videos: record.videos,
+    extraDescription: record.extraDescription,
     active: record.active,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
@@ -85,6 +91,12 @@ export function toBlogPublicDto(record: BlogRecord, siteCode: SiteCode): BlogPub
     description: record.description,
     blockquote: record.blockquote,
     accordionItems: record.accordionItems,
+    galleryImages: record.galleryImages.map((item) => ({
+      url: preferHttpsUrl(item.url),
+      publicId: item.publicId,
+    })),
+    videos: record.videos,
+    extraDescription: record.extraDescription,
     createdAt: record.createdAt.toISOString(),
   };
 }
@@ -218,6 +230,9 @@ export class BlogService {
       description: '',
       blockquote: '',
       accordionItems: [],
+      galleryImages: [],
+      videos: [],
+      extraDescription: '',
       active: input.body.active,
     });
 
@@ -267,6 +282,12 @@ export class BlogService {
 
     const nextImageUrl = preferHttpsUrl(input.body.imageUrl);
     const nextPublicId = input.body.imagePublicId.trim();
+    const nextGalleryImages = (input.body.galleryImages ?? []).map((item) => ({
+      url: preferHttpsUrl(item.url),
+      publicId: item.publicId.trim(),
+    }));
+    const nextVideos = input.body.videos ?? [];
+    const nextExtraDescription = input.body.extraDescription ?? '';
 
     const record = await this.repository.update(input.siteId, input.blogId, {
       name: input.body.name,
@@ -287,6 +308,9 @@ export class BlogService {
       description: input.body.description,
       blockquote: input.body.blockquote,
       accordionItems: input.body.accordionItems ?? [],
+      galleryImages: nextGalleryImages,
+      videos: nextVideos,
+      extraDescription: nextExtraDescription,
       active: input.body.active,
     });
     if (!record) {
@@ -296,6 +320,16 @@ export class BlogService {
     const previousPublicId = existing.imagePublicId.trim();
     if (previousPublicId && previousPublicId !== nextPublicId) {
       await deleteStoredCloudinaryAssetBestEffort(previousPublicId);
+    }
+
+    const nextGalleryPublicIds = new Set(
+      nextGalleryImages.map((item) => item.publicId).filter(Boolean),
+    );
+    for (const previous of existing.galleryImages) {
+      const publicId = previous.publicId.trim();
+      if (publicId && !nextGalleryPublicIds.has(publicId)) {
+        await deleteStoredCloudinaryAssetBestEffort(publicId);
+      }
     }
 
     logger.info(
@@ -355,6 +389,12 @@ export class BlogService {
 
     if (existing.imagePublicId.trim()) {
       await deleteStoredCloudinaryAsset(existing.imagePublicId);
+    }
+    for (const image of existing.galleryImages) {
+      const publicId = image.publicId.trim();
+      if (publicId) {
+        await deleteStoredCloudinaryAssetBestEffort(publicId);
+      }
     }
 
     const deleted = await this.repository.delete(input.siteId, input.blogId);

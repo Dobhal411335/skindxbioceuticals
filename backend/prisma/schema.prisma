@@ -1064,6 +1064,12 @@ model Blog {
   blockquote    String   @default("") @db.Text
   /// FAQ-style accordion rows: `[{ question, description }]`
   accordionItems Json @default("[]") @map("accordion_items")
+  /// Gallery images: `[{ url, publicId }]` (max 10)
+  galleryImages Json @default("[]") @map("gallery_images")
+  /// Video rows: `[{ name, url }]` (YouTube watch URL or direct .mp4)
+  videos Json @default("[]")
+  /// Optional second rich-text body after gallery/videos on the public article
+  extraDescription String @default("") @db.Text @map("extra_description")
   active        Boolean  @default(true)
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -1735,6 +1741,8 @@ model InsightCard {
   imageUrl      String   @default("") @map("image_url")
   imagePublicId String   @default("") @map("image_public_id")
   description   String   @default("") @db.Text
+  buttonLabel   String   @default("") @map("button_label")
+  buttonUrl     String   @default("") @map("button_url")
   order         Int      @default(0)
   active        Boolean  @default(true)
   createdAt     DateTime @default(now()) @map("created_at")

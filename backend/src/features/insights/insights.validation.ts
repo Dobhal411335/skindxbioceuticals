@@ -13,6 +13,25 @@ const optionalImageUrl = z
     'Image URL must be http(s) when provided',
   );
 
+/** Relative paths, hash links, absolute http(s) URLs, or empty. */
+const optionalButtonUrl = z
+  .string()
+  .trim()
+  .max(2000)
+  .refine(
+    (value) => {
+      if (value === '' || value === '#') return true;
+      if (value.startsWith('/') || value.startsWith('#')) return true;
+      try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'Button URL must be a path, hash link, or absolute http(s) URL' },
+  );
+
 const insightCardSchema = z.object({
   category: z.string().trim().min(1, 'Category is required').max(100),
   name: z.string().trim().min(1, 'Insight name is required').max(200),
@@ -20,6 +39,8 @@ const insightCardSchema = z.object({
   imageUrl: optionalImageUrl,
   imagePublicId: z.string().trim().max(500).default(''),
   description: z.string().max(200_000).default(''),
+  buttonLabel: z.string().trim().max(80).default(''),
+  buttonUrl: optionalButtonUrl.default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).default(0),
 });
@@ -76,6 +97,10 @@ export function normalizeInsightsConfigInput(raw: unknown): unknown {
               card.imagePublicId ?? card.image_public_id ?? '',
             ).trim(),
             description: String(card.description ?? '').trim(),
+            buttonLabel: String(
+              card.buttonLabel ?? card.button_label ?? '',
+            ).trim(),
+            buttonUrl: String(card.buttonUrl ?? card.button_url ?? '').trim(),
             active: card.active ?? true,
             order:
               card.order === '' || card.order === undefined || card.order === null

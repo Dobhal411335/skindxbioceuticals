@@ -8,6 +8,8 @@ export type InsightCardDto = {
   imageUrl: string;
   imagePublicId: string;
   description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   order: number;
   active: boolean;
 };
@@ -35,6 +37,8 @@ export type InsightCardRecord = {
   imageUrl: string;
   imagePublicId: string;
   description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   order: number;
   active: boolean;
 };
@@ -55,6 +59,8 @@ export type InsightCardWrite = {
   imageUrl: string;
   imagePublicId: string;
   description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   order: number;
   active: boolean;
 };

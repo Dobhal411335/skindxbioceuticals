@@ -114,6 +114,13 @@ describe('Blog API routes', () => {
         accordionItems: [
           { question: 'What should I know?', description: 'Start with the basics.' },
         ],
+        galleryImages: [
+          { url: 'https://cdn.example.com/g1.jpg', publicId: 'blog/g1' },
+        ],
+        videos: [
+          { name: 'Overview', url: 'https://www.youtube.com/watch?v=abc123' },
+        ],
+        extraDescription: '<p>Extra</p>',
         active: true,
       });
 
@@ -127,6 +134,13 @@ describe('Blog API routes', () => {
               description: 'Start with the basics.',
             },
           ],
+          galleryImages: [
+            { url: 'https://cdn.example.com/g1.jpg', publicId: 'blog/g1' },
+          ],
+          videos: [
+            { name: 'Overview', url: 'https://www.youtube.com/watch?v=abc123' },
+          ],
+          extraDescription: '<p>Extra</p>',
         }),
       }),
     );

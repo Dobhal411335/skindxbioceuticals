@@ -7,6 +7,16 @@ export type BlogAccordionItem = {
   description: string;
 };
 
+export type BlogGalleryImage = {
+  url: string;
+  publicId: string;
+};
+
+export type BlogVideoItem = {
+  name: string;
+  url: string;
+};
+
 export type BlogDto = {
   id: string;
   siteCode: SiteCodeDto;
@@ -28,6 +38,9 @@ export type BlogDto = {
   description: string;
   blockquote: string;
   accordionItems: BlogAccordionItem[];
+  galleryImages: BlogGalleryImage[];
+  videos: BlogVideoItem[];
+  extraDescription: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -53,6 +66,9 @@ export type BlogPublicDto = {
   description: string;
   blockquote: string;
   accordionItems: BlogAccordionItem[];
+  galleryImages: BlogGalleryImage[];
+  videos: BlogVideoItem[];
+  extraDescription: string;
   createdAt: string;
 };
 
@@ -100,6 +116,9 @@ export type BlogRecord = {
   description: string;
   blockquote: string;
   accordionItems: BlogAccordionItem[];
+  galleryImages: BlogGalleryImage[];
+  videos: BlogVideoItem[];
+  extraDescription: string;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -124,6 +143,9 @@ export type BlogCreateWrite = {
   description: string;
   blockquote: string;
   accordionItems: BlogAccordionItem[];
+  galleryImages: BlogGalleryImage[];
+  videos: BlogVideoItem[];
+  extraDescription: string;
   active: boolean;
 };
 
@@ -146,6 +168,9 @@ export type BlogUpdateWrite = {
   description: string;
   blockquote: string;
   accordionItems: BlogAccordionItem[];
+  galleryImages: BlogGalleryImage[];
+  videos: BlogVideoItem[];
+  extraDescription: string;
   active: boolean;
 };
 
@@ -183,6 +208,70 @@ export function parseBlogAccordionItems(value: unknown): BlogAccordionItem[] {
       continue;
     }
     items.push({ question, description });
+  }
+  return items;
+}
+
+function preferHttpsUrl(url: string): string {
+  if (url.startsWith('http://res.cloudinary.com/')) {
+    return `https://${url.slice('http://'.length)}`;
+  }
+  return url;
+}
+
+export function parseBlogGalleryImages(value: unknown): BlogGalleryImage[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const items: BlogGalleryImage[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+    const row = entry as Record<string, unknown>;
+    const url =
+      typeof row.url === 'string'
+        ? row.url.trim()
+        : typeof row.secureUrl === 'string'
+          ? row.secureUrl.trim()
+          : typeof row.imageUrl === 'string'
+            ? row.imageUrl.trim()
+            : '';
+    const publicId =
+      typeof row.publicId === 'string'
+        ? row.publicId.trim()
+        : typeof row.imagePublicId === 'string'
+          ? row.imagePublicId.trim()
+          : '';
+    if (!url) {
+      continue;
+    }
+    items.push({ url: preferHttpsUrl(url), publicId });
+    if (items.length >= 10) {
+      break;
+    }
+  }
+  return items;
+}
+
+export function parseBlogVideos(value: unknown): BlogVideoItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const items: BlogVideoItem[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+    const row = entry as Record<string, unknown>;
+    const name = typeof row.name === 'string' ? row.name.trim() : '';
+    const url = typeof row.url === 'string' ? row.url.trim() : '';
+    if (!name && !url) {
+      continue;
+    }
+    items.push({ name, url });
   }
   return items;
 }

@@ -14,7 +14,9 @@ import type {
   StorefrontBlogCard,
   StorefrontBlogCategory,
   StorefrontBlogDetail,
+  StorefrontBlogGalleryImage,
   StorefrontBlogListResult,
+  StorefrontBlogVideo,
 } from "@/types/blog";
 
 type ApiSuccess<T> = {
@@ -42,6 +44,9 @@ type ApiBlog = {
   description?: string;
   blockquote?: string;
   accordionItems?: StorefrontBlogAccordionItem[];
+  galleryImages?: StorefrontBlogGalleryImage[];
+  videos?: StorefrontBlogVideo[];
+  extraDescription?: string;
   createdAt?: string;
 };
 
@@ -103,6 +108,35 @@ function mapAccordionItems(
     .filter((item) => item.question.length > 0 || item.description.length > 0);
 }
 
+function mapGalleryImages(
+  value: StorefrontBlogGalleryImage[] | undefined,
+): StorefrontBlogGalleryImage[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => ({
+      url: preferHttps(typeof item?.url === "string" ? item.url.trim() : ""),
+      publicId: typeof item?.publicId === "string" ? item.publicId.trim() : "",
+    }))
+    .filter((item) => item.url.length > 0)
+    .slice(0, 10);
+}
+
+function mapVideos(
+  value: StorefrontBlogVideo[] | undefined,
+): StorefrontBlogVideo[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => ({
+      name: typeof item?.name === "string" ? item.name.trim() : "",
+      url: typeof item?.url === "string" ? item.url.trim() : "",
+    }))
+    .filter((item) => item.url.length > 0);
+}
+
 function mapBlog(row: ApiBlog): StorefrontBlog {
   return {
     id: row.id,
@@ -123,6 +157,9 @@ function mapBlog(row: ApiBlog): StorefrontBlog {
     description: row.description || "",
     blockquote: row.blockquote || "",
     accordionItems: mapAccordionItems(row.accordionItems),
+    galleryImages: mapGalleryImages(row.galleryImages),
+    videos: mapVideos(row.videos),
+    extraDescription: row.extraDescription || "",
     createdAt: row.createdAt || row.publishedAt,
   };
 }
@@ -147,17 +184,7 @@ function mapCard(row: ApiBlogCard): StorefrontBlogCard {
   };
 }
 
-export function formatBlogDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
+export { formatBlogDate } from "@/features/blog/blog-format";
 
 export function buildBlogCategorySummaries(
   blogs: Array<{ category: string }>,

@@ -17,6 +17,8 @@ function toCardRecord(row: {
   description: string;
   order: number;
   active: boolean;
+  buttonLabel?: string | null;
+  buttonUrl?: string | null;
 }): InsightCardRecord {
   return {
     id: row.id,
@@ -27,6 +29,8 @@ function toCardRecord(row: {
     imageUrl: row.imageUrl,
     imagePublicId: row.imagePublicId,
     description: row.description,
+    buttonLabel: row.buttonLabel ?? '',
+    buttonUrl: row.buttonUrl ?? '',
     order: row.order,
     active: row.active,
   };
@@ -78,6 +82,7 @@ export class InsightsRepository {
 
       if (cards.length > 0) {
         await tx.insightCard.createMany({
+          // buttonLabel/buttonUrl require regenerated Prisma client + migration
           data: cards.map((card) => ({
             siteId,
             category: card.category,
@@ -86,9 +91,11 @@ export class InsightsRepository {
             imageUrl: card.imageUrl,
             imagePublicId: card.imagePublicId,
             description: card.description,
+            buttonLabel: card.buttonLabel,
+            buttonUrl: card.buttonUrl,
             order: card.order,
             active: card.active,
-          })),
+          })) as never,
         });
       }
 

@@ -3,6 +3,16 @@ export type StorefrontBlogAccordionItem = {
   description: string;
 };
 
+export type StorefrontBlogGalleryImage = {
+  url: string;
+  publicId: string;
+};
+
+export type StorefrontBlogVideo = {
+  name: string;
+  url: string;
+};
+
 export type StorefrontBlog = {
   id: string;
   slug: string;
@@ -22,6 +32,9 @@ export type StorefrontBlog = {
   description: string;
   blockquote: string;
   accordionItems: StorefrontBlogAccordionItem[];
+  galleryImages: StorefrontBlogGalleryImage[];
+  videos: StorefrontBlogVideo[];
+  extraDescription: string;
   createdAt: string;
 };
 

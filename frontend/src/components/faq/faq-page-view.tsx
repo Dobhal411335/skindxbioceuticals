@@ -164,7 +164,7 @@ export function FaqPageView({ sections }: FaqPageViewProps) {
                   Still stuck after reading the FAQs? Send a message from the contact page.
                 </p>
                 <Button asChild variant="outline" className="mt-4 h-auto w-full gap-2 py-3 shadow-none">
-                  <Link href="/contact-with-us">
+                  <Link href="/contact-us">
                     <MessageSquare className="size-4" aria-hidden />
                     Message us
                   </Link>
@@ -177,19 +177,19 @@ export function FaqPageView({ sections }: FaqPageViewProps) {
                 <section key={category.id} aria-labelledby={`faq-${category.id}`}>
                   <h2
                     id={`faq-${category.id}`}
-                    className="border-b border-[#e8e4dc] pb-2 text-xl font-semibold"
+                    className="border-b border-[#4b4949] pb-2 text-xl font-semibold"
                   >
                     {category.title}
                   </h2>
-                  <Accordion type="single" collapsible className="mt-4 gap-3">
+                  <Accordion type="single" collapsible className="mt-4 gap-4">
                     {category.items.map((item) => (
                       <AccordionItem
                         key={item.id}
                         value={item.id}
                         className={`${cardClassName} px-4`}
                       >
-                        <AccordionTrigger className="py-4 text-base shadow-none hover:no-underline">
-                          <span>
+                        <AccordionTrigger className="py-4 text-base shadow-none cursor-pointer hover:no-underline">
+                          <span className="text-lg">
                             <span className="mr-1 font-semibold text-foreground">Q:</span>
                             {item.question}
                           </span>
@@ -214,7 +214,7 @@ export function FaqPageView({ sections }: FaqPageViewProps) {
                   Unable to find satisfactory answers?
                 </p>
                 <Button asChild size="lg" className="mt-4 rounded-md shadow-none">
-                  <Link href="/contact-with-us">Contact support</Link>
+                  <Link href="/contact-us">Contact support</Link>
                 </Button>
               </div>
             </div>

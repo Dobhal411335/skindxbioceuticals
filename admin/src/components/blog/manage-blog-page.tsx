@@ -373,7 +373,9 @@ export function ManageBlogPage({ siteCode }: { siteCode: SiteCode }) {
                     return (
                       <TableRow key={blog.id}>
                         <TableCell className="max-w-[220px] font-medium">
-                          {blog.name}
+                          <span className="line-clamp-2 break-words" title={blog.name}>
+                            {blog.name}
+                          </span>
                         </TableCell>
                         <TableCell>{blog.category}</TableCell>
                         <TableCell>

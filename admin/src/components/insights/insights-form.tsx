@@ -316,6 +316,30 @@ export function InsightsForm({
                         />
                       </div>
                       <div className="grid gap-2 sm:col-span-1">
+                        <Label>Button label</Label>
+                        <Input
+                          value={card.buttonLabel}
+                          onChange={(event) =>
+                            updateCard(index, {
+                              buttonLabel: event.target.value,
+                            })
+                          }
+                          placeholder="e.g. Read more"
+                          className="h-11"
+                        />
+                      </div>
+                      <div className="grid gap-2 sm:col-span-1">
+                        <Label>Button URL</Label>
+                        <Input
+                          value={card.buttonUrl}
+                          onChange={(event) =>
+                            updateCard(index, { buttonUrl: event.target.value })
+                          }
+                          placeholder="e.g. /blog/anti-aging or https://…"
+                          className="h-11"
+                        />
+                      </div>
+                      <div className="grid gap-2 sm:col-span-1">
                         <Label>Order</Label>
                         <Input
                           type="number"

@@ -45,7 +45,7 @@ export const companyBasicInfoBodySchema = z.object({
   youtubeLink: optionalUrl.default(''),
   googleMapLink: optionalUrl.default(''),
   googleTrackingTag: z.string().max(50_000).default(''),
-  titleTagForMainLandingPage: z.string().trim().max(300).default(''),
+  titleTagForMainLandingPage: z.string().trim().max(500).default(''),
   keywords: z.array(z.string().trim().min(1).max(100)).max(50).default([]),
 });
 

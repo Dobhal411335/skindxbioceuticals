@@ -439,7 +439,7 @@ Site-scoped FAQ groups (`sections[]`) each with nested Q&A items. Fields per sec
 Site-scoped landing Insights strip (distinct from full Blog CMS and Website FAQ). Payload: `cards[]` and `qaItems[]`. Card fields: `category`, `name`, `publishedAt`, `imageUrl`, `imagePublicId`, TipTap HTML `description`, `active`, `order`. Q&A fields: `question`, `answer` (TipTap HTML), `active`, `order`.
 
 - `GET /api/v1/admin/sites/:siteCode/insights` — Bearer admin JWT; `requireSiteAccess`. Returns all cards/Q&A for the site (including inactive), ordered by `order`. Empty defaults are `{ cards: [], qaItems: [] }`.
-- `PUT /api/v1/admin/sites/:siteCode/insights` — replace all insight cards and Q&A for the site. Body: `cards[]`, `qaItems[]`. `siteId` from authenticated site context only.
+- `PUT /api/v1/admin/sites/:siteCode/insights` — replace all insight cards and Q&A for the site. Body: `cards[]` (`category`, `name`, `publishedAt`, `imageUrl`, `imagePublicId`, `description`, optional `buttonLabel`/`buttonUrl` path/hash/http(s), `order`, `active`), `qaItems[]`. `siteId` from authenticated site context only.
 
 Uploads use existing media APIs with `feature=insights`: `POST /api/v1/media/images`.
 
@@ -449,12 +449,12 @@ Uploads use existing media APIs with `feature=insights`: `POST /api/v1/media/ima
 
 ### Admin blogs (implemented)
 
-Site-scoped blog posts. Create with `name`, `category`, optional `slug` (auto-generated from name when omitted). Edit fills `title`, `publishedAt`, `createdBy`, cover image, TipTap HTML `description`, `blockquote`, optional `accordionItems` (`[{ question, description }]`), and `active`.
+Site-scoped blog posts. Create with `name`, `category`, optional `slug` (auto-generated from name when omitted). Edit fills `title`, `publishedAt`, `createdBy`, cover image, TipTap HTML `description`, `blockquote`, optional `accordionItems` (`[{ question, description }]`), optional `galleryImages` (`[{ url, publicId }]`, max 10), optional `videos` (`[{ name, url }]` YouTube watch or direct `.mp4`), optional TipTap HTML `extraDescription`, and `active`.
 
 - `GET /api/v1/admin/sites/:siteCode/blogs` — Bearer admin JWT; `requireSiteAccess`. Optional `?category=`. Lists all blogs for the site (including inactive), newest `publishedAt` first.
-- `POST /api/v1/admin/sites/:siteCode/blogs` — create. Body: `name`, `category`, optional `slug`, optional `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, and optional `active` (default true). Title defaults to name; content/image/accordion fields start empty. Slug unique per site (`409` on conflict when explicit).
+- `POST /api/v1/admin/sites/:siteCode/blogs` — create. Body: `name`, `category`, optional `slug`, optional `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, and optional `active` (default true). Title defaults to name; content/image/accordion/gallery/video fields start empty. Slug unique per site (`409` on conflict when explicit).
 - `GET /api/v1/admin/sites/:siteCode/blogs/:blogId` — one blog for edit.
-- `PUT /api/v1/admin/sites/:siteCode/blogs/:blogId` — full update. Body: `name`, `slug`, `category`, optional landing-card fields `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, plus `title`, `publishedAt`, `createdBy`, `imageUrl`, `imagePublicId`, `description`, `blockquote`, optional `accordionItems` (`[{ question, description }]`, max 50; empty rows dropped), `active`. Prefer HTTPS image URLs. Replacing `imagePublicId` deletes the previous Cloudinary asset best-effort.
+- `PUT /api/v1/admin/sites/:siteCode/blogs/:blogId` — full update. Body: `name`, `slug`, `category`, optional landing-card fields `badgeText`, `stat1Number`, `stat1Name`, `stat1Text`, `stat2Number`, `stat2Name`, `stat2Text`, plus `title`, `publishedAt`, `createdBy`, `imageUrl`, `imagePublicId`, `description`, `blockquote`, optional `accordionItems` (`[{ question, description }]`, max 50; empty rows dropped), optional `galleryImages` (`[{ url, publicId }]`, max 10), optional `videos` (`[{ name, url }]`, max 20; empty rows dropped), optional `extraDescription`, `active`. Prefer HTTPS media URLs. Replacing cover `imagePublicId` or removing gallery `publicId`s deletes previous Cloudinary assets best-effort.
 - `PATCH /api/v1/admin/sites/:siteCode/blogs/:blogId` — `{ name? }` and/or `{ active? }` (at least one required). Used for inline name edits on the admin list.
 - `DELETE /api/v1/admin/sites/:siteCode/blogs/:blogId` — deletes the row and its cover Cloudinary asset when present.
 
@@ -463,7 +463,7 @@ Uploads use existing media APIs with `feature=blog`: `POST /api/v1/media/images`
 ### Public blogs (storefront)
 
 - `GET /api/v1/sites/:siteCode/blogs` — public read for an active site (no auth). Returns `{ blogs, categories }` with active blogs only. Optional `?category=`, `?limit=`, `?recent=true` (caps at 4). Used by `.in` `/blog`, landing `BlogGrid`, and sidebar recent articles (falls back to static data when the API is unavailable). Prefer HTTPS Cloudinary image URLs.
-- `GET /api/v1/sites/:siteCode/blogs/:slug` — public detail by site-scoped slug. Returns the active blog plus `related[]` cards (same category, excluding current, max 3: `name`, `imageUrl`, `publishedAt`, `createdBy`). Used by the storefront “You might also like” section. Inactive/missing → `404`.
+- `GET /api/v1/sites/:siteCode/blogs/:slug` — public detail by site-scoped slug. Returns the active blog plus `related[]` cards (same category, excluding current, max 3: `name`, `imageUrl`, `publishedAt`, `createdBy`). Storefront “You might also like” now picks up to 6 random posts from the public blog list (excluding the current article) on each page refresh, rather than relying on this category-scoped `related[]`. Inactive/missing → `404`.
 
 ### Admin webpages (implemented)
 

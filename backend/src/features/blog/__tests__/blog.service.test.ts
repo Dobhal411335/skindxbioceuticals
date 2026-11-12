@@ -1,6 +1,11 @@
 import { BlogService, slugifyBlogName, toBlogDto } from '../blog.service';
 import type { BlogRepository } from '../blog.repository';
-import { parseBlogAccordionItems, type BlogRecord } from '../blog.types';
+import {
+  parseBlogAccordionItems,
+  parseBlogGalleryImages,
+  parseBlogVideos,
+  type BlogRecord,
+} from '../blog.types';
 import { ConflictError, NotFoundError } from '@/utils/AppError';
 import {
   deleteStoredCloudinaryAsset,
@@ -29,6 +34,9 @@ function makeRecord(overrides: Partial<BlogRecord> = {}): BlogRecord {
     accordionItems: [
       { question: 'What is this?', description: 'A short answer.' },
     ],
+    galleryImages: [],
+    videos: [],
+    extraDescription: '',
     active: true,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -81,6 +89,30 @@ describe('BlogService', () => {
     ).toEqual([
       { question: 'Q1', description: 'A1' },
       { question: 'Legacy Q', description: 'Legacy A' },
+    ]);
+  });
+
+  it('parses gallery images and videos and drops empty rows', () => {
+    expect(
+      parseBlogGalleryImages([
+        { url: ' http://res.cloudinary.com/demo/a.jpg ', publicId: ' blog/a ' },
+        { url: '', publicId: 'skip' },
+        { imageUrl: 'https://cdn.example.com/b.jpg', imagePublicId: 'blog/b' },
+      ]),
+    ).toEqual([
+      { url: 'https://res.cloudinary.com/demo/a.jpg', publicId: 'blog/a' },
+      { url: 'https://cdn.example.com/b.jpg', publicId: 'blog/b' },
+    ]);
+
+    expect(
+      parseBlogVideos([
+        { name: ' Intro ', url: ' https://youtu.be/abc ' },
+        { name: '', url: '' },
+        { name: 'Clip', url: 'https://cdn.example.com/clip.mp4' },
+      ]),
+    ).toEqual([
+      { name: 'Intro', url: 'https://youtu.be/abc' },
+      { name: 'Clip', url: 'https://cdn.example.com/clip.mp4' },
     ]);
   });
 
@@ -162,6 +194,9 @@ describe('BlogService', () => {
           description: '<p>Hi</p>',
           blockquote: '',
           accordionItems: [],
+          galleryImages: [],
+          videos: [],
+          extraDescription: '',
           active: true,
         },
       }),
@@ -198,6 +233,9 @@ describe('BlogService', () => {
         accordionItems: [
           { question: 'How often?', description: 'Twice daily.' },
         ],
+        galleryImages: [],
+        videos: [],
+        extraDescription: '',
         active: true,
       },
     });
@@ -214,6 +252,68 @@ describe('BlogService', () => {
     expect(dto.accordionItems).toEqual([
       { question: 'How often?', description: 'Twice daily.' },
     ]);
+  });
+
+  it('persists gallery images, videos, and extra description on update', async () => {
+    const existing = makeRecord({
+      galleryImages: [{ url: 'https://cdn.example.com/old.jpg', publicId: 'blog/old-g' }],
+    });
+    const updated = makeRecord({
+      galleryImages: [
+        { url: 'https://cdn.example.com/new.jpg', publicId: 'blog/new-g' },
+      ],
+      videos: [{ name: 'Walkthrough', url: 'https://www.youtube.com/watch?v=abc123' }],
+      extraDescription: '<p>More detail</p>',
+    });
+    findByIdForSite.mockResolvedValue(existing);
+    slugExists.mockResolvedValue(false);
+    update.mockResolvedValue(updated);
+
+    const dto = await service.updateForSite({
+      siteId: existing.siteId,
+      siteCode: 'IN',
+      userId: 'user-1',
+      blogId: existing.id,
+      body: {
+        name: existing.name,
+        slug: existing.slug,
+        category: existing.category,
+        title: existing.title,
+        publishedAt: existing.publishedAt,
+        createdBy: existing.createdBy,
+        imageUrl: existing.imageUrl,
+        imagePublicId: existing.imagePublicId,
+        description: existing.description,
+        blockquote: existing.blockquote,
+        accordionItems: existing.accordionItems,
+        galleryImages: [
+          { url: 'https://cdn.example.com/new.jpg', publicId: 'blog/new-g' },
+        ],
+        videos: [
+          { name: 'Walkthrough', url: 'https://www.youtube.com/watch?v=abc123' },
+        ],
+        extraDescription: '<p>More detail</p>',
+        active: true,
+      },
+    });
+
+    expect(update).toHaveBeenCalledWith(
+      existing.siteId,
+      existing.id,
+      expect.objectContaining({
+        galleryImages: [
+          { url: 'https://cdn.example.com/new.jpg', publicId: 'blog/new-g' },
+        ],
+        videos: [
+          { name: 'Walkthrough', url: 'https://www.youtube.com/watch?v=abc123' },
+        ],
+        extraDescription: '<p>More detail</p>',
+      }),
+    );
+    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith('blog/old-g');
+    expect(dto.galleryImages).toHaveLength(1);
+    expect(dto.videos[0]?.name).toBe('Walkthrough');
+    expect(dto.extraDescription).toBe('<p>More detail</p>');
   });
 
   it('returns public detail with related cards and cleans Cloudinary on delete', async () => {
@@ -268,6 +368,9 @@ describe('BlogService', () => {
         description: existing.description,
         blockquote: existing.blockquote,
         accordionItems: existing.accordionItems,
+        galleryImages: [],
+        videos: [],
+        extraDescription: '',
         active: true,
       },
     });

@@ -56,6 +56,8 @@ export function mapInsightsConfig(config: InsightsConfig): StorefrontInsights {
       imageUrl: card.imageUrl,
       descriptionHtml: card.description || "",
       excerpt: makeExcerpt(card.description || ""),
+      buttonLabel: card.buttonLabel || "",
+      buttonUrl: card.buttonUrl || "",
     }));
 
   const qaItems: StorefrontInsightQa[] = [...(config.qaItems || [])]

@@ -3,8 +3,12 @@ import type {
   BlogCreateFormValues,
   BlogCreatePayload,
   BlogEditFormValues,
+  BlogGalleryImage,
   BlogUpdatePayload,
+  BlogVideoItem,
 } from "@/types/blog";
+
+export const BLOG_GALLERY_MAX_IMAGES = 10;
 
 export type BlogCreateFormErrors = Partial<
   Record<keyof BlogCreateFormValues, string>
@@ -111,6 +115,20 @@ export function validateBlogEditForm(
           description: item.description.trim(),
         }))
         .filter((item) => item.question.length > 0 || item.description.length > 0),
+      galleryImages: values.galleryImages
+        .map((item) => ({
+          url: item.url.trim(),
+          publicId: item.publicId.trim(),
+        }))
+        .filter((item) => item.url.length > 0)
+        .slice(0, BLOG_GALLERY_MAX_IMAGES),
+      videos: values.videos
+        .map((item) => ({
+          name: item.name.trim(),
+          url: item.url.trim(),
+        }))
+        .filter((item) => item.name.length > 0 || item.url.length > 0),
+      extraDescription: values.extraDescription,
       active: values.active,
     },
   };
@@ -125,6 +143,33 @@ export function normalizeAccordionItems(
   return value.map((item) => ({
     question: item.question ?? "",
     description: item.description ?? "",
+  }));
+}
+
+export function normalizeGalleryImages(
+  value: BlogGalleryImage[] | undefined | null,
+): BlogGalleryImage[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => ({
+      url: item.url ?? "",
+      publicId: item.publicId ?? "",
+    }))
+    .filter((item) => item.url.length > 0)
+    .slice(0, BLOG_GALLERY_MAX_IMAGES);
+}
+
+export function normalizeVideoItems(
+  value: BlogVideoItem[] | undefined | null,
+): BlogVideoItem[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    return [{ name: "", url: "" }];
+  }
+  return value.map((item) => ({
+    name: item.name ?? "",
+    url: item.url ?? "",
   }));
 }
 

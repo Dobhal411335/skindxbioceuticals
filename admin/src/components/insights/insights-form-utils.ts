@@ -22,6 +22,8 @@ export function createEmptyCard(): InsightCardFormValues {
     imageUrl: "",
     imagePublicId: "",
     description: "",
+    buttonLabel: "",
+    buttonUrl: "",
     order: "",
     active: true,
   };
@@ -52,6 +54,8 @@ export function dtoToFormValues(dto: InsightsConfigDto): InsightsFormValues {
       imageUrl: card.imageUrl ?? "",
       imagePublicId: card.imagePublicId ?? "",
       description: card.description ?? "",
+      buttonLabel: card.buttonLabel ?? "",
+      buttonUrl: card.buttonUrl ?? "",
       order: String(card.order ?? ""),
       active: card.active !== false,
     })),

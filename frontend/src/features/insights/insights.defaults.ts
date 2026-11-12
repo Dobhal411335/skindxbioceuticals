@@ -14,6 +14,8 @@ export const FALLBACK_INSIGHTS: StorefrontInsights = {
         "<p>A practical guide to scanning labels without jargon overload — focused on transparency, not medical advice.</p>",
       excerpt:
         "A practical guide to scanning labels without jargon overload — focused on transparency, not medical advice.",
+      buttonLabel: "",
+      buttonUrl: "",
     },
     {
       id: "fallback-card-2",
@@ -26,6 +28,8 @@ export const FALLBACK_INSIGHTS: StorefrontInsights = {
         "<p>Cleanse, treat, moisturise, protect — a calm sequence you can adapt to your own skin needs.</p>",
       excerpt:
         "Cleanse, treat, moisturise, protect — a calm sequence you can adapt to your own skin needs.",
+      buttonLabel: "",
+      buttonUrl: "",
     },
     {
       id: "fallback-card-3",
@@ -38,6 +42,8 @@ export const FALLBACK_INSIGHTS: StorefrontInsights = {
         "<p>Why we prioritise legible typography, clear pack sizes, and honest product photography.</p>",
       excerpt:
         "Why we prioritise legible typography, clear pack sizes, and honest product photography.",
+      buttonLabel: "",
+      buttonUrl: "",
     },
   ],
   qaItems: [

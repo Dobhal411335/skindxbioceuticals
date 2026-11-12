@@ -5,14 +5,17 @@ import { notFound } from "next/navigation";
 import { Quote } from "lucide-react";
 
 import { BlogAccordion } from "@/components/blog/blog-accordion";
+import { BlogGallery } from "@/components/blog/blog-gallery";
 import { BlogRelatedSection } from "@/components/blog/blog-related-section";
 import { BlogSidebar } from "@/components/blog/blog-sidebar";
+import { BlogVideos } from "@/components/blog/blog-videos";
 import {
   formatBlogDate,
   getBlogBySlug,
   getBlogs,
   getRecentBlogs,
 } from "@/features/blog/blog.service";
+import { hasVisibleHtmlContent } from "@/lib/rich-html";
 import { plainTextForShare } from "@/lib/share-text";
 
 function formatBlockquoteText(value: string): string {
@@ -60,6 +63,25 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
     plainTextForShare(post.description) ||
     plainTextForShare(post.blockquote) ||
     post.title;
+  const relatedCandidates = list.blogs
+    .filter((entry) => entry.id !== post.id && entry.slug !== post.slug)
+    .map((entry) => ({
+      id: entry.id,
+      slug: entry.slug,
+      name: entry.name,
+      category: entry.category,
+      badgeText: entry.badgeText,
+      stat1Number: entry.stat1Number,
+      stat1Name: entry.stat1Name,
+      stat1Text: entry.stat1Text,
+      stat2Number: entry.stat2Number,
+      stat2Name: entry.stat2Name,
+      stat2Text: entry.stat2Text,
+      title: entry.title,
+      publishedAt: entry.publishedAt,
+      createdBy: entry.createdBy,
+      imageUrl: entry.imageUrl,
+    }));
 
   return (
     <>
@@ -140,22 +162,37 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
                 <BlogAccordion items={post.accordionItems} />
 
-                {post.description ? (
+                {hasVisibleHtmlContent(post.description) ? (
                   <div
                     className="rich-html mt-8 max-w-none text-sm leading-relaxed text-[#6d787e] sm:text-base [&_a]:text-[#c97852] [&_h1]:text-[#1d262b] [&_h2]:text-[#1d262b] [&_h3]:text-[#1d262b] [&_img]:rounded-md [&_strong]:text-[#1d262b]"
                     dangerouslySetInnerHTML={{ __html: post.description }}
                   />
-                ) : (
+                ) : null}
+
+                <BlogGallery images={post.galleryImages} title={post.title} />
+                <BlogVideos videos={post.videos} />
+
+                {hasVisibleHtmlContent(post.extraDescription) ? (
+                  <div
+                    className="rich-html mt-10 max-w-none text-sm leading-relaxed text-[#6d787e] sm:text-base [&_a]:text-[#c97852] [&_h1]:text-[#1d262b] [&_h2]:text-[#1d262b] [&_h3]:text-[#1d262b] [&_img]:rounded-md [&_strong]:text-[#1d262b]"
+                    dangerouslySetInnerHTML={{ __html: post.extraDescription }}
+                  />
+                ) : null}
+
+                {!hasVisibleHtmlContent(post.description) &&
+                post.galleryImages.length === 0 &&
+                post.videos.length === 0 &&
+                !hasVisibleHtmlContent(post.extraDescription) ? (
                   <p className="mt-8 text-sm text-[#6d787e]">
                     This article does not have content yet.
                   </p>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
         </div>
 
-        <BlogRelatedSection items={post.related} />
+        <BlogRelatedSection items={relatedCandidates} />
       </article>
     </>
   );

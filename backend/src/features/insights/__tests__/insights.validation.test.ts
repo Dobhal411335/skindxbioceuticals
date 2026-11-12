@@ -26,6 +26,8 @@ describe('insights validation', () => {
     const parsed = insightsConfigBodySchema.parse(normalized);
     expect(parsed.cards).toHaveLength(1);
     expect(parsed.cards[0]?.name).toBe('Aloe tips');
+    expect(parsed.cards[0]?.buttonLabel).toBe('');
+    expect(parsed.cards[0]?.buttonUrl).toBe('');
     expect(parsed.cards[0]?.order).toBe(1);
     expect(parsed.qaItems).toHaveLength(1);
     expect(parsed.qaItems[0]?.question).toBe('What is aloe?');
@@ -54,5 +56,24 @@ describe('insights validation', () => {
       qaItems: [],
     });
     expect(result.success).toBe(false);
+  });
+
+  it('accepts button label and relative button URL', () => {
+    const parsed = insightsConfigBodySchema.parse({
+      cards: [
+        {
+          category: 'Skin Care',
+          name: 'Test',
+          publishedAt: '2025-11-22',
+          imageUrl: '',
+          description: '<p>x</p>',
+          buttonLabel: 'Learn more',
+          buttonUrl: '/blog/test',
+        },
+      ],
+      qaItems: [],
+    });
+    expect(parsed.cards[0]?.buttonLabel).toBe('Learn more');
+    expect(parsed.cards[0]?.buttonUrl).toBe('/blog/test');
   });
 });

@@ -5,6 +5,16 @@ export type BlogAccordionItem = {
   description: string;
 };
 
+export type BlogGalleryImage = {
+  url: string;
+  publicId: string;
+};
+
+export type BlogVideoItem = {
+  name: string;
+  url: string;
+};
+
 export type BlogDto = {
   id: string;
   siteCode: SiteCode;
@@ -26,6 +36,9 @@ export type BlogDto = {
   description: string;
   blockquote: string;
   accordionItems: BlogAccordionItem[];
+  galleryImages: BlogGalleryImage[];
+  videos: BlogVideoItem[];
+  extraDescription: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -64,6 +77,9 @@ export type BlogUpdatePayload = {
   description: string;
   blockquote: string;
   accordionItems: BlogAccordionItem[];
+  galleryImages: BlogGalleryImage[];
+  videos: BlogVideoItem[];
+  extraDescription: string;
   active: boolean;
 };
 
@@ -96,5 +112,14 @@ export type BlogEditFormValues = {
   description: string;
   blockquote: string;
   accordionItems: BlogAccordionItem[];
+  galleryImages: BlogGalleryImage[];
+  videos: BlogVideoItem[];
+  extraDescription: string;
   active: boolean;
+};
+
+export type BlogGalleryPendingUpload = {
+  id: string;
+  previewUrl: string;
+  fileName: string;
 };

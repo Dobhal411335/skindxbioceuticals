@@ -401,7 +401,7 @@ const GetInTouchCard = ({ pageTitle = "" }) => {
       </p>
 
       <Link
-        href="/contact-with-us"
+        href="/contact-us"
         className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-primary px-4 font-ui text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
       >
         Make an enquiry

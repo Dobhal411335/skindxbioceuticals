@@ -11,6 +11,8 @@ export const insightsFormSchema = z.object({
       imageUrl: z.string().trim().max(2048),
       imagePublicId: z.string().trim().max(500),
       description: z.string().max(200_000),
+      buttonLabel: z.string().trim().max(80),
+      buttonUrl: z.string().trim().max(2000),
       order: z.string().trim(),
       active: z.boolean(),
     }),
@@ -109,6 +111,8 @@ export function toInsightsConfigPayload(
           imageUrl: card.imageUrl.trim(),
           imagePublicId: card.imagePublicId.trim(),
           description: card.description,
+          buttonLabel: card.buttonLabel.trim(),
+          buttonUrl: card.buttonUrl.trim(),
           order: Number.isFinite(order) ? order : index + 1,
           active: card.active,
         };

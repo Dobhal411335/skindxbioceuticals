@@ -28,7 +28,7 @@ describe("storefront sitemap", () => {
       blogs: [{ title: "Reading a label", slug: "reading-a-label" }],
       pages: [
         { title: "Privacy Policy", slug: "privacy-policy" },
-        { title: "Get in Touch With SkinDx Bioceuticals", slug: "contact-with-us" },
+        { title: "Get in Touch With SkinDx Bioceuticals", slug: "contact-us" },
         { title: "Careers duplicate", slug: "careers" },
         { title: "Account", slug: "account" },
       ],
@@ -48,12 +48,12 @@ describe("storefront sitemap", () => {
         "/blog/reading-a-label",
         "/testimonials",
         "/privacy-policy",
-        "/contact-with-us",
+        "/contact-us",
         "/faq",
       ]),
     );
     const support = groups.find((group) => group.title === "Support");
-    expect(support?.links.map((link) => link.href)).toEqual(["/contact-with-us", "/faq"]);
+    expect(support?.links.map((link) => link.href)).toEqual(["/contact-us", "/faq"]);
     expect(hrefs).not.toContain("/careers-duplicate");
     expect(hrefs).not.toContain("/account");
     expect(hrefs.filter((href) => href === "/careers")).toHaveLength(1);

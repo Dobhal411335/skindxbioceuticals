@@ -6,6 +6,8 @@ export type InsightCard = {
   imageUrl: string;
   imagePublicId: string;
   description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   order: number;
   active: boolean;
 };
@@ -32,6 +34,8 @@ export type StorefrontInsightCard = {
   imageUrl: string;
   descriptionHtml: string;
   excerpt: string;
+  buttonLabel: string;
+  buttonUrl: string;
 };
 
 export type StorefrontInsightQa = {

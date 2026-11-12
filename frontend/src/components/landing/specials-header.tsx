@@ -23,10 +23,10 @@ export function SpecialsHeader({ promo = FALLBACK_ABOUT_US_BANNER.promo }: Speci
         </div>
 
         <div className="min-w-0 lg:pr-3">
-          <p className="max-w-3xl text-2xl leading-[1.42] tracking-[-0.025em] text-[#17252b] sm:text-3xl">
+          <p className="max-w-3xl text-justify text-2xl leading-[1.42] tracking-[-0.025em] text-[#17252b] sm:text-3xl">
             {promo.description}
           </p>
-          <p className="mt-8 max-w-2xl text-base leading-relaxed text-[#617181] sm:text-lg">
+          <p className="mt-8 max-w-3xl text-justify text-base leading-relaxed text-[#617181] sm:text-lg">
             {promo.subtitle}
           </p>
 
@@ -44,7 +44,7 @@ export function SpecialsHeader({ promo = FALLBACK_ABOUT_US_BANNER.promo }: Speci
                     <h3 className="text-base font-semibold text-[#17252b] sm:text-lg">
                       {card.title}
                     </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-[#71808d] sm:text-base">
+                    <p className="mt-3 text-sm text-justify leading-relaxed text-[#71808d] sm:text-base">
                       {card.body}
                     </p>
                   </div>

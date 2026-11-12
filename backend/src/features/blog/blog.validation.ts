@@ -36,6 +36,42 @@ const blogAccordionItemsSchema = z
     items.filter((item) => item.question.length > 0 || item.description.length > 0),
   );
 
+const blogGalleryImageSchema = z.object({
+  url: imageUrlSchema,
+  publicId: z.string().trim().max(500).default(''),
+});
+
+const blogGalleryImagesSchema = z
+  .array(blogGalleryImageSchema)
+  .max(10)
+  .default([])
+  .transform((items) => items.filter((item) => item.url.length > 0));
+
+const mediaUrlSchema = z
+  .string()
+  .trim()
+  .max(2000)
+  .refine(
+    (value) =>
+      value === '' ||
+      value.startsWith('https://') ||
+      value.startsWith('http://'),
+    { message: 'Video URL must use http or https' },
+  );
+
+const blogVideoItemSchema = z.object({
+  name: z.string().trim().max(200),
+  url: mediaUrlSchema,
+});
+
+const blogVideosSchema = z
+  .array(blogVideoItemSchema)
+  .max(20)
+  .default([])
+  .transform((items) =>
+    items.filter((item) => item.name.length > 0 || item.url.length > 0),
+  );
+
 export const blogCreateBodySchema = z.object({
   name: z.string().trim().min(1, 'Blog name is required').max(200),
   category: z.string().trim().min(1, 'Blog category is required').max(120),
@@ -69,6 +105,9 @@ export const blogUpdateBodySchema = z.object({
   description: z.string().max(200_000).default(''),
   blockquote: z.string().trim().max(5000).default(''),
   accordionItems: blogAccordionItemsSchema,
+  galleryImages: blogGalleryImagesSchema,
+  videos: blogVideosSchema,
+  extraDescription: z.string().max(200_000).default(''),
   active: z.boolean().default(true),
 });
 
@@ -124,6 +163,9 @@ export type BlogUpdateBody = Omit<
   | 'stat2Name'
   | 'stat2Text'
   | 'accordionItems'
+  | 'galleryImages'
+  | 'videos'
+  | 'extraDescription'
 > &
   Partial<
     Pick<
@@ -136,6 +178,9 @@ export type BlogUpdateBody = Omit<
       | 'stat2Name'
       | 'stat2Text'
       | 'accordionItems'
+      | 'galleryImages'
+      | 'videos'
+      | 'extraDescription'
     >
   >;
 export type BlogPatchBody = z.infer<typeof blogPatchBodySchema>;
@@ -232,6 +277,18 @@ export function normalizeBlogUpdateInput(raw: unknown): unknown {
       : Array.isArray(payload.accordion)
         ? payload.accordion
         : payload.accordionItems,
+    galleryImages: Array.isArray(payload.galleryImages)
+      ? payload.galleryImages
+      : Array.isArray(payload.gallery)
+        ? payload.gallery
+        : payload.galleryImages,
+    videos: Array.isArray(payload.videos) ? payload.videos : payload.videos,
+    extraDescription:
+      typeof payload.extraDescription === 'string'
+        ? payload.extraDescription
+        : typeof payload.secondDescription === 'string'
+          ? payload.secondDescription
+          : payload.extraDescription,
     active: payload.active ?? true,
   };
 }

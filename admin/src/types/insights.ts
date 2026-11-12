@@ -6,6 +6,8 @@ export type InsightCardDto = {
   imageUrl: string;
   imagePublicId: string;
   description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   order: number;
   active: boolean;
 };
@@ -32,6 +34,8 @@ export type InsightCardFormValues = {
   imageUrl: string;
   imagePublicId: string;
   description: string;
+  buttonLabel: string;
+  buttonUrl: string;
   order: string;
   active: boolean;
 };
@@ -56,6 +60,8 @@ export type InsightsConfigPayload = {
     imageUrl: string;
     imagePublicId: string;
     description: string;
+    buttonLabel: string;
+    buttonUrl: string;
     order: number;
     active: boolean;
   }>;

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import {
@@ -23,10 +23,16 @@ function formatInsightDate(iso: string): string {
   });
 }
 
+function isExternalUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url);
+}
+
 function InsightCardItem({ card }: { card: StorefrontInsightCard }) {
-  const [open, setOpen] = useState(false);
   const fullDescription = card.descriptionHtml?.trim() || card.excerpt?.trim() || "";
   const hasDescription = Boolean(fullDescription);
+  const buttonLabel = card.buttonLabel?.trim() || "";
+  const buttonUrl = card.buttonUrl?.trim() || "";
+  const showButton = Boolean(buttonLabel && buttonUrl);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm">
@@ -58,30 +64,30 @@ function InsightCardItem({ card }: { card: StorefrontInsightCard }) {
         </h3>
         {hasDescription ? (
           <div
-            className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
-              open ? "max-h-60 opacity-100" : "max-h-[4.75rem] opacity-90"
-            }`}
-          >
-            <div
-              className={`rich-html text-sm leading-relaxed text-muted-foreground ${
-                open ? "" : "line-clamp-3"
-              }`}
-              dangerouslySetInnerHTML={{ __html: fullDescription }}
-            />
-          </div>
+            className="rich-html text-sm leading-relaxed text-muted-foreground"
+            dangerouslySetInnerHTML={{ __html: fullDescription }}
+          />
         ) : null}
-        {hasDescription ? (
-          <button
-            type="button"
-            onClick={() => setOpen((current) => !current)}
-            className="mt-auto inline-flex w-fit items-center gap-1 pt-2 text-xs font-bold tracking-[0.12em] text-[#18252b] uppercase transition-colors hover:text-primary"
-          >
-            {open ? "Show less" : "Read more"}
-            <ArrowRight
-              className={`size-3.5 transition-transform duration-300 ${open ? "rotate-90" : ""}`}
-              aria-hidden
-            />
-          </button>
+        {showButton ? (
+          isExternalUrl(buttonUrl) ? (
+            <a
+              href={buttonUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-auto inline-flex w-fit items-center gap-1 pt-2 text-xs font-bold tracking-[0.12em] text-[#18252b] uppercase transition-colors hover:text-primary"
+            >
+              {buttonLabel}
+              <ArrowRight className="size-3.5" aria-hidden />
+            </a>
+          ) : (
+            <Link
+              href={buttonUrl}
+              className="mt-auto inline-flex w-fit items-center gap-1 pt-2 text-xs font-bold tracking-[0.12em] text-[#18252b] uppercase transition-colors hover:text-primary"
+            >
+              {buttonLabel}
+              <ArrowRight className="size-3.5" aria-hidden />
+            </Link>
+          )
         ) : null}
       </div>
     </article>
@@ -119,15 +125,21 @@ export function InsightsGrid({ insights }: InsightsGridProps) {
         <Carousel opts={{ align: "start", loop: showControls }} className="w-full">
           <CarouselContent className="-ml-4">
             {cards.map((card) => (
-              <CarouselItem key={card.id} className="basis-full pl-4 sm:basis-1/2 lg:basis-1/3">
+              <CarouselItem key={card.id} className="basis-full pl-4 sm:basis-1/2 lg:basis-1/3 my-2">
                 <InsightCardItem card={card} />
               </CarouselItem>
             ))}
           </CarouselContent>
           {showControls ? (
             <>
-              <CarouselPrevious className="-left-3 hidden border-[#d8c9b5] bg-white text-[#18252b] shadow-sm sm:flex" />
-              <CarouselNext className="-right-3 hidden border-[#d8c9b5] bg-white text-[#18252b] shadow-sm sm:flex" />
+              <CarouselPrevious
+                size="icon"
+                className="-left-3 hidden size-12 border-[#d8c9b5] bg-white text-[#18252b] shadow-sm sm:flex [&_svg]:size-6"
+              />
+              <CarouselNext
+                size="icon"
+                className="-right-3 hidden size-12 border-[#d8c9b5] bg-white text-[#18252b] shadow-sm sm:flex [&_svg]:size-6"
+              />
             </>
           ) : null}
         </Carousel>

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { BecomeVendorForm } from "@/components/vendors/become-vendor-form";
 
 export const metadata: Metadata = {
-  title: "Become a Vendor | SkinDx Bioceuticals",
+  title: "Become a | SkinDx Bioceuticals",
   description: "Apply to become a SkinDx Bioceuticals vendor partner.",
 };
 
