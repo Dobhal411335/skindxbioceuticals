@@ -77,6 +77,11 @@ export const publicProductSlugParamSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid product slug'),
 });
 
+/** `quick` skips related-product hydration for modal / quick-view clients. */
+export const publicProductDetailQuerySchema = z.object({
+  view: z.enum(['full', 'quick']).optional().default('full'),
+});
+
 export const publicProductSiteParamSchema = z.object({
   siteCode: siteCodeSchema,
 });
@@ -172,6 +177,7 @@ export const directProductIdParamSchema = z.object({
 export type CatalogProductBody = z.infer<typeof catalogProductBodySchema>;
 export type CatalogProductPatchBody = z.infer<typeof catalogProductPatchSchema>;
 export type PublicProductSlugParam = z.infer<typeof publicProductSlugParamSchema>;
+export type PublicProductDetailQuery = z.infer<typeof publicProductDetailQuerySchema>;
 export type PublicProductListQuery = z.infer<typeof publicProductListQuerySchema>;
 export type PublicProductSort = z.infer<typeof publicProductSortSchema>;
 export type PublicProductAvailability = z.infer<typeof publicProductAvailabilitySchema>;

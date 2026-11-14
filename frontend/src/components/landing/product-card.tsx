@@ -15,6 +15,7 @@ import {
   discountPercentForBadge,
   priceProductForRole,
 } from "@/features/products/product-pricing";
+import { prefetchProductQuickView } from "@/features/products/product.service";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useIsVendor } from "@/hooks/useIsVendor";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
@@ -167,6 +168,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 "hover:border-primary hover:bg-primary hover:text-primary-foreground",
               )}
               aria-label="Quick look"
+              onMouseEnter={() => prefetchProductQuickView(product.slug)}
+              onFocus={() => prefetchProductQuickView(product.slug)}
               onClick={() => setQuickOpen(true)}
             >
               <Eye className="size-3.5" />
@@ -224,7 +227,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       </article>
 
       <ProductQuickView
-        slug={quickOpen ? product.slug : null}
+        slug={product.slug}
         categoryName={product.categoryName}
         open={quickOpen}
         onOpenChange={setQuickOpen}

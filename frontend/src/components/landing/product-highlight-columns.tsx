@@ -25,6 +25,7 @@ import {
   discountPercentForBadge,
   priceProductForRole,
 } from "@/features/products/product-pricing";
+import { prefetchProductQuickView } from "@/features/products/product.service";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useIsVendor } from "@/hooks/useIsVendor";
 import { showError } from "@/lib/toast";
@@ -76,6 +77,8 @@ function ProductListItem({
               "absolute inset-0 z-10 flex items-center justify-center bg-foreground/35 text-background",
               "opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-visible:opacity-100",
             )}
+            onMouseEnter={() => prefetchProductQuickView(product.slug)}
+            onFocus={() => prefetchProductQuickView(product.slug)}
             onClick={() => onQuickView(product)}
           >
             <span className="flex size-9 items-center justify-center rounded-full border-2 border-background bg-background/95 text-foreground shadow-sm">
@@ -192,6 +195,8 @@ function FeaturedHighlightCard({
             "hover:border-foreground hover:bg-foreground hover:text-background",
           )}
           aria-label={`Quick look ${product.name}`}
+          onMouseEnter={() => prefetchProductQuickView(product.slug)}
+          onFocus={() => prefetchProductQuickView(product.slug)}
           onClick={() => onQuickView(product)}
         >
           <Eye className="size-5" />

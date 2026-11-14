@@ -278,11 +278,16 @@ export function ProductQuickView({
     }
 
     let cancelled = false;
-    setLoading(true);
-    setProduct(null);
     setQuantity(1);
 
-    void fetchProductBySlugClient(slug)
+    // Keep prior product visible when reopening the same slug (cache hit = no flash).
+    const sameSlug = product?.slug === slug;
+    if (!sameSlug) {
+      setLoading(true);
+      setProduct(null);
+    }
+
+    void fetchProductBySlugClient(slug, { view: "quick" })
       .then((data) => {
         if (cancelled) return;
         setProduct(data);
@@ -302,6 +307,8 @@ export function ProductQuickView({
     return () => {
       cancelled = true;
     };
+    // Intentionally omit `product` — only refetch when the sheet opens / slug changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- product used only for same-slug UX
   }, [open, slug]);
 
   const sizes = useMemo(

@@ -4,6 +4,7 @@ import { optionalAuthenticate } from '@/middlewares/auth.middleware';
 import { validate } from '@/middlewares/validate.middleware';
 import { productController } from './product.controller';
 import {
+  publicProductDetailQuerySchema,
   publicProductListQuerySchema,
   publicProductPdfParamSchema,
   publicProductSiteParamSchema,
@@ -48,6 +49,9 @@ productPublicRoutes.get(
 
 productPublicRoutes.get(
   '/:slug',
-  validate({ params: publicProductSlugParamSchema }),
+  validate({
+    params: publicProductSlugParamSchema,
+    query: publicProductDetailQuerySchema,
+  }),
   asyncHandler(productController.getPublicBySlug),
 );

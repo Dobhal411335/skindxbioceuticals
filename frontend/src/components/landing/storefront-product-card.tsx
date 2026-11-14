@@ -10,6 +10,7 @@ import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { Button } from "@/components/ui/button";
 import { buildCartPricingFields, priceProductForRole } from "@/features/products/product-pricing";
+import { prefetchProductQuickView } from "@/features/products/product.service";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useIsVendor } from "@/hooks/useIsVendor";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
@@ -144,6 +145,8 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
               variant="secondary"
               className="size-8 rounded-full border border-[#d9dfdc] bg-card/95 text-foreground/70 opacity-0 shadow-sm transition-all duration-200 group-hover:opacity-100 focus-visible:opacity-100 hover:border-primary hover:bg-primary hover:text-primary-foreground"
               aria-label="Quick look"
+              onMouseEnter={() => prefetchProductQuickView(product.slug)}
+              onFocus={() => prefetchProductQuickView(product.slug)}
               onClick={() => setQuickOpen(true)}
             >
               <Eye className="size-4" />
@@ -220,7 +223,7 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
       </article>
 
       <ProductQuickView
-        slug={quickOpen ? product.slug : null}
+        slug={product.slug}
         categoryName={product.categoryName}
         open={quickOpen}
         onOpenChange={setQuickOpen}

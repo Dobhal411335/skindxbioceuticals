@@ -260,28 +260,79 @@ export const getLandingProductHighlights = cache(
   },
 );
 
+type FetchProductBySlugOptions = {
+  /** `quick` skips related-product hydration on the API (for modals). */
+  view?: "full" | "quick";
+  bypassCache?: boolean;
+};
+
+const PRODUCT_DETAIL_CACHE_TTL_MS = 60_000;
+const productDetailCache = new Map<
+  string,
+  { data: PublicProductDetail; expiresAt: number }
+>();
+const productDetailInflight = new Map<string, Promise<PublicProductDetail | null>>();
+
+function productDetailCacheKey(slug: string, view: "full" | "quick"): string {
+  return `${view}:${slug.trim().toLowerCase()}`;
+}
+
+/** Warm the quick-view cache on hover so the sheet can open with data ready. */
+export function prefetchProductQuickView(slug: string): void {
+  if (!slug.trim()) return;
+  void fetchProductBySlugClient(slug, { view: "quick" });
+}
+
 /** Client-side PDP fetch (sends Bearer when logged in — vendor prices). */
 export async function fetchProductBySlugClient(
   slug: string,
+  options: FetchProductBySlugOptions = {},
 ): Promise<PublicProductDetail | null> {
-  if (!slug.trim()) {
+  const trimmed = slug.trim();
+  if (!trimmed) {
     return null;
   }
 
-  try {
-    const { apiClient } = await import("@/services/api/axios");
-    const encoded = encodeURIComponent(slug.trim());
-    const response = await apiClient.get<ApiSuccess<PublicProductDetail>>(
-      `/sites/${storefrontSiteCode}/products/${encoded}`,
-    );
-    const payload = response.data;
-    if (!payload?.success || !payload.data?.id || !payload.data?.slug) {
-      return null;
+  const view = options.view ?? "full";
+  const cacheKey = productDetailCacheKey(trimmed, view);
+  if (!options.bypassCache) {
+    const cached = productDetailCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
     }
-    return withStorefrontPdfUrls(payload.data);
-  } catch {
-    return null;
+    const inflight = productDetailInflight.get(cacheKey);
+    if (inflight) {
+      return inflight;
+    }
   }
+
+  const request = (async (): Promise<PublicProductDetail | null> => {
+    try {
+      const { apiClient } = await import("@/services/api/axios");
+      const encoded = encodeURIComponent(trimmed);
+      const response = await apiClient.get<ApiSuccess<PublicProductDetail>>(
+        `/sites/${storefrontSiteCode}/products/${encoded}`,
+        view === "quick" ? { params: { view: "quick" } } : undefined,
+      );
+      const payload = response.data;
+      if (!payload?.success || !payload.data?.id || !payload.data?.slug) {
+        return null;
+      }
+      const data = withStorefrontPdfUrls(payload.data);
+      productDetailCache.set(cacheKey, {
+        data,
+        expiresAt: Date.now() + PRODUCT_DETAIL_CACHE_TTL_MS,
+      });
+      return data;
+    } catch {
+      return null;
+    } finally {
+      productDetailInflight.delete(cacheKey);
+    }
+  })();
+
+  productDetailInflight.set(cacheKey, request);
+  return request;
 }
 
 /**

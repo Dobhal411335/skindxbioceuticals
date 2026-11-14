@@ -410,7 +410,7 @@ export function ProductPurchasePanel({
 
       {sizes.length > 0 ? (
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">
+          <legend className="mb-2 text-[14px] font-medium">
             Size
             {selectedSize
               ? `: ${
@@ -452,7 +452,7 @@ export function ProductPurchasePanel({
                       : sizeDisplay
                   }
                   className={cn(
-                    "flex min-w-11 flex-col items-center justify-center rounded-sm border px-2 py-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "flex min-w-15 flex-col items-center justify-center rounded-sm border px-5 py-2 text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     sizeId === size.id
                       ? "border-foreground bg-foreground text-background"
                       : "border-border bg-background",
@@ -465,10 +465,10 @@ export function ProductPurchasePanel({
                   {hasStock && sizePrice != null ? (
                     <span
                       className={cn(
-                        "text-[10px] font-normal",
+                        "text-[13px] font-semibold",
                         sizeId === size.id
-                          ? "text-background/80"
-                          : "text-muted-foreground",
+                          ? "text-white"
+                          : "text-black",
                       )}
                     >
                       {formatInr(sizePrice)}
@@ -488,7 +488,7 @@ export function ProductPurchasePanel({
           min={1}
           max={Math.max(1, availableQty)}
         />
-        <p className="text-md font-semibold">
+        <p className="text-lg font-semibold">
           Subtotal: <span className="font-semibold">{formatInr(subtotal)}</span>
         </p>
       </div>

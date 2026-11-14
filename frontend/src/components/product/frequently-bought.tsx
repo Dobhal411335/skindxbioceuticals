@@ -21,6 +21,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { prefetchProductQuickView } from "@/features/products/product.service";
 import {
   buildCartPricingFields,
   discountPercentForBadge,
@@ -271,6 +272,8 @@ export function FrequentlyBought({ products }: FrequentlyBoughtProps) {
                                 "hover:border-foreground hover:bg-foreground hover:text-background",
                               )}
                               aria-label="Quick look"
+                              onMouseEnter={() => prefetchProductQuickView(item.slug)}
+                              onFocus={() => prefetchProductQuickView(item.slug)}
                               onClick={() =>
                                 setQuickView({
                                   slug: item.slug,

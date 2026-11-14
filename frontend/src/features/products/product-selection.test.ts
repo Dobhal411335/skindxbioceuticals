@@ -32,7 +32,6 @@ function makeProduct(
     isBestSeller: false,
     averageRating: 0,
     reviewCount: 0,
-    banner: null,
     sizeChart: null,
     gallery: [],
     sizes: [

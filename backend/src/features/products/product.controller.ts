@@ -105,11 +105,13 @@ export class ProductController {
       throw new NotFoundError('Site not found');
     }
 
+    const view = req.query.view === 'quick' ? 'quick' : 'full';
     const data = await this.service.getPublicBySlug({
       siteId: site.id,
       siteCode,
       slug: String(req.params.slug),
       includeVendorPrice: req.user?.role === 'VENDOR',
+      includeRelated: view !== 'quick',
     });
     sendSuccess(res, data, 'Product');
   };

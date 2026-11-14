@@ -424,8 +424,11 @@ export class ProductService {
     siteCode: SiteCode;
     slug: string;
     includeVendorPrice?: boolean;
+    /** When false (quick view), skip loading every related product on the site. */
+    includeRelated?: boolean;
   }): Promise<PublicProductDetailDto> {
     const includeVendorPrice = Boolean(input.includeVendorPrice);
+    const includeRelated = input.includeRelated !== false;
     const record = await this.repository.findActivePublicBySlug(input.siteId, input.slug);
     if (!record) {
       throw new NotFoundError('Product not found');
@@ -433,43 +436,47 @@ export class ProductService {
 
     // Other ACTIVE products on this site. Seeded by product id so each PDP
     // shows a different mix, capped for frequently bought (6) + recommendations (9).
-    const relatedRows = shuffleWithSeed(
-      await this.repository.listRelatedActive(input.siteId, {
-        excludeProductId: record.id,
-      }),
-      record.id,
-    ).slice(0, PUBLIC_RELATED_PRODUCT_LIMIT);
+    // Quick-view clients skip this — it is the main latency cost of the detail route.
+    let relatedProducts: PublicRelatedProductDto[] = [];
+    if (includeRelated) {
+      const relatedRows = shuffleWithSeed(
+        await this.repository.listRelatedActive(input.siteId, {
+          excludeProductId: record.id,
+        }),
+        record.id,
+      ).slice(0, PUBLIC_RELATED_PRODUCT_LIMIT);
 
-    const relatedProducts: PublicRelatedProductDto[] = relatedRows.map((row) => {
-      const primaryImage = row.galleryImages[0];
-      const firstVariant = row.variants[0];
-      const relatedStats = averageReviewStats(
-        row.editorialReviews.map((review) => review.rating),
-        row.reviews.map((review) => review.rating),
-      );
-      return {
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-        categoryName: row.subcategory?.name ?? null,
-        price: decimalToNumber(firstVariant?.price) ?? 0,
-        ...(includeVendorPrice
-          ? { vendorPrice: decimalToNumber(firstVariant?.vendorPrice ?? null) }
-          : {}),
-        imageUrl: primaryImage ? preferHttpsUrl(primaryImage.imageUrl) : null,
-        averageRating: relatedStats.averageRating,
-        reviewCount: relatedStats.reviewCount,
-        defaultVariantId: firstVariant?.id ?? null,
-        quantity: firstVariant?.inventory?.quantityOnHand ?? 0,
-        coupon: toPublicCardCouponDto(row.coupon),
-        tax: row.tax
-          ? {
-              cgst: decimalToNumber(row.tax.cgst) ?? 0,
-              sgst: decimalToNumber(row.tax.sgst) ?? 0,
-            }
-          : null,
-      };
-    });
+      relatedProducts = relatedRows.map((row) => {
+        const primaryImage = row.galleryImages[0];
+        const firstVariant = row.variants[0];
+        const relatedStats = averageReviewStats(
+          row.editorialReviews.map((review) => review.rating),
+          row.reviews.map((review) => review.rating),
+        );
+        return {
+          id: row.id,
+          slug: row.slug,
+          name: row.name,
+          categoryName: row.subcategory?.name ?? null,
+          price: decimalToNumber(firstVariant?.price) ?? 0,
+          ...(includeVendorPrice
+            ? { vendorPrice: decimalToNumber(firstVariant?.vendorPrice ?? null) }
+            : {}),
+          imageUrl: primaryImage ? preferHttpsUrl(primaryImage.imageUrl) : null,
+          averageRating: relatedStats.averageRating,
+          reviewCount: relatedStats.reviewCount,
+          defaultVariantId: firstVariant?.id ?? null,
+          quantity: firstVariant?.inventory?.quantityOnHand ?? 0,
+          coupon: toPublicCardCouponDto(row.coupon),
+          tax: row.tax
+            ? {
+                cgst: decimalToNumber(row.tax.cgst) ?? 0,
+                sgst: decimalToNumber(row.tax.sgst) ?? 0,
+              }
+            : null,
+        };
+      });
+    }
 
     const stats = averageReviewStats(
       record.editorialReviews.map((review) => review.rating),
@@ -583,6 +590,7 @@ export class ProductService {
         siteCode: input.siteCode,
         productId: record.id,
         slug: record.slug,
+        includeRelated,
       },
       'Public product detail served',
     );

@@ -222,6 +222,29 @@ describe('Public product API routes', () => {
       siteCode: 'IN',
       slug: 'vitamin-c-serum',
       includeVendorPrice: false,
+      includeRelated: true,
+    });
+  });
+
+  it('requests quick view without related products', async () => {
+    (productService.getPublicBySlug as jest.Mock).mockResolvedValue({
+      id: '55555555-5555-5555-5555-555555555555',
+      siteCode: 'IN',
+      slug: 'vitamin-c-serum',
+      relatedProducts: [],
+    });
+
+    const response = await request(app).get(
+      '/api/v1/sites/IN/products/vitamin-c-serum?view=quick',
+    );
+
+    expect(response.status).toBe(200);
+    expect(productService.getPublicBySlug).toHaveBeenCalledWith({
+      siteId: site.id,
+      siteCode: 'IN',
+      slug: 'vitamin-c-serum',
+      includeVendorPrice: false,
+      includeRelated: false,
     });
   });
 

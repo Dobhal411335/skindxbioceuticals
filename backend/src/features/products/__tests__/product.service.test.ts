@@ -443,6 +443,38 @@ describe('ProductService', () => {
     expect(result.reviewCount).toBe(2);
   });
 
+  it('skips related products when includeRelated is false', async () => {
+    const product = makeProduct();
+    findActivePublicBySlug.mockResolvedValue({
+      ...product,
+      sizeChartUrl: null,
+      sizeChartPublicId: null,
+      sizes: [],
+      colors: [],
+      galleryImages: [],
+      videos: [],
+      pdfs: [],
+      infoSections: [],
+      editorialReviews: [],
+      reviews: [],
+      highlights: [],
+      tax: null,
+      coupon: null,
+      tags: [],
+      variants: [],
+    });
+
+    const result = await service.getPublicBySlug({
+      siteId: product.siteId,
+      siteCode: 'IN',
+      slug: product.slug,
+      includeRelated: false,
+    });
+
+    expect(result.relatedProducts).toEqual([]);
+    expect(listRelatedActive).not.toHaveBeenCalled();
+  });
+
   it('shuffles related products with a stable seed that changes per product', () => {
     const items = ['a', 'b', 'c', 'd', 'e', 'f'];
     expect(shuffleWithSeed(items, 'product-1')).toEqual(shuffleWithSeed(items, 'product-1'));
