@@ -173,7 +173,7 @@ function FeaturedHighlightCard({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="group relative mb-4 aspect-[4/3] overflow-hidden rounded-lg bg-[#f2f5f6]">
+      <div className="group relative mb-4 aspect-[3/3] overflow-hidden rounded-lg bg-[#f2f5f6]">
         <Image
           src={product.imageUrl || "https://placehold.co/600x600/png?text=SkinDx"}
           alt={product.name}
@@ -263,14 +263,8 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
   const [quickProduct, setQuickProduct] = useState<PublicProductCard | null>(null);
   const hasContent = recent.length > 0 || featured.length > 0 || bestSellers.length > 0;
 
-  if (!hasContent) {
-    return null;
-  }
-
-  if (featured.length === 0) {
-    return null;
-  }
-
+  if (!hasContent) return null;
+  if (featured.length === 0) return null;
   if (recent.length === 0) return null;
   if (bestSellers.length === 0) return null;
 
@@ -320,7 +314,7 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
               {featured.length === 1 ? (
                 <FeaturedHighlightCard product={featured[0]!} onQuickView={setQuickProduct} />
               ) : (
-                <Carousel opts={{ align: "start", loop: true }} className="w-full">
+                <Carousel opts={{ align: "start", loop: true }} className="w-full relative">
                   <CarouselContent>
                     {featured.map((product) => (
                       <CarouselItem key={product.id}>
@@ -328,8 +322,8 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className="-left-2" />
-                  <CarouselNext className="-right-2" />
+                  <CarouselPrevious className="-left-2 size-10 border border-black rounded-full" />
+                  <CarouselNext className="absolute right-0 size-10 border border-black rounded-full" />
                 </Carousel>
               )}
             </CardContent>

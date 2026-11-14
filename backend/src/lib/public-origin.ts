@@ -1,5 +1,18 @@
-function isLocalHostname(hostname: string): boolean {
-  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+/** Localhost hostnames as returned by URL.hostname (IPv6 keeps brackets) or raw. */
+export function isLocalHostname(hostname: string): boolean {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '::1' ||
+    hostname === '[::1]'
+  );
+}
+
+function isIpHostname(hostname: string): boolean {
+  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname)) return true;
+  // IPv6: URL.hostname is bracketed; also accept a raw address with ':'.
+  if (hostname.startsWith('[') && hostname.endsWith(']')) return true;
+  return hostname.includes(':');
 }
 
 /** Apex ↔ www twin for public hostnames (not localhost / IPs). */
@@ -7,7 +20,7 @@ export function wwwTwinOrigin(origin: string): string | null {
   try {
     const url = new URL(origin);
     const host = url.hostname;
-    if (isLocalHostname(host) || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)) {
+    if (isLocalHostname(host) || isIpHostname(host)) {
       return null;
     }
     url.hostname = host.startsWith('www.') ? host.slice(4) : `www.${host}`;

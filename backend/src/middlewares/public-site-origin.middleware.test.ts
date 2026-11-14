@@ -1,6 +1,7 @@
 import { assertPublicSiteAccess } from '@/middlewares/public-site-origin.middleware';
 import {
   expandCorsOriginsWithWwwTwins,
+  isLocalHostname,
   isSameSitePublicOrigin,
   wwwTwinOrigin,
 } from '@/lib/public-origin';
@@ -14,6 +15,15 @@ const base = {
 };
 
 describe('public origin helpers', () => {
+  it('treats IPv6 localhost with or without brackets as local', () => {
+    // Node URL.hostname keeps brackets for IPv6.
+    expect(new URL('http://[::1]:3000').hostname).toBe('[::1]');
+    expect(isLocalHostname('[::1]')).toBe(true);
+    // Also accept the unbracketed form if hostname is supplied raw.
+    expect(isLocalHostname('::1')).toBe(true);
+    expect(wwwTwinOrigin('http://[::1]:3000')).toBeNull();
+  });
+
   it('maps apex and www twins for IN and COM hosts', () => {
     expect(wwwTwinOrigin('https://skindxbioceuticals.com')).toBe(
       'https://www.skindxbioceuticals.com',

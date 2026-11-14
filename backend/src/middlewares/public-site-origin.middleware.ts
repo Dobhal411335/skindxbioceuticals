@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { env } from '@/config/env';
-import { isSameSitePublicOrigin } from '../lib/public-origin';
+import { isLocalHostname, isSameSitePublicOrigin } from '../lib/public-origin';
 import { ForbiddenError } from '@/utils/AppError';
 
 export const SITE_FETCH_SECRET_HEADER = 'x-site-fetch-secret';
@@ -21,10 +21,6 @@ function originOf(value: string | undefined): string | null {
   } catch {
     return null;
   }
-}
-
-function isLocalHostname(hostname: string): boolean {
-  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
 }
 
 export function assertPublicSiteAccess(input: {
