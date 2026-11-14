@@ -3,6 +3,7 @@ export type PublicCategory = {
   siteCode: "IN" | "COM";
   name: string;
   slug: string;
+  description?: string | null;
   order: number;
   bannerUrl?: string | null;
 };
@@ -19,6 +20,7 @@ export type PublicSubcategory = {
   id: string;
   name: string;
   slug: string;
+  description?: string | null;
   bannerUrl: string | null;
   order: number;
   products: PublicCatalogProduct[];

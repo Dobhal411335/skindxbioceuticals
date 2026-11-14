@@ -195,7 +195,6 @@ export type PublicProductDetail = {
   isFeatured: boolean;
   isRecent: boolean;
   isBestSeller: boolean;
-  banner: PublicMediaRef | null;
   sizeChart: PublicMediaRef | null;
   gallery: PublicProductGalleryImage[];
   sizes: PublicProductSize[];

@@ -90,6 +90,7 @@ export class CategoryService {
       siteCode,
       name: row.name,
       slug: row.slug,
+      description: row.description,
       order: row.sortOrder,
       bannerUrl: preferHttpsUrl(row.bannerUrl),
     }));
@@ -117,6 +118,7 @@ export class CategoryService {
           id: sub.id,
           name: sub.name,
           slug: sub.slug,
+          description: sub.description,
           bannerUrl: preferHttpsUrl(sub.bannerUrl),
           order: sub.sortOrder,
           products: products.map((product) => ({
@@ -135,9 +137,9 @@ export class CategoryService {
       siteCode,
       name: category.name,
       slug: category.slug,
+      description: category.description,
       order: category.sortOrder,
       bannerUrl: preferHttpsUrl(category.bannerUrl),
-      description: category.description,
       subcategories: withProducts,
     };
   }
@@ -200,7 +202,10 @@ export class CategoryService {
     const data: CategoryWrite = {
       name: input.body.name,
       slug,
-      description: input.body.description ?? existing.description,
+      description:
+        input.body.description !== undefined
+          ? input.body.description
+          : existing.description,
       parentId: null,
       bannerUrl: nextBannerUrl,
       bannerPublicId: nextBannerPublicId,
@@ -336,7 +341,7 @@ export class CategoryService {
     const record = await this.repository.create(input.siteId, {
       name: input.body.name,
       slug,
-      description: null,
+      description: input.body.description ?? null,
       parentId: input.categoryId,
       bannerUrl: preferHttpsUrl(input.body.bannerUrl),
       bannerPublicId: input.body.bannerPublicId ?? '',
@@ -390,7 +395,10 @@ export class CategoryService {
     const record = await this.repository.update(input.siteId, input.subcategoryId, {
       name: input.body.name,
       slug,
-      description: null,
+      description:
+        input.body.description !== undefined
+          ? input.body.description
+          : existing.description,
       parentId: input.categoryId,
       bannerUrl: nextBannerUrl,
       bannerPublicId: nextBannerPublicId,
@@ -455,6 +463,9 @@ export class CategoryService {
       ...(slug ? { slug } : {}),
       ...(nextBannerUrl !== undefined ? { bannerUrl: nextBannerUrl } : {}),
       ...(nextBannerPublicId !== undefined ? { bannerPublicId: nextBannerPublicId } : {}),
+      ...(input.body.description !== undefined
+        ? { description: input.body.description }
+        : {}),
     });
     if (!record) {
       throw new NotFoundError('Subcategory not found');

@@ -17,6 +17,7 @@ export type CategoryDto = {
 
 export type CategoryFormValues = {
   name: string;
+  description: string;
   bannerUrl: string;
   bannerPublicId: string;
   active: boolean;
@@ -24,6 +25,7 @@ export type CategoryFormValues = {
 
 export type CategoryPayload = {
   name: string;
+  description: string | null;
   bannerUrl: string;
   bannerPublicId: string;
   active: boolean;
@@ -31,6 +33,7 @@ export type CategoryPayload = {
 
 export type SubcategoryFormValues = {
   name: string;
+  description: string;
   bannerUrl: string;
   bannerPublicId: string;
   active: boolean;
@@ -38,6 +41,7 @@ export type SubcategoryFormValues = {
 
 export type SubcategoryPayload = {
   name: string;
+  description: string | null;
   bannerUrl: string;
   bannerPublicId: string;
   active: boolean;

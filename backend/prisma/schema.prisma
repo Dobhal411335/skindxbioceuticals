@@ -113,15 +113,6 @@ enum MediaType {
   OTHER
 }
 
-enum ShippingStatus {
-  PENDING
-  LABEL_CREATED
-  IN_TRANSIT
-  DELIVERED
-  RETURNED
-  CANCELLED
-}
-
 enum AuthProvider {
   GOOGLE
 }
@@ -413,9 +404,6 @@ model Product {
   isBestSeller      Boolean       @default(false) @map("is_best_seller")
   sizeChartUrl      String?       @map("size_chart_url")
   sizeChartPublicId String?       @map("size_chart_public_id")
-  /// Logo / banner image for the Product Gallery admin section.
-  bannerUrl         String?       @map("banner_url")
-  bannerPublicId    String?       @map("banner_public_id")
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @updatedAt @map("updated_at")
 
@@ -815,7 +803,7 @@ model WishlistItem {
 }
 
 // =============================================================================
-// Orders, payments, shipping, coupons
+// Orders, payments, coupons
 // =============================================================================
 
 model Order {
@@ -854,7 +842,6 @@ model Order {
   coupon               Coupon?                @relation(fields: [couponId], references: [id])
   items                OrderItem[]
   payments             Payment[]
-  shipments            Shipment[]
   guestCheckoutSession GuestCheckoutSession?
 
   @@index([siteId])
@@ -969,25 +956,6 @@ model Payment {
   @@index([orderId])
   @@index([status])
   @@map("payments")
-}
-
-model Shipment {
-  id             String         @id @default(uuid()) @db.Uuid
-  orderId        String         @map("order_id") @db.Uuid
-  parcelNumber   Int            @default(1) @map("parcel_number")
-  status         ShippingStatus @default(PENDING)
-  carrier        String?
-  trackingNumber String?        @map("tracking_number")
-  shippedAt      DateTime?      @map("shipped_at")
-  deliveredAt    DateTime?      @map("delivered_at")
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
-
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@unique([orderId, parcelNumber])
-  @@index([orderId])
-  @@map("shipments")
 }
 
 model Coupon {
@@ -1935,16 +1903,6 @@ model CollectionBannerItem {
 
   @@index([configId, sortOrder])
   @@map("collection_banner_items")
-}
-
-model SiteSetting {
-  id        String   @id @default(uuid()) @db.Uuid
-  key       String   @unique
-  value     Json
-  group     String?
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("site_settings")
 }
 
 /// Site-scoped doctor profiles for the doctors landing page.

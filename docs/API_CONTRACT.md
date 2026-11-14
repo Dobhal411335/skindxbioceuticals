@@ -540,8 +540,8 @@ Site-scoped categories use the hierarchical `Category` model (`parentId` null = 
 
 **Subcategories**
 - `GET /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories`
-- `POST /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories` — body `{ name, bannerUrl, bannerPublicId, active?, order? }`. Prefer HTTPS banner URLs.
-- `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories/:subcategoryId` — delete blocked if products remain; deletes Cloudinary banner when present.
+- `POST /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories` — body `{ name, bannerUrl, bannerPublicId, active?, order?, description? }` (`description` is optional TipTap HTML for storefront cards). Prefer HTTPS banner URLs.
+- `PUT|PATCH|DELETE /api/v1/admin/sites/:siteCode/category/:categoryId/subcategories/:subcategoryId` — full PUT accepts the same fields as create (including optional TipTap HTML `description`); delete blocked if products remain; deletes Cloudinary banner when present.
 - `GET /api/v1/admin/sites/:siteCode/subcategories/:subcategoryId` — fetch one subcategory by id (for admin product pages).
 
 **Products (under subcategory — `productType = CATEGORY`)**
@@ -591,7 +591,7 @@ Site-scoped inventory overview and absolute quantity updates. Reuses existing `P
 
 - `GET /api/v1/admin/sites/:siteCode/stock` — Bearer admin JWT + `requireSiteAccess`. Paginated product stock rows (newest `updatedAt` first). Response `data` is an array; pagination in top-level `meta` (`page`, `limit`, `total`, `totalPages`).
   - Query: `q` (max 120; name / productCode / slug), `status` (`all` default | `active` | `draft` | `archived`, case-insensitive aliases `ACTIVE`/`DRAFT`/`ARCHIVED`), optional `categoryId` (root category UUID — products under that root’s subcategories), optional `subcategoryId`, `page` (default 1), optional `offset` (overrides `(page-1)*limit`), `limit` (default `10`, max `48`).
-  - Each row: `id`, `productCode`, `name`, `status` (`DRAFT`|`ACTIVE`|`ARCHIVED`), `imageUrl` (primary gallery → banner → variant profile), `price` / `vendorPrice` / `currency` (from first variant; null when missing), `subcategoryId` / `subcategoryName`, `categoryId` / `categoryName`, `isSimpleOffer` (true when zero variants or a single base offer with no size/color), `quantity` (simple: that offer’s on-hand; multi: sum), `variants[{ id, name, sizeLabel, colorLabel, quantity, isActive }]`, `updatedAt`.
+  - Each row: `id`, `productCode`, `name`, `status` (`DRAFT`|`ACTIVE`|`ARCHIVED`), `imageUrl` (primary gallery → variant profile), `price` / `vendorPrice` / `currency` (from first variant; null when missing), `subcategoryId` / `subcategoryName`, `categoryId` / `categoryName`, `isSimpleOffer` (true when zero variants or a single base offer with no size/color), `quantity` (simple: that offer’s on-hand; multi: sum), `variants[{ id, name, sizeLabel, colorLabel, quantity, isActive }]`, `updatedAt`.
 - `PATCH /api/v1/admin/sites/:siteCode/stock/variants/:variantId` — body `{ quantity }` (absolute non-negative integer). Sets `InventoryItem.quantityOnHand` (creates row if missing) and writes an `ADJUSTMENT` `InventoryMovement` when the value changes. `404` if variant missing or belongs to another site.
 
 Admin UI badge colors (display only): qty `> 10` green; `5 < qty ≤ 10` yellow; `qty ≤ 5` red.
@@ -627,8 +627,8 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 
 ### Public categories (storefront)
 
-- `GET /api/v1/sites/:siteCode/category` — public read; active root categories only (`id`, `name`, `slug`, `order`, `bannerUrl`) for the `/category` main-category grid.
-- `GET /api/v1/sites/:siteCode/category/:categorySlug` — public read by slug or name; returns category (`bannerUrl` included) with active subcategories (including subcategory `bannerUrl` and nested active product summaries). Storefront uses this for `/category/[mainSlug]` (subcategory cards) and to resolve `/category/[mainSlug]/[subSlug]` product PLPs.
+- `GET /api/v1/sites/:siteCode/category` — public read; active root categories only (`id`, `name`, `slug`, `description`, `order`, `bannerUrl`) for the `/category` main-category grid.
+- `GET /api/v1/sites/:siteCode/category/:categorySlug` — public read by slug or name; returns category (`bannerUrl` + TipTap HTML `description`) with active subcategories (including subcategory `bannerUrl`, `description`, and nested active product summaries). Storefront uses this for `/category/[mainSlug]` (subcategory cards) and to resolve `/category/[mainSlug]/[subSlug]` product PLPs.
 
 ### Public products (storefront)
 
@@ -644,7 +644,7 @@ Product-edit coupon options use the same `Coupon` model, scoped to the product�
 Admin catalog create/update/PATCH (subcategory and direct) also accept optional landing flags `isFeatured`, `isRecent`, `isBestSeller` (defaults false on create).
 
 Response joins PDP-related data into one payload:
-- Core: `id`, `siteCode`, `productCode`, `name`, `slug`, `description` (HTML), `isFeatured`, `isRecent`, `isBestSeller`, `subcategoryId`, optional `banner` / `sizeChart` media refs, `averageRating`, `reviewCount`
+- Core: `id`, `siteCode`, `productCode`, `name`, `slug`, `description` (HTML), `isFeatured`, `isRecent`, `isBestSeller`, `subcategoryId`, optional `sizeChart` media ref, `averageRating`, `reviewCount`
 - `gallery[]` ordered with primary first (`imageUrl`, `imagePublicId`, `isPrimary`, `sortOrder`)
 - Active `sizes[]` / `colors[]` (may be empty when the product sells a single base price)
 - Active `variants[]` with mandatory `price` (INR rupees), `quantity` (inventory on hand), optional nullable `sizeLabel` / `colorLabel` (both null = base/default offer), optional `sku` / `profileImage`

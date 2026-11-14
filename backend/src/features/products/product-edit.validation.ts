@@ -102,8 +102,6 @@ export const productTaxSectionSchema = z.object({
 });
 
 export const productGallerySectionSchema = z.object({
-  bannerUrl: z.string().trim().url().max(2000).nullable().optional(),
-  bannerPublicId: z.string().trim().max(500).nullable().optional(),
   images: z
     .array(
       z.object({

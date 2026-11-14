@@ -9,14 +9,29 @@ import type {
   SubcategoryPayload,
 } from "@/types/catalog";
 
-export type CategoryFormErrors = Partial<Record<"name" | "bannerUrl", string>>;
-export type SubcategoryFormErrors = Partial<Record<"name" | "bannerUrl", string>>;
+export type CategoryFormErrors = Partial<
+  Record<"name" | "bannerUrl" | "description", string>
+>;
+export type SubcategoryFormErrors = Partial<
+  Record<"name" | "bannerUrl" | "description", string>
+>;
 export type CatalogProductFormErrors = Partial<
   Record<"productCode" | "name", string>
 >;
 
+function normalizeRichTextDescription(value: string): string | null {
+  const trimmed = value.trim();
+  const text = trimmed
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 0 ? trimmed : null;
+}
+
 const categorySchema = z.object({
   name: z.string().trim().min(1, "Category name is required").max(160),
+  description: z.string().max(100_000).default(""),
   bannerUrl: z
     .string()
     .trim()
@@ -28,6 +43,7 @@ const categorySchema = z.object({
 
 const subcategorySchema = z.object({
   name: z.string().trim().min(1, "Subcategory name is required").max(160),
+  description: z.string().max(100_000).default(""),
   bannerUrl: z
     .string()
     .trim()
@@ -65,6 +81,7 @@ export function validateCategoryForm(
       errors: {
         name: fieldErrors.name?.[0],
         bannerUrl: fieldErrors.bannerUrl?.[0],
+        description: fieldErrors.description?.[0],
       },
     };
   }
@@ -72,6 +89,7 @@ export function validateCategoryForm(
     ok: true,
     data: {
       name: result.data.name,
+      description: normalizeRichTextDescription(result.data.description),
       bannerUrl: result.data.bannerUrl,
       bannerPublicId: result.data.bannerPublicId,
       active: result.data.active,
@@ -92,6 +110,7 @@ export function validateSubcategoryForm(
       errors: {
         name: fieldErrors.name?.[0],
         bannerUrl: fieldErrors.bannerUrl?.[0],
+        description: fieldErrors.description?.[0],
       },
     };
   }
@@ -99,6 +118,7 @@ export function validateSubcategoryForm(
     ok: true,
     data: {
       name: result.data.name,
+      description: normalizeRichTextDescription(result.data.description),
       bannerUrl: result.data.bannerUrl,
       bannerPublicId: result.data.bannerPublicId,
       active: result.data.active,

@@ -98,6 +98,7 @@ export async function createSubcategory(
   categoryId: string,
   body: {
     name: string;
+    description?: string | null;
     bannerUrl: string;
     bannerPublicId: string;
     active?: boolean;
@@ -116,6 +117,7 @@ export async function updateSubcategory(
   subcategoryId: string,
   body: {
     name: string;
+    description?: string | null;
     bannerUrl: string;
     bannerPublicId: string;
     active: boolean;

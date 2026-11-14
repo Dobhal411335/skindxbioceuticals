@@ -266,7 +266,6 @@ export type PublicProductDetailDto = {
   isFeatured: boolean;
   isRecent: boolean;
   isBestSeller: boolean;
-  banner: PublicMediaRefDto | null;
   sizeChart: PublicMediaRefDto | null;
   gallery: PublicProductGalleryImageDto[];
   sizes: PublicProductSizeDto[];

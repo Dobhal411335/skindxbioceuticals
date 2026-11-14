@@ -121,7 +121,6 @@ export type CouponOptionDto = {
 export type ProductEditDto = {
   product: CatalogProductDto;
   sizeChart: MediaRefDto | null;
-  banner: MediaRefDto | null;
   sizes: ProductSizeDto[];
   colors: ProductColorDto[];
   catalogColors: CatalogColorDto[];

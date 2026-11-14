@@ -173,7 +173,6 @@ export function primaryImageUrl(product: PublicProductDetail): string {
   return (
     product.gallery.find((image) => image.isPrimary)?.imageUrl ??
     product.gallery[0]?.imageUrl ??
-    product.banner?.url ??
     ""
   );
 }

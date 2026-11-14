@@ -51,8 +51,6 @@ function emptyEditRecord(overrides: Record<string, unknown> = {}) {
     isBestSeller: false,
     sizeChartUrl: null,
     sizeChartPublicId: null,
-    bannerUrl: null,
-    bannerPublicId: null,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
     sizes: [],
@@ -168,13 +166,12 @@ describe('ProductEditService', () => {
     });
     expect(result.product.productCode).toBe('VC-01');
     expect(result.sizes).toEqual([]);
-    expect(result.banner).toBeNull();
     expect(productEditRepository.listActiveCoupons).toHaveBeenCalledWith('site');
   });
 
-  it('updates gallery and cleans removed banner/gallery assets', async () => {
+  it('updates gallery and cleans removed gallery assets', async () => {
     productEditRepository.replaceGallery.mockResolvedValue({
-      removedPublicIds: ['products/old-banner', 'products/old-g1'],
+      removedPublicIds: ['products/old-g1'],
     });
     productEditRepository.findEditPayload.mockResolvedValue(emptyEditRecord());
 
@@ -184,8 +181,6 @@ describe('ProductEditService', () => {
       userId: 'user',
       productId: '55555555-5555-5555-5555-555555555555',
       body: {
-        bannerUrl: 'http://res.cloudinary.com/demo/image/upload/banner.png',
-        bannerPublicId: 'products/new-banner',
         images: [
           {
             imageUrl: 'http://res.cloudinary.com/demo/image/upload/g1.png',
@@ -199,17 +194,12 @@ describe('ProductEditService', () => {
     expect(productEditRepository.replaceGallery).toHaveBeenCalledWith(
       '55555555-5555-5555-5555-555555555555',
       expect.objectContaining({
-        bannerUrl: 'https://res.cloudinary.com/demo/image/upload/banner.png',
-        bannerPublicId: 'products/new-banner',
         images: [
           expect.objectContaining({
             imageUrl: 'https://res.cloudinary.com/demo/image/upload/g1.png',
           }),
         ],
       }),
-    );
-    expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith(
-      'products/old-banner',
     );
     expect(deleteStoredCloudinaryAssetBestEffort).toHaveBeenCalledWith(
       'products/old-g1',

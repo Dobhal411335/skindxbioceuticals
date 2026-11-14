@@ -41,7 +41,6 @@ function isSimpleOffer(
 function resolveImageUrl(row: StockProductRow): string | null {
   const gallery = row.galleryImages[0]?.imageUrl;
   if (gallery) return preferHttpsUrl(gallery);
-  if (row.bannerUrl) return preferHttpsUrl(row.bannerUrl);
   const profile = row.variants.find((v) => v.profileImageUrl)?.profileImageUrl;
   if (profile) return preferHttpsUrl(profile);
   return null;

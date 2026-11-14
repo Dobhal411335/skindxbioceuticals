@@ -195,7 +195,7 @@ Use a first-class site concept, not scattered hostname string checks.
 Suggested conceptual entities:
 - `Site`: stable code (`IN`, `COM`), canonical domain, active status, site settings.
 - `Page` / `ContentEntry`: site scope, slug, status, SEO fields, content blocks.
-- `NavigationItem`, `Banner`, `SiteSetting`: site scope.
+- `NavigationItem`, `Banner`: site scope. (`SiteSetting` removed as unused scaffold.)
 - `Product`: core product identity and product attributes.
 - `SiteProduct` or equivalent: per-site visibility, merchandising, optional site-specific copy/price policy.
 - `Category`: site scope if category trees differ; otherwise explicit shared association.

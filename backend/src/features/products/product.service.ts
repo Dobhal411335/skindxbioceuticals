@@ -487,7 +487,6 @@ export class ProductService {
       isFeatured: record.isFeatured,
       isRecent: record.isRecent,
       isBestSeller: record.isBestSeller,
-      banner: toMediaRef(record.bannerUrl, record.bannerPublicId),
       sizeChart: toMediaRef(record.sizeChartUrl, record.sizeChartPublicId),
       gallery: record.galleryImages.map((row) => ({
         id: row.id,

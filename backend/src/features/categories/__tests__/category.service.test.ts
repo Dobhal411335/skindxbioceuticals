@@ -141,6 +141,7 @@ describe('CategoryService', () => {
     const record = makeCategory({
       bannerUrl: 'http://res.cloudinary.com/demo/image/upload/v1/cat.jpg',
       bannerPublicId: 'categories/root',
+      description: '<p>Face care</p>',
     });
     listActiveRootsBySiteId.mockResolvedValue([record]);
 
@@ -149,6 +150,7 @@ describe('CategoryService', () => {
     expect(result[0]).toMatchObject({
       id: record.id,
       slug: 'serums',
+      description: '<p>Face care</p>',
       bannerUrl: 'https://res.cloudinary.com/demo/image/upload/v1/cat.jpg',
     });
   });
@@ -162,6 +164,7 @@ describe('CategoryService', () => {
       parentId: parent.id,
       bannerUrl: 'https://cdn.example.com/sub.jpg',
       bannerPublicId: 'categories/sub',
+      description: '<p>Brightening</p>',
     });
     findByIdForSite.mockResolvedValue(parent);
     nextChildOrder.mockResolvedValue(1);
@@ -177,6 +180,7 @@ describe('CategoryService', () => {
         bannerUrl: 'https://cdn.example.com/sub.jpg',
         bannerPublicId: 'categories/sub',
         active: true,
+        description: '<p>Brightening</p>',
       },
     });
 
@@ -186,6 +190,7 @@ describe('CategoryService', () => {
       expect.objectContaining({
         parentId: parent.id,
         name: 'Vitamin C',
+        description: '<p>Brightening</p>',
         bannerUrl: 'https://cdn.example.com/sub.jpg',
         bannerPublicId: 'categories/sub',
       }),
@@ -254,12 +259,13 @@ describe('CategoryService', () => {
   });
 
   it('returns public category detail with subcategory products', async () => {
-    const root = makeCategory();
+    const root = makeCategory({ description: '<p>Root desc</p>' });
     const sub = makeCategory({
       id: '33333333-3333-3333-3333-333333333333',
       name: 'Vitamin C',
       slug: 'vitamin-c',
       parentId: root.id,
+      description: '<p>Sub desc</p>',
     });
     findRootBySlugOrName.mockResolvedValue(root);
     listActiveChildrenByParentId.mockResolvedValue([sub]);
@@ -282,7 +288,9 @@ describe('CategoryService', () => {
     ]);
 
     const result = await service.getPublicBySlugOrName(root.siteId, 'IN', 'serums');
+    expect(result.description).toBe('<p>Root desc</p>');
     expect(result.subcategories).toHaveLength(1);
+    expect(result.subcategories[0]?.description).toBe('<p>Sub desc</p>');
     expect(result.subcategories[0]?.products[0]?.productCode).toBe('VC-01');
   });
 

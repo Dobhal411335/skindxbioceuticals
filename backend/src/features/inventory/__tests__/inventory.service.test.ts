@@ -24,7 +24,6 @@ describe('InventoryService', () => {
         name: 'Base Serum',
         status: 'ACTIVE',
         subcategoryId: 'sub-1',
-        bannerUrl: null,
         updatedAt: new Date('2026-01-01T00:00:00.000Z'),
         subcategory: {
           id: 'sub-1',
@@ -54,7 +53,6 @@ describe('InventoryService', () => {
         name: 'Tinted Cream',
         status: 'DRAFT',
         subcategoryId: null,
-        bannerUrl: 'https://cdn.example/banner.png',
         updatedAt: new Date('2026-01-02T00:00:00.000Z'),
         subcategory: null,
         galleryImages: [],
@@ -68,7 +66,7 @@ describe('InventoryService', () => {
             sizeLabel: 'S',
             colorLabel: 'Red',
             isActive: true,
-            profileImageUrl: null,
+            profileImageUrl: 'https://cdn.example/profile.png',
             inventory: { id: 'inv-2', quantityOnHand: 3, quantityReserved: 0 },
           },
           {
@@ -107,7 +105,7 @@ describe('InventoryService', () => {
     expect(multi?.isSimpleOffer).toBe(false);
     expect(multi?.quantity).toBe(15);
     expect(multi?.variants).toHaveLength(2);
-    expect(multi?.imageUrl).toBe('https://cdn.example/banner.png');
+    expect(multi?.imageUrl).toBe('https://cdn.example/profile.png');
     expect(multi?.status).toBe('DRAFT');
   });
 

@@ -1258,17 +1258,6 @@ export function GallerySection({
   data,
   onUpdated,
 }: SectionProps) {
-  const [banner, setBanner] = useState<{
-    imageUrl: string;
-    imagePublicId: string;
-  } | null>(
-    data.banner
-      ? { imageUrl: data.banner.url, imagePublicId: data.banner.publicId }
-      : null,
-  );
-  const [bannerPending, setBannerPending] = useState<PendingUpload | null>(
-    null,
-  );
   const [images, setImages] = useState(
     data.gallery.map((img) => ({
       imageUrl: img.imageUrl,
@@ -1279,44 +1268,11 @@ export function GallerySection({
   const [galleryPending, setGalleryPending] = useState<PendingUpload[]>([]);
   const [saving, setSaving] = useState(false);
   const [deletingPublicId, setDeletingPublicId] = useState<string | null>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const destroyCloudinary = async (publicId: string | null | undefined) => {
     if (!publicId?.trim()) return;
     await deleteProductCloudinaryImages([publicId.trim()]);
-  };
-
-  const handleBannerUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const pendingId = crypto.randomUUID();
-    const previewUrl = URL.createObjectURL(file);
-    setBannerPending({ id: pendingId, previewUrl });
-    try {
-      const uploaded = await uploadProductImage(siteCode, file, productId);
-      const previousPublicId = banner?.imagePublicId;
-      setBanner({
-        imageUrl: uploaded.url,
-        imagePublicId: uploaded.publicId,
-      });
-      if (previousPublicId && previousPublicId !== uploaded.publicId) {
-        try {
-          await destroyCloudinary(previousPublicId);
-        } catch {
-          // Best-effort cleanup of the replaced banner.
-        }
-      }
-      showSuccess("Logo / banner uploaded");
-    } catch (error) {
-      showError(error instanceof ApiError ? error.message : "Upload failed");
-    } finally {
-      URL.revokeObjectURL(previewUrl);
-      setBannerPending(null);
-      event.target.value = "";
-    }
   };
 
   const handleGalleryUpload = async (
@@ -1361,25 +1317,6 @@ export function GallerySection({
     }
   };
 
-  const handleDeleteBanner = async () => {
-    if (!banner) return;
-    const publicId = banner.imagePublicId;
-    setDeletingPublicId(publicId || "__banner__");
-    setBanner(null);
-    try {
-      await destroyCloudinary(publicId);
-      showSuccess("Logo / banner removed");
-    } catch (error) {
-      showError(
-        error instanceof ApiError
-          ? error.message
-          : "Removed from form, but Cloudinary delete failed",
-      );
-    } finally {
-      setDeletingPublicId(null);
-    }
-  };
-
   const handleDeleteGalleryImage = async (index: number) => {
     const target = images[index];
     if (!target) return;
@@ -1409,19 +1346,9 @@ export function GallerySection({
     setSaving(true);
     try {
       const next = await updateProductGallery(siteCode, productId, {
-        bannerUrl: banner?.imageUrl ?? null,
-        bannerPublicId: banner?.imagePublicId ?? null,
         images: images.map((img, index) => ({ ...img, sortOrder: index })),
       });
       onUpdated(next);
-      setBanner(
-        next.banner
-          ? {
-              imageUrl: next.banner.url,
-              imagePublicId: next.banner.publicId,
-            }
-          : null,
-      );
       setImages(
         next.gallery.map((img) => ({
           imageUrl: img.imageUrl,
@@ -1439,75 +1366,11 @@ export function GallerySection({
     }
   };
 
-  const uploading = Boolean(bannerPending) || galleryPending.length > 0;
+  const uploading = galleryPending.length > 0;
 
   return (
     <div className="space-y-6">
       <ProductNameField name={data.product.name} />
-
-      <div className="space-y-3">
-        <Label>Logo / banner image</Label>
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            ref={bannerInputRef}
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            disabled={uploading}
-            onChange={(e) => void handleBannerUpload(e)}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            disabled={uploading}
-            onClick={() => bannerInputRef.current?.click()}
-          >
-            <UploadCloud className="mr-2 h-4 w-4" />
-            {bannerPending ? "Uploading…" : "Upload logo / banner"}
-          </Button>
-        </div>
-        <div className="grid max-w-md grid-cols-1 gap-3">
-          {bannerPending ? (
-            <div
-              className="relative aspect-[2/1] overflow-hidden rounded-xl border border-dashed border-border bg-muted/20"
-              aria-busy="true"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={bannerPending.previewUrl}
-                alt=""
-                className="h-full w-full object-cover opacity-60"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/55">
-                <Loader2 className="size-8 animate-spin" aria-hidden />
-                <p className="text-xs font-medium">Uploading…</p>
-              </div>
-            </div>
-          ) : null}
-          {banner && !bannerPending ? (
-            <div className="group relative aspect-[2/1] overflow-hidden rounded-xl border border-border bg-muted/20">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={banner.imageUrl}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 flex items-start justify-end bg-black/0 p-2 opacity-0 transition-opacity group-hover:bg-black/25 group-hover:opacity-100">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="destructive"
-                  disabled={deletingPublicId === (banner.imagePublicId || "__banner__")}
-                  onClick={() => void handleDeleteBanner()}
-                  aria-label="Delete logo / banner"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
 
       <div className="space-y-3">
         <Label>Product gallery</Label>

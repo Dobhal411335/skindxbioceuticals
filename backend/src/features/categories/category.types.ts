@@ -55,6 +55,7 @@ export type PublicSubcategoryDto = {
   id: string;
   name: string;
   slug: string;
+  description: string | null;
   bannerUrl: string | null;
   order: number;
   products: CatalogProductSummaryDto[];
@@ -65,11 +66,11 @@ export type PublicCategoryDto = {
   siteCode: SiteCodeDto;
   name: string;
   slug: string;
+  description: string | null;
   order: number;
   bannerUrl: string | null;
 };
 
 export type PublicCategoryDetailDto = PublicCategoryDto & {
-  description: string | null;
   subcategories: PublicSubcategoryDto[];
 };

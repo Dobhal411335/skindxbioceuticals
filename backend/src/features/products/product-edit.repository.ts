@@ -287,7 +287,6 @@ export class ProductEditRepository {
     const existingProduct = await prisma.product.findUnique({
       where: { id: productId },
       select: {
-        bannerPublicId: true,
         galleryImages: { select: { imagePublicId: true } },
       },
     });
@@ -297,20 +296,7 @@ export class ProductEditRepository {
       .map((row) => row.imagePublicId)
       .filter((id) => id && !nextGalleryIds.has(id));
 
-    const nextBannerPublicId = body.bannerPublicId ?? null;
-    const previousBannerPublicId = existingProduct?.bannerPublicId ?? null;
-    if (previousBannerPublicId && previousBannerPublicId !== nextBannerPublicId) {
-      removedPublicIds.push(previousBannerPublicId);
-    }
-
     await prisma.$transaction(async (tx) => {
-      await tx.product.update({
-        where: { id: productId },
-        data: {
-          bannerUrl: body.bannerUrl ?? null,
-          bannerPublicId: nextBannerPublicId,
-        },
-      });
       await tx.productGalleryImage.deleteMany({ where: { productId } });
       if (body.images.length > 0) {
         const hasPrimary = body.images.some((img) => img.isPrimary);

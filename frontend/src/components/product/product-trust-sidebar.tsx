@@ -1,6 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Package, Percent, Truck } from "lucide-react";
+import { ChevronRight, Package, Percent, Tag, Truck } from "lucide-react";
 
 import {
   Accordion,
@@ -8,7 +6,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { formatInr } from "@/lib/utils";
 import type { PublicProductDetail } from "@/types/product";
 
 type ProductTrustSidebarProps = {
@@ -20,7 +17,6 @@ type ProductTrustSidebarProps = {
 export function ProductTrustSidebar({
   product,
 }: ProductTrustSidebarProps) {
-  const pairsWith = product.relatedProducts[0];
   return (
     <aside className="space-y-8">
       <div>
@@ -69,49 +65,26 @@ export function ProductTrustSidebar({
           </AccordionItem>
         </Accordion>
       </div>
-
-      {/* {pairsWith ? (
-        <div>
-          <h2 className="mb-3 text-sm font-semibold tracking-wide uppercase">
-            Pairs well with
-          </h2>
-          <Link
-            href={`/products/${pairsWith.slug}`}
-            className="flex gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-surface">
-              {pairsWith.imageUrl ? (
-                <Image
-                  src={pairsWith.imageUrl ?? "https://placehold.co/64x64.png"}
-                  alt={pairsWith.name}
-                  fill
-                  className="object-cover"
-                  sizes="64px"
-                />
-              ) : null}
-            </div>
-            <div>
-              <p className="text-sm font-medium">{pairsWith.name}</p>
-              <p className="mt-1 text-sm font-semibold">
-                {formatInr(pairsWith.price)}
-              </p>
-            </div>
-          </Link>
-        </div>
-      ) : null} */}
-
       {product.tags.length > 0 ? (
         <div>
           <h2 className="mb-3 text-sm font-semibold tracking-wide uppercase">
             Tags
           </h2>
-          <ul className="flex flex-wrap gap-2">
+          <ul className="flex flex-col gap-2">
             {product.tags.map((tag) => (
-              <li
-                key={tag.id}
-                className="rounded border border-gray-500 bg-gray-50 px-3 py-1 text-xs font-medium"
-              >
-                {tag.name}
+              <li key={tag.id}>
+                <div className="flex w-full items-center justify-between gap-3 rounded border border-foreground bg-background px-5 py-3">
+                  <span className="inline-flex min-w-0 items-center gap-2.5">
+                    <Tag className="size-4 shrink-0 text-foreground" aria-hidden />
+                    <span className="truncate text-sm font-semibold text-foreground">
+                      {tag.name}
+                    </span>
+                  </span>
+                  <ChevronRight
+                    className="size-4 shrink-0 text-foreground"
+                    aria-hidden
+                  />
+                </div>
               </li>
             ))}
           </ul>

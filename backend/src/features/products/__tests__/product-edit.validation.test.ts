@@ -78,10 +78,8 @@ describe('product-edit validation', () => {
     expect(parsed.cgst).toBe(9);
   });
 
-  it('accepts gallery section with banner and images', () => {
+  it('accepts gallery section with images', () => {
     const parsed = productGallerySectionSchema.parse({
-      bannerUrl: 'https://res.cloudinary.com/demo/image/upload/banner.png',
-      bannerPublicId: 'products/banner',
       images: [
         {
           imageUrl: 'https://res.cloudinary.com/demo/image/upload/g1.png',
@@ -90,17 +88,13 @@ describe('product-edit validation', () => {
         },
       ],
     });
-    expect(parsed.bannerPublicId).toBe('products/banner');
     expect(parsed.images).toHaveLength(1);
   });
 
-  it('accepts gallery section with cleared banner', () => {
+  it('accepts gallery section with empty images', () => {
     const parsed = productGallerySectionSchema.parse({
-      bannerUrl: null,
-      bannerPublicId: null,
       images: [],
     });
-    expect(parsed.bannerUrl).toBeNull();
     expect(parsed.images).toEqual([]);
   });
 

@@ -12,6 +12,7 @@ import {
   Upload,
 } from "lucide-react";
 
+import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { AdminAppShell } from "@/components/layout/admin-app-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -70,6 +71,7 @@ import type { CategoryDto, SubcategoryFormValues } from "@/types/catalog";
 function createEmptyValues(): SubcategoryFormValues {
   return {
     name: "",
+    description: "",
     bannerUrl: "",
     bannerPublicId: "",
     active: true,
@@ -79,6 +81,7 @@ function createEmptyValues(): SubcategoryFormValues {
 function toFormValues(subcategory: CategoryDto): SubcategoryFormValues {
   return {
     name: subcategory.name,
+    description: subcategory.description ?? "",
     bannerUrl: subcategory.bannerUrl ?? "",
     bannerPublicId: subcategory.bannerPublicId ?? "",
     active: subcategory.active,
@@ -279,8 +282,8 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
             </div>
             <CardDescription>
               {editingId
-                ? "Update the subcategory name, banner, or active status."
-                : "Choose a main category, then add a subcategory with a banner image."}
+                ? "Update the subcategory name, description, banner, or active status."
+                : "Choose a main category, then add a subcategory with a description and banner image."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 pt-6">
@@ -336,6 +339,37 @@ export function ManageCategoryPage({ siteCode }: { siteCode: SiteCode }) {
                 {errors.name ? (
                   <p className="text-sm text-destructive">{errors.name}</p>
                 ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <RichTextEditor
+                  value={values.description}
+                  onChange={(html) =>
+                    setValues((prev) => ({ ...prev, description: html }))
+                  }
+                  placeholder="Write the subcategory description shown on the storefront card…"
+                  minHeightClassName="min-h-[160px]"
+                  disabled={!selectedCategoryId}
+                  onUploadImage={async (file) => {
+                    const uploaded = await uploadCategoryBanner(
+                      siteCode,
+                      file,
+                      editingId,
+                    );
+                    if (!uploaded.url) {
+                      throw new Error("Upload succeeded but no image URL was returned");
+                    }
+                    return uploaded.url;
+                  }}
+                />
+                {errors.description ? (
+                  <p className="text-sm text-destructive">{errors.description}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Optional. Shown under the subcategory name on the storefront grid.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

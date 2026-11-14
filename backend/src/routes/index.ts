@@ -41,8 +41,6 @@ import { doctorPagePublicRoutes } from '@/features/doctors/doctor-page.public.ro
 import { doctorAppointmentsPublicRoutes } from '@/features/doctor-appointments/doctor-appointments.public.routes';
 import { vendorsPublicRoutes } from '@/features/vendors/vendors.public.routes';
 import { mediaRoutes } from '@/features/media/media.routes';
-import { settingsRoutes } from '@/features/settings/settings.routes';
-import { shippingRoutes } from '@/features/shipping/shipping.routes';
 import { newsletterPublicRoutes } from '@/features/newsletter/newsletter.public.routes';
 import { requirePublicSiteAccess } from '@/middlewares/public-site-origin.middleware';
 
@@ -67,8 +65,6 @@ export function registerRoutes(app: Application): void {
   v1.use('/inventory', inventoryRoutes);
   v1.use('/admin', adminRoutes);
   v1.use('/media', mediaRoutes);
-  v1.use('/settings', settingsRoutes);
-  v1.use('/shipping', shippingRoutes);
   v1.use('/sites/:siteCode', requirePublicSiteAccess);
   v1.use('/sites/:siteCode/company-basic-info', companyBasicInfoPublicRoutes);
   v1.use('/sites/:siteCode/navbar-sections', navbarSectionsPublicRoutes);

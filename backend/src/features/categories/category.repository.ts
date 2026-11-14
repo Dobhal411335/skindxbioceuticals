@@ -175,7 +175,13 @@ export class CategoryRepository {
     data: Partial<
       Pick<
         CategoryWrite,
-        'isActive' | 'sortOrder' | 'name' | 'slug' | 'bannerUrl' | 'bannerPublicId'
+        | 'isActive'
+        | 'sortOrder'
+        | 'name'
+        | 'slug'
+        | 'bannerUrl'
+        | 'bannerPublicId'
+        | 'description'
       >
     >,
   ): Promise<CategoryRecord | null> {
@@ -193,6 +199,7 @@ export class CategoryRepository {
         ...(data.bannerPublicId !== undefined
           ? { bannerPublicId: data.bannerPublicId }
           : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
       },
     });
     return toRecord(row);

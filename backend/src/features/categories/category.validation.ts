@@ -24,6 +24,28 @@ const subcategoryBannerUrlSchema = z
     message: 'Subcategory banner URL must use http or https',
   });
 
+/** TipTap HTML description for category / subcategory cards. */
+function normalizeCategoryDescription(value: string | null): string | null {
+  if (value == null) return null;
+  const trimmed = value.trim();
+  const text = trimmed
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > 0 ? trimmed : null;
+}
+
+const categoryDescriptionSchema = z.preprocess(
+  (value) => (value === undefined ? undefined : value),
+  z
+    .union([z.string().max(100_000), z.null()])
+    .optional()
+    .transform((value) =>
+      value === undefined ? undefined : normalizeCategoryDescription(value),
+    ),
+);
+
 /** Main categories: name + required image + active. */
 export const categoryBodySchema = z.object({
   name: z.string().trim().min(1, 'Category name is required').max(160),
@@ -31,7 +53,7 @@ export const categoryBodySchema = z.object({
   bannerPublicId: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).optional(),
-  description: z.string().trim().max(2000).optional().nullable(),
+  description: categoryDescriptionSchema,
 });
 
 export const categoryPatchSchema = z
@@ -50,6 +72,7 @@ export const subcategoryBodySchema = z.object({
   bannerPublicId: z.string().trim().max(500).default(''),
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(10_000).optional(),
+  description: categoryDescriptionSchema,
 });
 
 export const subcategoryPatchSchema = z
@@ -59,6 +82,7 @@ export const subcategoryPatchSchema = z
     name: z.string().trim().min(1).max(160).optional(),
     bannerUrl: subcategoryBannerUrlSchema.optional(),
     bannerPublicId: z.string().trim().max(500).optional(),
+    description: categoryDescriptionSchema,
   })
   .refine(
     (value) =>
@@ -66,7 +90,8 @@ export const subcategoryPatchSchema = z
       value.order !== undefined ||
       value.name !== undefined ||
       value.bannerUrl !== undefined ||
-      value.bannerPublicId !== undefined,
+      value.bannerPublicId !== undefined ||
+      value.description !== undefined,
     { message: 'At least one field is required' },
   );
 
@@ -185,5 +210,9 @@ export function normalizeSubcategoryInput(raw: unknown): unknown {
       payload.order === '' || payload.order === undefined || payload.order === null
         ? undefined
         : Number(payload.order),
+    description:
+      typeof payload.description === 'string'
+        ? payload.description.trim()
+        : payload.description,
   };
 }

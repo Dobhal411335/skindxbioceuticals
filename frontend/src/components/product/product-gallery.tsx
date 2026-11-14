@@ -76,13 +76,13 @@ export function ProductGallery({
         <CarouselContent className="-ml-0">
           {images.map((image, index) => (
             <CarouselItem key={image.id} className="pl-0">
-              <div className="relative aspect-square overflow-hidden rounded-lg bg-surface lg:aspect-[5/6]">
+              <div className="relative aspect-square overflow-hidden rounded-lg bg-surface">
                 <Image
                   src={image.imageUrl}
                   alt={index === 0 ? productName : `${productName} ${index + 1}`}
                   fill
                   priority={index === 0}
-                  className="object-cover"
+                  className="object-contain"
                   sizes="(max-width: 1024px) 100vw, 45vw"
                 />
               </div>

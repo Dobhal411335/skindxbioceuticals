@@ -236,7 +236,6 @@ export class ProductEditService {
     return {
       product: toCatalogProductDto(record, siteCode),
       sizeChart: toMediaRef(record.sizeChartUrl, record.sizeChartPublicId),
-      banner: toMediaRef(record.bannerUrl, record.bannerPublicId),
       sizes,
       colors,
       catalogColors: catalogColorDtos,
@@ -508,10 +507,6 @@ export class ProductEditService {
   }): Promise<ProductEditDto> {
     await this.requireProduct(input.siteId, input.productId);
     const normalizedBody: ProductGallerySectionBody = {
-      bannerUrl: input.body.bannerUrl
-        ? preferHttpsUrl(input.body.bannerUrl)
-        : (input.body.bannerUrl ?? null),
-      bannerPublicId: input.body.bannerPublicId ?? null,
       images: input.body.images.map((img) => ({
         ...img,
         imageUrl: preferHttpsUrl(img.imageUrl),

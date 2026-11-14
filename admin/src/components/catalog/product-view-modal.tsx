@@ -183,23 +183,6 @@ export function ProductViewModal({
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">
-                    Banner
-                  </p>
-                  {payload.banner?.url ? (
-                    <div className="aspect-[16/9] overflow-hidden rounded-lg border border-border bg-background">
-                      {/* eslint-disable-next-line @next/next/no-img-element -- remote Cloudinary media */}
-                      <img
-                        src={payload.banner.url}
-                        alt={`${product.name} banner`}
-                        className="size-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No banner</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">
                     Size chart
                   </p>
                   {payload.sizeChart?.url ? (

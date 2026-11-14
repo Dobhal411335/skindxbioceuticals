@@ -354,8 +354,6 @@ describe('ProductService', () => {
     const product = makeProduct();
     findActivePublicBySlug.mockResolvedValue({
       ...product,
-      bannerUrl: 'http://res.cloudinary.com/demo/image/upload/banner.jpg',
-      bannerPublicId: 'banner',
       sizeChartUrl: null,
       sizeChartPublicId: null,
       sizes: [{ id: 's1', label: '30 ml', sortOrder: 0, active: true }],
@@ -424,7 +422,7 @@ describe('ProductService', () => {
     });
 
     expect(result.slug).toBe('vitamin-c-serum');
-    expect(result.banner?.url).toMatch(/^https:\/\//);
+    expect(result.gallery[0]?.imageUrl).toMatch(/^https:\/\//);
     expect(result.variants[0]?.quantity).toBe(7);
     expect(result.variants[0]?.price).toBe(1499);
     expect(result.variants[0]?.weightGrams).toBe(200);
@@ -461,8 +459,6 @@ describe('ProductService', () => {
           ? 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
           : product.id,
       slug,
-      bannerUrl: null,
-      bannerPublicId: null,
       sizeChartUrl: null,
       sizeChartPublicId: null,
       sizes: [],

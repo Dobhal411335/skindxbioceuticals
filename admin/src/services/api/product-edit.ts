@@ -176,8 +176,6 @@ export function updateProductGallery(
   siteCode: SiteCode,
   productId: string,
   body: {
-    bannerUrl?: string | null;
-    bannerPublicId?: string | null;
     images: Array<{
       imageUrl: string;
       imagePublicId: string;

@@ -39,7 +39,6 @@ describe('ProductPricesService', () => {
         name: 'Vitamin C',
         status: 'ACTIVE',
         subcategoryId: 'sub-1',
-        bannerUrl: null,
         updatedAt: new Date('2026-01-01T00:00:00.000Z'),
         subcategory: {
           id: 'sub-1',
@@ -93,7 +92,6 @@ describe('ProductPricesService', () => {
       name: 'Vitamin C',
       status: 'ACTIVE',
       subcategoryId: 'sub-1',
-      bannerUrl: null,
       updatedAt: new Date('2026-01-01T00:00:00.000Z'),
       subcategory: {
         id: 'sub-1',
