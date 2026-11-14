@@ -1,12 +1,60 @@
 import { assertPublicSiteAccess } from '@/middlewares/public-site-origin.middleware';
+import {
+  expandCorsOriginsWithWwwTwins,
+  isSameSitePublicOrigin,
+  wwwTwinOrigin,
+} from '@/lib/public-origin';
 
 const secret = 'test-site-fetch-secret-min-32-characters';
 const base = {
   nodeEnv: 'production',
-  siteInUrl: 'https://skindxbioceuticals.in',
+  siteInUrl: 'https://ecommerce.skindxbioceuticals.in',
   siteComUrl: 'https://skindxbioceuticals.com',
   expectedSecret: secret,
 };
+
+describe('public origin helpers', () => {
+  it('maps apex and www twins for IN and COM hosts', () => {
+    expect(wwwTwinOrigin('https://skindxbioceuticals.com')).toBe(
+      'https://www.skindxbioceuticals.com',
+    );
+    expect(wwwTwinOrigin('https://ecommerce.skindxbioceuticals.in')).toBe(
+      'https://www.ecommerce.skindxbioceuticals.in',
+    );
+    expect(wwwTwinOrigin('http://localhost:3000')).toBeNull();
+  });
+
+  it('treats www and apex as the same public site origin', () => {
+    expect(
+      isSameSitePublicOrigin(
+        'https://www.skindxbioceuticals.com',
+        'https://skindxbioceuticals.com',
+      ),
+    ).toBe(true);
+    expect(
+      isSameSitePublicOrigin(
+        'https://www.ecommerce.skindxbioceuticals.in',
+        'https://ecommerce.skindxbioceuticals.in',
+      ),
+    ).toBe(true);
+  });
+
+  it('expands CORS origins with www twins', () => {
+    expect(
+      expandCorsOriginsWithWwwTwins([
+        'https://skindxbioceuticals.com',
+        'https://ecommerce.skindxbioceuticals.in',
+        'http://localhost:3002',
+      ]),
+    ).toEqual([
+      'https://skindxbioceuticals.com',
+      'https://www.skindxbioceuticals.com',
+      'https://ecommerce.skindxbioceuticals.in',
+      'https://www.ecommerce.skindxbioceuticals.in',
+      'http://localhost:3002',
+    ]);
+  });
+});
 
 describe('assertPublicSiteAccess', () => {
   it('allows a matching origin', () => {
@@ -15,6 +63,26 @@ describe('assertPublicSiteAccess', () => {
         ...base,
         siteCode: 'COM',
         originHeader: 'https://skindxbioceuticals.com',
+      }),
+    ).not.toThrow();
+  });
+
+  it('allows www twin for COM SITE_COM_URL', () => {
+    expect(() =>
+      assertPublicSiteAccess({
+        ...base,
+        siteCode: 'COM',
+        originHeader: 'https://www.skindxbioceuticals.com',
+      }),
+    ).not.toThrow();
+  });
+
+  it('allows www twin for IN SITE_IN_URL', () => {
+    expect(() =>
+      assertPublicSiteAccess({
+        ...base,
+        siteCode: 'IN',
+        originHeader: 'https://www.ecommerce.skindxbioceuticals.in',
       }),
     ).not.toThrow();
   });

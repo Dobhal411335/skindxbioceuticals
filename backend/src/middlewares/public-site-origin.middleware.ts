@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { env } from '@/config/env';
+import { isSameSitePublicOrigin } from '../lib/public-origin';
 import { ForbiddenError } from '@/utils/AppError';
 
 export const SITE_FETCH_SECRET_HEADER = 'x-site-fetch-secret';
@@ -48,7 +49,10 @@ export function assertPublicSiteAccess(input: {
   }
 
   if (requestOrigin) {
-    if (allowedSiteOrigin && requestOrigin === allowedSiteOrigin) return;
+    // SITE_IN_URL / SITE_COM_URL are canonical; also allow their www ↔ apex twin.
+    if (allowedSiteOrigin && isSameSitePublicOrigin(requestOrigin, allowedSiteOrigin)) {
+      return;
+    }
     if (input.nodeEnv === 'development') {
       try {
         if (isLocalHostname(new URL(requestOrigin).hostname)) return;

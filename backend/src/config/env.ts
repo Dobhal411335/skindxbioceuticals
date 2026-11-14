@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import { expandCorsOriginsWithWwwTwins } from '../lib/public-origin';
 
 dotenv.config();
 
@@ -25,10 +26,12 @@ const envSchema = z.object({
     .string()
     .default('http://localhost:3000,http://localhost:3002')
     .transform((value) =>
-      value
-        .split(',')
-        .map((origin) => origin.trim())
-        .filter(Boolean),
+      expandCorsOriginsWithWwwTwins(
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean),
+      ),
     ),
 
   // Brevo transactional email (server-only)
