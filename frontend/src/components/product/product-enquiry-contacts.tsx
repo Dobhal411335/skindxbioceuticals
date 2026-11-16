@@ -83,10 +83,10 @@ export function ProductEnquiryContacts({
           <button
             type="button"
             onClick={openWhatsApp}
-            className="inline-flex h-12 min-w-0 flex-1 items-center justify-center gap-2.5 rounded-md bg-[#43a378] hover:bg-[#359f70] cursor-pointer px-3 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a4d36] focus-visible:ring-offset-2"
+            className="group inline-flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2.5 rounded-md bg-[#43a378] px-3 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#359f70] hover:shadow-[0_8px_18px_rgb(37_211_102_/_0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a4d36] focus-visible:ring-offset-2 active:translate-y-0"
             aria-label={`WhatsApp product inquiry for ${productName}`}
           >
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white transition-transform duration-200 ease-out group-hover:scale-110">
               <WhatsAppIcon className="size-4" />
             </span>
             <span className="truncate">WhatsApp product inquiry</span>

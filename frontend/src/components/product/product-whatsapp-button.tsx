@@ -54,14 +54,21 @@ export function ProductWhatsAppButton({
       size="icon"
       variant="secondary"
       className={cn(
-        "rounded-full border-2 bg-[#25D366] text-white shadow-sm transition-all duration-200",
-        "hover:border-[#25D366] hover:bg-[#25D366] hover:text-white",
+        "group rounded-full border-2 border-[#25D366] bg-[#25D366] text-white shadow-sm",
+        "transition-[transform,box-shadow,background-color] duration-200 ease-out",
+        "hover:-translate-y-0.5 hover:scale-105 hover:bg-[#20bd5a] hover:shadow-[0_6px_16px_rgb(37_211_102_/_0.45)]",
+        "active:translate-y-0 active:scale-100",
         className,
       )}
       aria-label={`Enquire about ${productName} on WhatsApp`}
       onClick={openEnquiry}
     >
-      <WhatsAppIcon className={iconClassName} />
+      <WhatsAppIcon
+        className={cn(
+          "transition-transform duration-200 ease-out group-hover:scale-110",
+          iconClassName,
+        )}
+      />
     </Button>
   );
 }
