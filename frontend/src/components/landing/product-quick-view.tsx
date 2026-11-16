@@ -51,6 +51,7 @@ import {
 } from "@/features/products/product-selection";
 import { useCartActions } from "@/hooks/useCartActions";
 import { useWishlistActions } from "@/hooks/useWishlistActions";
+import { ProductEnquiryContacts } from "@/components/product/product-enquiry-contacts";
 import { showError } from "@/lib/toast";
 import { cn, formatInr } from "@/lib/utils";
 import type { PublicProductDetail } from "@/types/product";
@@ -759,6 +760,11 @@ export function ProductQuickView({
                   />
                   {inWishlist ? "Remove from wishlist" : "Add to wishlist"}
                 </button>
+
+                <ProductEnquiryContacts
+                  productName={product.name}
+                  productSlug={product.slug}
+                />
               </div>
             </div>
           )}

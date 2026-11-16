@@ -9,6 +9,7 @@ import { Heart, Ruler, Share2, ShoppingCart } from "lucide-react";
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
+import { ProductEnquiryContacts } from "@/components/product/product-enquiry-contacts";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -565,6 +566,12 @@ export function ProductPurchasePanel({
       >
         Buy it now
       </Button>
+
+      <ProductEnquiryContacts
+        productName={product.name}
+        productSlug={product.slug}
+        className="pt-2"
+      />
     </div>
   );
 }

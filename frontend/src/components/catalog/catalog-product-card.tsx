@@ -12,6 +12,7 @@ import {
 import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
 import { useCartUi } from "@/components/cart/cart-ui-context";
+import { ProductWhatsAppButton } from "@/components/product/product-whatsapp-button";
 import { Button } from "@/components/ui/button";
 import {
   buildCartPricingFields,
@@ -267,6 +268,15 @@ export function CatalogProductCard({
         >
           <Eye className="size-3.5" />
         </Button>
+        <ProductWhatsAppButton
+          productName={product.name}
+          productSlug={product.slug}
+          className={cn(
+            "size-9 border-primary/50",
+            "translate-x-1 opacity-0 transition-all duration-200 delay-100",
+            "group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
+          )}
+        />
       </div>
     </div>
   );

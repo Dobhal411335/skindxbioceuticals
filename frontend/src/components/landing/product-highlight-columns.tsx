@@ -11,6 +11,7 @@ import {
 } from "@/components/catalog/product-price-display";
 import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { useCartUi } from "@/components/cart/cart-ui-context";
+import { ProductWhatsAppButton } from "@/components/product/product-whatsapp-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -184,6 +185,16 @@ function FeaturedHighlightCard({
         {discountPercent != null ? (
           <ProductDiscountBadge percent={discountPercent} className="absolute top-2 left-2 z-10" />
         ) : null}
+        <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-2">
+          <ProductWhatsAppButton
+            productName={product.name}
+            productSlug={product.slug}
+            className={cn(
+              "size-9 border-primary/50",
+              "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
+            )}
+          />
+        </div>
         <Button
           type="button"
           size="icon"
@@ -258,15 +269,20 @@ type ProductHighlightColumnsProps = {
   highlights: PublicProductHighlights;
 };
 
+const HIGHLIGHT_LIST_LIMIT = 6;
+
 export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsProps) {
   const { recent, featured, bestSellers } = highlights;
   const [quickProduct, setQuickProduct] = useState<PublicProductCard | null>(null);
-  const hasContent = recent.length > 0 || featured.length > 0 || bestSellers.length > 0;
+  const recentShown = recent.slice(0, HIGHLIGHT_LIST_LIMIT);
+  const popularShown = bestSellers.slice(0, HIGHLIGHT_LIST_LIMIT);
+  const hasContent =
+    recentShown.length > 0 || featured.length > 0 || popularShown.length > 0;
 
   if (!hasContent) return null;
   if (featured.length === 0) return null;
-  if (recent.length === 0) return null;
-  if (bestSellers.length === 0) return null;
+  if (recentShown.length === 0) return null;
+  if (popularShown.length === 0) return null;
 
   return (
     <section
@@ -284,7 +300,7 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
               <Clock3 className="size-5 text-primary" aria-hidden />
             </div>
             <ul className="mt-4 space-y-4">
-              {recent.map((product) => (
+              {recentShown.map((product) => (
                 <ProductListItem key={product.id} product={product} onQuickView={setQuickProduct} />
               ))}
             </ul>
@@ -335,7 +351,7 @@ export function ProductHighlightColumns({ highlights }: ProductHighlightColumnsP
               <ArrowUpRight className="size-4 text-primary" aria-hidden />
             </div>
             <ul className="mt-4 space-y-4">
-              {bestSellers.map((product) => (
+              {popularShown.map((product) => (
                 <ProductListItem key={product.id} product={product} onQuickView={setQuickProduct} />
               ))}
             </ul>

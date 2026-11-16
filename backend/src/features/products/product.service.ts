@@ -54,6 +54,13 @@ export function toCatalogProductDto(
 /** Frequently bought (6) plus recommendations (9) on the product detail page. */
 export const PUBLIC_RELATED_PRODUCT_LIMIT = 15;
 
+/** Landing highlight columns: sample up to this many from each admin-flagged pool. */
+export const PUBLIC_HIGHLIGHT_RECENT_LIMIT = 6;
+export const PUBLIC_HIGHLIGHT_BEST_SELLER_LIMIT = 6;
+export const PUBLIC_HIGHLIGHT_FEATURED_LIMIT = 8;
+/** Fetch pool size before random sampling (admin may flag more than the display cap). */
+export const PUBLIC_HIGHLIGHT_POOL_LIMIT = 48;
+
 function hashSeed(seed: string): number {
   let hash = 2166136261;
   for (let index = 0; index < seed.length; index += 1) {
@@ -70,6 +77,18 @@ export function shuffleWithSeed<T>(items: readonly T[], seed: string): T[] {
   for (let index = copy.length - 1; index > 0; index -= 1) {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
     const swapIndex = state % (index + 1);
+    const current = copy[index]!;
+    copy[index] = copy[swapIndex]!;
+    copy[swapIndex] = current;
+  }
+  return copy;
+}
+
+/** Unstable shuffle for landing highlights so each page load can show a fresh sample. */
+export function shuffleRandom<T>(items: readonly T[]): T[] {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
     const current = copy[index]!;
     copy[index] = copy[swapIndex]!;
     copy[swapIndex] = current;
@@ -404,18 +423,31 @@ export class ProductService {
     includeVendorPrice?: boolean;
   }): Promise<PublicProductHighlightsDto> {
     const cardOpts = { includeVendorPrice: Boolean(input.includeVendorPrice) };
-    const [recent, featured, bestSellers] = await Promise.all([
-      this.repository.listActivePublicByFlag(input.siteId, 'isRecent', { limit: 4 }),
-      this.repository.listActivePublicByFlag(input.siteId, 'isFeatured', { limit: 8 }),
+    const [recentPool, featuredPool, bestSellerPool] = await Promise.all([
+      this.repository.listActivePublicByFlag(input.siteId, 'isRecent', {
+        limit: PUBLIC_HIGHLIGHT_POOL_LIMIT,
+      }),
+      this.repository.listActivePublicByFlag(input.siteId, 'isFeatured', {
+        limit: PUBLIC_HIGHLIGHT_FEATURED_LIMIT,
+      }),
       this.repository.listActivePublicByFlag(input.siteId, 'isBestSeller', {
-        limit: 4,
+        limit: PUBLIC_HIGHLIGHT_POOL_LIMIT,
       }),
     ]);
 
+    // Recent / popular: random sample (max 6) from admin-flagged ACTIVE products on each request.
+    const recent = shuffleRandom(recentPool).slice(0, PUBLIC_HIGHLIGHT_RECENT_LIMIT);
+    const bestSellers = shuffleRandom(bestSellerPool).slice(
+      0,
+      PUBLIC_HIGHLIGHT_BEST_SELLER_LIMIT,
+    );
+
     return {
       recent: recent.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts)),
-      featured: featured.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts)),
-      bestSellers: bestSellers.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts)),
+      featured: featuredPool.map((row) => toPublicProductCardDto(row, input.siteCode, cardOpts)),
+      bestSellers: bestSellers.map((row) =>
+        toPublicProductCardDto(row, input.siteCode, cardOpts),
+      ),
     };
   }
 

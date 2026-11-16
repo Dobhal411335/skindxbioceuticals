@@ -880,6 +880,65 @@ describe('ProductService', () => {
     expect(result.bestSellers).toEqual([]);
   });
 
+  it('randomly samples at most 6 recent and popular products from admin pools', async () => {
+    const card = (id: string, flag: 'isRecent' | 'isBestSeller') => ({
+      id,
+      slug: id,
+      name: id,
+      isFeatured: false,
+      isRecent: flag === 'isRecent',
+      isBestSeller: flag === 'isBestSeller',
+      subcategory: { name: 'Care' },
+      galleryImages: [],
+      variants: [
+        {
+          id: `${id}-v`,
+          price: 100,
+          compareAtPrice: null,
+          inventory: { quantityOnHand: 5 },
+        },
+      ],
+      editorialReviews: [],
+      reviews: [],
+      coupon: null,
+      tax: null,
+    });
+
+    const recentPool = Array.from({ length: 10 }, (_, i) =>
+      card(`recent-${i}`, 'isRecent'),
+    );
+    const popularPool = Array.from({ length: 9 }, (_, i) =>
+      card(`popular-${i}`, 'isBestSeller'),
+    );
+
+    listActivePublicByFlag.mockImplementation(
+      async (
+        _siteId: string,
+        flag: 'isRecent' | 'isFeatured' | 'isBestSeller',
+        options: { limit: number },
+      ) => {
+        expect(options.limit).toBeGreaterThanOrEqual(6);
+        if (flag === 'isRecent') return recentPool;
+        if (flag === 'isBestSeller') return popularPool;
+        return [];
+      },
+    );
+
+    const result = await service.listPublicHighlights({
+      siteId: 'site',
+      siteCode: 'IN',
+    });
+
+    expect(result.recent).toHaveLength(6);
+    expect(result.bestSellers).toHaveLength(6);
+    expect(result.recent.every((row) => row.id.startsWith('recent-'))).toBe(true);
+    expect(result.bestSellers.every((row) => row.id.startsWith('popular-'))).toBe(
+      true,
+    );
+    expect(new Set(result.recent.map((row) => row.id)).size).toBe(6);
+    expect(new Set(result.bestSellers.map((row) => row.id)).size).toBe(6);
+  });
+
   it('throws when public product slug is missing or inactive', async () => {
     findActivePublicBySlug.mockResolvedValue(null);
 

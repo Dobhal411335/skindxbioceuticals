@@ -12,6 +12,7 @@ import {
 import { useCartUi } from "@/components/cart/cart-ui-context";
 import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { ProductRatingStars } from "@/components/landing/product-rating-stars";
+import { ProductWhatsAppButton } from "@/components/product/product-whatsapp-button";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -283,6 +284,15 @@ export function FrequentlyBought({ products }: FrequentlyBoughtProps) {
                             >
                               <Eye className="size-3.5" />
                             </Button>
+                            <ProductWhatsAppButton
+                              productName={item.name}
+                              productSlug={item.slug}
+                              className={cn(
+                                "size-9 border-primary/50",
+                                "translate-x-1 opacity-0 transition-all duration-200 delay-100",
+                                "group-hover:translate-x-0 group-hover:opacity-100 focus-visible:translate-x-0 focus-visible:opacity-100",
+                              )}
+                            />
                           </div>
                         </div>
 

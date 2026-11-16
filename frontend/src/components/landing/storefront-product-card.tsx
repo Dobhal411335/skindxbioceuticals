@@ -8,6 +8,7 @@ import { Eye, Heart, ShoppingCart, Star } from "lucide-react";
 import { ProductPriceDisplay } from "@/components/catalog/product-price-display";
 import { ProductQuickView } from "@/components/landing/product-quick-view";
 import { useCartUi } from "@/components/cart/cart-ui-context";
+import { ProductWhatsAppButton } from "@/components/product/product-whatsapp-button";
 import { Button } from "@/components/ui/button";
 import { buildCartPricingFields, priceProductForRole } from "@/features/products/product-pricing";
 import { prefetchProductQuickView } from "@/features/products/product.service";
@@ -151,6 +152,12 @@ export function StorefrontProductCard({ product, className }: StorefrontProductC
             >
               <Eye className="size-4" />
             </Button>
+            <ProductWhatsAppButton
+              productName={product.name}
+              productSlug={product.slug}
+              className="size-8 border border-[#d9dfdc] opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+              iconClassName="size-4"
+            />
           </div>
         </div>
 

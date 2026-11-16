@@ -228,10 +228,8 @@ export const getLandingProductHighlights = cache(
       const response = await fetch(
         `${base}/sites/${storefrontSiteCode}/products/highlights`,
         {
-          next: {
-            revalidate: 60,
-            tags: ["products", storefrontSiteCode, "landing-highlights"],
-          },
+          // Highlights randomly sample recent/popular; avoid ISR so refresh gets a new mix.
+          cache: "no-store",
           headers: publicSiteHeaders(),
         },
       );
