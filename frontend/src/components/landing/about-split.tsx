@@ -16,7 +16,7 @@ function AboutCard({ card }: { card: StorefrontAboutCard }) {
         src={card.image.src}
         alt={card.image.alt}
         fill
-        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+        className="object-cover [filter:grayscale(100%)] transition-[filter,transform] duration-700 ease-in-out will-change-[filter,transform] group-hover:[filter:grayscale(0%)]"
         sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
       />
 
@@ -28,10 +28,10 @@ function AboutCard({ card }: { card: StorefrontAboutCard }) {
         <span className="w-fit rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-white uppercase backdrop-blur-sm">
           {card.label}
         </span>
-        <h3 className="mt-3 max-w-[18rem] text-2xl leading-[1.05] font-semibold tracking-tight text-white sm:text-[1.8rem]">
+        <h3 className="mt-3 max-w-[18rem] text-2xl leading-[1.05] font-semibold tracking-tight text-white sm:text-[1.2rem]">
           {card.title}
         </h3>
-        <p className="mt-3 line-clamp-2 max-w-[20rem] text-sm leading-relaxed text-white/80 sm:text-base">
+        <p className="mt-3 line-clamp-2 max-w-[20rem] text-sm leading-relaxed text-white/80">
           {card.body}
         </p>
         <Link

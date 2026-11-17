@@ -28,7 +28,7 @@ function toLandingPost(blog: {
       ?.replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ")
       .trim()
-      .slice(0, 140) || "";
+      .slice(0, 220) || "";
 
   return {
     id: blog.id,
@@ -48,80 +48,104 @@ function toLandingPost(blog: {
   };
 }
 
-function EditorialBlogCard({ post, featured = false }: { post: LandingPost; featured?: boolean }) {
+/** Large editorial card for the left column. */
+function FeaturedBlogCard({ post }: { post: LandingPost }) {
+  const miniHeading = post.badgeText || post.category || "Our Story";
+
+  return (
+    <article className="group flex h-full flex-col">
+      <Link
+        href={post.href}
+        className="relative block aspect-[16/10] w-full overflow-hidden bg-muted rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:aspect-[16/11] lg:min-h-[14rem] lg:flex-1"
+      >
+        <Image
+          src={post.image}
+          alt={post.alt}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl"
+          sizes="(max-width: 1024px) 100vw, 50vw"
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent"
+          aria-hidden
+        />
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 sm:gap-4 sm:p-6 lg:p-7">
+          <div className="flex items-center gap-3">
+            <span className="h-px w-10 bg-white/55 sm:w-14" aria-hidden />
+            <p className="text-[11px] font-semibold tracking-[0.2em] text-[#f0d8c9] uppercase">
+              {miniHeading}
+            </p>
+            <span className="h-px w-6 bg-white/55 sm:w-8" aria-hidden />
+          </div>
+
+          <h3 className="max-w-xl text-3xl leading-[1.05] font-semibold tracking-[-0.03em] text-white sm:text-[2.35rem]">
+            {post.title}
+          </h3>
+
+          {post.excerpt ? (
+            <p className="max-w-xl line-clamp-2 text-sm leading-relaxed text-white/85 sm:text-[0.95rem]">
+              {post.excerpt}
+            </p>
+          ) : null}
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[11px] font-bold tracking-[0.12em] text-white/90 uppercase">
+              {post.date} · By {post.author}
+            </p>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-4 py-2 text-[11px] font-bold tracking-[0.14em] text-[#14272e] uppercase shadow-sm transition-colors group-hover:bg-white">
+              Read More
+              <ArrowUpRight className="size-4" aria-hidden />
+            </span>
+          </div>
+        </div>
+      </Link>
+    </article>
+  );
+}
+
+/** Horizontal list card for the right column — title + short description. */
+function SideBlogCard({ post }: { post: LandingPost }) {
   return (
     <Link
       href={post.href}
-      className={`group relative isolate flex min-h-[16rem] overflow-hidden rounded-[20px] bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${featured ? "lg:row-span-2 lg:min-h-[34rem]" : ""}`}
+      className="group flex min-h-[10.75rem] gap-4 overflow-hidden rounded-2xl border border-[#e5e2dc] bg-[#fbfaf8] p-3.5 transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_10px_28px_rgb(20_35_45_/_0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:gap-5 sm:p-4"
     >
-      <Image
-        src={post.image}
-        alt={post.alt}
-        fill
-        className="object-cover transition-transform duration-500 group-hover:scale-105"
-        sizes={featured ? "(max-width: 1024px) 100vw, 50vw" : "(max-width: 1024px) 100vw, 50vw"}
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-[#07151d]/95 via-[#07151d]/25 to-transparent"
-      />
-      <div className="relative z-10 mt-auto flex max-w-2xl flex-col items-start gap-2 p-5 text-white sm:p-7">
-        {post.badgeText ? (
-          <span className="rounded-full bg-white/15 px-3 py-3 text-[11px] font-bold tracking-[0.14em] uppercase backdrop-blur-sm">
-            {post.badgeText}
-          </span>
-        ) : null}
-        <h3
-          className={`font-display font-semibold leading-tight tracking-tight ${featured ? "text-2xl sm:text-4xl" : "text-xl sm:text-2xl"}`}
-        >
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 py-0.5">
+        <h3 className="line-clamp-2 text-base leading-snug font-semibold tracking-tight text-primary transition-colors group-hover:text-primary/85 sm:text-[1.05rem]">
           {post.title}
         </h3>
-        {featured ? (
-          <p className="line-clamp-2 max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">
+        {post.excerpt ? (
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
             {post.excerpt}
           </p>
         ) : null}
-        {post.stats?.length ? (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {post.stats.slice(0, 2).map((stat) => (
-              <div
-                key={`${stat.number}-${stat.name}`}
-                className="min-w-[6.5rem] rounded-xl border border-white/15 bg-white/10 px-3 py-3 backdrop-blur-md"
-              >
-                {stat.number ? (
-                  <strong className="block text-xl font-semibold leading-none sm:text-xl">
-                    {stat.number}
-                  </strong>
-                ) : null}
-                {stat.name ? (
-                  <span className="mt-1 block text-[12px] font-medium leading-tight text-white/75">
-                    {stat.name}
-                  </span>
-                ) : null}
-                {stat.text ? (
-                  <span className="mt-1 block text-[10px] leading-tight text-white/65">
-                    {stat.text}
-                  </span>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        ) : null}
-        <span className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-white/85">
-          {post.date} · By {post.author}
-          <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold tracking-[0.14em] text-primary uppercase">
+          Read More
+          <ArrowUpRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
         </span>
+      </div>
+      <div className="relative aspect-[4/3] w-[7.5rem] shrink-0 overflow-hidden rounded-xl bg-muted sm:w-[9.5rem]">
+        <Image
+          src={post.image}
+          alt={post.alt}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="160px"
+        />
       </div>
     </Link>
   );
 }
 
 export async function BlogGrid() {
-  const blogs = (await getLandingBlogs(3)).slice(0, 3);
+  const blogs = (await getLandingBlogs(4)).slice(0, 4);
 
   if (blogs.length === 0) {
     return null;
   }
+
+  const posts = blogs.map(toLandingPost);
+  const [featured, ...sidePosts] = posts;
 
   return (
     <section className="container-page section-space" aria-labelledby="blog-grid-heading">
@@ -140,16 +164,25 @@ export async function BlogGrid() {
         </div>
         <Link
           href="/blog"
-          className="inline-flex w-fit items-center gap-1 rounded-full border border-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary bg-primary hover:text-white transition-colors duration-300"
+          className="inline-flex w-fit items-center gap-1 rounded-full border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors duration-300 hover:bg-primary hover:text-white"
         >
           View all blogs
           <ArrowUpRight className="size-4" aria-hidden />
         </Link>
       </div>
-      <div className="grid gap-4 lg:grid-cols-[1.35fr_0.9fr] lg:grid-rows-2">
-        {blogs.map((blog, index) => (
-          <EditorialBlogCard key={blog.id} post={toLandingPost(blog)} featured={index === 0} />
-        ))}
+
+      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.95fr] lg:items-stretch lg:gap-8">
+        <div className="min-h-[22rem] lg:min-h-[34rem]">
+          <FeaturedBlogCard post={featured!} />
+        </div>
+
+        {sidePosts.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {sidePosts.slice(0, 3).map((post) => (
+              <SideBlogCard key={post.id} post={post} />
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );
