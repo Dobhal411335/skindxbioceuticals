@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '@/middlewares/auth.middleware';
+import { requireStorefrontSite } from '@/middlewares/storefront-site.middleware';
 import { validate } from '@/middlewares/validate.middleware';
 import { asyncHandler } from '@/utils/asyncHandler';
 import { orderController } from './order.controller';
@@ -7,7 +8,7 @@ import { listOrdersQuerySchema, orderIdParamSchema } from './order.validation';
 
 const router = Router();
 
-router.use(authenticate, authorize('CUSTOMER', 'VENDOR'));
+router.use(requireStorefrontSite, authenticate, authorize('CUSTOMER', 'VENDOR'));
 
 router.get(
   '/',

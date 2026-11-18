@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { optionalAuthenticate } from '@/middlewares/auth.middleware';
 import { createRateLimiter } from '@/middlewares/rate-limit.middleware';
+import { requireStorefrontSite } from '@/middlewares/storefront-site.middleware';
 import { validate } from '@/middlewares/validate.middleware';
 import { asyncHandler } from '@/utils/asyncHandler';
 import { paymentController } from './payment.controller';
@@ -29,6 +30,7 @@ const router = Router();
 router.post(
   '/create-order',
   createOrderRateLimiter,
+  requireStorefrontSite,
   optionalAuthenticate,
   validate({ body: createPaymentOrderBodySchema }),
   asyncHandler(paymentController.createOrder),
@@ -37,6 +39,7 @@ router.post(
 router.post(
   '/verify',
   verifyRateLimiter,
+  requireStorefrontSite,
   optionalAuthenticate,
   validate({ body: verifyPaymentBodySchema }),
   asyncHandler(paymentController.verify),
@@ -44,6 +47,7 @@ router.post(
 
 router.get(
   '/status/:orderId',
+  requireStorefrontSite,
   optionalAuthenticate,
   validate({ params: paymentStatusParamsSchema, query: paymentStatusQuerySchema }),
   asyncHandler(paymentController.status),
@@ -51,6 +55,7 @@ router.get(
 
 router.get(
   '/confirmation',
+  requireStorefrontSite,
   optionalAuthenticate,
   validate({ query: orderConfirmationQuerySchema }),
   asyncHandler(paymentController.confirmation),

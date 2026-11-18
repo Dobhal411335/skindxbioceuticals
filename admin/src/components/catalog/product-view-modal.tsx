@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { env } from "@/config/env";
 import { ApiError } from "@/services/api/errors";
 import { fetchProductEdit } from "@/services/api/product-edit";
+import { stripHtmlToText } from "@/lib/tiptap/extensions";
 import { showError } from "@/lib/toast";
 import type { SiteCode } from "@/types/auth";
 import type { ProductEditDto } from "@/types/product-edit";
@@ -325,7 +326,10 @@ export function ProductViewModal({
                   value={
                     payload.highlights.length
                       ? payload.highlights
-                          .map((item) => `${item.question}: ${item.answer}`)
+                          .map(
+                            (item) =>
+                              `${item.question}: ${stripHtmlToText(item.answer)}`,
+                          )
                           .join(" · ")
                       : "—"
                   }

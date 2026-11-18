@@ -265,7 +265,7 @@ export function ProductPurchasePanel({
           {product.name}
         </h1>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="rounded border border-black bg-black text-white px-2 py-0.5 font-mono text-xs font-medium tracking-wide">
+          <span className="rounded border border-black bg-black text-white px-2 pt-2 pb-1 font-mono text-xs font-medium tracking-wide">
             {product.productCode}
           </span>
           {selectedVariant?.sku ? (
@@ -421,7 +421,7 @@ export function ProductPurchasePanel({
                 }`
               : ""}
           </legend>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {sizes.map((size) => {
               const hasStock = sizeHasStock(product, size.label);
               const matchesColor = isSizeCompatibleWithColor(
@@ -441,35 +441,41 @@ export function ProductPurchasePanel({
               const sizeDisplay = weightLabel
                 ? `${size.label} | ${weightLabel}`
                 : size.label;
+              const isSelected = sizeId === size.id;
               return (
                 <button
                   key={size.id}
                   type="button"
                   disabled={!hasStock}
-                  aria-pressed={sizeId === size.id}
+                  aria-pressed={isSelected}
                   title={
                     sizePrice != null
                       ? `${sizeDisplay} — ${formatInr(sizePrice)}`
                       : sizeDisplay
                   }
                   className={cn(
-                    "flex min-w-15 flex-col items-center justify-center rounded-sm border px-5 py-2 text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    sizeId === size.id
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border bg-background",
+                    "flex min-w-[7.5rem] flex-col items-start justify-center gap-1 rounded-md border px-3.5 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    isSelected
+                      ? "border-primary bg-primary/5 text-primary shadow-[inset_0_0_0_1px] shadow-primary/30"
+                      : "border-border bg-surface text-foreground hover:border-primary/40 hover:bg-primary/[0.04]",
                     !matchesColor && hasStock && "opacity-40",
                     !hasStock && "cursor-not-allowed opacity-30 line-through",
                   )}
                   onClick={() => hasStock && selectSize(size.id)}
                 >
-                  <span>{sizeDisplay}</span>
+                  <span
+                    className={cn(
+                      "text-[12px] leading-snug font-medium",
+                      isSelected ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
+                    {sizeDisplay}
+                  </span>
                   {hasStock && sizePrice != null ? (
                     <span
                       className={cn(
-                        "text-[13px] font-semibold",
-                        sizeId === size.id
-                          ? "text-white"
-                          : "text-black",
+                        "text-[15px] leading-none font-semibold tracking-tight",
+                        isSelected ? "text-primary" : "text-foreground",
                       )}
                     >
                       {formatInr(sizePrice)}

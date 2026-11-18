@@ -20,10 +20,10 @@ import type { AddWishlistItemInput, SyncWishlistInput } from './wishlist.validat
 type WishlistWithItems = Awaited<ReturnType<typeof wishlistRepository.findOrCreateWishlist>>;
 type WishlistItemRow = WishlistWithItems['items'][number];
 
-const ECOMMERCE_SITE_CODE = 'IN';
+type StorefrontSiteRef = { id: string; code: 'IN' | 'COM' };
 
 /**
- * Wishlist service — customer wishlist scoped to the authenticated user.
+ * Wishlist service — customer wishlist scoped to the authenticated user + storefront site.
  */
 export class WishlistService {
   constructor(
@@ -31,17 +31,21 @@ export class WishlistService {
     private readonly users = authRepository,
   ) {}
 
-  async getWishlist(userId: string): Promise<WishlistDto> {
+  async getWishlist(userId: string, site: StorefrontSiteRef): Promise<WishlistDto> {
     await this.requireActiveCustomer(userId);
-    const wishlist = await this.repository.findOrCreateWishlist(userId);
-    return this.toWishlistDto(wishlist);
+    const wishlist = await this.repository.findOrCreateWishlist(userId, site.id);
+    return this.toWishlistDto(wishlist, site.code);
   }
 
-  async addItem(userId: string, input: AddWishlistItemInput): Promise<WishlistItemDto> {
+  async addItem(
+    userId: string,
+    site: StorefrontSiteRef,
+    input: AddWishlistItemInput,
+  ): Promise<WishlistItemDto> {
     await this.requireActiveCustomer(userId);
-    const wishlist = await this.repository.findOrCreateWishlist(userId);
+    const wishlist = await this.repository.findOrCreateWishlist(userId, site.id);
 
-    const product = await this.repository.findActiveInProduct(input.productId, ECOMMERCE_SITE_CODE);
+    const product = await this.repository.findActiveInProduct(input.productId, site.code);
     if (!product) {
       throw new NotFoundError('Product not found');
     }
@@ -66,6 +70,7 @@ export class WishlistService {
       {
         event: 'wishlist.item_added',
         userId,
+        siteCode: site.code,
         productId: input.productId,
       },
       'Wishlist item added',
@@ -73,9 +78,9 @@ export class WishlistService {
     return this.toItemDto(item);
   }
 
-  async removeItem(userId: string, itemId: string): Promise<void> {
+  async removeItem(userId: string, site: StorefrontSiteRef, itemId: string): Promise<void> {
     await this.requireActiveCustomer(userId);
-    const item = await this.repository.findItemForUser(userId, itemId);
+    const item = await this.repository.findItemForUser(userId, site.id, itemId);
     if (!item) {
       throw new NotFoundError('Wishlist item not found');
     }
@@ -84,6 +89,7 @@ export class WishlistService {
       {
         event: 'wishlist.item_removed',
         userId,
+        siteCode: site.code,
         itemId,
       },
       'Wishlist item removed',
@@ -95,9 +101,13 @@ export class WishlistService {
    * Naturally idempotent via @@unique([wishlistId, productId]); Idempotency-Key is accepted
    * by the controller for client retries but does not require a separate store.
    */
-  async syncWishlist(userId: string, input: SyncWishlistInput): Promise<WishlistSyncResultDto> {
+  async syncWishlist(
+    userId: string,
+    site: StorefrontSiteRef,
+    input: SyncWishlistInput,
+  ): Promise<WishlistSyncResultDto> {
     await this.requireActiveCustomer(userId);
-    const wishlist = await this.repository.findOrCreateWishlist(userId);
+    const wishlist = await this.repository.findOrCreateWishlist(userId, site.id);
 
     const deduped = new Map<string, { productId: string; variantId: string | null }>();
     for (const raw of input.items) {
@@ -131,7 +141,7 @@ export class WishlistService {
       if (
         product.status !== 'ACTIVE' ||
         !product.site.isActive ||
-        product.site.code !== ECOMMERCE_SITE_CODE
+        product.site.code !== site.code
       ) {
         skipped.push({
           productId: entry.productId,
@@ -162,11 +172,12 @@ export class WishlistService {
 
     await this.repository.addItemsIgnoreDuplicates(wishlist.id, toInsert);
 
-    const refreshed = await this.repository.findOrCreateWishlist(userId);
+    const refreshed = await this.repository.findOrCreateWishlist(userId, site.id);
     logger.info(
       {
         event: 'wishlist.sync',
         userId,
+        siteCode: site.code,
         inserted: toInsert.length,
         skipped: skipped.length,
       },
@@ -174,7 +185,7 @@ export class WishlistService {
     );
 
     return {
-      wishlist: this.toWishlistDto(refreshed),
+      wishlist: this.toWishlistDto(refreshed, site.code),
       skipped,
     };
   }
@@ -193,18 +204,20 @@ export class WishlistService {
     return user;
   }
 
-  private toWishlistDto(wishlist: WishlistWithItems): WishlistDto {
+  private toWishlistDto(wishlist: WishlistWithItems, siteCode: 'IN' | 'COM'): WishlistDto {
     return {
       id: wishlist.id,
-      items: wishlist.items.filter((item) => this.isEligibleStorefrontItem(item)).map((item) => this.toItemDto(item)),
+      items: wishlist.items
+        .filter((item) => this.isEligibleStorefrontItem(item, siteCode))
+        .map((item) => this.toItemDto(item)),
     };
   }
 
-  private isEligibleStorefrontItem(item: WishlistItemRow): boolean {
+  private isEligibleStorefrontItem(item: WishlistItemRow, siteCode: 'IN' | 'COM'): boolean {
     return (
       item.product.status === 'ACTIVE' &&
       item.product.site.isActive &&
-      item.product.site.code === ECOMMERCE_SITE_CODE
+      item.product.site.code === siteCode
     );
   }
 
@@ -234,8 +247,8 @@ export class WishlistService {
       productCode: item.product.productCode ?? '',
       categoryName: item.product.subcategory?.name ?? null,
       imageUrl:
-        item.product.galleryImages[0]?.imageUrl ??
-        item.product.media[0]?.media.url ??
+        item.product.galleryImages?.[0]?.imageUrl ??
+        item.product.media?.[0]?.media.url ??
         null,
       price: variant ? variant.price.toString() : null,
       currency: variant?.currency ?? null,

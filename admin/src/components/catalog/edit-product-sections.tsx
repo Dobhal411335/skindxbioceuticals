@@ -36,7 +36,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -2763,6 +2762,11 @@ export function HighlightsSection({
     );
   }, [data.highlights]);
 
+  const uploadInlineImage = async (file: File) => {
+    const uploaded = await uploadProductImage(siteCode, file, productId);
+    return uploaded.url;
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -2770,9 +2774,12 @@ export function HighlightsSection({
         highlights: highlights
           .map(({ question, answer }) => ({
             question: question.trim(),
-            answer: answer.trim(),
+            answer: isEmptyRichTextHtml(answer) ? "" : answer,
           }))
-          .filter(({ question, answer }) => question && answer),
+          .filter(
+            ({ question, answer }) =>
+              question && !isEmptyRichTextHtml(answer),
+          ),
       });
       onUpdated(next);
       showSuccess("Highlights saved");
@@ -2817,18 +2824,22 @@ export function HighlightsSection({
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-          <Textarea
-            value={highlight.answer}
-            onChange={(e) =>
-              setHighlights((prev) =>
-                prev.map((row, i) =>
-                  i === index ? { ...row, answer: e.target.value } : row,
-                ),
-              )
-            }
-            placeholder="Answer"
-            rows={4}
-          />
+          <div className="space-y-1">
+            <Label>Answer</Label>
+            <RichTextEditor
+              value={highlight.answer}
+              onChange={(html) =>
+                setHighlights((prev) =>
+                  prev.map((row, i) =>
+                    i === index ? { ...row, answer: html } : row,
+                  ),
+                )
+              }
+              placeholder="Answer"
+              minHeightClassName="min-h-[140px]"
+              onUploadImage={uploadInlineImage}
+            />
+          </div>
         </div>
       ))}
       <div className="flex gap-2">

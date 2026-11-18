@@ -211,6 +211,9 @@ model Site {
   vendorApplications       VendorApplication[]
   newsletterSubscribers    NewsletterSubscriber[]
   careerApplications       CareerApplication[]
+  carts                    Cart[]
+  wishlists                Wishlist[]
+  guestCheckoutSessions    GuestCheckoutSession[]
 
   @@map("sites")
 }
@@ -254,8 +257,8 @@ model User {
   updatedAt          DateTime   @updatedAt @map("updated_at")
 
   addresses               Address[]
-  cart                    Cart?
-  wishlist                Wishlist?
+  carts                   Cart[]
+  wishlists               Wishlist[]
   orders                  Order[]
   reviews                 Review[]
   refreshTokens           RefreshToken[]
@@ -746,13 +749,17 @@ model InventoryMovement {
 
 model Cart {
   id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @unique @map("user_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  siteId    String   @map("site_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site  Site       @relation(fields: [siteId], references: [id], onDelete: Restrict)
   items CartItem[]
 
+  @@unique([userId, siteId])
+  @@index([siteId])
   @@map("carts")
 }
 
@@ -776,13 +783,17 @@ model CartItem {
 
 model Wishlist {
   id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @unique @map("user_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  siteId    String   @map("site_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site  Site           @relation(fields: [siteId], references: [id], onDelete: Restrict)
   items WishlistItem[]
 
+  @@unique([userId, siteId])
+  @@index([siteId])
   @@map("wishlists")
 }
 
@@ -856,6 +867,7 @@ model GuestCheckoutSession {
   id                       String    @id @default(uuid()) @db.Uuid
   /// SHA-256 of the opaque session token returned once to the client.
   tokenHash                String    @unique @map("token_hash")
+  siteId                   String    @map("site_id") @db.Uuid
   email                    String
   emailVerifiedAt          DateTime? @map("email_verified_at")
   otpHash                  String?   @map("otp_hash")
@@ -873,8 +885,10 @@ model GuestCheckoutSession {
   createdAt                DateTime  @default(now()) @map("created_at")
   updatedAt                DateTime  @updatedAt @map("updated_at")
 
+  site  Site   @relation(fields: [siteId], references: [id], onDelete: Restrict)
   order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
+  @@index([siteId])
   @@index([email])
   @@index([expiresAt])
   @@index([confirmationTokenHash])

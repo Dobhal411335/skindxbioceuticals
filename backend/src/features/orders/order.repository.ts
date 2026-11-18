@@ -44,13 +44,13 @@ const orderDetailInclude = {
 export class OrderRepository {
   protected readonly db = prisma;
 
-  async countForUser(userId: string): Promise<number> {
-    return this.db.order.count({ where: { userId } });
+  async countForUser(userId: string, siteId: string): Promise<number> {
+    return this.db.order.count({ where: { userId, siteId } });
   }
 
-  async listForUser(userId: string, page: number, pageSize: number) {
+  async listForUser(userId: string, siteId: string, page: number, pageSize: number) {
     return this.db.order.findMany({
-      where: { userId },
+      where: { userId, siteId },
       include: orderListInclude,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
@@ -58,9 +58,9 @@ export class OrderRepository {
     });
   }
 
-  async findForUser(userId: string, orderId: string) {
+  async findForUser(userId: string, siteId: string, orderId: string) {
     return this.db.order.findFirst({
-      where: { id: orderId, userId },
+      where: { id: orderId, userId, siteId },
       include: orderDetailInclude,
     });
   }

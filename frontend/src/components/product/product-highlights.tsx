@@ -72,9 +72,10 @@ export function ProductHighlights({ highlights }: ProductHighlightsProps) {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="overflow-hidden"
                       >
-                        <div className="max-w-2xl pb-7 pr-10 text-base leading-7 text-[#6c7a7d]">
-                          {item.answer}
-                        </div>
+                        <div
+                          className="rich-html max-w-2xl pb-7 pr-10 text-base leading-7 text-[#6c7a7d] [&_a]:text-[#c97852] [&_p:not(:last-child)]:mb-3"
+                          dangerouslySetInnerHTML={{ __html: item.answer }}
+                        />
                       </motion.div>
                     ) : null}
                   </AnimatePresence>

@@ -7,6 +7,7 @@ const WISHLIST_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 const PRODUCT_ID = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 const VARIANT_ID = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
 const OTHER_PRODUCT_ID = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+const SITE = { id: '99999999-9999-9999-9999-999999999999', code: 'IN' as const };
 
 function makeItem(overrides: Record<string, unknown> = {}) {
   return {
@@ -113,7 +114,7 @@ describe('WishlistService', () => {
       items: [active, archived, comProduct],
     });
 
-    const result = await service.getWishlist(USER_ID);
+    const result = await service.getWishlist(USER_ID, SITE);
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.productId).toBe(PRODUCT_ID);
     expect(result.items[0]?.quantity).toBe(5);
@@ -151,7 +152,7 @@ describe('WishlistService', () => {
       items: [reserved],
     });
 
-    const result = await service.getWishlist(USER_ID);
+    const result = await service.getWishlist(USER_ID, SITE);
     expect(result.items[0]?.quantity).toBe(13);
     expect(result.items[0]?.available).toBe(true);
   });
@@ -161,7 +162,7 @@ describe('WishlistService', () => {
     findActiveInProduct.mockResolvedValue(null);
 
     await expect(
-      service.addItem(USER_ID, { productId: PRODUCT_ID }),
+      service.addItem(USER_ID, SITE, { productId: PRODUCT_ID }),
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 
@@ -174,7 +175,7 @@ describe('WishlistService', () => {
     findExistingItem.mockResolvedValue(makeItem());
 
     await expect(
-      service.addItem(USER_ID, { productId: PRODUCT_ID }),
+      service.addItem(USER_ID, SITE, { productId: PRODUCT_ID }),
     ).rejects.toBeInstanceOf(ConflictError);
   });
 
@@ -203,7 +204,7 @@ describe('WishlistService', () => {
         variants: [],
       });
 
-    const result = await service.syncWishlist(USER_ID, {
+    const result = await service.syncWishlist(USER_ID, SITE, {
       items: [
         { productId: PRODUCT_ID, variantId: VARIANT_ID },
         { productId: PRODUCT_ID, variantId: null },
@@ -231,7 +232,7 @@ describe('WishlistService', () => {
       .mockResolvedValueOnce({ id: WISHLIST_ID, items: [makeItem()] });
     findExistingItem.mockResolvedValue(makeItem());
 
-    const result = await service.syncWishlist(USER_ID, {
+    const result = await service.syncWishlist(USER_ID, SITE, {
       items: [{ productId: PRODUCT_ID, variantId: VARIANT_ID }],
     });
 

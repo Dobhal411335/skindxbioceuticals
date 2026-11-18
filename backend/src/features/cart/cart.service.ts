@@ -26,7 +26,7 @@ import type {
 type CartWithItems = Awaited<ReturnType<typeof cartRepository.findOrCreateCart>>;
 type CartItemRow = CartWithItems['items'][number];
 
-const ECOMMERCE_SITE_CODE = 'IN';
+type StorefrontSiteRef = { id: string; code: 'IN' | 'COM' };
 
 function availableStock(
   inventory: { quantityOnHand: number; quantityReserved: number } | null | undefined,
@@ -36,7 +36,7 @@ function availableStock(
 }
 
 /**
- * Cart service — authenticated customer account cart for the .in storefront.
+ * Cart service — authenticated customer/vendor cart scoped to the storefront site.
  */
 export class CartService {
   constructor(
@@ -44,20 +44,21 @@ export class CartService {
     private readonly users = authRepository,
   ) {}
 
-  async getCart(userId: string): Promise<CartDto> {
+  async getCart(userId: string, site: StorefrontSiteRef): Promise<CartDto> {
     const user = await this.requireActiveShopper(userId);
-    const cart = await this.repository.findOrCreateCart(userId);
-    return this.toCartDto(cart, user.role === 'VENDOR');
+    const cart = await this.repository.findOrCreateCart(userId, site.id);
+    return this.toCartDto(cart, site.code, user.role === 'VENDOR');
   }
 
-  async addItem(userId: string, input: AddCartItemInput): Promise<CartItemDto> {
+  async addItem(
+    userId: string,
+    site: StorefrontSiteRef,
+    input: AddCartItemInput,
+  ): Promise<CartItemDto> {
     const user = await this.requireActiveShopper(userId);
-    const cart = await this.repository.findOrCreateCart(userId);
+    const cart = await this.repository.findOrCreateCart(userId, site.id);
 
-    const product = await this.repository.findActiveInProduct(
-      input.productId,
-      ECOMMERCE_SITE_CODE,
-    );
+    const product = await this.repository.findActiveInProduct(input.productId, site.code);
     if (!product) {
       throw new NotFoundError('Product not found');
     }
@@ -95,6 +96,7 @@ export class CartService {
       {
         event: 'cart.item_added',
         userId,
+        siteCode: site.code,
         productId: input.productId,
         variantId: input.variantId,
         quantity: nextQty,
@@ -107,11 +109,12 @@ export class CartService {
 
   async updateItem(
     userId: string,
+    site: StorefrontSiteRef,
     itemId: string,
     input: UpdateCartItemInput,
   ): Promise<CartItemDto> {
     const user = await this.requireActiveShopper(userId);
-    const existing = await this.repository.findItemForUser(userId, itemId);
+    const existing = await this.repository.findItemForUser(userId, site.id, itemId);
     if (!existing) {
       throw new NotFoundError('Cart item not found');
     }
@@ -119,7 +122,7 @@ export class CartService {
     if (
       existing.product.status !== 'ACTIVE' ||
       !existing.product.site.isActive ||
-      existing.product.site.code !== ECOMMERCE_SITE_CODE ||
+      existing.product.site.code !== site.code ||
       !existing.variant.isActive
     ) {
       throw new ValidationError('Product is no longer available');
@@ -137,6 +140,7 @@ export class CartService {
       {
         event: 'cart.item_updated',
         userId,
+        siteCode: site.code,
         itemId,
         quantity: nextQty,
       },
@@ -145,9 +149,9 @@ export class CartService {
     return this.toItemDto(item, user.role === 'VENDOR');
   }
 
-  async removeItem(userId: string, itemId: string): Promise<void> {
+  async removeItem(userId: string, site: StorefrontSiteRef, itemId: string): Promise<void> {
     await this.requireActiveShopper(userId);
-    const item = await this.repository.findItemForUser(userId, itemId);
+    const item = await this.repository.findItemForUser(userId, site.id, itemId);
     if (!item) {
       throw new NotFoundError('Cart item not found');
     }
@@ -156,28 +160,33 @@ export class CartService {
       {
         event: 'cart.item_removed',
         userId,
+        siteCode: site.code,
         itemId,
       },
       'Cart item removed',
     );
   }
 
-  async clearCart(userId: string): Promise<CartDto> {
+  async clearCart(userId: string, site: StorefrontSiteRef): Promise<CartDto> {
     const user = await this.requireActiveShopper(userId);
-    const cart = await this.repository.findOrCreateCart(userId);
+    const cart = await this.repository.findOrCreateCart(userId, site.id);
     await this.repository.clearItems(cart.id);
-    const refreshed = await this.repository.findOrCreateCart(userId);
-    logger.info({ event: 'cart.cleared', userId }, 'Cart cleared');
-    return this.toCartDto(refreshed, user.role === 'VENDOR');
+    const refreshed = await this.repository.findOrCreateCart(userId, site.id);
+    logger.info({ event: 'cart.cleared', userId, siteCode: site.code }, 'Cart cleared');
+    return this.toCartDto(refreshed, site.code, user.role === 'VENDOR');
   }
 
   /**
-   * Merge guest cart lines into the account cart.
+   * Merge guest cart lines into the account cart for the active storefront site.
    * Same (productId, variantId): sum quantities, then cap at available stock.
    */
-  async syncCart(userId: string, input: SyncCartInput): Promise<CartSyncResultDto> {
+  async syncCart(
+    userId: string,
+    site: StorefrontSiteRef,
+    input: SyncCartInput,
+  ): Promise<CartSyncResultDto> {
     const user = await this.requireActiveShopper(userId);
-    const cart = await this.repository.findOrCreateCart(userId);
+    const cart = await this.repository.findOrCreateCart(userId, site.id);
 
     const deduped = new Map<
       string,
@@ -214,7 +223,7 @@ export class CartService {
       if (
         product.status !== 'ACTIVE' ||
         !product.site.isActive ||
-        product.site.code !== ECOMMERCE_SITE_CODE
+        product.site.code !== site.code
       ) {
         skipped.push({
           productId: entry.productId,
@@ -270,11 +279,12 @@ export class CartService {
       merged += 1;
     }
 
-    const refreshed = await this.repository.findOrCreateCart(userId);
+    const refreshed = await this.repository.findOrCreateCart(userId, site.id);
     logger.info(
       {
         event: 'cart.sync',
         userId,
+        siteCode: site.code,
         merged,
         skipped: skipped.length,
       },
@@ -282,7 +292,7 @@ export class CartService {
     );
 
     return {
-      cart: this.toCartDto(refreshed, user.role === 'VENDOR'),
+      cart: this.toCartDto(refreshed, site.code, user.role === 'VENDOR'),
       skipped,
     };
   }
@@ -301,20 +311,24 @@ export class CartService {
     return user;
   }
 
-  private toCartDto(cart: CartWithItems, isVendor = false): CartDto {
+  private toCartDto(
+    cart: CartWithItems,
+    siteCode: 'IN' | 'COM',
+    isVendor = false,
+  ): CartDto {
     return {
       id: cart.id,
       items: cart.items
-        .filter((item) => this.isEligibleStorefrontItem(item))
+        .filter((item) => this.isEligibleStorefrontItem(item, siteCode))
         .map((item) => this.toItemDto(item, isVendor)),
     };
   }
 
-  private isEligibleStorefrontItem(item: CartItemRow): boolean {
+  private isEligibleStorefrontItem(item: CartItemRow, siteCode: 'IN' | 'COM'): boolean {
     return (
       item.product.status === 'ACTIVE' &&
       item.product.site.isActive &&
-      item.product.site.code === ECOMMERCE_SITE_CODE &&
+      item.product.site.code === siteCode &&
       item.variant.isActive
     );
   }

@@ -6,6 +6,7 @@ export class GuestCheckoutRepository {
 
   create(data: {
     tokenHash: string;
+    siteId: string;
     email: string;
     expiresAt: Date;
   }): Promise<GuestCheckoutSession> {

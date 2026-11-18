@@ -7,6 +7,7 @@ const CART_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 const PRODUCT_ID = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 const VARIANT_ID = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
 const ITEM_ID = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+const SITE = { id: 'ffffffff-ffff-ffff-ffff-ffffffffffff', code: 'IN' as const };
 
 function makeCartItem(overrides: Record<string, unknown> = {}) {
   return {
@@ -98,7 +99,7 @@ describe('CartService', () => {
       items: [makeCartItem()],
     });
 
-    const result = await service.getCart(USER_ID);
+    const result = await service.getCart(USER_ID, SITE);
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.listPrice).toBe('1000.00');
     expect(result.items[0]?.unitPrice).toBe('900.00');
@@ -126,7 +127,7 @@ describe('CartService', () => {
     findItemByVariant.mockResolvedValue({ ...makeCartItem(), quantity: 2 });
     upsertItem.mockResolvedValue(makeCartItem({ quantity: 3 }));
 
-    const item = await service.addItem(USER_ID, {
+    const item = await service.addItem(USER_ID, SITE, {
       productId: PRODUCT_ID,
       variantId: VARIANT_ID,
       quantity: 5,
@@ -141,7 +142,7 @@ describe('CartService', () => {
     findActiveInProduct.mockResolvedValue(null);
 
     await expect(
-      service.addItem(USER_ID, {
+      service.addItem(USER_ID, SITE, {
         productId: PRODUCT_ID,
         variantId: VARIANT_ID,
         quantity: 1,
@@ -195,7 +196,7 @@ describe('CartService', () => {
         inventory: { quantityOnHand: 0, quantityReserved: 0 },
       });
 
-    const result = await service.syncCart(USER_ID, {
+    const result = await service.syncCart(USER_ID, SITE, {
       items: [
         { productId: PRODUCT_ID, variantId: VARIANT_ID, quantity: 2 },
         {
@@ -220,7 +221,7 @@ describe('CartService', () => {
   it('rejects update when item is missing', async () => {
     findItemForUser.mockResolvedValue(null);
     await expect(
-      service.updateItem(USER_ID, ITEM_ID, { quantity: 2 }),
+      service.updateItem(USER_ID, SITE, ITEM_ID, { quantity: 2 }),
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 
@@ -240,7 +241,7 @@ describe('CartService', () => {
     deleteItem.mockResolvedValue(undefined);
 
     await expect(
-      service.updateItem(USER_ID, ITEM_ID, { quantity: 2 }),
+      service.updateItem(USER_ID, SITE, ITEM_ID, { quantity: 2 }),
     ).rejects.toBeInstanceOf(ValidationError);
     expect(deleteItem).toHaveBeenCalledWith(ITEM_ID);
   });
@@ -268,7 +269,7 @@ describe('CartService', () => {
       ],
     });
 
-    const result = await service.getCart(USER_ID);
+    const result = await service.getCart(USER_ID, SITE);
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.listPrice).toBe('800.00');
     expect(result.items[0]?.unitPrice).toBe('800.00');

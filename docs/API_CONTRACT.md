@@ -125,14 +125,16 @@ All routes require `Authorization: Bearer` and `CUSTOMER` or `VENDOR` role. Owne
 - `POST /api/v1/me/addresses` — create address; `isDefault: true` clears other defaults in a transaction.
 - `PATCH /api/v1/me/addresses/:addressId` — update owned address only (404 if not owned).
 - `DELETE /api/v1/me/addresses/:addressId` — delete owned address only (404 if not owned).
-- `GET /api/v1/orders?page&pageSize` — paginated orders for the authenticated customer or vendor only.
-- `GET /api/v1/orders/:orderId` — order detail with items; 404 if not owned.
-- `GET /api/v1/wishlist` — current wishlist (created if missing) with product summary fields (`available`, `quantity` sellable units, price, coupon, etc.). Response omits non-`ACTIVE` / non-`IN` leftovers.
-- `POST /api/v1/wishlist` — body `{ productId, variantId? }`; active `IN` products only; conflict if duplicate.
-- `POST /api/v1/wishlist/sync` — merge guest wishlist into the account. Body `{ items: [{ productId, variantId? }] }` (max 100). Optional `Idempotency-Key` header (union merge is naturally idempotent via unique `(wishlistId, productId)`). Returns `{ wishlist, skipped[] }` where skip reasons are `INVALID_PRODUCT` | `INACTIVE_OR_WRONG_SITE` | `INVALID_VARIANT`. Guests are not a server concept — unauthenticated callers receive `401`.
+- `GET /api/v1/orders?page&pageSize` — paginated orders for the authenticated customer or vendor on the **resolved storefront site** only.
+- `GET /api/v1/orders/:orderId` — order detail with items; 404 if not owned or wrong site.
+- `GET /api/v1/wishlist` — current site-scoped wishlist (created if missing) with product summary fields (`available`, `quantity` sellable units, price, coupon, etc.). Response omits non-`ACTIVE` / wrong-site leftovers.
+- `POST /api/v1/wishlist` — body `{ productId, variantId? }`; active products for the resolved storefront site (`IN` or `COM`) only; conflict if duplicate.
+- `POST /api/v1/wishlist/sync` — merge guest wishlist into the account for that site. Body `{ items: [{ productId, variantId? }] }` (max 100). Optional `Idempotency-Key` header (union merge is naturally idempotent via unique `(wishlistId, productId)`). Returns `{ wishlist, skipped[] }` where skip reasons are `INVALID_PRODUCT` | `INACTIVE_OR_WRONG_SITE` | `INVALID_VARIANT`. Guests are not a server concept — unauthenticated callers receive `401`.
 - `DELETE /api/v1/wishlist/items/:itemId` — remove owned wishlist item only.
 
-Guest wishlist policy: `.in` storefront persists guest bags in browser `localStorage` only (product/variant IDs + optional display cache). No guest wishlist rows in PostgreSQL. After login / Google / email verify / session restore, the storefront posts `/wishlist/sync` then clears guest storage only on success.
+Storefront commerce routes (`/cart`, `/wishlist`, `/orders`, `/payments/*` except Razorpay webhook, `/checkout/guest/*`) resolve `IN`|`COM` from Origin/Referer mapped to `SITE_IN_URL`/`SITE_COM_URL`, or from `X-Storefront-Site` plus `x-site-fetch-secret` for server fetches. The header alone is never trusted without that host mapping or secret. Local development hosts require `X-Storefront-Site`.
+
+Guest wishlist/cart policy: each storefront persists guest bags in browser `localStorage` only (product/variant IDs + optional display cache), with **site-suffixed keys**. No guest cart/wishlist rows in PostgreSQL. After login / Google / email verify / session restore, the storefront posts `/wishlist/sync` and `/cart/sync` then clears guest storage only on success.
 
 OTP policy (env): length `OTP_LENGTH` (default 6), expiry `OTP_EXPIRES_IN_MINUTES` (default 10), max attempts `OTP_MAX_ATTEMPTS` (default 5), resend cooldown `OTP_RESEND_COOLDOWN_SECONDS` (default 60). OTPs are stored hashed only.
 
@@ -160,19 +162,19 @@ Base path: `/api/v1`. Money in API responses for payment create uses **paise** f
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `POST` | `/checkout/guest/session` | Public + rate limit | Body `{ email }`. Returns opaque `sessionToken` once. |
-| `POST` | `/checkout/guest/send-otp` | Session token in body | Reuses auth OTP hashing + Brevo `sendOtpEmail`. |
-| `POST` | `/checkout/guest/verify-otp` | Session token + OTP | Sets `emailVerifiedAt` on `GuestCheckoutSession`. |
+| `POST` | `/checkout/guest/session` | Public + rate limit + storefront site | Body `{ email }`. Creates a **site-scoped** session. Returns opaque `sessionToken` once. |
+| `POST` | `/checkout/guest/send-otp` | Session token in body + matching site | Reuses auth OTP hashing + Brevo `sendOtpEmail`. |
+| `POST` | `/checkout/guest/verify-otp` | Session token + OTP + matching site | Sets `emailVerifiedAt` on `GuestCheckoutSession`. |
 
 ### Payments (authenticated customer **or** verified guest)
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `POST` | `/payments/create-order` | Optional JWT **or** `guestSessionToken` | Requires `Idempotency-Key` header. Recalculates totals from DB variants; creates `Order` + Razorpay order. |
-| `POST` | `/payments/verify` | Optional JWT **or** guest session owning order | Verifies Razorpay checkout signature server-side; idempotent capture. |
-| `GET` | `/payments/status/:orderId` | Owner (JWT or guest session) | Reconciliation after modal dismiss/timeout. |
-| `GET` | `/payments/confirmation` | JWT owner **or** `confirmationToken` | Thank You page data. |
-| `POST` | `/webhooks/razorpay` | `X-Razorpay-Signature` on raw body | Idempotent via `WebhookEvent`; mounted before `express.json`. |
+| `POST` | `/payments/create-order` | Optional JWT **or** `guestSessionToken` + storefront site | Requires `Idempotency-Key` header. Recalculates totals from DB variants on the **resolved site only**; creates `Order` + Razorpay order. Cross-site variants → `422 One or more products are unavailable`. |
+| `POST` | `/payments/verify` | Optional JWT **or** guest session owning order + site | Verifies Razorpay checkout signature server-side; idempotent capture. |
+| `GET` | `/payments/status/:orderId` | Owner (JWT or guest session) + site | Reconciliation after modal dismiss/timeout. |
+| `GET` | `/payments/confirmation` | JWT owner **or** `confirmationToken` + site | Thank You page data. |
+| `POST` | `/webhooks/razorpay` | `X-Razorpay-Signature` on raw body | Idempotent via `WebhookEvent`; mounted before `express.json` (not site-scoped). |
 
 Create-order body (trusted fields only for identity/lines; prices ignored):
 
@@ -581,7 +583,7 @@ Prefer focused section replaces over one giant nested PUT so saving sizes cannot
 - `PUT .../sections/info` — `{ sections[{ title, body, sortOrder? }] }`.
 - `POST|PUT|DELETE .../sections/reviews[/:reviewId]` — admin editorial reviews (`createdByName`, `rating` 1–5, `title`, `body`, optional image).
 - `PUT .../sections/tags` — `{ tagNames[] }` (upserts site `CatalogTag` rows).
-- `PUT .../sections/highlights` — `{ highlights[] }`.
+- `PUT .../sections/highlights` — `{ highlights[{ question, answer }] }` (`answer` is TipTap HTML).
 
 Product image uploads use `feature=products`: `POST /api/v1/media/images`. Category banners continue to use `feature=categories`.
 
@@ -648,7 +650,7 @@ Response joins PDP-related data into one payload:
 - `gallery[]` ordered with primary first (`imageUrl`, `imagePublicId`, `isPrimary`, `sortOrder`)
 - Active `sizes[]` / `colors[]` (may be empty when the product sells a single base price)
 - Active `variants[]` with mandatory `price` (INR rupees), `quantity` (inventory on hand), optional nullable `sizeLabel` / `colorLabel` (both null = base/default offer), optional `sku` / `profileImage`
-- `videos[]`, `pdfs[]` (`name`, `pdfUrl`, `sortOrder`), `infoSections[]` (title + HTML body), active `editorialReviews[]`, `tags[]`, `highlights[]`
+- `videos[]`, `pdfs[]` (`name`, `pdfUrl`, `sortOrder`), `infoSections[]` (title + HTML body), active `editorialReviews[]`, `tags[]`, `highlights[]` (`question` + TipTap HTML `answer`)
 - Optional `tax` (`cgst`/`sgst`) and linked `coupon` summary for display
 - `relatedProducts[]` — up to 15 other ACTIVE products on the same site (current product excluded, any category, including DIRECT). Order is a stable shuffle seeded by the current product id, so each product page shows a different mix. The storefront uses the first 6 as frequently bought together and the next 9 as recommendations. Each item has `id`, `slug`, `name`, `categoryName`, `price`, `imageUrl`, `averageRating`, `reviewCount`, `defaultVariantId`, `quantity`, optional `coupon`, and optional `tax`
 

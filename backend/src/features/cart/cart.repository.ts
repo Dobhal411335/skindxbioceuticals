@@ -30,9 +30,9 @@ const cartItemInclude = {
 export class CartRepository {
   protected readonly db = prisma;
 
-  async findOrCreateCart(userId: string) {
+  async findOrCreateCart(userId: string, siteId: string) {
     const existing = await this.db.cart.findUnique({
-      where: { userId },
+      where: { userId_siteId: { userId, siteId } },
       include: {
         items: {
           include: cartItemInclude,
@@ -46,7 +46,7 @@ export class CartRepository {
     }
 
     return this.db.cart.create({
-      data: { userId },
+      data: { userId, siteId },
       include: {
         items: {
           include: cartItemInclude,
@@ -56,7 +56,7 @@ export class CartRepository {
     });
   }
 
-  async findActiveInProduct(productId: string, siteCode = 'IN') {
+  async findActiveInProduct(productId: string, siteCode: 'IN' | 'COM') {
     return this.db.product.findFirst({
       where: {
         id: productId,
@@ -108,11 +108,11 @@ export class CartRepository {
     });
   }
 
-  async findItemForUser(userId: string, itemId: string) {
+  async findItemForUser(userId: string, siteId: string, itemId: string) {
     return this.db.cartItem.findFirst({
       where: {
         id: itemId,
-        cart: { userId },
+        cart: { userId, siteId },
       },
       include: cartItemInclude,
     });

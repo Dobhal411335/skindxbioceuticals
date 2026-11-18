@@ -5,6 +5,7 @@ import axios, {
 } from "axios";
 
 import { env } from "@/config/env";
+import { storefrontSiteCode } from "@/config/site";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import {
   attachRequestMetadata,
@@ -36,6 +37,7 @@ apiClient.interceptors.request.use(
     if (token) {
       next.headers.Authorization = `Bearer ${token}`;
     }
+    next.headers["X-Storefront-Site"] = storefrontSiteCode;
     if (typeof window === "undefined") {
       const siteFetchSecret = process.env.SITE_FETCH_SECRET?.trim();
       if (siteFetchSecret) {

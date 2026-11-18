@@ -3,6 +3,7 @@ import type { OrderRepository } from '../order.repository';
 
 const USER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const ORDER_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+const SITE = { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', code: 'IN' as const };
 
 describe('OrderService.getOrder tax snapshots', () => {
   const findById = jest.fn();
@@ -62,7 +63,7 @@ describe('OrderService.getOrder tax snapshots', () => {
       ],
     });
 
-    const result = await service.getOrder(USER_ID, ORDER_ID);
+    const result = await service.getOrder(USER_ID, SITE, ORDER_ID);
 
     expect(result.cgstTotal).toBe('40.50');
     expect(result.sgstTotal).toBe('40.50');
@@ -99,7 +100,7 @@ describe('OrderService.getOrder tax snapshots', () => {
       items: [],
     });
 
-    const result = await service.getOrder(USER_ID, ORDER_ID);
+    const result = await service.getOrder(USER_ID, SITE, ORDER_ID);
     expect(result.orderNumber).toBe('IN-VENDOR1');
     expect(result.grandTotal).toBe('944.00');
   });

@@ -53,51 +53,48 @@ function FeaturedBlogCard({ post }: { post: LandingPost }) {
   const miniHeading = post.badgeText || post.category || "Our Story";
 
   return (
-    <article className="group flex h-full flex-col">
+    <article className="flex h-full flex-col">
+      <div className="mb-5 flex items-center gap-3">
+        <span className="h-px w-10 bg-[#c4b5a5] sm:w-14" aria-hidden />
+        <p className="text-[11px] font-semibold tracking-[0.2em] text-[#b08968] uppercase">
+          {miniHeading}
+        </p>
+      </div>
+
+      <h3 className="max-w-xl text-3xl leading-[1.05] font-semibold tracking-[-0.03em] text-[#14272e] sm:text-[2.35rem]">
+        <Link
+          href={post.href}
+          className="transition-colors hover:text-[#14272e]/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {post.title}
+        </Link>
+      </h3>
+
+      {post.excerpt ? (
+        <p className="mt-5 max-w-xl line-clamp-2 border-l-2 border-[#14272e] pl-4 text-sm leading-relaxed text-[#4b5560] sm:text-[0.95rem]">
+          {post.excerpt}
+        </p>
+      ) : null}
+
+      <p className="mt-6 text-[11px] font-bold tracking-[0.12em] text-[#14272e] uppercase">
+        {post.date} · By {post.author}
+      </p>
+
       <Link
         href={post.href}
-        className="relative block aspect-[16/10] w-full overflow-hidden bg-muted rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:aspect-[16/11] lg:min-h-[14rem] lg:flex-1"
+        className="group/image relative mt-5 block aspect-[16/10] w-full overflow-hidden rounded-2xl bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:aspect-[16/11] lg:mt-auto lg:min-h-[14rem] lg:flex-1"
       >
         <Image
           src={post.image}
           alt={post.alt}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl"
+          className="object-cover transition-transform duration-500 group-hover/image:scale-105"
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent"
-          aria-hidden
-        />
-        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 sm:gap-4 sm:p-6 lg:p-7">
-          <div className="flex items-center gap-3">
-            <span className="h-px w-10 bg-white/55 sm:w-14" aria-hidden />
-            <p className="text-[11px] font-semibold tracking-[0.2em] text-[#f0d8c9] uppercase">
-              {miniHeading}
-            </p>
-            <span className="h-px w-6 bg-white/55 sm:w-8" aria-hidden />
-          </div>
-
-          <h3 className="max-w-xl text-3xl leading-[1.05] font-semibold tracking-[-0.03em] text-white sm:text-[2.35rem]">
-            {post.title}
-          </h3>
-
-          {post.excerpt ? (
-            <p className="max-w-xl line-clamp-2 text-sm leading-relaxed text-white/85 sm:text-[0.95rem]">
-              {post.excerpt}
-            </p>
-          ) : null}
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] font-bold tracking-[0.12em] text-white/90 uppercase">
-              {post.date} · By {post.author}
-            </p>
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-4 py-2 text-[11px] font-bold tracking-[0.14em] text-[#14272e] uppercase shadow-sm transition-colors group-hover:bg-white">
-              Read More
-              <ArrowUpRight className="size-4" aria-hidden />
-            </span>
-          </div>
-        </div>
+        <span className="absolute bottom-4 left-4 inline-flex translate-y-1 items-center gap-1 rounded-full bg-[#f3f1ed]/95 px-4 py-2 text-[11px] font-bold tracking-[0.14em] text-[#14272e] uppercase shadow-sm transition-all duration-300 group-hover/image:translate-y-0 group-hover/image:opacity-100 group-focus-visible/image:translate-y-0 group-focus-visible/image:opacity-100">
+          Read More
+          <ArrowUpRight className="size-4" aria-hidden />
+        </span>
       </Link>
     </article>
   );
@@ -138,7 +135,7 @@ function SideBlogCard({ post }: { post: LandingPost }) {
 }
 
 export async function BlogGrid() {
-  const blogs = (await getLandingBlogs(4)).slice(0, 4);
+  const blogs = (await getLandingBlogs(5)).slice(0, 5);
 
   if (blogs.length === 0) {
     return null;
@@ -178,7 +175,7 @@ export async function BlogGrid() {
 
         {sidePosts.length > 0 ? (
           <div className="flex flex-col gap-4">
-            {sidePosts.slice(0, 3).map((post) => (
+            {sidePosts.slice(0, 4).map((post) => (
               <SideBlogCard key={post.id} post={post} />
             ))}
           </div>

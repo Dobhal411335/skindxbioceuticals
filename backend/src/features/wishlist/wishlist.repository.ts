@@ -35,9 +35,9 @@ const wishlistItemInclude = {
 export class WishlistRepository {
   protected readonly db = prisma;
 
-  async findOrCreateWishlist(userId: string) {
+  async findOrCreateWishlist(userId: string, siteId: string) {
     const existing = await this.db.wishlist.findUnique({
-      where: { userId },
+      where: { userId_siteId: { userId, siteId } },
       include: {
         items: {
           include: wishlistItemInclude,
@@ -51,7 +51,7 @@ export class WishlistRepository {
     }
 
     return this.db.wishlist.create({
-      data: { userId },
+      data: { userId, siteId },
       include: {
         items: {
           include: wishlistItemInclude,
@@ -61,7 +61,7 @@ export class WishlistRepository {
     });
   }
 
-  async findActiveInProduct(productId: string, siteCode = 'IN') {
+  async findActiveInProduct(productId: string, siteCode: 'IN' | 'COM') {
     return this.db.product.findFirst({
       where: {
         id: productId,
@@ -134,11 +134,11 @@ export class WishlistRepository {
     });
   }
 
-  async findItemForUser(userId: string, itemId: string) {
+  async findItemForUser(userId: string, siteId: string, itemId: string) {
     return this.db.wishlistItem.findFirst({
       where: {
         id: itemId,
-        wishlist: { userId },
+        wishlist: { userId, siteId },
       },
     });
   }

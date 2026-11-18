@@ -1,12 +1,15 @@
 import { z } from "zod";
 
+import { storefrontSiteCode } from "@/config/site";
+
 /**
  * Guest cart persistence — product/variant IDs + quantities (+ optional display cache).
  * Never stores tokens or secrets. Prices in cache are display-only until login sync.
+ * Keys are site-suffixed so IN and COM bags never mix on a shared origin.
  */
-export const GUEST_CART_STORAGE_KEY = "skindx.guest.cart.v1";
+export const GUEST_CART_STORAGE_KEY = `skindx.guest.cart.v1.${storefrontSiteCode}`;
 /** Logged-in cross-tab display cache — never fed into additive /cart/sync. */
-export const ACCOUNT_CART_CACHE_KEY = "skindx.account.cart.cache.v1";
+export const ACCOUNT_CART_CACHE_KEY = `skindx.account.cart.cache.v1.${storefrontSiteCode}`;
 
 function asNullableString(value: unknown): string | null | undefined {
   if (value === undefined) return undefined;

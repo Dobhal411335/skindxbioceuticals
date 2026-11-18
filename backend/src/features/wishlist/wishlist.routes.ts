@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '@/middlewares/auth.middleware';
+import { requireStorefrontSite } from '@/middlewares/storefront-site.middleware';
 import { validate } from '@/middlewares/validate.middleware';
 import { asyncHandler } from '@/utils/asyncHandler';
 import { wishlistController } from './wishlist.controller';
@@ -11,7 +12,7 @@ import {
 
 const router = Router();
 
-router.use(authenticate, authorize('CUSTOMER'));
+router.use(requireStorefrontSite, authenticate, authorize('CUSTOMER'));
 
 router.get('/', asyncHandler(wishlistController.get));
 

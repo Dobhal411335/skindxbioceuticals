@@ -7,6 +7,13 @@ import type {
   VerifyPaymentBody,
 } from './payment.validation';
 
+function requireStorefrontSite(req: Request) {
+  if (!req.site) {
+    throw new ValidationError('Storefront site is required');
+  }
+  return req.site;
+}
+
 export class PaymentController {
   constructor(private readonly service = paymentService) {}
 
@@ -15,25 +22,30 @@ export class PaymentController {
     if (!idempotencyKey) {
       throw new ValidationError('Idempotency-Key header is required');
     }
+    const site = requireStorefrontSite(req);
     const body = req.body as CreatePaymentOrderBody;
     const data = await this.service.createOrder({
       body,
       userId: req.user?.id,
       idempotencyKey,
+      site,
     });
     sendSuccess(res, data, 'Payment order created');
   };
 
   verify = async (req: Request, res: Response): Promise<void> => {
+    const site = requireStorefrontSite(req);
     const body = req.body as VerifyPaymentBody;
     const data = await this.service.verifyPayment({
       body,
       userId: req.user?.id,
+      site,
     });
     sendSuccess(res, data, 'Payment verified');
   };
 
   status = async (req: Request, res: Response): Promise<void> => {
+    const site = requireStorefrontSite(req);
     const orderId = req.params.orderId as string;
     const guestSessionToken =
       typeof req.query.guestSessionToken === 'string'
@@ -43,11 +55,13 @@ export class PaymentController {
       orderId,
       userId: req.user?.id,
       guestSessionToken,
+      site,
     });
     sendSuccess(res, data, 'Payment status');
   };
 
   confirmation = async (req: Request, res: Response): Promise<void> => {
+    const site = requireStorefrontSite(req);
     const orderId =
       typeof req.query.orderId === 'string' ? req.query.orderId : undefined;
     const confirmationToken =
@@ -58,6 +72,7 @@ export class PaymentController {
       orderId,
       confirmationToken,
       userId: req.user?.id,
+      site,
     });
     sendSuccess(res, data, 'Order confirmation');
   };

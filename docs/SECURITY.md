@@ -59,8 +59,9 @@ Support email/password authentication and Google sign-in/sign-up.
 ## 4. Site and data isolation
 
 - Resolve the target site from trusted server configuration/validated host mapping, not arbitrary client input alone.
+- Storefront cart, wishlist, orders, guest checkout, and payments resolve `IN`|`COM` from Origin/Referer ↔ `SITE_IN_URL`/`SITE_COM_URL` (or `X-Storefront-Site` with `SITE_FETCH_SECRET` for server fetches). Never accept a client-only site code as the commerce boundary.
 - Verify that the authenticated admin is allowed to manage the resolved site.
-- Include site scope in database queries where relevant and test cross-site access explicitly.
+- Include site scope in database queries where relevant and test cross-site access explicitly. A COM cart/payment must not load IN variants, and vice versa.
 - Use separate permission checks for shared products versus site-specific content.
 - Prevent `.com` enquiry users from accessing `.in` customer/order data.
 - Avoid leaking personal information in URLs, analytics, error messages, or logs.

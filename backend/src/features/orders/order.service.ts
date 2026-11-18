@@ -18,12 +18,16 @@ export class OrderService {
     private readonly users = authRepository,
   ) { }
 
-  async listOrders(userId: string, query: ListOrdersQuery): Promise<PaginatedOrdersDto> {
+  async listOrders(
+    userId: string,
+    site: { id: string; code: 'IN' | 'COM' },
+    query: ListOrdersQuery,
+  ): Promise<PaginatedOrdersDto> {
     await this.requireActiveStorefrontUser(userId);
     const { page, pageSize } = query;
     const [total, rows] = await Promise.all([
-      this.repository.countForUser(userId),
-      this.repository.listForUser(userId, page, pageSize),
+      this.repository.countForUser(userId, site.id),
+      this.repository.listForUser(userId, site.id, page, pageSize),
     ]);
 
     const orders: OrderListItemDto[] = rows.map((order) => ({
@@ -47,9 +51,13 @@ export class OrderService {
     };
   }
 
-  async getOrder(userId: string, orderId: string): Promise<OrderDetailDto> {
+  async getOrder(
+    userId: string,
+    site: { id: string; code: 'IN' | 'COM' },
+    orderId: string,
+  ): Promise<OrderDetailDto> {
     await this.requireActiveStorefrontUser(userId);
-    const order = await this.repository.findForUser(userId, orderId);
+    const order = await this.repository.findForUser(userId, site.id, orderId);
     if (!order) {
       throw new NotFoundError('Order not found');
     }

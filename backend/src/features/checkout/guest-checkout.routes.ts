@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createRateLimiter } from '@/middlewares/rate-limit.middleware';
+import { requireStorefrontSite } from '@/middlewares/storefront-site.middleware';
 import { validate } from '@/middlewares/validate.middleware';
 import { asyncHandler } from '@/utils/asyncHandler';
 import { guestCheckoutController } from './guest-checkout.controller';
@@ -28,6 +29,8 @@ const guestOtpVerifyRateLimiter = createRateLimiter({
 });
 
 const router = Router();
+
+router.use(requireStorefrontSite);
 
 router.post(
   '/session',

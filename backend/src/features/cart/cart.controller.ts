@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { UnauthorizedError } from '@/utils/AppError';
+import { UnauthorizedError, ValidationError } from '@/utils/AppError';
 import { sendCreated, sendNoContent, sendSuccess } from '@/utils/apiResponse';
 import { cartService } from './cart.service';
 import type {
@@ -8,6 +8,13 @@ import type {
   SyncCartInput,
   UpdateCartItemInput,
 } from './cart.validation';
+
+function requireStorefrontSite(req: Request) {
+  if (!req.site) {
+    throw new ValidationError('Storefront site is required');
+  }
+  return req.site;
+}
 
 /**
  * Cart controller — HTTP concerns only.
@@ -19,7 +26,8 @@ export class CartController {
     if (!req.user) {
       throw new UnauthorizedError();
     }
-    const data = await this.service.getCart(req.user.id);
+    const site = requireStorefrontSite(req);
+    const data = await this.service.getCart(req.user.id, site);
     sendSuccess(res, { cart: data }, 'Cart');
   };
 
@@ -27,8 +35,9 @@ export class CartController {
     if (!req.user) {
       throw new UnauthorizedError();
     }
+    const site = requireStorefrontSite(req);
     const body = req.body as AddCartItemInput;
-    const data = await this.service.addItem(req.user.id, body);
+    const data = await this.service.addItem(req.user.id, site, body);
     sendCreated(res, { item: data }, 'Added to cart');
   };
 
@@ -36,9 +45,10 @@ export class CartController {
     if (!req.user) {
       throw new UnauthorizedError();
     }
+    const site = requireStorefrontSite(req);
     const params = req.params as unknown as CartItemIdParam;
     const body = req.body as UpdateCartItemInput;
-    const data = await this.service.updateItem(req.user.id, params.itemId, body);
+    const data = await this.service.updateItem(req.user.id, site, params.itemId, body);
     sendSuccess(res, { item: data }, 'Cart item updated');
   };
 
@@ -46,8 +56,9 @@ export class CartController {
     if (!req.user) {
       throw new UnauthorizedError();
     }
+    const site = requireStorefrontSite(req);
     const params = req.params as unknown as CartItemIdParam;
-    await this.service.removeItem(req.user.id, params.itemId);
+    await this.service.removeItem(req.user.id, site, params.itemId);
     sendNoContent(res);
   };
 
@@ -55,7 +66,8 @@ export class CartController {
     if (!req.user) {
       throw new UnauthorizedError();
     }
-    const data = await this.service.clearCart(req.user.id);
+    const site = requireStorefrontSite(req);
+    const data = await this.service.clearCart(req.user.id, site);
     sendSuccess(res, { cart: data }, 'Cart cleared');
   };
 
@@ -63,9 +75,10 @@ export class CartController {
     if (!req.user) {
       throw new UnauthorizedError();
     }
+    const site = requireStorefrontSite(req);
     void req.header('Idempotency-Key');
     const body = req.body as SyncCartInput;
-    const data = await this.service.syncCart(req.user.id, body);
+    const data = await this.service.syncCart(req.user.id, site, body);
     sendSuccess(res, data, 'Cart synced');
   };
 }

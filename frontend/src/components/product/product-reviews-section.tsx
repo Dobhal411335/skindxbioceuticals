@@ -46,12 +46,12 @@ function ReviewCard({ review }: { review: PublicProductEditorialReview }) {
         ))}
       </div>
       {review.title ? (
-        <p className="text-lg font-semibold tracking-tight text-[#17283d] sm:text-xl">
+        <p className="text-lg mt-2 font-semibold tracking-tight text-[#17283d] sm:text-xl">
           {review.title}
         </p>
       ) : null}
       <blockquote
-        className="rich-html mt-5 line-clamp-6 flex-1 text-base italic leading-relaxed text-[#34475c]"
+        className="rich-html mt-2 line-clamp-8 flex-1 text-base italic leading-relaxed text-[#34475c]"
         dangerouslySetInnerHTML={{ __html: review.body }}
       />
       <figcaption className="mt-8 flex items-center gap-3 border-t border-gray-500 pt-5">
@@ -66,7 +66,7 @@ function ReviewCard({ review }: { review: PublicProductEditorialReview }) {
         )}
         <div>
           <p className="text-sm font-semibold text-[#17283d]">{review.createdByName}</p>
-          <p className="text-xs text-[#657487]">-Verified customer</p>
+          <p className="text-xs text-[#1e2125]">-Verified customer</p>
         </div>
       </figcaption>
     </figure>

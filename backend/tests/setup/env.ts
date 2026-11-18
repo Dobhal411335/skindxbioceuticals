@@ -98,5 +98,9 @@ testAgent.Test.prototype.end = function patchedEnd(
   if (!Object.prototype.hasOwnProperty.call(headers, 'x-site-fetch-secret')) {
     this.set('x-site-fetch-secret', process.env.SITE_FETCH_SECRET ?? '');
   }
+  // Commerce routes resolve IN|COM from Origin or X-Storefront-Site (+ fetch secret).
+  if (!Object.prototype.hasOwnProperty.call(headers, 'x-storefront-site')) {
+    this.set('x-storefront-site', 'IN');
+  }
   return originalSupertestEnd.call(this, fn);
 };

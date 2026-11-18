@@ -435,17 +435,22 @@ function ThankYouContent() {
       {/* Action Navigation Section */}
       {/* Action Navigation Section */}
       {isPaid && isAuthenticated ? (
-        <div className="space-y-4 rounded-2xl border border-border/80 bg-white p-6 text-center shadow-sm">
+        <div className="space-y-5 rounded-2xl border border-border/80 bg-white p-6 text-center shadow-sm sm:p-8">
           <p className="text-sm text-muted-foreground">
             Your order has been recorded. You can view order progress and invoices anytime in your account.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg" className="shadow-sm">
-              <Link href={`/account/orders/${order.orderId}`}>
-                View order
-              </Link>
+            <Button
+              asChild
+              className="h-auto min-h-12 rounded-xl bg-primary px-7 py-3.5 text-[0.95rem] font-semibold text-primary-foreground shadow-sm hover:bg-primary-hover"
+            >
+              <Link href={`/account/orders/${order.orderId}`}>View order</Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
+            <Button
+              asChild
+              variant="outline"
+              className="h-auto min-h-12 rounded-xl border-primary/30 bg-white px-7 py-3.5 text-[0.95rem] font-semibold text-primary hover:border-primary hover:bg-primary/5 hover:text-primary"
+            >
               <Link href="/category" className="inline-flex items-center gap-1.5">
                 Continue shopping
                 <ArrowRight className="size-4" />
@@ -456,35 +461,45 @@ function ThankYouContent() {
       ) : null}
 
       {isPaid && !isAuthenticated ? (
-        <div className="space-y-4 rounded-2xl border border-border/80 bg-white p-6 text-center shadow-sm">
-          <p className="text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            We&apos;ve sent your receipt and tracking details to{" "}
-            <span className="font-semibold text-foreground">
-              {order.contactEmail}
-            </span>
+        <div className="space-y-5 rounded-2xl border border-border/80 bg-white p-6 text-center shadow-sm sm:p-8">
+          <p className="mx-auto max-w-xl text-sm leading-relaxed text-muted-foreground">
+            We&apos;ve sent your tracking details to{" "}
+            <span className="font-semibold text-foreground">{order.contactEmail}</span>
             . To manage and track all your orders in one place, sign up or sign in using this email.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg" className="shadow-sm">
-              <Link href={`/account/orders/${order.orderId}`}>
-                View order
-              </Link>
+            <Button
+              asChild
+              className="h-auto min-h-12 rounded-xl bg-primary px-7 py-3.5 text-[0.95rem] font-semibold text-primary-foreground shadow-sm hover:bg-primary-hover"
+            >
+              <Link href={`/account/orders/${order.orderId}`}>View order</Link>
             </Button>
-            <Button asChild variant="default" size="lg" className="shadow-sm">
+            <Button
+              asChild
+              className="h-auto min-h-12 rounded-xl bg-[#ef6a24] px-7 py-3.5 text-[0.95rem] font-semibold text-white shadow-sm hover:bg-[#d85c1c]"
+            >
               <Link
                 href={`/account/register?email=${encodeURIComponent(order.contactEmail)}&from=guest-order&redirect=${encodeURIComponent(`/account/orders/${order.orderId}`)}`}
               >
                 Create account
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
+            <Button
+              asChild
+              variant="outline"
+              className="h-auto min-h-12 rounded-xl border-primary/30 bg-white px-7 py-3.5 text-[0.95rem] font-semibold text-primary hover:border-primary hover:bg-primary/5 hover:text-primary"
+            >
               <Link
                 href={`/account/login?email=${encodeURIComponent(order.contactEmail)}&from=guest-order&redirect=${encodeURIComponent(`/account/orders/${order.orderId}`)}`}
               >
                 Sign in
               </Link>
             </Button>
-            <Button asChild variant="ghost" size="lg">
+            <Button
+              asChild
+              variant="ghost"
+              className="h-auto min-h-12 rounded-xl px-6 py-3.5 text-[0.95rem] font-semibold text-foreground hover:bg-muted"
+            >
               <Link href="/category" className="inline-flex items-center gap-1.5">
                 Continue shopping
                 <ArrowRight className="size-4" />
@@ -496,7 +511,11 @@ function ThankYouContent() {
 
       {!isPaid ? (
         <div className="text-center">
-          <Button asChild variant="outline" size="lg">
+          <Button
+            asChild
+            variant="outline"
+            className="h-auto min-h-12 rounded-xl border-primary/30 px-7 py-3.5 text-[0.95rem] font-semibold text-primary hover:border-primary hover:bg-primary/5"
+          >
             <Link href="/checkout">Return to checkout</Link>
           </Button>
         </div>

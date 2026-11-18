@@ -1,13 +1,16 @@
 import { z } from "zod";
 
+import { storefrontSiteCode } from "@/config/site";
+
 /**
  * Guest wishlist persistence — product/variant IDs (+ optional display cache).
  * Never stores tokens or secrets.
  *
  * Reads/writes are resilient: a bad variantId or display field must never drop
  * a product line (that previously made items vanish after refresh).
+ * Keys are site-suffixed so IN and COM bags never mix on a shared origin.
  */
-export const GUEST_WISHLIST_STORAGE_KEY = "skindx.guest.wishlist.v1";
+export const GUEST_WISHLIST_STORAGE_KEY = `skindx.guest.wishlist.v1.${storefrontSiteCode}`;
 
 function asNullableString(value: unknown): string | null | undefined {
   if (value === undefined) return undefined;

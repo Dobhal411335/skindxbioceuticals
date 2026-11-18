@@ -1,4 +1,7 @@
+import { storefrontSiteCode } from "@/config/site";
+
 const SITE_FETCH_SECRET_HEADER = "x-site-fetch-secret";
+const STOREFRONT_SITE_HEADER = "x-storefront-site";
 
 /**
  * Headers for public site fetches.
@@ -9,6 +12,7 @@ export function publicSiteHeaders(init?: HeadersInit): Headers {
   if (!headers.has("Accept")) {
     headers.set("Accept", "application/json");
   }
+  headers.set(STOREFRONT_SITE_HEADER, storefrontSiteCode);
 
   if (typeof window === "undefined") {
     const secret = process.env.SITE_FETCH_SECRET?.trim();

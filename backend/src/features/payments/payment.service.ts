@@ -32,8 +32,6 @@ import type {
 } from './payment.types';
 import type { CreatePaymentOrderBody, VerifyPaymentBody } from './payment.validation';
 
-const ECOMMERCE_SITE_CODE = 'IN' as const;
-
 function canonicalRequestHash(body: CreatePaymentOrderBody): string {
   const normalized = {
     items: [...body.items]
@@ -64,10 +62,11 @@ export class PaymentService {
     body: CreatePaymentOrderBody;
     userId?: string;
     idempotencyKey: string;
+    site: { id: string; code: 'IN' | 'COM'; name: string };
   }): Promise<CreatePaymentOrderResult> {
     this.validateIdempotencyKey(input.idempotencyKey);
 
-    const actor = await this.resolveCheckoutActor(input.body, input.userId);
+    const actor = await this.resolveCheckoutActor(input.body, input.userId, input.site);
     const requestHash = canonicalRequestHash(input.body);
     const scope = actor.idempotencyScope;
 
@@ -104,10 +103,8 @@ export class PaymentService {
       }
     }
 
-    const site = await prisma.site.findFirst({
-      where: { code: ECOMMERCE_SITE_CODE, isActive: true },
-    });
-    if (!site) {
+    const site = input.site;
+    if (!site.id) {
       throw new AppError('Ecommerce site is not configured', 500);
     }
 
@@ -319,12 +316,13 @@ export class PaymentService {
   async verifyPayment(input: {
     body: VerifyPaymentBody;
     userId?: string;
+    site: { id: string; code: 'IN' | 'COM' };
   }): Promise<VerifyPaymentResult> {
     const order = await prisma.order.findUnique({
       where: { id: input.body.orderId },
       include: { payments: { orderBy: { createdAt: 'desc' } }, items: true },
     });
-    if (!order) {
+    if (!order || order.siteId !== input.site.id) {
       throw new NotFoundError('Order not found');
     }
 
@@ -396,12 +394,13 @@ export class PaymentService {
     orderId: string;
     userId?: string;
     guestSessionToken?: string;
+    site: { id: string; code: 'IN' | 'COM' };
   }): Promise<PaymentStatusResult> {
     const order = await prisma.order.findUnique({
       where: { id: input.orderId },
       include: { payments: { orderBy: { createdAt: 'desc' }, take: 1 } },
     });
-    if (!order) {
+    if (!order || order.siteId !== input.site.id) {
       throw new NotFoundError('Order not found');
     }
     await this.assertOrderAccess(order, input.userId, input.guestSessionToken);
@@ -421,11 +420,15 @@ export class PaymentService {
     orderId?: string;
     confirmationToken?: string;
     userId?: string;
+    site: { id: string; code: 'IN' | 'COM' };
   }): Promise<OrderConfirmationResult> {
     let orderId = input.orderId;
 
     if (input.confirmationToken) {
       const session = await this.guests.resolveConfirmationToken(input.confirmationToken);
+      if (session.siteId !== input.site.id) {
+        throw new NotFoundError('Order not found');
+      }
       orderId = session.orderId ?? undefined;
     }
 
@@ -440,7 +443,7 @@ export class PaymentService {
         payments: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
     });
-    if (!order) {
+    if (!order || order.siteId !== input.site.id) {
       throw new NotFoundError('Order not found');
     }
 
@@ -588,7 +591,11 @@ export class PaymentService {
     }
   }
 
-  private async resolveCheckoutActor(body: CreatePaymentOrderBody, userId?: string) {
+  private async resolveCheckoutActor(
+    body: CreatePaymentOrderBody,
+    userId: string | undefined,
+    site: { id: string; code: 'IN' | 'COM' },
+  ) {
     if (userId) {
       const user = await this.users.findById(userId);
       const isVendor = user?.role === 'VENDOR';
@@ -605,7 +612,7 @@ export class PaymentService {
         kind: 'user' as const,
         userId: user.id,
         contactEmail: user.email.toLowerCase(),
-        idempotencyScope: `user:${user.id}`,
+        idempotencyScope: `user:${user.id}:${site.code}`,
         isVendor,
       };
     }
@@ -614,12 +621,12 @@ export class PaymentService {
       throw new UnauthorizedError('Authentication or guest session required');
     }
 
-    const session = await this.guests.requireVerifiedSession(body.guestSessionToken);
+    const session = await this.guests.requireVerifiedSession(body.guestSessionToken, site.id);
     return {
       kind: 'guest' as const,
       session,
       contactEmail: session.email,
-      idempotencyScope: `guest:${session.id}`,
+      idempotencyScope: `guest:${session.id}:${site.code}`,
       isVendor: false as const,
     };
   }
@@ -689,12 +696,18 @@ export class PaymentService {
     });
     if (claimed.count === 0) return;
 
-    const detailsUrl = `${env.SITE_IN_URL.replace(/\/$/, '')}/checkout/thank-you?orderId=${order.id}`;
+    const site = await prisma.site.findUnique({ where: { id: order.siteId } });
+    const siteCode = site?.code === 'COM' ? 'COM' : 'IN';
+    const siteBaseUrl = (siteCode === 'COM' ? env.SITE_COM_URL : env.SITE_IN_URL).replace(
+      /\/$/,
+      '',
+    );
+    const detailsUrl = `${siteBaseUrl}/checkout/thank-you?orderId=${order.id}`;
 
     try {
       await this.mail.sendOrderConfirmationEmail({
         to: { email: order.contactEmail },
-        siteCode: 'IN',
+        siteCode,
         orderReference: order.orderNumber,
         items: order.items.map((item) => ({
           name: `${item.productName} (${item.variantName})`,

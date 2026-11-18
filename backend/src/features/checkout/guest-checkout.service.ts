@@ -25,7 +25,10 @@ export class GuestCheckoutService {
     private readonly mail = emailService,
   ) {}
 
-  async startSession(input: GuestSessionBody): Promise<{
+  async startSession(
+    input: GuestSessionBody,
+    site: { id: string; code: 'IN' | 'COM' },
+  ): Promise<{
     sessionToken: string;
     email: string;
     expiresAt: string;
@@ -36,12 +39,18 @@ export class GuestCheckoutService {
 
     const session = await this.repository.create({
       tokenHash,
+      siteId: site.id,
       email: input.email,
       expiresAt,
     });
 
     logger.info(
-      { event: 'checkout.guest.session.created', context: 'CHECKOUT', sessionId: session.id },
+      {
+        event: 'checkout.guest.session.created',
+        context: 'CHECKOUT',
+        sessionId: session.id,
+        siteCode: site.code,
+      },
       'Guest checkout session created',
     );
 
@@ -52,8 +61,11 @@ export class GuestCheckoutService {
     };
   }
 
-  async sendOtp(input: GuestSendOtpBody): Promise<{ accepted: true; resendAvailableAt?: string }> {
-    const session = await this.requireActiveSession(input.sessionToken);
+  async sendOtp(
+    input: GuestSendOtpBody,
+    site: { id: string; code: 'IN' | 'COM' },
+  ): Promise<{ accepted: true; resendAvailableAt?: string }> {
+    const session = await this.requireActiveSessionForSite(input.sessionToken, site.id);
 
     if (session.otpLastSentAt) {
       const cooldownMs = env.OTP_RESEND_COOLDOWN_SECONDS * 1000;
@@ -83,7 +95,7 @@ export class GuestCheckoutService {
     try {
       const result = await this.mail.sendOtpEmail({
         to: { email: session.email },
-        siteCode: 'IN',
+        siteCode: site.code,
         otpCode: otp,
         purpose: GUEST_OTP_PURPOSE_LABEL,
         expiresInMinutes: env.OTP_EXPIRES_IN_MINUTES,
@@ -139,12 +151,15 @@ export class GuestCheckoutService {
     return { accepted: true };
   }
 
-  async verifyOtp(input: GuestVerifyOtpBody): Promise<{
+  async verifyOtp(
+    input: GuestVerifyOtpBody,
+    site: { id: string; code: 'IN' | 'COM' },
+  ): Promise<{
     email: string;
     emailVerified: true;
     verifiedAt: string;
   }> {
-    const session = await this.requireActiveSession(input.sessionToken);
+    const session = await this.requireActiveSessionForSite(input.sessionToken, site.id);
 
     if (!session.otpHash || !session.otpExpiresAt) {
       throw new ValidationError('Invalid or expired verification code');
@@ -189,8 +204,10 @@ export class GuestCheckoutService {
     };
   }
 
-  async requireVerifiedSession(sessionToken: string) {
-    const session = await this.requireActiveSession(sessionToken);
+  async requireVerifiedSession(sessionToken: string, siteId?: string) {
+    const session = siteId
+      ? await this.requireActiveSessionForSite(sessionToken, siteId)
+      : await this.requireActiveSession(sessionToken);
     if (!session.emailVerifiedAt) {
       throw new ForbiddenError('Guest email must be verified before payment');
     }
@@ -205,6 +222,14 @@ export class GuestCheckoutService {
     }
     if (session.expiresAt < new Date()) {
       throw new UnauthorizedError('Guest checkout session expired');
+    }
+    return session;
+  }
+
+  async requireActiveSessionForSite(sessionToken: string, siteId: string) {
+    const session = await this.requireActiveSession(sessionToken);
+    if (session.siteId !== siteId) {
+      throw new ForbiddenError('Guest checkout session does not match this storefront');
     }
     return session;
   }

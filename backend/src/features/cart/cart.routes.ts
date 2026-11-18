@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '@/middlewares/auth.middleware';
+import { requireStorefrontSite } from '@/middlewares/storefront-site.middleware';
 import { validate } from '@/middlewares/validate.middleware';
 import { asyncHandler } from '@/utils/asyncHandler';
 import { cartController } from './cart.controller';
@@ -11,11 +12,11 @@ import {
 } from './cart.validation';
 
 /**
- * Cart routes — authenticated CUSTOMER or VENDOR account cart.
+ * Cart routes — authenticated CUSTOMER or VENDOR account cart (site-scoped).
  */
 const router = Router();
 
-router.use(authenticate, authorize('CUSTOMER', 'VENDOR'));
+router.use(requireStorefrontSite, authenticate, authorize('CUSTOMER', 'VENDOR'));
 
 router.get('/', asyncHandler(cartController.get));
 
