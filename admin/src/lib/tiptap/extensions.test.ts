@@ -11,9 +11,13 @@ describe("tiptap html helpers", () => {
     expect(isEmptyRichTextHtml("")).toBe(true);
     expect(isEmptyRichTextHtml("<p></p>")).toBe(true);
     expect(isEmptyRichTextHtml("<p><br></p>")).toBe(true);
+    expect(isEmptyRichTextHtml("<p><br/></p>")).toBe(true);
+    expect(isEmptyRichTextHtml("<p>&nbsp;</p>")).toBe(true);
+    expect(isEmptyRichTextHtml("<p>   </p>")).toBe(true);
     expect(isEmptyRichTextHtml("<p>Body</p>")).toBe(false);
     expect(isEmptyRichTextHtml('<p><img src="https://example.com/a.png" /></p>')).toBe(
       false,
     );
   });
 });
+

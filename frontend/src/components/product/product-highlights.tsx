@@ -4,6 +4,7 @@ import { ChevronDown, Plus } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
+import { sanitizeRichHtml } from "@/lib/sanitize-rich-html";
 import type { PublicProductHighlight } from "@/types/product";
 
 type ProductHighlightsProps = {
@@ -74,7 +75,9 @@ export function ProductHighlights({ highlights }: ProductHighlightsProps) {
                       >
                         <div
                           className="rich-html max-w-2xl pb-7 pr-10 text-base leading-7 text-[#6c7a7d] [&_a]:text-[#c97852] [&_p:not(:last-child)]:mb-3"
-                          dangerouslySetInnerHTML={{ __html: item.answer }}
+                          dangerouslySetInnerHTML={{
+                            __html: sanitizeRichHtml(item.answer),
+                          }}
                         />
                       </motion.div>
                     ) : null}
