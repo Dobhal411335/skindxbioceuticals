@@ -32,9 +32,12 @@ jest.mock('@/lib/crypto', () => ({
   secureCompare: (a: string, b: string) => a === b,
 }));
 
+const SITE = { id: 'site-in', code: 'IN' as const };
+
 function activeSession(overrides: Record<string, unknown> = {}) {
   return {
     id: 'session-1',
+    siteId: SITE.id,
     tokenHash: 'sha:token',
     email: 'existing@example.com',
     emailVerifiedAt: null,
@@ -72,12 +75,13 @@ describe('GuestCheckoutService.sendOtp', () => {
     findByTokenHash.mockResolvedValue(activeSession());
     sendOtpEmail.mockResolvedValue({ submitted: true, providerMessageId: 'msg-1' });
 
-    const result = await service.sendOtp({ sessionToken: 'token' });
+    const result = await service.sendOtp({ sessionToken: 'token' }, SITE);
 
     expect(result).toEqual({ accepted: true });
     expect(sendOtpEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: { email: 'existing@example.com' },
+        siteCode: SITE.code,
         otpCode: '123456',
       }),
     );
@@ -99,9 +103,9 @@ describe('GuestCheckoutService.sendOtp', () => {
       errorMessage: 'Email provider rejected the request',
     });
 
-    await expect(service.sendOtp({ sessionToken: 'token' })).rejects.toBeInstanceOf(
-      ValidationError,
-    );
+    await expect(
+      service.sendOtp({ sessionToken: 'token' }, SITE),
+    ).rejects.toBeInstanceOf(ValidationError);
 
     expect(update).toHaveBeenCalledWith(
       'session-1',
@@ -123,7 +127,7 @@ describe('GuestCheckoutService.sendOtp', () => {
       }),
     );
 
-    const result = await service.sendOtp({ sessionToken: 'token' });
+    const result = await service.sendOtp({ sessionToken: 'token' }, SITE);
 
     expect(result.accepted).toBe(true);
     expect(result.resendAvailableAt).toBeDefined();
